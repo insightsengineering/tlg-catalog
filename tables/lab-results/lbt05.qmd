@@ -1,0 +1,189 @@
+---
+title: LBT05
+subtitle: Laboratory Abnormalities with Single and Replicated Marked
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(tern)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adlb <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adlb <- df_explicit_na(adlb)
+
+# Modify ANRIND and create AVALCAT1/PARCAT2
+# PARCAT2 is just used for filtering, but in order to be the
+# filtering as realistic as possible, will create the variable.
+qntls <- adlb %>%
+  group_by(PARAMCD) %>%
+  summarise(as_tibble(t(quantile(AVAL, probs = c(0.1, 0.9)))), .groups = "drop_last") %>%
+  rename(q1 = 2, q2 = 3)
+
+adlb <- adlb %>%
+  left_join(qntls, by = "PARAMCD")
+
+avalcat1 <- c("LAST", "REPLICATED", "SINGLE")
+
+set.seed(1)
+adlb <- adlb %>%
+  group_by(USUBJID, PARAMCD, BASETYPE) %>%
+  mutate(
+    ANRIND = factor(
+      case_when(
+        ANRIND == "LOW" & AVAL <= q1 ~ "LOW LOW",
+        ANRIND == "HIGH" & AVAL >= q2 ~ "HIGH HIGH",
+        TRUE ~ as.character(ANRIND)
+      ),
+      levels = c("", "HIGH", "HIGH HIGH", "LOW", "LOW LOW", "NORMAL")
+    ),
+    AVALCAT1 = factor(
+      case_when(
+        ANRIND %in% c("HIGH HIGH", "LOW LOW") ~
+          sample(x = avalcat1, size = n(), replace = TRUE, prob = c(0.3, 0.6, 0.1)),
+        TRUE ~ ""
+      ),
+      levels = c("", avalcat1)
+    ),
+    PARCAT2 = factor(ifelse(ANRIND %in% c("HIGH HIGH", "LOW LOW"), "LS",
+      sample(c("SI", "CV", "LS"), size = n(), replace = TRUE)
+    ))
+  ) %>%
+  select(-q1, -q2)
+
+# Pre-processing steps
+adlb_f <- adlb %>%
+  filter(ONTRTFL == "Y" & PARCAT2 == "LS" & SAFFL == "Y" & !is.na(AVAL)) %>%
+  mutate(abn_dir = factor(case_when(
+    ANRIND == "LOW LOW" ~ "Low",
+    ANRIND == "HIGH HIGH" ~ "High",
+    TRUE ~ ""
+  )))
+
+# Construct analysis map
+map <- unique(
+  adlb_f[
+    adlb_f$abn_dir %in% c("Low", "High") & adlb_f$AVALCAT1 != "<Missing>", c("PARAM", "abn_dir")
+  ]
+) %>%
+  lapply(as.character) %>%
+  as.data.frame() %>%
+  arrange(PARAM, desc(abn_dir))
+```
+
+## Standard Table
+
+```{r variant 1}
+# remove all marked abrnormalities for ALT so that it can be demonstrated that
+# just the `Any Abnormality` row is shown when there is no marked abonormality.
+adlb_f2 <- adlb_f
+adlb_f2$abn_dir[adlb_f2$PARAMCD == "ALT"] <- "<Missing>"
+adlb_f2$AVALCAT1[adlb_f2$PARAMCD == "ALT"] <- "<Missing>"
+
+adlb_f2 <- df_explicit_na(adlb_f2, na_level = "<Missing>")
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARMCD") %>%
+  split_rows_by(
+    "PARAM",
+    label_pos = "topleft",
+    split_label = "Laboratory Test"
+  ) %>%
+  summarize_num_patients(var = "USUBJID", .stats = "unique_count") %>%
+  append_topleft("  Direction of Abnormality") %>%
+  split_rows_by("abn_dir", split_fun = trim_levels_to_map(map)) %>%
+  count_abnormal_by_marked(
+    var = "AVALCAT1",
+    variables = list(id = "USUBJID", param = "PARAM", direction = "abn_dir")
+  )
+
+result <- build_table(lyt, df = adlb_f2, alt_counts_df = adsl)
+
+all_zero_or_na_not_any <- function(tr) {
+  if (!is(tr, "TableRow") || is(tr, "LabelRow") || obj_label(tr) == "Any Abnormality") {
+    return(FALSE)
+  }
+  rvs <- unlist(unname(row_values(tr)))
+  all(is.na(rvs) | rvs == 0 | !is.finite(rvs))
+}
+
+result <- trim_rows(result, criteria = all_zero_or_na_not_any)
+result
+```
+
+## Table Showing <br/> All Categories
+
+```{r variant 2}
+adlb_f <- df_explicit_na(adlb_f, na_level = "<Missing>") # abn_dir has ""
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARMCD") %>%
+  split_rows_by(
+    "PARAM",
+    label_pos = "topleft",
+    split_label = "Laboratory Test"
+  ) %>%
+  summarize_num_patients(var = "USUBJID", .stats = "unique_count") %>%
+  append_topleft("  Direction of Abnormality") %>%
+  split_rows_by("abn_dir", split_fun = trim_levels_to_map(map)) %>%
+  count_abnormal_by_marked(
+    var = "AVALCAT1",
+    variables = list(id = "USUBJID", param = "PARAM", direction = "abn_dir")
+  )
+
+result <- build_table(lyt, df = adlb_f, alt_counts_df = adsl)
+
+result
+```
+
+## Table with <br/> Study-Specific <br/> MLAs
+
+```{r variant 3}
+#| code-fold: show
+
+# This variant reflects user modifications made to the laboratory analysis data set related to Safety Lab Standardisation metadata.
+# There is no unique layout level variation.
+```
+
+## Table of Lab Abnormalities Showing <br/> All Categories But Only for Parameter <br/> Codes with At Least One Abnormality
+
+```{r variant 4}
+# adlb_f2 is used so that it can be demonstrated that
+# only parameters with at least one marked abnormality are displayed.
+# Create an empirical map removing rows belonging to "ALT" which does not contain abnormalities
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARMCD") %>%
+  split_rows_by(
+    "PARAM",
+    label_pos = "topleft",
+    split_label = "Laboratory Test",
+    split_fun = trim_levels_in_group("abn_dir", drop_outlevs = TRUE)
+  ) %>%
+  summarize_num_patients(var = "USUBJID", .stats = "unique_count") %>%
+  append_topleft("  Direction of Abnormality") %>%
+  split_rows_by("abn_dir") %>%
+  count_abnormal_by_marked(
+    var = "AVALCAT1",
+    variables = list(id = "USUBJID", param = "PARAM", direction = "abn_dir")
+  )
+
+# we should still use the prune_table() function to obtain the desired output.
+result <- build_table(lyt, df = adlb_f2, alt_counts_df = adsl) %>%
+  prune_table()
+result
+
+# Another approach would be to create an empirical map by removing the ALT records
+# and use it in `trim_levels_to_map`.
+# this is an a posteriori approach, though.
+```
+:::

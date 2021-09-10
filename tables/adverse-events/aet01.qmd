@@ -1,0 +1,450 @@
+---
+title: AET01
+subtitle: Safety Summary
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+To illustrate, additional variables such as flags (TRUE/FALSE) for select AEs of interest and select AE baskets are added to the `adae` dataset.
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(dplyr)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adae <- synthetic_cdisc_dataset("rcd_2022_10_13", "adae")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adae <- df_explicit_na(
+  adae,
+  omit_columns = c("SMQ01NAM", "SMQ01SC", "SMQ02NAM", "SMQ02SC", "CQ01NAM", "STUDYID", "USUBJID")
+)
+
+set.seed(99)
+
+adae <- adae %>%
+  mutate(
+    AEDECOD = as.character(AEDECOD),
+    AESDTH = sample(c("N", "Y"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)),
+    AEACN = sample(
+      c("DOSE NOT CHANGED", "DOSE INCREASED", "DRUG INTERRUPTED", "DRUG WITHDRAWN"),
+      size = nrow(adae),
+      replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)
+    ),
+    FATAL = AESDTH == "Y",
+    SER = AESER == "Y",
+    SERWD = AESER == "Y" & AEACN == "DRUG WITHDRAWN",
+    SERDSM = AESER == "Y" & AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"),
+    RELSER = AESER == "Y" & AEREL == "Y",
+    WD = AEACN == "DRUG WITHDRAWN",
+    DSM = AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"),
+    REL = AEREL == "Y",
+    RELWD = AEREL == "Y" & AEACN == "DRUG WITHDRAWN",
+    RELDSM = AEREL == "Y" & AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"),
+    CTC35 = AETOXGR %in% c("3", "4", "5"),
+    CTC45 = AETOXGR %in% c("4", "5"),
+    SMQ01 = SMQ01NAM != "",
+    SMQ02 = SMQ02NAM != "",
+    CQ01 = CQ01NAM != "",
+    USUBJID_AESEQ = paste(USUBJID, AESEQ, sep = "@@") # Create unique ID per AE in dataset.
+  ) %>%
+  var_relabel(
+    AEDECOD = "Dictionary-Derived Term",
+    AESDTH = "Results in Death",
+    AEACN = "Action Taken with Study Treatment",
+    FATAL = "AE with fatal outcome",
+    SER = "Serious AE",
+    SERWD = "Serious AE leading to withdrawal from treatment",
+    SERDSM = "Serious AE leading to dose modification/interruption",
+    RELSER = "Related Serious AE",
+    WD = "AE leading to withdrawal from treatment",
+    DSM = "AE leading to dose modification/interruption",
+    REL = "Related AE",
+    RELWD = "Related AE leading to withdrawal from treatment",
+    RELDSM = "Related AE leading to dose modification/interruption",
+    CTC35 = "Grade 3-5 AE",
+    CTC45 = "Grade 4/5 AE",
+    SMQ01 = aesi_label(adae$SMQ01NAM, adae$SMQ01SC),
+    SMQ02 = aesi_label(adae$SMQ02NAM, adae$SMQ02SC),
+    CQ01 = aesi_label(adae$CQ01NAM)
+  )
+```
+
+## Standard Table
+
+```{r}
+aesi_vars <- c("FATAL", "SER", "SERWD", "SERDSM", "RELSER", "WD", "DSM", "REL", "RELWD", "RELDSM", "CTC35")
+
+# Layout for variables from adsl dataset.
+lyt_adsl <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  count_values(
+    "DTHFL",
+    values = "Y",
+    .labels = c(count_fraction = "Total number of deaths"),
+    denom = "N_col"
+  ) %>%
+  count_values(
+    "DCSREAS",
+    values = "ADVERSE EVENT",
+    .labels = c(count_fraction = "Total number of patients withdrawn from study due to an AE"),
+    denom = "N_col"
+  )
+
+result_adsl <- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)
+
+# Layout for variables from adae dataset.
+lyt_adae <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  count_patients_with_event(
+    vars = "USUBJID",
+    filters = c("STUDYID" = as.character(unique(adae$STUDYID))),
+    denom = "N_col",
+    .labels = c(count_fraction = "Total number of patients with at least one adverse event")
+  ) %>%
+  count_values(
+    "STUDYID",
+    values = as.character(unique(adae$STUDYID)),
+    .stats = "count",
+    .labels = c(count = "Total AEs"),
+    table_names = "total_aes"
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = var_labels(adae[, aesi_vars]),
+    denom = "N_col",
+    var_labels = "Total number of patients with at least one",
+    show_labels = "visible"
+  )
+
+result_adae <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)
+
+# Combine tables.
+col_info(result_adsl) <- col_info(result_adae)
+result <- rbind(
+  result_adae[1:2, ],
+  result_adsl,
+  result_adae[3:nrow(result_adae), ]
+)
+
+result
+```
+
+## Table with Medical <br/> Concepts Section
+
+```{r}
+aesi_vars <- c("FATAL", "SER", "SERWD", "SERDSM", "RELSER", "WD", "DSM", "REL", "RELWD", "RELDSM", "CTC35")
+basket_vars <- c("SMQ01", "SMQ02", "CQ01")
+
+# Layout for variables from adsl dataset.
+lyt_adsl <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  count_values(
+    "DTHFL",
+    values = "Y",
+    .labels = c(count_fraction = "Total number of deaths"),
+    denom = "N_col"
+  ) %>%
+  count_values(
+    "DCSREAS",
+    values = "ADVERSE EVENT",
+    .labels = c(count_fraction = "Total number of patients withdrawn from study due to an AE"),
+    denom = "N_col"
+  )
+
+result_adsl <- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)
+
+# Layout for variables from adae dataset.
+lyt_adae <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  count_patients_with_event(
+    vars = "USUBJID",
+    filters = c("STUDYID" = as.character(unique(adae$STUDYID))),
+    denom = "N_col",
+    .labels = c(count_fraction = "Total number of patients with at least one adverse event")
+  ) %>%
+  count_values(
+    "STUDYID",
+    values = as.character(unique(adae$STUDYID)),
+    .stats = "count",
+    .labels = c(count = "Total AEs"),
+    denom = "N_col",
+    table_names = "total_aes"
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = var_labels(adae[, aesi_vars]),
+    table_names = "table_ae",
+    denom = "N_col",
+    var_labels = "Total number of patients with at least one",
+    show_labels = "visible"
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = var_labels(adae[, basket_vars]),
+    table_names = "table_aesi",
+    denom = "N_col",
+    var_labels = "Total number of patients with at least one",
+    show_labels = "visible"
+  )
+
+result_adae <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)
+
+# Combine tables.
+col_info(result_adsl) <- col_info(result_adae)
+result <- rbind(
+  result_adae[1:2, ],
+  result_adsl,
+  result_adae[3:nrow(result_adae), ]
+)
+
+result
+```
+
+## Table with <br/> Modified Rows
+
+```{r}
+aesi_vars <- c("FATAL", "SER", "WD", "REL", "CTC35", "CTC45")
+# Layout for variables from adsl dataset.
+lyt_adsl <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  count_values(
+    "DTHFL",
+    values = "Y",
+    .labels = c(count_fraction = "Total number of deaths"),
+    denom = "N_col"
+  ) %>%
+  count_values(
+    "DCSREAS",
+    values = "ADVERSE EVENT",
+    .labels = c(count_fraction = "Total number of patients withdrawn from study due to an AE"),
+    denom = "N_col",
+    table_names = "tbl_dscsreas_ae"
+  ) %>%
+  count_values(
+    "DCSREAS",
+    values = "WITHDRAWAL BY SUBJECT",
+    .labels = c(count_fraction = "Total number of patients withdrawn informed consent"),
+    denom = "N_col",
+    table_names = "tbl_dscsreas_wd"
+  )
+result_adsl <- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)
+
+# Layout for variables from adae dataset.
+lyt_adae <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  count_patients_with_event(
+    vars = "USUBJID",
+    filters = c("STUDYID" = as.character(unique(adae$STUDYID))),
+    denom = "N_col",
+    .labels = c(count_fraction = "Total number of patients with at least one adverse event")
+  ) %>%
+  count_values(
+    "STUDYID",
+    values = as.character(unique(adae$STUDYID)),
+    .stats = "count",
+    .labels = c(count = "Total AEs"),
+    denom = "N_col",
+    table_names = "total_aes"
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = var_labels(adae[, aesi_vars]),
+    denom = "N_col",
+    var_labels = "Total number of patients with at least one",
+    show_labels = "visible"
+  )
+
+result_adae <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)
+
+# Combine tables.
+col_info(result_adsl) <- col_info(result_adae)
+result <- rbind(
+  result_adae[1:2, ],
+  result_adsl,
+  result_adae[3:nrow(result_adae), ]
+)
+
+result
+```
+
+## Table with Rows Counting <br/> Events & Additional Sections
+
+```{r}
+count_subj_vars <- c("FATAL", "SER", "WD", "DSM", "REL", "CTC35")
+count_term_vars <- c("SER", "DSM", "REL", "CTC35", "CTC45")
+count_ae_vars <- c("SER", "DSM", "REL", "CTC35", "CTC45")
+
+# Layout for variables from adsl dataset.
+lyt_adsl <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  count_values(
+    "DTHFL",
+    values = "Y",
+    .labels = c(count_fraction = "Total number of deaths"),
+    denom = "N_col"
+  ) %>%
+  count_values(
+    "DCSREAS",
+    values = "ADVERSE EVENT",
+    .labels = c(count_fraction = "Total number of patients withdrawn from study due to an AE"),
+    denom = "N_col"
+  )
+
+result_adsl <- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)
+
+# Layout for variables from adae dataset.
+lyt_adae <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  count_patients_with_event(
+    vars = "USUBJID",
+    filters = c("STUDYID" = as.character(unique(adae$STUDYID))),
+    denom = "N_col",
+    .labels = c(count_fraction = "Total number of patients with at least one adverse event"),
+    table_names = "total_subj"
+  ) %>%
+  count_values(
+    "STUDYID",
+    values = as.character(unique(adae$STUDYID)),
+    .stats = "count",
+    .labels = c(count = "Total AEs"),
+    denom = "N_col",
+    table_names = "total_aes"
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = var_labels(adae[, count_subj_vars]),
+    denom = "N_col",
+    var_labels = "Total number of patients with at least one",
+    show_labels = "visible"
+  ) %>%
+  count_patients_with_flags(
+    "AEDECOD",
+    flag_variables = var_labels(adae[, count_term_vars]),
+    .stats = "count",
+    .formats = c(count = "xx"),
+    table_names = "table_term",
+    var_labels = "Total number of unique preferred terms which are",
+    show_labels = "visible"
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID_AESEQ",
+    flag_variables = var_labels(adae[, count_ae_vars]),
+    .stats = "count",
+    .formats = c(count = "xx"),
+    table_names = "table_ae",
+    var_labels = "Total number of adverse events which are",
+    show_labels = "visible"
+  )
+
+result_adae <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)
+
+# Combine tables.
+col_info(result_adsl) <- col_info(result_adae)
+result <- rbind(
+  result_adae[1:2, ],
+  result_adsl,
+  result_adae[3:nrow(result_adae), ]
+)
+
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 12)
+library(teal.modules.clinical)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adae <- synthetic_cdisc_dataset("rcd_2022_10_13", "adae")
+
+add_event_flags <- function(dat) {
+  dat %>%
+    dplyr::mutate(
+      TMPFL_SER = AESER == "Y",
+      TMPFL_REL = AEREL == "Y",
+      TMPFL_GR5 = AETOXGR == "5",
+      TMP_SMQ01 = !is.na(SMQ01NAM),
+      TMP_SMQ02 = !is.na(SMQ02NAM),
+      TMP_CQ01 = !is.na(CQ01NAM)
+    ) %>%
+    var_relabel(
+      TMPFL_SER = "Serious AE",
+      TMPFL_REL = "Related AE",
+      TMPFL_GR5 = "Grade 5 AE",
+      TMP_SMQ01 = aesi_label(dat[["SMQ01NAM"]], dat[["SMQ01SC"]]),
+      TMP_SMQ02 = aesi_label(dat[["SMQ02NAM"]], dat[["SMQ02SC"]]),
+      TMP_CQ01 = aesi_label(dat[["CQ01NAM"]])
+    )
+}
+
+# Generating user-defined event flags.
+adae <- adae %>% add_event_flags()
+
+ae_anl_vars <- names(adae)[startsWith(names(adae), "TMPFL_")]
+aesi_vars <- names(adae)[startsWith(names(adae), "TMP_")]
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")'),
+    cdisc_dataset("ADAE", adae, code = 'ADAE <- synthetic_cdisc_dataset("rcd_2022_10_13", "adae")
+      add_event_flags <- function(dat) {
+        dat %>%
+          dplyr::mutate(
+            TMPFL_SER = AESER == "Y",
+            TMPFL_REL = AEREL == "Y",
+            TMPFL_GR5 = AETOXGR == "5",
+            TMP_SMQ01 = !is.na(SMQ01NAM),
+            TMP_SMQ02 = !is.na(SMQ02NAM),
+            TMP_CQ01 = !is.na(CQ01NAM)
+          ) %>%
+          var_relabel(
+            TMPFL_SER = "Serious AE",
+            TMPFL_REL = "Related AE",
+            TMPFL_GR5 = "Grade 5 AE",
+            TMP_SMQ01 = aesi_label(dat[["SMQ01NAM"]], dat[["SMQ01SC"]]),
+            TMP_SMQ02 = aesi_label(dat[["SMQ02NAM"]], dat[["SMQ02SC"]]),
+            TMP_CQ01 = aesi_label(dat[["CQ01NAM"]])
+          )
+      }
+      ADAE <- ADAE %>% add_event_flags()'),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_events_summary(
+      label = "Adverse Events Summary",
+      dataname = "ADAE",
+      arm_var = choices_selected(
+        choices = variable_choices("ADSL", c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      flag_var_anl = choices_selected(
+        choices = variable_choices("ADAE", ae_anl_vars),
+        selected = ae_anl_vars[1],
+        keep_order = TRUE,
+        fixed = FALSE
+      ),
+      flag_var_aesi = choices_selected(
+        choices = variable_choices("ADAE", aesi_vars),
+        selected = aesi_vars[1],
+        keep_order = TRUE,
+        fixed = FALSE
+      ),
+      add_total = TRUE
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+:::

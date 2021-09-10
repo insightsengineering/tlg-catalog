@@ -1,0 +1,114 @@
+---
+title: LBT01
+subtitle: Laboratory Test Results and Change from Baseline by Visit
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+In order to generate the `LBT01` standard tabulation, the `adlb` dataset may be pre-processed so as to discriminate baseline from follow-up visits.
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(tern)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adlb <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adlb <- df_explicit_na(adlb)
+
+# For illustration purpose, the example focuses on "Alanine Aminotransferase
+# Measurement" starting from baseline, while excluding visit at week 1 for
+# subjects who were prescribed a placebo.
+adlb_f <- adlb %>%
+  dplyr::filter(
+    PARAM == "Alanine Aminotransferase Measurement" &
+      !(ARM == "B: Placebo" & AVISIT == "WEEK 1 DAY 8") &
+      AVISIT != "SCREENING"
+  )
+```
+
+## Standard Table
+
+```{r example1}
+# Define the split function
+split_fun <- drop_split_levels
+
+lyt <- basic_table() %>%
+  split_cols_by("ARM") %>%
+  split_rows_by("AVISIT", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adlb_f$AVISIT)) %>%
+  split_cols_by_multivar(
+    vars = c("AVAL", "CHG"),
+    varlabels = c("Analysis Value", "Absolute Change from Baseline")
+  ) %>%
+  summarize_colvars()
+
+result <- build_table(lyt, adlb_f)
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 18)
+
+library(teal.modules.clinical)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adlb <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adlb <- df_explicit_na(adlb)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL",
+      adsl,
+      code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("rcd_2022_10_13", "adsl"))'
+    ),
+    cdisc_dataset("ADLB",
+      adlb,
+      code = 'ADLB <- df_explicit_na(synthetic_cdisc_dataset("rcd_2022_10_13", "adlb"))'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_summary_by(
+      label = "Laboratory Test Results and Change from Baseline by Visit",
+      dataname = "ADLB",
+      arm_var = choices_selected(
+        choices = variable_choices(adsl, c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      by_vars = choices_selected(
+        choices = variable_choices(adlb, c("PARAM", "AVISIT")),
+        selected = c("AVISIT")
+      ),
+      summarize_vars = choices_selected(
+        choices = variable_choices(adlb, c("AVAL", "CHG")),
+        selected = c("AVAL", "CHG")
+      ),
+      useNA = "ifany",
+      paramcd = choices_selected(
+        choices = value_choices(adlb, "PARAMCD", "PARAM"),
+        selected = "ALT"
+      ),
+      parallel_vars = TRUE
+    )
+  ),
+  filter = list(ADLB = list(AVAL = list()))
+)
+
+shinyApp(app$ui, app$server)
+```
+:::

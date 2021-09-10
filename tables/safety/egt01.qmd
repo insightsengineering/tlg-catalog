@@ -1,0 +1,111 @@
+---
+title: EGT01
+subtitle: ECG Results and Change from Baseline by Visit
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(scda)
+
+# Data should be filtered for the studied Parameter (`PARAM`) and the
+# Analysis Visit (`AVISIT`). According to the GDSR template, the values for
+# the `AVISIT` reported in the EGT01 standard may be:
+# 'POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST'.
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adeg <- synthetic_cdisc_dataset("rcd_2022_10_13", "adeg")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adeg <- df_explicit_na(adeg)
+
+adeg_f <- adeg %>%
+  dplyr::filter(
+    PARAM == "Heart Rate" &
+      AVISIT != "SCREENING"
+  )
+```
+
+## Standard Table
+
+```{r egt01}
+# Define the split function
+split_fun <- drop_split_levels
+
+lyt <- basic_table() %>%
+  split_cols_by("ARM") %>%
+  split_rows_by("AVISIT", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adeg_f$AVISIT)) %>%
+  split_cols_by_multivar(
+    vars = c("AVAL", "CHG"),
+    varlabels = c("Analysis Value", "Absolute Change from Baseline")
+  ) %>%
+  summarize_colvars()
+
+result <- build_table(lyt, adeg_f)
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 16)
+
+library(teal.modules.clinical)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adeg <- synthetic_cdisc_dataset("rcd_2022_10_13", "adeg")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adeg <- df_explicit_na(adeg)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL",
+      adsl,
+      code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("rcd_2022_10_13", "adsl"))'
+    ),
+    cdisc_dataset("ADEG",
+      adeg,
+      code = 'ADEG <- df_explicit_na(synthetic_cdisc_dataset("rcd_2022_10_13", "adeg"))'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_summary_by(
+      label = "ECG Results and Change from Baseline by Visit",
+      dataname = "ADEG",
+      arm_var = choices_selected(
+        choices = variable_choices(adsl, c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      by_vars = choices_selected(
+        choices = variable_choices(adeg, c("PARAM", "AVISIT")),
+        selected = c("AVISIT")
+      ),
+      summarize_vars = choices_selected(
+        choices = variable_choices(adeg, c("AVAL", "CHG")),
+        selected = c("AVAL")
+      ),
+      useNA = "ifany",
+      paramcd = choices_selected(
+        choices = value_choices(adeg, "PARAMCD", "PARAM"),
+        selected = "HR"
+      ),
+      parallel_vars = TRUE
+    )
+  ),
+  filter = list(ADEG = list(AVAL = list()))
+)
+
+shinyApp(app$ui, app$server)
+```
+:::

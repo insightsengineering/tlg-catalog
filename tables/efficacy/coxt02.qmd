@@ -1,0 +1,191 @@
+---
+title: COXT02
+subtitle: Multi-Variable Cox Regression
+---
+
+------------------------------------------------------------------------
+
+Analysis based on multivariate Cox models is usually not performed for the Clinical Study Report (CSR) or regulatory documents, serving exploratory purposes only (e.g. for publication).
+In practice, the model usually includes only the main effects (without interaction terms).
+It produces the estimates for each of the covariates included in the model.
+The analysis follows the same principles (i.e. stratified vs. unstratified analysis and tie handling) as the general Cox model analysis also used in `COXT01`.
+Since there is usually no pre-specified hypothesis testing for such analysis, the p-values must be interpreted with caution.
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(tern)
+library(broom)
+
+adtte <- synthetic_cdisc_dataset("rcd_2022_10_13", "adtte")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adtte <- df_explicit_na(adtte)
+
+adtte_f <- adtte %>%
+  filter(
+    PARAMCD == "OS",
+    SEX %in% c("F", "M"),
+    RACE %in% c("ASIAN", "BLACK OR AFRICAN AMERICAN", "WHITE")
+  ) %>%
+  mutate(
+    ARM = droplevels(relevel(ARM, "B: Placebo")),
+    SEX = droplevels(SEX),
+    RACE = droplevels(RACE)
+  ) %>%
+  mutate(event = 1 - CNSR) %>%
+  var_relabel(
+    ARM = "Planned Arm",
+    SEX = "Sex",
+    RACE = "Race",
+    AGE = "Age"
+  )
+```
+
+## Multi-Variable Cox Regression
+
+The model is fitted using the function `fit_coxreg_multivar` specifying the time, event, arm, and candidate covariates in a `variables` list, as well as the data where these variables live.
+
+```{r cox_regression1}
+multivar_model <- fit_coxreg_multivar(
+  variables = list(
+    time = "AVAL", event = "event", arm = "ARMCD",
+    covariates = c("SEX", "AGE")
+  ),
+  data = adtte_f
+)
+```
+
+After fitting, the models are tidied and arranged in a table layout using the `rtables` framework.
+
+```{r}
+df <- tidy(multivar_model)
+
+attr(df$term, which = "label") <- "Effect/Covariate Included in the Model"
+
+split_fun <- drop_split_levels
+
+result <- basic_table() %>%
+  split_rows_by("term",
+    child_labels = "hidden",
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(df$term)
+  ) %>%
+  summarize_coxreg(multivar = TRUE, conf_level = .95) %>%
+  build_table(df)
+result
+```
+
+## Multi-Variable Cox Regression <br/> with Interaction Term
+
+Interaction terms are not included in the GDSR.
+For this reason and because we must take precautions when fitting such models, this functionality has not been translated in `fit_coxreg_multivar`.
+Please remove interaction terms or, if required by the study, refer to `survival::coxph`.
+The estimation of interaction terms is not supported.
+Besides, in `tern`, the developer needs to do the pre-processing to add necessary variables based on ADVS or ADSUB to the analysis dataset.
+An example can be found in `DMT01`.
+
+## Multi-Variable Cox Regression <br/> Specifying Covariates
+
+See the *Multi-Variable Cox Regression with Interaction Term* tab.
+
+## Multi-Variable Cox Regression <br/> Specifying Covariates from ADSUB
+
+See the *Multi-Variable Cox Regression with Interaction Term* tab.
+
+## Multi-Variable Cox Regression <br/> Setting Strata, Ties, Alpha Level, Statistics
+
+Additional controls can be customized using `control_coxreg` (see `?control_coxreg`) such as the ties calculation method and the confidence level.
+Stratification variables can be added via the `strata` element of the `variables` list.
+Note that confidence level needs to be specified directly using the `conf_level` argument to the `summarize_coxreg` function.
+
+```{r}
+multivar_model <- fit_coxreg_multivar(
+  variables = list(
+    time = "AVAL", event = "event", arm = "ARMCD",
+    covariates = c("SEX", "AGE"), strata = "RACE"
+  ),
+  control = control_coxreg(
+    conf_level = 0.9,
+    ties = "efron"
+  ),
+  data = adtte_f
+)
+
+df <- tidy(multivar_model)
+
+attr(df$term, which = "label") <- "Effect/Covariate Included in the Model"
+
+split_fun <- drop_split_levels
+
+result <- basic_table() %>%
+  split_rows_by("term",
+    child_labels = "hidden",
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(df$term)
+  ) %>%
+  summarize_coxreg(multivar = TRUE, conf_level = 0.9, vars = c("hr", "ci")) %>%
+  build_table(df)
+result
+```
+
+## Multi-Variable Cox Regression <br/> with Selection Process for Covariates
+
+See the *Multi-Variable Cox Regression with Interaction Term* tab.
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 30)
+
+library(teal.modules.clinical)
+library(scda)
+
+ADSL <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+ADTTE <- synthetic_cdisc_dataset("rcd_2022_10_13", "adtte")
+arm_ref_comp <- list(
+  ACTARMCD = list(
+    ref = "ARM B",
+    comp = c("ARM A", "ARM C")
+  ),
+  ARM = list(
+    ref = "B: Placebo",
+    comp = c("A: Drug X", "C: Combination")
+  )
+)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", ADSL, code = 'ADSL <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")'),
+    cdisc_dataset("ADTTE", ADTTE, code = 'ADTTE <- synthetic_cdisc_dataset("rcd_2022_10_13", "adtte")'),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_coxreg(
+      label = "Cox Reg.",
+      dataname = "ADTTE",
+      arm_var = choices_selected(c("ARM", "ARMCD", "ACTARMCD"), "ARM"),
+      arm_ref_comp = arm_ref_comp,
+      paramcd = choices_selected(
+        value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"
+      ),
+      strata_var = choices_selected(
+        c("SEX", "STRATA1", "STRATA2"), NULL
+      ),
+      cov_var = choices_selected(
+        c("AGE", "SEX", "RACE"), c("AGE", "SEX")
+      ),
+      multivariate = TRUE
+    )
+  )
+)
+shinyApp(app$ui, app$server)
+```
+:::

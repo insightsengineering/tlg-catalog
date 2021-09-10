@@ -1,0 +1,77 @@
+---
+title: LBT08
+subtitle: Laboratory Test Results with Highest NCI CTCAE Grade at Any Time
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(tern)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adlb <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb")
+
+adlb <- adlb %>%
+  mutate(
+    GRADDR = case_when(
+      PARAMCD == "ALT" ~ "B",
+      PARAMCD == "CRP" ~ "H",
+      PARAMCD == "IGA" ~ "L"
+    )
+  ) %>%
+  filter(SAFFL == "Y" & ONTRTFL == "Y" & GRADDR != "")
+
+adsl <- df_explicit_na(adsl)
+adlb <- df_explicit_na(adlb)
+
+df <- h_adlb_worsen(
+  adlb,
+  worst_flag_low = c("WGRLOFL" = "Y"),
+  worst_flag_high = c("WGRHIFL" = "Y"),
+  direction_var = "GRADDR"
+)
+
+attributes(df$GRADDR) <- list("label" = "Direction of Abnormality")
+```
+
+## Standard Table
+
+Note: The direction of the shift table for each lab test is based on metadata and NCI-CTCAE specifications.
+In addition, the worst laboratory flags must be selected appropriately to match the direction of abnormality.
+For example, if any lab requires a shift table for both directions, then both `worst_flag_low` and `worst_flag_high` must be specified in `h_adlb_worsen`.
+If all labs requires a shift table for only one direction, then the matching worst lab flag variable must be selected in `h_adlb_worsen`.
+
+```{r variant1}
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARMCD") %>%
+  split_rows_by("PARAMCD", label_pos = "topleft", split_label = obj_label(df$PARAMCD)) %>%
+  split_rows_by("GRADDR", label_pos = "topleft", split_label = obj_label(df$GRADDR)) %>%
+  count_abnormal_lab_worsen_by_baseline(
+    var = "ATOXGR",
+    variables = list(
+      id = "USUBJID",
+      baseline_var = "BTOXGR",
+      direction_var = "GRADDR"
+    )
+  ) %>%
+  append_topleft("    Highest NCI CTCAE Grade") %>%
+  build_table(df = df, alt_counts_df = adsl)
+
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| code-fold: show
+
+# In progress
+```
+:::

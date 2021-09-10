@@ -1,0 +1,177 @@
+---
+title: RMPT01
+subtitle: Duration of Exposure for Risk Management Plan
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adex <- synthetic_cdisc_dataset("rcd_2022_10_13", "adex")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adex <- df_explicit_na(adex)
+
+# Simulate ADEX records with PARAMCD == "TDURD" as they are not in sample scda dataset.
+set.seed(1, kind = "Mersenne-Twister")
+adex2 <- adex %>%
+  distinct(USUBJID, .keep_all = TRUE) %>%
+  mutate(
+    PARAMCD = "TDURD",
+    PARAM = "Overall duration (days)",
+    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE)
+  ) %>%
+  bind_rows(adex)
+
+# Now pre-processing steps are carried out.
+anl <- adex2 %>%
+  filter(
+    PARAMCD == "TDURD",
+    PARCAT2 == "Drug A",
+    SAFFL == "Y"
+  ) %>%
+  mutate(
+    aval_months = day2month(AVAL),
+    aval_months_cat = factor(case_when(
+      aval_months < 1 ~ "< 1 month",
+      aval_months >= 1 & aval_months < 3 ~ "1 to <3 months",
+      aval_months >= 3 & aval_months < 6 ~ "3 to <6 months",
+      TRUE ~ ">=6 months"
+    ), levels = c("< 1 month", "1 to <3 months", "3 to <6 months", ">=6 months"))
+  )
+
+adsl_f <- adsl %>% filter(adsl$SAFFL == "Y")
+```
+
+## Standard Table
+
+```{r}
+lyt <- basic_table(
+  title = "Duration of Exposure: Safety-Evaluable Patients",
+  main_footer = "* Patient Time is the sum of exposure across all patients in days.",
+  show_colcounts = TRUE
+) %>%
+  summarize_patients_exposure_in_cols(
+    var = "AVAL", col_split = TRUE,
+    .labels = c(n_patients = "Number of Patients", sum_exposure = "Patient Time*"),
+    custom_label = "Total Number of Patients and Patient Time"
+  ) %>%
+  split_rows_by("aval_months_cat", label_pos = "topleft", split_label = "Duration of exposure") %>%
+  summarize_patients_exposure_in_cols(
+    var = "AVAL",
+    col_split = FALSE
+  )
+
+result <- build_table(lyt, df = anl, alt_counts_df = adsl_f)
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 10)
+
+library(scda)
+library(dplyr)
+library(teal.modules.clinical)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adex <- synthetic_cdisc_dataset("rcd_2022_10_13", "adex")
+
+labels <- var_labels(adex)
+set.seed(1, kind = "Mersenne-Twister")
+adex <- adex %>%
+  distinct(USUBJID, .keep_all = TRUE) %>%
+  mutate(
+    PARAMCD = "TDURD",
+    PARAM = "Overall duration (days)",
+    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
+    AVALU = "Days"
+  ) %>%
+  bind_rows(adex)
+
+adex <- adex %>%
+  mutate(
+    aval_months = day2month(AVAL),
+    aval_months_cat = factor(case_when(
+      aval_months < 1 ~ "< 1 month",
+      aval_months >= 1 & aval_months < 3 ~ "1 to <3 months",
+      aval_months >= 3 & aval_months < 6 ~ "3 to <6 months",
+      TRUE ~ ">=6 months"
+    ), levels = c("< 1 month", "1 to <3 months", "3 to <6 months", ">=6 months"))
+  ) %>%
+  select(-aval_months)
+
+var_labels(adex) <- c(labels, "Overall duration")
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")'),
+    cdisc_dataset("ADEX", adex, code = 'ADEX <- synthetic_cdisc_dataset("rcd_2022_10_13", "adex")
+    labels <- var_labels(ADEX)
+    set.seed(1, kind = "Mersenne-Twister")
+    ADEX <- ADEX %>%
+      distinct(USUBJID, .keep_all = TRUE) %>%
+      mutate(PARAMCD = "TDURD",
+             PARAM = "Overall duration (days)",
+             AVAL = sample(
+             x = seq(1, 200), size = n(), replace = TRUE
+             ),
+             AVALU = "Days") %>%
+      bind_rows(ADEX)
+
+    ADEX <-ADEX %>%
+      mutate(
+        aval_months = day2month(AVAL),
+        aval_months_cat = factor(case_when(
+          aval_months < 1 ~ "< 1 month",
+          aval_months >= 1 & aval_months < 3 ~ "1 to <3 months",
+          aval_months >= 3 & aval_months < 6 ~ "3 to <6 months",
+          TRUE ~ ">=6 months"
+        ), levels = c("< 1 month", "1 to <3 months", "3 to <6 months", ">=6 months"))) %>%
+      select(-aval_months)
+
+    var_labels(ADEX) <- c(labels, "Overall duration")'),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_exposure(
+      label = "Duration of Exposure Table",
+      dataname = "ADEX",
+      paramcd = choices_selected(
+        choices = value_choices(adex, "PARAMCD", "PARAM"),
+        selected = "TDURD"
+      ),
+      col_by_var = choices_selected(
+        choices = variable_choices(adex, subset = c("SEX", "ARM")),
+        selected = NULL
+      ),
+      row_by_var = choices_selected(
+        choices = variable_choices(adex, subset = c("aval_months_cat", "RACE", "STRATA1", "SEX")),
+        selected = "aval_months_cat"
+      ),
+      parcat = choices_selected(
+        choices = value_choices(adex, "PARCAT2"),
+        selected = "Drug A"
+      ),
+      add_total = FALSE
+    )
+  ),
+  filter = list(
+    ADSL = list(SAFFL = "Y")
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+:::

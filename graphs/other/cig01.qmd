@@ -1,0 +1,233 @@
+---
+title: CIG01
+subtitle: Confidence Interval Plot
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(ggplot2)
+library(dplyr)
+library(scda)
+library(nestcolor)
+
+adlb <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb") %>%
+  filter(PARAMCD == "ALT", AVISIT == "BASELINE")
+```
+
+## Plot of Mean and <br/> 95% CIs for Mean
+
+The function `stat_mean_ci` from the `tern` package can be used with default values to draw the 95% confidence interval around the mean.
+
+```{r cig01_1and2}
+ggplot(
+  data = adlb,
+  mapping = aes(
+    x = ARMCD, y = AVAL, color = SEX,
+    lty = SEX, shape = SEX
+  )
+) +
+  stat_summary(
+    fun.data = stat_mean_ci,
+    geom = "errorbar",
+    width = 0.1,
+    position = position_dodge(width = 0.5)
+  ) +
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    position = position_dodge(width = 0.5)
+  ) +
+  labs(
+    title = "Confidence Interval Plot by Treatment Group",
+    caption = "Mean and 95% CIs for mean are displayed.",
+    x = "Treatment Group",
+    y = paste0(adlb$PARAMCD[1], " (", adlb$AVALU[1], ")")
+  )
+```
+
+## Plot of Confidence Interval Using <br/> a Different Stratification Variable
+
+```{r cig01_3}
+ggplot(
+  data = adlb,
+  mapping = aes(
+    x = ARMCD, y = AVAL, color = STRATA2,
+    lty = STRATA2, shape = STRATA2
+  )
+) +
+  stat_summary(
+    fun.data = stat_mean_ci,
+    geom = "errorbar",
+    width = 0.1,
+    position = position_dodge(width = 0.5)
+  ) +
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    position = position_dodge(width = 0.5)
+  ) +
+  labs(
+    title = "Confidence Interval Plot by Treatment Group",
+    caption = "Mean and 95% CIs for mean are displayed.",
+    x = "Treatment Group",
+    y = paste0(adlb$PARAMCD[1], " (", adlb$AVALU[1], ")")
+  )
+```
+
+## Plot of Median and <br/> 95% CIs for Median
+
+The function `stat_median_ci` from the `tern` package works similarly to `stat_mean_ci`.
+
+```{r cig01_4}
+ggplot(
+  data = adlb,
+  mapping = aes(
+    x = ARMCD, y = AVAL, color = STRATA1,
+    lty = STRATA1, shape = STRATA1
+  )
+) +
+  stat_summary(
+    fun.data = stat_median_ci,
+    geom = "errorbar",
+    width = 0.1,
+    position = position_dodge(width = 0.5)
+  ) +
+  stat_summary(
+    fun = median,
+    geom = "point",
+    position = position_dodge(width = 0.5)
+  ) +
+  labs(
+    title = "Confidence Interval Plot by Treatment Group",
+    caption = "Median and 95% CIs for median are displayed.",
+    x = "Treatment Group",
+    y = paste0(adlb$PARAMCD[1], " (", adlb$AVALU[1], ")")
+  )
+```
+
+## Plot of Median and 95% CIs for <br/> Median Using Different Alpha Level
+
+To modify the confidence level for the estimation of the confidence interval, the call to `stat_mean_ci` (or `stat_median_ci`) can be slightly modified.
+
+```{r cig01_5}
+ggplot(
+  data = adlb,
+  mapping = aes(
+    x = ARMCD, y = AVAL, color = SEX,
+    lty = SEX, shape = SEX
+  )
+) +
+  stat_summary(
+    fun.data = function(x) stat_mean_ci(x, conf_level = 0.9),
+    geom = "errorbar",
+    width = 0.1,
+    position = position_dodge(width = 0.5)
+  ) +
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    position = position_dodge(width = 0.5)
+  ) +
+  labs(
+    title = "Confidence Interval Plot by Treatment Group",
+    caption = "Mean and 90% CIs for mean are displayed.",
+    x = "Treatment Group",
+    y = paste0(adlb$PARAMCD[1], " (", adlb$AVALU[1], ")")
+  )
+```
+
+## Table of Mean <br/> and Median
+
+The corresponding table is simply obtained using the `rtables` framework:
+
+```{r cig01_6}
+lyt <- basic_table() %>%
+  split_cols_by(var = "ARMCD") %>%
+  summarize_vars(vars = "AVAL", .stats = c("mean_sd", "median"))
+build_table(lyt = lyt, df = adlb)
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 8)
+
+library(teal.modules.clinical)
+library(scda)
+
+ADSL <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+ADLB <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb")
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", ADSL),
+    cdisc_dataset("ADLB", ADLB),
+    code = 'ADSL <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+    ADLB <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb")'
+  ),
+  modules = modules(
+    tm_g_ci(
+      label = "Confidence Interval Plot",
+      x_var = data_extract_spec(
+        dataname = "ADSL",
+        select = select_spec(
+          choices = c("ARMCD", "BMRKR2"),
+          selected = c("ARMCD"),
+          multiple = FALSE,
+          fixed = FALSE
+        )
+      ),
+      y_var = data_extract_spec(
+        dataname = "ADLB",
+        filter = list(
+          filter_spec(
+            vars = "PARAMCD",
+            choices = levels(ADLB$PARAMCD),
+            selected = levels(ADLB$PARAMCD)[1],
+            multiple = FALSE,
+            label = "Select lab:"
+          ),
+          filter_spec(
+            vars = "AVISIT",
+            choices = levels(ADLB$AVISIT),
+            selected = levels(ADLB$AVISIT)[1],
+            multiple = FALSE,
+            label = "Select visit:"
+          )
+        ),
+        select = select_spec(
+          label = "Analyzed Value",
+          choices = c("AVAL", "CHG"),
+          selected = "AVAL",
+          multiple = FALSE,
+          fixed = FALSE
+        )
+      ),
+      color = data_extract_spec(
+        dataname = "ADSL",
+        select = select_spec(
+          label = "Color by variable",
+          choices = c("SEX", "STRATA1", "STRATA2"),
+          selected = c("STRATA1"),
+          multiple = FALSE,
+          fixed = FALSE
+        )
+      )
+    )
+  ),
+  header = "Example of Confidence Interval Plot",
+  footer = tags$p(
+    class = "text-muted", "Source: `teal.modules.clinical::tm_g_ci`"
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+:::

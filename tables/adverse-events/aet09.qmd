@@ -1,0 +1,223 @@
+---
+title: AET09
+subtitle: Adverse Events Related to Study Drug
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(tern)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adae <- synthetic_cdisc_dataset("rcd_2022_10_13", "adae")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adae <- df_explicit_na(adae)
+
+adae_labels <- var_labels(adae)
+
+adae_f <- adae %>%
+  filter(AEREL == "Y")
+
+var_labels(adae_f) <- adae_labels
+```
+
+## Standard Table
+
+```{r}
+# Define the split function
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM") %>%
+  add_overall_col(label = "All Patients") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one adverse event related to study drug",
+      nonunique = "Overall total number of events related to study drug"
+    )
+  ) %>%
+  split_rows_by(
+    "AEBODSYS",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(adae_f$AEBODSYS)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one adverse event related to study drug",
+      nonunique = "Total number of events related to study drug"
+    )
+  ) %>%
+  count_occurrences(
+    vars = "AEDECOD",
+    .indent_mods = -1L
+  ) %>%
+  append_varlabels(adae_f, "AEDECOD", indent = 1L)
+
+tbl1 <- build_table(
+  lyt = lyt,
+  df = adae_f,
+  alt_counts_df = adsl
+) %>%
+  prune_table()
+
+result <- tbl1 %>%
+  prune_table() %>%
+  sort_at_path(
+    path = c("AEBODSYS"),
+    scorefun = cont_n_onecol(4)
+  ) %>%
+  sort_at_path(
+    path = c("AEBODSYS", "*", "AEDECOD"),
+    scorefun = score_occurrences
+  )
+
+result
+```
+
+## Table Including High-Level Terms
+
+```{r}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one adverse event related to study drug",
+      nonunique = "Overall total number of events related to study drug"
+    )
+  ) %>%
+  split_rows_by(
+    "AEBODSYS",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = split_fun,
+    indent_mod = 1L,
+    label_pos = "topleft",
+    split_label = obj_label(adae_f$AEBODSYS)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one adverse event related to study drug",
+      nonunique = "Total number of events related to study drug"
+    )
+  ) %>%
+  split_rows_by(
+    "AEHLT",
+    child_labels = "visible",
+    nested = TRUE,
+    indent_mod = -1L,
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(adae_f$AEHLT)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one adverse event related to study drug",
+      nonunique = "Total number of events related to study drug"
+    )
+  ) %>%
+  count_occurrences(
+    vars = "AEDECOD",
+    .indent_mods = c(count_fraction = -1L)
+  ) %>%
+  append_varlabels(adae_f, c("AEDECOD"), indent = 2L)
+
+tbl2 <- build_table(
+  lyt = lyt,
+  df = adae_f,
+  alt_counts_df = adsl
+) %>%
+  prune_table()
+
+result <- tbl2 %>%
+  sort_at_path(
+    path = c("AEBODSYS"),
+    scorefun = cont_n_allcols
+  ) %>%
+  sort_at_path(
+    path = c("AEBODSYS", "*", "AEHLT"),
+    scorefun = cont_n_allcols
+  ) %>%
+  sort_at_path(
+    path = c("AEBODSYS", "*", "AEHLT", "*", "AEDECOD"),
+    scorefun = score_occurrences
+  )
+
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 16)
+
+library(dplyr)
+library(scda)
+library(teal)
+library(teal.modules.clinical)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adae <- synthetic_cdisc_dataset("rcd_2022_10_13", "adae")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adae <- df_explicit_na(adae)
+
+app <- teal::init(
+  data = cdisc_data(
+    cdisc_dataset(
+      "ADSL",
+      adsl,
+      code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("rcd_2022_10_13", "adsl"))'
+    ),
+    cdisc_dataset(
+      "ADAE",
+      adae,
+      code = 'ADAE <- df_explicit_na(synthetic_cdisc_dataset("rcd_2022_10_13", "adae"))'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_events(
+      label = "Adverse Events Related to Study Drug",
+      dataname = "ADAE",
+      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
+      llt = choices_selected(
+        choices = variable_choices(adae, c("AETERM", "AEDECOD")),
+        selected = c("AEDECOD")
+      ),
+      hlt = choices_selected(
+        choices = variable_choices(adae, c("AEBODSYS", "AEHLT")),
+        selected = c("AEBODSYS")
+      ),
+      add_total = FALSE,
+      event_type = "adverse event related to study drug", # define event type here
+    )
+  ),
+  filter = list(ADAE = list(AEREL = "Y")) # related AEs only
+)
+
+shinyApp(app$ui, app$server)
+```
+:::

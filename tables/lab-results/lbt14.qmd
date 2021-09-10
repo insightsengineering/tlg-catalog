@@ -1,0 +1,413 @@
+---
+title: LBT14
+subtitle: Laboratory Test Results Shift Table -- Highest NCI-CTCAE Grade Post-Baseline by Baseline NCI-CTCAE Grade
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+Please note that for each variant, the `adlb` dataset needs to be filtered on correct flags like `WGRLOFL`, `WGRHIFL`, et al., otherwise the layout function will not return the correct counts.
+There is an option to create a record for a lab test where no record is found at that visit.
+If you specified `add_derived_type = "PHANTOM"` & `dtype_phantom_cond`, you don't have to use the `h_adsl_adlb_merge_using_worst_flag` function to preprocess your `adlb` dataset.
+Otherwise please follow the pre-processing steps below before applying the layout functions.
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(tern)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adlb <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb")
+
+adsl <- df_explicit_na(adsl)
+adlb <- df_explicit_na(adlb)
+
+# Please note that in real clinical data, population flag like SAFFL, and parameter category like PARCAT2 needs to be
+# selected properly.
+adsl_f <- adsl %>% filter(SAFFL == "Y")
+adlb_f <- adlb %>% filter(PARAMCD == "ALT" & SAFFL == "Y")
+```
+
+## Standard Table (High)
+
+Note that the worst laboratory flag (below `WGRHIFL`) must be selected appropriately in the pre-processing step.
+New grouping variables `ATOXGR_GP` (post-baseline) and `BTOXGR_GP` (baseline) are created to display the correct output.
+
+```{r variant1}
+adlb_f <- adlb %>% filter(WGRHIFL == "Y")
+
+# Please note the step below can be skipped if you are using DTYPE PHANTOM
+adlb_out <- h_adsl_adlb_merge_using_worst_flag(adsl_f, adlb_f, worst_flag = c("WGRHIFL" = "Y"))
+
+# Create new grouping variables ATOXGR_GP, BTOXGR_GP
+adlb_out <- adlb_out %>%
+  mutate(
+    ATOXGR_GP = case_when(
+      ATOXGR %in% c(0, -1, -2, -3, -4) ~ "Not High",
+      ATOXGR == 1 ~ "1",
+      ATOXGR == 2 ~ "2",
+      ATOXGR == 3 ~ "3",
+      ATOXGR == 4 ~ "4",
+      ATOXGR == "<Missing>" ~ "Missing"
+    )
+  ) %>%
+  mutate(
+    BTOXGR_GP = case_when(
+      BTOXGR %in% c(0, -1, -2, -3, -4) ~ "Not High",
+      BTOXGR == 1 ~ "1",
+      BTOXGR == 2 ~ "2",
+      BTOXGR == 3 ~ "3",
+      BTOXGR == 4 ~ "4",
+      BTOXGR == "<Missing>" ~ "Missing"
+    )
+  )
+
+adlb_out <- adlb_out %>% mutate(
+  ATOXGR_GP = factor(ATOXGR_GP, levels = c("Not High", "1", "2", "3", "4", "Missing")),
+  BTOXGR_GP = factor(BTOXGR_GP, levels = c("Not High", "1", "2", "3", "4", "Missing"))
+)
+
+adlb_out <- adlb_out %>%
+  var_relabel(
+    PARAMCD = "Parameter Code",
+    ATOXGR_GP = "Post-baseline NCI-CTCAE Grade",
+    BTOXGR_GP = "Baseline NCI-CTCAE Grade"
+  )
+
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  split_rows_by(
+    "PARAMCD",
+    split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb_out$PARAMCD)
+  ) %>%
+  split_rows_by(
+    "BTOXGR_GP",
+    split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb_out$BTOXGR_GP)
+  ) %>%
+  summarize_num_patients(var = "USUBJID", .stats = c("unique_count")) %>%
+  count_occurrences("ATOXGR_GP", denom = "n", drop = TRUE, .indent_mods = 4L) %>%
+  append_varlabels(adlb_out, "ATOXGR_GP", indent = 2L) %>%
+  build_table(df = adlb_out, alt_counts_df = adsl_f)
+
+result
+```
+
+## Standard Table (Low)
+
+Note that the worst laboratory flag (below `WGRLOFL`) must be selected appropriately in the pre-processing step.
+New grouping variables `ATOXGR_GP` (post-baseline) and `BTOXGR_GP` (baseline) are created to display the correct output.
+
+```{r variant2}
+adlb_f <- adlb %>% filter(WGRLOFL == "Y")
+
+# Please note the step below can be skipped if you are using DTYPE PHANTOM
+adlb_out <- h_adsl_adlb_merge_using_worst_flag(adsl_f, adlb_f, worst_flag = c("WGRLOFL" = "Y"))
+
+# Create new grouping variables ATOXGR_GP, BTOXGR_GP
+adlb_out <- adlb_out %>%
+  mutate(
+    ATOXGR_GP = case_when(
+      ATOXGR %in% c(0, 1, 2, 3, 4) ~ "Not Low",
+      ATOXGR == -1 ~ "1",
+      ATOXGR == -2 ~ "2",
+      ATOXGR == -3 ~ "3",
+      ATOXGR == -4 ~ "4",
+      ATOXGR == "<Missing>" ~ "Missing"
+    )
+  ) %>%
+  mutate(
+    BTOXGR_GP = case_when(
+      BTOXGR %in% c(0, 1, 2, 3, 4) ~ "Not Low",
+      BTOXGR == -1 ~ "1",
+      BTOXGR == -2 ~ "2",
+      BTOXGR == -3 ~ "3",
+      BTOXGR == -4 ~ "4",
+      BTOXGR == "<Missing>" ~ "Missing"
+    )
+  )
+
+adlb_out <- adlb_out %>% mutate(
+  ATOXGR_GP = factor(ATOXGR_GP, levels = c("Not Low", "1", "2", "3", "4", "Missing")),
+  BTOXGR_GP = factor(BTOXGR_GP, levels = c("Not Low", "1", "2", "3", "4", "Missing"))
+)
+
+adlb_out <- adlb_out %>%
+  var_relabel(
+    PARAMCD = "Parameter Code",
+    ATOXGR_GP = "Post-baseline NCI-CTCAE Grade",
+    BTOXGR_GP = "Baseline NCI-CTCAE Grade"
+  )
+
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  split_rows_by(
+    "PARAMCD",
+    split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb_out$PARAMCD)
+  ) %>%
+  split_rows_by(
+    "BTOXGR_GP",
+    split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb_out$BTOXGR_GP)
+  ) %>%
+  summarize_num_patients(var = "USUBJID", .stats = c("unique_count")) %>%
+  count_occurrences("ATOXGR_GP", denom = "n", drop = TRUE, .indent_mods = 4L) %>%
+  append_varlabels(adlb_out, "ATOXGR_GP", indent = 2L) %>%
+  build_table(df = adlb_out, alt_counts_df = adsl_f)
+
+result
+```
+
+## Table Without Patients with <br/> Missing Baseline (High)
+
+Note that missing baseline values are filtered out in the pre-processing step.
+
+```{r variant3}
+adlb_f <- adlb %>% filter(WGRHIFL == "Y")
+
+# Please note the step below can be skipped if you are using DTYPE PHANTOM
+adlb_out <- h_adsl_adlb_merge_using_worst_flag(adsl_f, adlb_f, worst_flag = c("WGRHIFL" = "Y"))
+
+# Create new grouping variables ATOXGR_GP, BTOXGR_GP
+adlb_out <- adlb_out %>%
+  filter(BTOXGR != "<Missing>") %>%
+  mutate(
+    ATOXGR_GP = case_when(
+      ATOXGR %in% c(0, -1, -2, -3, -4) ~ "Not High",
+      ATOXGR == 1 ~ "1",
+      ATOXGR == 2 ~ "2",
+      ATOXGR == 3 ~ "3",
+      ATOXGR == 4 ~ "4",
+      ATOXGR == "<Missing>" ~ "Missing"
+    )
+  ) %>%
+  mutate(
+    BTOXGR_GP = case_when(
+      BTOXGR %in% c(0, -1, -2, -3, -4) ~ "Not High",
+      BTOXGR == 1 ~ "1",
+      BTOXGR == 2 ~ "2",
+      BTOXGR == 3 ~ "3",
+      BTOXGR == 4 ~ "4"
+    )
+  )
+
+adlb_out <- adlb_out %>% mutate(
+  ATOXGR_GP = factor(ATOXGR_GP, levels = c("Not High", "1", "2", "3", "4", "Missing")),
+  BTOXGR_GP = factor(BTOXGR_GP, levels = c("Not High", "1", "2", "3", "4"))
+)
+
+adlb_out <- adlb_out %>%
+  var_relabel(
+    PARAMCD = "Parameter Code",
+    ATOXGR_GP = "Post-baseline NCI-CTCAE Grade",
+    BTOXGR_GP = "Baseline NCI-CTCAE Grade"
+  )
+
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  split_rows_by(
+    "PARAMCD",
+    split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb_out$PARAMCD)
+  ) %>%
+  split_rows_by(
+    "BTOXGR_GP",
+    split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb_out$BTOXGR_GP)
+  ) %>%
+  summarize_num_patients(var = "USUBJID", .stats = c("unique_count")) %>%
+  count_occurrences("ATOXGR_GP", denom = "n", drop = TRUE, .indent_mods = 4L) %>%
+  append_varlabels(adlb_out, "ATOXGR_GP", indent = 2L) %>%
+  build_table(df = adlb_out, alt_counts_df = adsl_f)
+
+result
+```
+
+## Table with Missing Baseline <br/> Considered as Grade 0 (Low)
+
+Note that when BTOXGR is missing, the grouping variable `BTOXGR_GP` now is `"Not Low"` instead of `"Missing"` compared to *Standard Table (High)*.
+
+```{r variant4}
+adlb_f <- adlb %>% filter(WGRLOFL == "Y")
+
+# Please note the step below can be skipped if you are using DTYPE PHANTOM
+adlb_out <- h_adsl_adlb_merge_using_worst_flag(adsl_f, adlb_f, worst_flag = c("WGRLOFL" = "Y"))
+
+# Create new grouping variables ATOXGR_GP, BTOXGR_GP
+adlb_out <- adlb_out %>%
+  mutate(
+    ATOXGR_GP = case_when(
+      ATOXGR %in% c(0, 1, 2, 3, 4) ~ "Not Low",
+      ATOXGR == -1 ~ "1",
+      ATOXGR == -2 ~ "2",
+      ATOXGR == -3 ~ "3",
+      ATOXGR == -4 ~ "4",
+      ATOXGR == "<Missing>" ~ "Missing"
+    )
+  ) %>%
+  mutate(
+    BTOXGR_GP = case_when(
+      BTOXGR %in% c(0, 1, 2, 3, 4, "<Missing>") ~ "Not Low",
+      BTOXGR == -1 ~ "1",
+      BTOXGR == -2 ~ "2",
+      BTOXGR == -3 ~ "3",
+      BTOXGR == -4 ~ "4"
+    )
+  )
+
+adlb_out <- adlb_out %>% mutate(
+  ATOXGR_GP = factor(ATOXGR_GP, levels = c("Not Low", "1", "2", "3", "4", "Missing")),
+  BTOXGR_GP = factor(BTOXGR_GP, levels = c("Not Low", "1", "2", "3", "4"))
+)
+
+adlb_out <- adlb_out %>%
+  var_relabel(
+    PARAMCD = "Parameter Code",
+    ATOXGR_GP = "Post-baseline NCI-CTCAE Grade",
+    BTOXGR_GP = "Baseline NCI-CTCAE Grade"
+  )
+
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  split_rows_by(
+    "PARAMCD",
+    split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb_out$PARAMCD)
+  ) %>%
+  split_rows_by(
+    "BTOXGR_GP",
+    split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb_out$BTOXGR_GP)
+  ) %>%
+  summarize_num_patients(var = "USUBJID", .stats = c("unique_count")) %>%
+  count_occurrences("ATOXGR_GP", denom = "n", drop = TRUE, .indent_mods = 4L) %>%
+  append_varlabels(adlb_out, "ATOXGR_GP", indent = 2L) %>%
+  build_table(df = adlb_out, alt_counts_df = adsl_f)
+
+result
+```
+
+## Table with Fill-In of Grades
+
+Pre-processing is the same as *Standard Table (High)*, but in order to keep all levels, the `drop` argument in `count_occurrences` is set to `FALSE`.
+
+```{r variant5}
+adlb_f <- adlb %>% filter(WGRHIFL == "Y")
+
+# Please note the step below can be skipped if you are using DTYPE PHANTOM
+adlb_out <- h_adsl_adlb_merge_using_worst_flag(adsl_f, adlb_f, worst_flag = c("WGRHIFL" = "Y"))
+
+# Create new grouping variables ATOXGR_GP, BTOXGR_GP
+adlb_out <- adlb_out %>%
+  mutate(
+    ATOXGR_GP = case_when(
+      ATOXGR %in% c(0, -1, -2, -3, -4) ~ "Not High",
+      ATOXGR == 1 ~ "1",
+      ATOXGR == 2 ~ "2",
+      ATOXGR == 3 ~ "3",
+      ATOXGR == 4 ~ "4",
+      ATOXGR == "<Missing>" ~ "Missing"
+    )
+  ) %>%
+  mutate(
+    BTOXGR_GP = case_when(
+      BTOXGR %in% c(0, -1, -2, -3, -4) ~ "Not High",
+      BTOXGR == 1 ~ "1",
+      BTOXGR == 2 ~ "2",
+      BTOXGR == 3 ~ "3",
+      BTOXGR == 4 ~ "4",
+      BTOXGR == "<Missing>" ~ "Missing"
+    )
+  )
+
+adlb_out <- adlb_out %>% mutate(
+  ATOXGR_GP = factor(ATOXGR_GP, levels = c("Not High", "1", "2", "3", "4", "Missing")),
+  BTOXGR_GP = factor(BTOXGR_GP, levels = c("Not High", "1", "2", "3", "4", "Missing"))
+)
+
+adlb_out <- adlb_out %>%
+  var_relabel(
+    PARAMCD = "Parameter Code",
+    ATOXGR_GP = "Post-baseline NCI-CTCAE Grade",
+    BTOXGR_GP = "Baseline NCI-CTCAE Grade"
+  )
+
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  split_rows_by(
+    "PARAMCD",
+    split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb_out$PARAMCD)
+  ) %>%
+  split_rows_by(
+    "BTOXGR_GP",
+    split_fun = keep_split_levels(c("Not High", "1", "2", "3", "4", "Missing")),
+    label_pos = "topleft",
+    split_label = obj_label(adlb_out$BTOXGR_GP)
+  ) %>%
+  summarize_num_patients(var = "USUBJID", .stats = c("unique_count")) %>%
+  count_occurrences("ATOXGR_GP", denom = "n", drop = FALSE, .indent_mods = 4L) %>%
+  append_varlabels(adlb_out, "ATOXGR_GP", indent = 2L) %>%
+  build_table(df = adlb_out, alt_counts_df = adsl_f)
+
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 16)
+
+library(scda)
+library(dplyr)
+library(teal.modules.clinical)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adlb <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb")
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")'),
+    cdisc_dataset("ADLB", adlb,
+      code = 'ADLB <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb")'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_shift_by_grade(
+      label = "Grade Laboratory Abnormality Table",
+      dataname = "ADLB",
+      arm_var = choices_selected(
+        choices = variable_choices(adsl, subset = c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      paramcd = choices_selected(
+        choices = value_choices(adlb, "PARAMCD", "PARAM"),
+        selected = "ALT"
+      ),
+      worst_flag_var = choices_selected(
+        choices = variable_choices(adlb, subset = c("WGRLOVFL", "WGRLOFL", "WGRHIVFL", "WGRHIFL")),
+        selected = c("WGRHIFL")
+      ),
+      worst_flag_indicator = choices_selected(
+        value_choices(adlb, "WGRLOVFL"),
+        selected = "Y", fixed = TRUE
+      ),
+      anl_toxgrade_var = choices_selected(
+        choices = variable_choices(adlb, subset = c("ATOXGR")),
+        selected = c("ATOXGR"),
+        fixed = TRUE
+      ),
+      base_toxgrade_var = choices_selected(
+        choices = variable_choices(adlb, subset = c("BTOXGR")),
+        selected = c("BTOXGR"),
+        fixed = TRUE
+      ),
+      add_total = FALSE
+    )
+  ),
+  filter = list(
+    ADSL = list(SAFFL = "Y")
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+:::

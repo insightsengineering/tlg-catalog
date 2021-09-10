@@ -1,0 +1,324 @@
+---
+title: AET06_SMQ
+subtitle: Adverse Events by Baseline Characteristic, by SMQ and Preferred Term
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(tern)
+library(scda)
+library(stringr)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adae <- synthetic_cdisc_dataset("rcd_2022_10_13", "adae")
+
+adsl_labels <- var_labels(adsl)
+adae_labels <- var_labels(adae)
+
+adsl <- adsl %>%
+  mutate(
+    AGE65 = case_when(
+      AGE >= 65 ~ ">= 65",
+      TRUE ~ "< 65"
+    ),
+    AGE65 = factor(
+      AGE65,
+      levels = c("< 65", ">= 65")
+    )
+  )
+
+adae <- adae %>%
+  mutate(
+    AGE65 = case_when(
+      AGE >= 65 ~ ">= 65",
+      TRUE ~ "< 65"
+    ),
+    AGE65 = factor(
+      AGE65,
+      levels = c("< 65", ">= 65")
+    )
+  )
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing
+# levels. For details, refer to Teal and Study Data article.
+adsl <- df_explicit_na(adsl)
+adae <- df_explicit_na(adae)
+
+# Simulate a random AAG dataset.
+aag <- data.frame(
+  NAMVAR = c("SMQ01NAM", "SMQ01NAM", "SMQ02NAM", "CQ01NAM", "CQ01NAM"),
+  SRCVAR = rep("AEDECOD", 5),
+  GRPTYPE = c("SMQ", "SMQ", "SMQ", "CUSTOM", "CUSTOM"),
+  REFID = c(1, 1, 2, 3, 3),
+  REFNAME = c(rep("C.1.1.1.3/B.2.2.3.1 AESI", 2), "non observed SMQ02NAM level", rep("D.2.1.5.3/A.1.1.1.1 AESI", 2)),
+  SCOPE = c("BROAD", "BROAD", "BROAD", "", ""),
+  REFTERM = c("C.1.1.1.3", "B.2.2.3.1", "Z.9.9.9.9", "D.2.1.5.3", "A.1.1.1.1"),
+  stringsAsFactors = FALSE
+)
+
+# Create summary AAG dataset (used for labelling).
+# Note it's important to incorporate SCOPE into the basket names for SMQs so as to
+# match the flags present in ADAE.
+aag_summary <- aag %>%
+  select(NAMVAR, REFNAME, SCOPE) %>%
+  unique() %>%
+  mutate(
+    REFNAME_SCOPE = ifelse(SCOPE == "", REFNAME, paste0(REFNAME, "(", SCOPE, ")"))
+  ) %>%
+  rename(basket = NAMVAR, basket_name = REFNAME_SCOPE) %>%
+  select(basket, basket_name)
+
+# Make a summary of the full ADAE based on AAG by using h_stack_by_baskets helper function
+adae_smq_all <- h_stack_by_baskets(
+  df = adae,
+  aag_summary = aag_summary,
+  keys = c("STUDYID", "USUBJID", "ACTARMCD", "AEDECOD", "SEX", "AGE65")
+)
+# Post-process adae_smq_all to keep only certain baskets of interest for variant 1
+# Not need to drop baskets for variant 2 as all baskets will be considered.
+baskets_to_drop_variant <- aag_summary$basket_name[!aag_summary$basket %in% c("SMQ01NAM")]
+
+# Adjust the analysis dataset based on basket subset for variant 1.
+adae_smq_1 <- adae_smq_all %>%
+  filter(!adae_smq_all$SMQ %in% baskets_to_drop_variant) %>%
+  mutate(
+    SMQ = tern::fct_discard(SMQ, discard = baskets_to_drop_variant)
+  )
+```
+
+## Adverse Events by Sex, <br/> by SMQ and Preferred Term
+
+```{r}
+criteria_fun <- function(tr) !is(tr, "ContentRow") && all_zero_or_na(tr)
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARMCD") %>%
+  split_cols_by("SEX") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    .stats = c("unique"),
+    .labels = c(unique = "Total number of patients with at least one adverse event")
+  ) %>%
+  split_rows_by(
+    "SMQ",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = trim_levels_in_group("AEDECOD", drop_outlevs = FALSE),
+    label_pos = "topleft",
+    split_label = "Standardized MedDRA Query"
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one adverse event",
+      nonunique = "Total number of events"
+    )
+  ) %>%
+  count_occurrences(vars = "AEDECOD", drop = FALSE) %>%
+  append_varlabels(adae_smq_1, "AEDECOD", indent = 1L)
+
+result <- build_table(
+  lyt = lyt,
+  df = adae_smq_1,
+  alt_counts_df = adsl
+) %>%
+  sort_at_path(path = c("SMQ"), scorefun = cont_n_allcols) %>%
+  sort_at_path(path = c("SMQ", "*", "AEDECOD"), scorefun = score_occurrences, na.pos = "last") %>%
+  trim_rows(criteria = criteria_fun)
+
+result
+```
+
+## Adverse Events by Sex, by SMQ and <br/> Preferred Term (with Customized Queries)
+
+```{r}
+criteria_fun <- function(tr) !is(tr, "ContentRow") && all_zero_or_na(tr)
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARMCD") %>%
+  split_cols_by("SEX") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    .stats = c("unique"),
+    .labels = c(unique = "Total number of patients with at least one adverse event")
+  ) %>%
+  split_rows_by(
+    "SMQ",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = trim_levels_in_group("AEDECOD", drop_outlevs = FALSE),
+    label_pos = "topleft",
+    split_label = "Standardized MedDRA Query"
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one adverse event",
+      nonunique = "Total number of events"
+    )
+  ) %>%
+  count_occurrences(vars = "AEDECOD", drop = FALSE) %>%
+  append_varlabels(adae_smq_all, "AEDECOD", indent = 1L)
+
+result <- build_table(
+  lyt = lyt,
+  df = adae_smq_all,
+  alt_counts_df = adsl
+) %>%
+  sort_at_path(path = c("SMQ"), scorefun = cont_n_allcols) %>%
+  sort_at_path(path = c("SMQ", "*", "AEDECOD"), scorefun = score_occurrences, na.pos = "last") %>%
+  trim_rows(criteria = criteria_fun)
+
+result
+```
+
+## Adverse Events by Other Baseline <br/> Characteristics (e.g. Age Group)
+
+```{r}
+criteria_fun <- function(tr) !is(tr, "ContentRow") && all_zero_or_na(tr)
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARMCD") %>%
+  split_cols_by("AGE65") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    .stats = c("unique"),
+    .labels = c(unique = "Total number of patients with at least one adverse event")
+  ) %>%
+  split_rows_by(
+    "SMQ",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = trim_levels_in_group("AEDECOD", drop_outlevs = FALSE),
+    label_pos = "topleft",
+    split_label = "Standardized MedDRA Query"
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one adverse event",
+      nonunique = "Total number of events"
+    )
+  ) %>%
+  count_occurrences(vars = "AEDECOD", drop = FALSE) %>%
+  append_varlabels(adae_smq_1, "AEDECOD", indent = 1L)
+
+result <- build_table(
+  lyt = lyt,
+  df = adae_smq_1,
+  alt_counts_df = adsl
+) %>%
+  sort_at_path(path = c("SMQ"), scorefun = cont_n_allcols) %>%
+  sort_at_path(path = c("SMQ", "*", "AEDECOD"), scorefun = score_occurrences, na.pos = "last") %>%
+  trim_rows(criteria = criteria_fun)
+
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 20)
+
+library(scda)
+library(teal.modules.clinical)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl") %>%
+  mutate(
+    AGE65 = case_when(
+      AGE >= 65 ~ ">= 65",
+      TRUE ~ "< 65"
+    ),
+    AGE65 = factor(
+      AGE65,
+      levels = c("< 65", ">= 65")
+    )
+  )
+adae <- synthetic_cdisc_dataset("rcd_2022_10_13", "adae") %>%
+  mutate(
+    AGE65 = case_when(
+      AGE >= 65 ~ ">= 65",
+      TRUE ~ "< 65"
+    ),
+    AGE65 = factor(
+      AGE65,
+      levels = c("< 65", ">= 65")
+    )
+  )
+
+names_baskets <- grep("^(SMQ|CQ).*NAM$", names(adae), value = TRUE)
+names_scopes <- grep("^SMQ.*SC$", names(adae), value = TRUE)
+
+cs_baskets <- choices_selected(
+  choices = variable_choices(adae, subset = names_baskets),
+  selected = names_baskets
+)
+cs_scopes <- choices_selected(
+  choices = variable_choices(adae, subset = names_scopes),
+  selected = names_scopes,
+  fixed = TRUE
+)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl,
+      code = 'ADSL <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl") %>%
+    mutate(
+      AGE65 = case_when(
+        AGE >= 65 ~ ">= 65",
+        TRUE ~ "< 65"
+      ),
+      AGE65 = factor(
+        AGE65,
+      levels = c("< 65", ">= 65")
+        )
+    )'
+    ),
+    cdisc_dataset("ADAE", adae,
+      code = 'ADAE <- synthetic_cdisc_dataset("rcd_2022_10_13", "adae") %>%
+    mutate(
+      AGE65 = case_when(
+        AGE >= 65 ~ ">= 65",
+        TRUE ~ "< 65"
+      ),
+      AGE65 = factor(
+        AGE65,
+      levels = c("< 65", ">= 65")
+        )
+    )'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_smq(
+      label = "Adverse events by `SMQ` Table",
+      dataname = "ADAE",
+      arm_var = choices_selected(
+        choices = variable_choices(adsl, subset = c("ARM", "SEX", "AGE65")),
+        selected = c("ARM", "SEX")
+      ),
+      add_total = FALSE,
+      baskets = cs_baskets,
+      scopes = cs_scopes,
+      llt = choices_selected(
+        choices = variable_choices(adae, subset = c("AEDECOD")),
+        selected = "AEDECOD"
+      )
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+:::
