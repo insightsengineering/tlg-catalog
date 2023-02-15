@@ -1,6 +1,6 @@
 # TLG Catalog
 
-Catalog for tables, listings, and graphs produced by Statistical Engineering products.
+Catalog for tables, listings, and graphs generated from NEST R packages.
 
 ## Architecture
 
@@ -31,7 +31,7 @@ You can install dependencies simply by running the following in an R session:
 ``` r
 # Assuming:
 # 1. Your current working directory is the same as the project directory
-# 2. You have set up your GITHUB_PAT and GITLAB_PAT environment variables
+# 2. You have set up your GITHUB_PAT environment variable
 options(
   staged.dependencies.token_mapping = c(
     "https://github.com" = "GITHUB_PAT"
@@ -46,3 +46,4 @@ You'll see that files under [tables](tables), [listings](listings), and [graphs]
 
 If you are adding a new table, listing, or graph in the form a a new `qmd` file, then you will also need to update the index in the [index.qmd](index.qmd) file with the new file name.
 To do so, run the R code in the [generate-index.R](generate-index.R) file after creating your template.
+
