@@ -1,0 +1,118 @@
+---
+title: LBT04
+subtitle: Laboratory Abnormalities Not Present at Baseline
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(tern)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adlb <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adlb <- df_explicit_na(adlb)
+
+adlb <- adlb %>%
+  mutate(ONTRTFL = ifelse(AVISIT %in% c("SCREENING", "BASELINE"), "", "Y")) %>%
+  var_relabel(PARAM = "Laboratory Test")
+
+adlb_f <- adlb %>%
+  dplyr::filter(ONTRTFL == "Y")
+
+# We derive the PARCAT1 variable from LBCAT as an example of how to work with real data.
+adlb_f$PARCAT1 <- adlb_f$LBCAT
+
+# Create a map based on the rule that at least one record with ANRLO > 0 as low, at least one ANRHI is not missing as
+# high using the h_map_for_count_abnormal with method as "range".
+map <- h_map_for_count_abnormal(
+  df = adlb_f,
+  variables = list(anl = "ANRIND", split_rows = c("PARCAT1", "PARAM"), range_low = "ANRLO", range_high = "ANRHI"),
+  abnormal = list(low = "LOW", high = "HIGH"),
+  method = "range",
+  na_level = "<Missing>"
+)
+```
+
+## Standard Table
+
+```{r variant 1}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  split_rows_by("PARCAT1", split_fun = trim_levels_to_map(map = map)) %>%
+  split_rows_by("PARAM",
+    split_fun = trim_levels_to_map(map = map),
+    label_pos = "topleft",
+    split_label = obj_label(adlb_f$PARAM)
+  ) %>%
+  count_abnormal(
+    var = "ANRIND",
+    abnormal = list(Low = "LOW", High = "HIGH"),
+    exclude_base_abn = TRUE
+  ) %>%
+  append_varlabels(adlb_f, "ANRIND", indent = 2L)
+
+result <- build_table(lyt = lyt, df = adlb_f, alt_counts_df = adsl)
+
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 20)
+
+library(teal.modules.clinical)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+adlb <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb") %>%
+  mutate(ONTRTFL = ifelse(AVISIT %in% c("SCREENING", "BASELINE"), "", "Y")) %>%
+  var_relabel(PARAM = "Laboratory Test")
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")'),
+    cdisc_dataset("ADLB", adlb, code = '
+                  ADLB <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb") %>%
+                mutate(ONTRTFL = ifelse(AVISIT %in% c("SCREENING", "BASELINE"), "", "Y")) %>%
+                var_relabel(PARAM = "Laboratory Test")'),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_abnormality(
+      label = "Abnormality Table",
+      dataname = "ADLB",
+      arm_var = choices_selected(
+        choices = variable_choices(adsl, subset = c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      by_vars = choices_selected(
+        choices = variable_choices(adlb, subset = c("LBCAT", "PARAM", "AVISIT")),
+        selected = c("LBCAT", "PARAM"),
+        keep_order = TRUE
+      ),
+      grade = choices_selected(
+        choices = variable_choices(adlb, subset = "ANRIND"),
+        selected = "ANRIND",
+        fixed = TRUE
+      ),
+      abnormal = list(low = "LOW", high = "HIGH"),
+      exclude_base_abn = TRUE
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+:::

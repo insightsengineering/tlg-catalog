@@ -1,0 +1,91 @@
+---
+name: Publish Catalog 📰
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+    branches:
+      - main
+  schedule:
+    - cron:  '17 17 * * 3,6'
+
+jobs:
+  publish:
+    name: Build & Deploy TLGC 📖
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/insightsengineering/rstudio_4.2.2_bioc_3.16:latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo 🛎
+        uses: actions/checkout@v3
+
+      - name: Run Staged dependencies 🎦
+        uses: insightsengineering/staged-dependencies-action@v1
+        env:
+          GITHUB_PAT: ${{ secrets.REPO_GITHUB_TOKEN }}
+        with:
+          path: "."
+          enable-check: false
+
+      - name: Render catalog 🖨
+        run: quarto render
+        shell: bash
+
+      - name: Create artifact 📂
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          pushd _site
+          zip -r9 $OLDPWD/site.zip *
+          popd
+        shell: bash
+
+      - name: Cache artifacts 📀
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.staged.dependencies
+            _freeze
+          key: ${{ runner.os }}-tlg-catalog
+
+      - name: Upload docs ⬆
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v3
+        with:
+          name: site.zip
+          path: site.zip
+
+      - name: Publish docs
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+
+  upload-release-assets:
+    name: Upload assets 🔼
+    needs: publish
+    runs-on: ubuntu-latest
+    if: >
+      startsWith(github.ref, 'refs/tags/v')
+        && !contains(github.event.commits[0].message, '[skip docs]')
+    steps:
+      - name: Checkout repo 🛎
+        uses: actions/checkout@v3
+
+      - name: Download artifact ⏬
+        uses: actions/download-artifact@v3
+        with:
+          name: site.zip
+
+      - name: Upload binaries to release ⤴
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: site.zip
+          asset_name: catalog.zip
+          tag: ${{ github.ref }}
+          overwrite: true

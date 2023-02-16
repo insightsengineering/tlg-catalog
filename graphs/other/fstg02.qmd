@@ -1,0 +1,267 @@
+---
+title: FSTG02
+subtitle: Subgroup Analysis of Survival Duration
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(dplyr)
+library(forcats)
+library(nestcolor)
+library(scda)
+
+preprocess_adtte <- function(adtte) {
+  # Save variable labels before data processing steps.
+  adtte_labels <- var_labels(adtte)
+
+  adtte <- adtte %>%
+    df_explicit_na() %>%
+    dplyr::filter(
+      PARAMCD == "OS",
+      ARM %in% c("B: Placebo", "A: Drug X"),
+      SEX %in% c("M", "F")
+    ) %>%
+    dplyr::mutate(
+      # Reorder levels of ARM to display reference arm before treatment arm.
+      ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo")),
+      SEX = droplevels(SEX),
+      is_event = CNSR == 0,
+      # Convert time to MONTH
+      AVAL = day2month(AVAL),
+      AVALU = "Months"
+    ) %>%
+    var_relabel(
+      ARM = adtte_labels["ARM"],
+      SEX = adtte_labels["SEX"],
+      is_event = "Event Flag",
+      AVAL = adtte_labels["AVAL"],
+      AVALU = adtte_labels["AVALU"]
+    )
+
+  adtte
+}
+
+anl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adtte") %>%
+  preprocess_adtte()
+```
+
+## Standard Plot
+
+```{r variant1, warning=FALSE, fig.width = 15}
+anl1 <- anl
+
+df <- extract_survival_subgroups(
+  variables = list(tte = "AVAL", is_event = "is_event", arm = "ARM", subgroups = c("SEX", "BMRKR2")),
+  data = anl1
+)
+
+result <- basic_table() %>%
+  tabulate_survival_subgroups(
+    df = df,
+    vars = c("n_tot", "n", "median", "hr", "ci"),
+    time_unit = anl1$AVALU[1]
+  )
+result
+
+# Add plot.
+p <- g_forest(
+  tbl = result
+)
+
+grid::grid.draw(p)
+```
+
+## Plot Specifying Class Variables and <br/> Options for the Treatment Variable
+
+```{r variant2, warning=FALSE, fig.width = 15}
+anl2 <- anl %>%
+  mutate(
+    # Recode levels of arm.
+    ARM = forcats::fct_recode(
+      ARM,
+      "Placebo" = "B: Placebo",
+      "Drug X" = "A: Drug X"
+    ),
+    # Reorder levels of `SEX`.
+    SEX = forcats::fct_relevel(SEX, "M", "F"),
+    # Reorder levels of `STRATA1`` by frequency.
+    STRATA1 = forcats::fct_infreq(STRATA1)
+  )
+
+df <- extract_survival_subgroups(
+  variables = list(tte = "AVAL", is_event = "is_event", arm = "ARM", subgroups = c("SEX", "STRATA1")),
+  data = anl2
+)
+
+result <- basic_table() %>%
+  tabulate_survival_subgroups(
+    df = df,
+    vars = c("n_tot", "n", "median", "hr", "ci"),
+    time_unit = anl2$AVALU[1]
+  )
+result
+
+p <- g_forest(
+  tbl = result
+)
+
+grid::grid.draw(p)
+```
+
+## Plot Selecting Columns and <br/> Changing the Alpha Level)
+
+```{r variant3, warning=FALSE, fig.width = 15}
+anl3 <- anl
+
+df <- extract_survival_subgroups(
+  variables = list(tte = "AVAL", is_event = "is_event", arm = "ARM", subgroups = c("SEX", "BMRKR2")),
+  control = control_coxph(conf_level = 0.9),
+  data = anl3
+)
+
+result <- basic_table() %>%
+  tabulate_survival_subgroups(
+    df = df,
+    vars = c("n_tot", "hr", "ci")
+  )
+result
+
+# Add plot.
+p <- g_forest(
+  tbl = result
+)
+
+grid::grid.draw(p)
+```
+
+## Plot with Fixed <br/> Symbol Size
+
+```{r variant4, warning=FALSE, fig.width = 15}
+anl4 <- anl
+
+df <- extract_survival_subgroups(
+  variables = list(tte = "AVAL", is_event = "is_event", arm = "ARM", subgroups = c("SEX", "BMRKR2")),
+  data = anl4
+)
+
+result <- basic_table() %>%
+  tabulate_survival_subgroups(
+    df = df,
+    vars = c("n_tot", "n", "median", "hr", "ci"),
+    time_unit = anl4$AVALU[1]
+  )
+result
+
+# Add plot.
+p <- g_forest(
+  tbl = result,
+  col_symbol_size = NULL
+)
+
+grid::grid.draw(p)
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 24)
+
+library(teal.modules.clinical)
+library(scda)
+
+ADSL <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+ADSL <- ADSL %>%
+  dplyr::filter(ARM %in% c("B: Placebo", "A: Drug X")) %>%
+  dplyr::mutate(ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo"))) %>%
+  dplyr::mutate(ARMCD = droplevels(forcats::fct_relevel(ARMCD, "ARM B")))
+ADSL$RACE <- droplevels(ADSL$RACE)
+
+ADTTE <- synthetic_cdisc_dataset("rcd_2022_10_13", "adtte")
+adtte_labels <- var_labels(ADTTE)
+
+ADTTE <- ADTTE %>%
+  dplyr::filter(
+    PARAMCD == "OS",
+    ARM %in% c("B: Placebo", "A: Drug X"),
+    SEX %in% c("M", "F")
+  ) %>%
+  dplyr::mutate(
+    # Reorder levels of ARM to display reference arm before treatment arm.
+    ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo")),
+    SEX = droplevels(SEX),
+    is_event = CNSR == 0,
+    # Convert time to MONTH
+    AVAL = day2month(AVAL),
+    AVALU = "Months"
+  ) %>%
+  var_relabel(
+    ARM = adtte_labels["ARM"],
+    SEX = adtte_labels["SEX"],
+    is_event = "Event Flag",
+    AVAL = adtte_labels["AVAL"],
+    AVALU = adtte_labels["AVALU"]
+  )
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", ADSL,
+      code = 'ADSL <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+      ADSL <- ADSL %>%
+        dplyr::filter(ARM %in% c("B: Placebo", "A: Drug X")) %>%
+        dplyr::mutate(ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo"))) %>%
+        dplyr::mutate(ARMCD = droplevels(forcats::fct_relevel(ARMCD, "ARM B")))
+      ADSL$RACE <- droplevels(ADSL$RACE)
+      '
+    ),
+    cdisc_dataset("ADTTE", ADTTE, code = '
+                  ADTTE <- synthetic_cdisc_dataset("rcd_2022_10_13", "adtte")
+                  adtte_labels <- var_labels(ADTTE)
+                  ADTTE <- ADTTE %>%
+                    dplyr::filter(
+                      PARAMCD == "OS",
+                      ARM %in% c("B: Placebo", "A: Drug X"),
+                      SEX %in% c("M", "F")
+                    ) %>%
+                    dplyr::mutate(
+                      # Reorder levels of ARM to display reference arm before treatment arm.
+                      ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo")),
+                      SEX = droplevels(SEX),
+                      is_event = CNSR == 0,
+                      # Convert time to MONTH
+                      AVAL = day2month(AVAL),
+                      AVALU = "Months"
+                    ) %>%
+                    var_relabel(
+                      ARM = adtte_labels["ARM"],
+                      SEX = adtte_labels["SEX"],
+                      is_event = "Event Flag",
+                      AVAL = adtte_labels["AVAL"],
+                      AVALU = adtte_labels["AVALU"]
+                    )
+                  '),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_g_forest_tte(
+      label = "Forest Survival",
+      dataname = "ADTTE",
+      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
+      subgroup_var = choices_selected(names(ADSL), c("SEX", "BMRKR2")),
+      paramcd = choices_selected(value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"),
+      strata_var = choices_selected(c("STRATA1", "STRATA2"), "STRATA2"),
+      plot_height = c(600, 200, 2000),
+      plot_width = c(1500, 200, 5000)
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+:::
