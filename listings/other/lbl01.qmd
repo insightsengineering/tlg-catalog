@@ -22,27 +22,29 @@ adlb_x <- adlb %>%
   mutate(
     CPID = paste(SITEID, SUBJID, sep = "/"),
     PARAM_U = paste0(PARAMCD, "\n(", AVALU, " / NCI CTCAE grade)"),
-    ANRIND =  factor(
+    ANRIND = factor(
       case_when(
         ANRIND == "LOW" ~ "L",
         ANRIND == "HIGH" ~ "H",
         TRUE ~ as.character(ANRIND)
       ),
-      levels = c("", "H", "L", "NORMAL")),
+      levels = c("", "H", "L", "NORMAL")
+    ),
     AVALC = as.character(format(round(AVAL, 2), nsmall = 2))
   ) %>%
   mutate(AVAL_GR = ifelse(
-    !ANRIND %in% c("H", "L"), 
-    AVALC, 
-    paste(AVALC, paste0(ANRIND, sub("-", "", ATOXGR)), sep = " / "))
-  ) %>%
-  select(CPID, TRT01A, ADY, LBSEQ, PARAM_U, AVAL_GR) %>% unique
+    !ANRIND %in% c("H", "L"),
+    AVALC,
+    paste(AVALC, paste0(ANRIND, sub("-", "", ATOXGR)), sep = " / ")
+  )) %>%
+  select(CPID, TRT01A, ADY, LBSEQ, PARAM_U, AVAL_GR) %>%
+  unique()
 
 out <- adlb_x %>%
   arrange(CPID, ADY, PARAM_U, LBSEQ) %>%
   tidyr::pivot_wider(
-    id_cols = c(TRT01A, CPID, ADY), 
-    names_from = PARAM_U, 
+    id_cols = c(TRT01A, CPID, ADY),
+    names_from = PARAM_U,
     values_from = AVAL_GR
   ) %>%
   group_by(CPID) %>%

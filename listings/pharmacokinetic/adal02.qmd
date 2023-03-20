@@ -15,7 +15,7 @@ library(dplyr)
 library(rlistings)
 library(scda)
 
-adab <- synthetic_cdisc_dataset("rcd_2022_10_13", "adab") %>% 
+adab <- synthetic_cdisc_dataset("rcd_2022_10_13", "adab") %>%
   filter(NRELTM1 %% 1 == 0 & NRELTM1 > 0)
 
 trt <- "A: Drug X"
@@ -30,21 +30,22 @@ adab_x <- adab %>%
     ADAPBLFL == "Y"
   ) %>%
   select(-PARAMCD, -AVALC, -AVALU, -ARELTM2, -NRELTM2) %>%
-  unique %>%
+  unique() %>%
   tidyr::pivot_wider(
     names_from = PARAM,
     values_from = AVAL
-  ) %>% 
+  ) %>%
   filter(`Treatment Emergent - Positive` == 1) %>%
   mutate(
     VISN = factor(paste0(
-      VISIT, "\n(Day ", 
+      VISIT, "\n(Day ",
       ifelse(
-        NRELTM1 %% 1 == 0, 
+        NRELTM1 %% 1 == 0,
         NRELTM1,
         as.character(format(round(NRELTM1, 2), nsmall = 2))
       ),
-      ")")),
+      ")"
+    )),
     PTES = ifelse(
       `Treatment induced ADA` == 1,
       ifelse(
@@ -54,19 +55,20 @@ adab_x <- adab %>%
       ),
       "Enhanced"
     )
-  ) %>% 
+  ) %>%
   mutate(
     AVAL = paste0(
-    ifelse(`ADA interpreted per sample result` == 0,
-      "NEGATIVE",
-      ifelse(is.na(`Antibody titer units`),
-        "---",
-        ifelse(`Antibody titer units` < min_titer,
-               paste0("<", format(min_titer, nsmall = 2)),
-               as.character(format(round(`Antibody titer units`, 2), nsmall = 2))
+      ifelse(`ADA interpreted per sample result` == 0,
+        "NEGATIVE",
+        ifelse(is.na(`Antibody titer units`),
+          "---",
+          ifelse(`Antibody titer units` < min_titer,
+            paste0("<", format(min_titer, nsmall = 2)),
+            as.character(format(round(`Antibody titer units`, 2), nsmall = 2))
+          )
         )
-      )
-    ), ifelse(`NAB interpreted per sample result` == 1, "*", ""))
+      ), ifelse(`NAB interpreted per sample result` == 1, "*", "")
+    )
   )
 
 out <- adab_x %>%
@@ -95,7 +97,8 @@ lsting <- as_listing(
   disp_cols = names(out),
   main_title = paste0(
     "Listing of Anti-", drugcd, " Antibody Data for Treatment Emergent ADA Positive Patients, PK Population",
-    "\nProtocol: ", unique(adab$PARCAT1)[1]),
+    "\nProtocol: ", unique(adab$PARCAT1)[1]
+  ),
   subtitles = paste("\nTreatment Group:", trt),
   main_footer = "Minimum reportable titer = 1.10 (example only)
 --- = No sample evaluated
@@ -105,7 +108,8 @@ Treatment-induced ADA = a patient with negative or missing baseline ADA result(s
 Treatment-enhanced ADA = a patient with positive ADA result at baseline who has one or more post-baseline titer results that are at least 0.60 t.u. greater than the baseline titer result.
 Transient ADA = ADA positive result detected (a) at only one post-baseline sampling timepoint (excluding last timepoint) OR (b) at 2 or more timepoints during treatment where the first and last ADA positive samples  are separated by a period of < 16 weeks, irrespective of any negative samples in between.
 Persistent ADA =  ADA positive result detected (a) at the last post-baseline sampling timepoint, OR (b) at 2 or more time points during treatment where the first and last ADA positive samples are separated by a period ≥ 16 weeks, irrespective of any negative samples in between.
-Asterisk denotes sample that tested positive for Neutralizing Antibodies.")
+Asterisk denotes sample that tested positive for Neutralizing Antibodies."
+)
 
 head(lsting, 20)
 ```
