@@ -1,0 +1,93 @@
+---
+title: ONCL01
+subtitle: Listing of Individual Efficacy Data
+---
+
+------------------------------------------------------------------------
+
+### <mark style="background-color: #FFFF00">**Note: the code is for EXPERIMENTAL USE ONLY, NOT PRODUCTION READY**</mark>
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(rlistings)
+
+adrs <- synthetic_cdisc_dataset("rcd_2022_10_13", "adrs")
+adtte <- synthetic_cdisc_dataset("rcd_2022_10_13", "adtte")
+adex <- synthetic_cdisc_dataset("rcd_2022_10_13", "adex")
+
+out_ex <- adex %>%
+  filter(PARAMCD == 'TNDOSE') %>%
+  mutate(ID = paste(SITEID, SUBJID, sep="/")) %>%
+  select(ID, AVAL)
+
+out_rs <- adrs %>%
+  filter(PARAM %in% c("Investigator End Of Induction Response", "Best Confirmed Overall Response by Investigator")) %>% 
+  mutate(ID = paste(SITEID, SUBJID, sep="/")) %>%
+  select(ID, AVALC, PARAM) %>%
+   tidyr::pivot_wider(
+    id_cols = ID, 
+    names_from = PARAM, 
+    values_from = AVALC
+  ) %>%
+  right_join(out_ex, ., by = "ID", multiple = "all")
+
+adtte_flt <- adtte %>%
+  filter(PARAMCD %in% c("OS", "PFS", "CRSD")) %>%
+    mutate(PARAM = paste(PARAM, paste0("(",AVALU,")"), sep=" "), ID = paste(SITEID, SUBJID, sep="/"),
+           trigeventpfs = ifelse(CNSR == 0, EVNTDESC, NA))
+
+# Select triggering event variable
+out_trg <- adtte_flt %>% 
+  select(ID, trigeventpfs)
+
+out_tte <- adtte_flt %>%
+    select(ID, TRT01A, PARAM, AVAL, trigeventpfs) %>%
+   tidyr::pivot_wider(
+    id_cols = c(ID, TRT01A), 
+    names_from = PARAM, 
+    values_from = AVAL
+  ) %>%
+  mutate_at(
+    c("Overall Survival (DAYS)", "Progression Free Survival (DAYS)", "Duration of Confirmed Response (DAYS)"),
+    function(x) format(round(x, 1), nsmall = 1)
+  ) %>%
+  select(ID, TRT01A, `Overall Survival (DAYS)`, `Progression Free Survival (DAYS)`, `Duration of Confirmed Response (DAYS)`) %>% 
+    right_join(out_trg, ., by = "ID", multiple = "all")
+  
+out <- out_tte %>% right_join(out_rs, ., by = "ID", multiple = "all") %>%
+   select("ID", "TRT01A", "AVAL", "Best Confirmed Overall Response by Investigator", "Investigator End Of Induction Response", "Overall Survival (DAYS)", 
+          "Progression Free Survival (DAYS)", "trigeventpfs", "Duration of Confirmed Response (DAYS)")
+
+var_labels(out) <- names(out)
+out <- out %>%
+  var_relabel(ID = "Center/Patient ID",
+              TRT01A = "Treatment",
+              AVAL = "Number of Doses\nReceived",
+              `Best Confirmed Overall Response by Investigator` = "Best Confirmed\nOverall Response\nby Investigator",
+              `Investigator End Of Induction Response` = "Investigator\nEnd Of Induction\nResponse",
+              trigeventpfs = "Triggering Event\n for PFS",
+              `Overall Survival (DAYS)` = "Overall Survival\n(days)",
+              `Progression Free Survival (DAYS)` = "PFS\n(days)",
+              `Duration of Confirmed Response (DAYS)` = "Duration of\nConfirmed Response\n(days)")
+```
+
+## Standard Listing
+
+```{r}
+lsting <- as_listing(
+  out,
+  key_cols = c("ID", "TRT01A"),
+  disp_cols = names(out),
+  main_title = "Listing of Individual Efficacy Data",
+  main_footer = "PFS = Progression Free Survival"
+)
+
+head(lsting, 20)
+```
+:::

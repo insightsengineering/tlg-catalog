@@ -1,0 +1,95 @@
+---
+title: AEL02_ED
+subtitle: Listing of Adverse Events (for early development studies)
+---
+
+------------------------------------------------------------------------
+
+### <mark style="background-color: #FFFF00">**Note: the code is for EXPERIMENTAL USE ONLY, NOT PRODUCTION READY**</mark>
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(scda)
+library(rlistings)
+library(lubridate)
+
+adae <- synthetic_cdisc_dataset("rcd_2022_10_13", "adae")
+
+adae_anl <- adae %>% filter(SAFFL == 'Y') %>%
+  mutate(
+    DHM = as.period(LDOSEDTM %--% ASTDTM),
+    TMOM = minute(DHM) + ifelse(second(DHM) >= 30, 1, 0),
+    TMOH = hour(DHM) + ifelse(TMOM == 60, 1, 0),
+    TMOD = day(DHM) + ifelse(TMOH == 24, 1, 0)
+  ) %>%
+  mutate(
+    TMOM = TMOM %% 60,
+    TMOH = TMOH %% 24
+  )
+
+out <- adae_anl %>% 
+  mutate(ADURN = AENDY - ASTDY + 1,
+         cent_subj = paste(SITEID, SUBJID, sep = "/"),
+         ASR = paste(AGE, SEX, RACE, sep = "/"),
+         AESER_F = if_else(AESER == "Y", 'Yes', 'No', ''),
+         AEREL_F = if_else(AEREL == "Y", 'Yes', 'No', ''),
+         AECONTRT_F = if_else(AECONTRT == "Y", 'Yes', 'No', ''),
+         AEOUT_F = case_when(AEOUT == 'FATAL' ~ 1,
+                             AEOUT == 'NOT RECOVERED/NOT RESOLVED' ~ 2,
+                             AEOUT == 'RECOVERED/RESOLVED' ~ 3,
+                             AEOUT == 'RECOVERED/RESOLVED WITH SEQUELAE' ~ 4,
+                             AEOUT == 'RECOVERING/RESOLVING' ~ 5,
+                             AEOUT == 'UNKNOWN' ~ 6),
+         AEACN_F = case_when(AEACN == "DOSE INCREASED" ~ 1,
+                             AEACN == "DOSE NOT CHANGED" ~ 2,
+                             AEACN == "DOSE REDUCED" | AEACN == "DOSE RATE REDUCED" ~ 3,
+                             AEACN == "DRUG INTERRUPTED" ~ 4,
+                             AEACN == "DRUG WITHDRAWN" ~ 5,
+                             AEACN == "NOT APPLICABLE" | AEACN == "NOT EVALUABLE" ~ 6,
+                             AEACN == "UNKNOWN" ~ 7)) %>% 
+  select(cent_subj, ASR, TRT01A, AEDECOD, ASTDY, TMOD, TMOH, TMOM,
+         ADURN, AESER_F, AESEV, AEREL_F, AEOUT_F, AECONTRT_F, AEACN_F)
+
+out <- out %>% var_relabel(
+  cent_subj  = "Center/Patient ID",
+  ASR        = "Age/Sex/Race",
+  TRT01A     = "Treatment",
+  AEDECOD    = "Adverse\nEvent MedDRA\nPreferred Term",
+  ASTDY      = "Study\nDay of\nOnset",
+  TMOD       = "Time from\nLast Dose\nto Onset\ndays",
+  TMOH       = "Time from\nLast Dose\nto Onset\nhrs",
+  TMOM       = "Time from\nLast Dose\nto Onset\nmins",
+  ADURN      = "AE\nDuration\nin Days",
+  AESER_F    = "Serious",
+  AESEV      = "Most\nExtreme\nIntensity",
+  AEREL_F    = "Caused by\nStudy\nDrug",
+  AEOUT_F    = "Outcome\n(1)",
+  AECONTRT_F = "Treatment\nfor AE",
+  AEACN_F    = "Action\nTaken\n(2)"
+)
+```
+
+## Standard Listing
+
+```{r}
+lsting <- as_listing(
+  out,
+  key_cols = c("cent_subj", "ASR", "TRT01A"), 
+  disp_cols = names(out),
+  main_title = "Listing of Adverse Events (for early development studies)",
+  main_footer = "(1) Outcome: 1 = fatal; 2 = not recovered/not resolved; 3 = recovered/resolved; 4 = recovered/resolved with sequelae; 5 =           
+    recovering/resolving; 6 = unknown.                                                                                                  
+(2) Action taken with study drug: 1 = dose increased; 2 = dose not changed; 3 = dose reduced; 4 = drug interrupted; 5 = drug        
+    withdrawn; 6 = not applicable; 7 = unknown.                                                                                         
+*  Study day derived from imputed onset date.                                                                                       
+** Duration derived from imputed onset date and/or end date."
+)
+
+head(lsting, 20)
+```
+:::
