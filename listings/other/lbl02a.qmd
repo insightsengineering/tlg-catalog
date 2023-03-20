@@ -1,0 +1,78 @@
+---
+title: LBL02A
+subtitle: Listing of Laboratory Abnormalities (constant units)
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(scda)
+library(rlistings)
+
+adlb <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb")
+
+adlb_x <- adlb %>%
+  filter(
+    ANRIND %in% c("LOW", "HIGH"),
+    !ATOXGR %in% c("0", ""),
+    LBTEST != ""
+  ) %>%
+  mutate(
+    LBTEST_U = paste0(LBTEST, " (", AVALU, ")"),
+    CPID = paste(SITEID, SUBJID, sep = "/"),
+    ADTM = toupper(format(as.Date(ADTM), "%d%b%Y")),
+    AVAL = format(round(AVAL, 1), nsmall = 1),
+    LBNRNG = paste(format(round(ANRLO, 1), nsmall = 1), format(round(ANRHI, 1), nsmall = 1), sep = " - "),
+    ANRIND_GR =  factor(
+      case_when(
+        ANRIND == "LOW" ~ paste0("L", sub("-", "", ATOXGR)),
+        ANRIND == "HIGH" ~ paste0("H", ATOXGR)
+      )
+    )
+  ) %>%
+  select(LBTEST_U, TRT01A, CPID, ADY, ADTM, AVAL, ADY, LBNRNG, ANRIND_GR) %>%
+  unique %>%
+  arrange(CPID, ADY) %>%
+  group_by(LBTEST_U, CPID) %>%
+  mutate(DLD = ADY - lag(ADY)) %>%
+  ungroup() %>%
+  mutate(DLD = ifelse(is.na(DLD), 0, DLD))
+
+out <- adlb_x %>%
+  select(LBTEST_U, TRT01A, CPID, ADY, ADTM, DLD, AVAL, LBNRNG, ANRIND_GR)
+
+var_labels(out) <- names(out)
+out <- out %>%
+  var_relabel(
+    LBTEST_U = "Lab Test (Unit)",
+    TRT01A = "Treatment",
+    CPID = "Center/Patient ID",
+    ADY = "Study\nDay",
+    ADTM = "Date",
+    DLD = "Days Since\nLast Dose of\nStudy Drug",
+    AVAL = "Result",
+    LBNRNG = "Lab Normal\nRange",
+    ANRIND_GR = "NCI\nCTCAE\nGrade"
+  )
+```
+
+## Standard Listing
+
+```{r}
+lsting <- as_listing(
+  out,
+  key_cols = c("LBTEST_U", "TRT01A", "CPID"),
+  disp_cols = names(out),
+  main_title = "Listing of Laboratory Abnormalities Defined by NCI CTCAE Grade >= 1",
+  main_footer = "NCI CTCAE grade is displayed as abnormal high (H) or low (L) followed by the grade."
+)
+
+head(lsting, 20)
+```
+:::

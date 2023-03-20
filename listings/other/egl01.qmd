@@ -1,0 +1,81 @@
+---
+title: EGL01
+subtitle: 'Listing of ECG Data: Safety-Evaluable Patients'
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(scda)
+library(rlistings)
+
+adeg <- synthetic_cdisc_dataset("rcd_2022_10_13", "adeg")
+
+get_param_unit_range <- function(dataset) {
+  u_rng <- lapply(unique(dataset$PARAMCD), function(p) {
+    dat <- dataset %>% filter(PARAMCD == p)
+    list(unit = unique(dat$AVALU),
+         range = paste0(unique(dat$ANRLO), "-", unique(dat$ANRHI)))
+  })
+  names(u_rng) <- unique(dataset$PARAMCD)
+  u_rng
+}
+
+eg_u_rng <- get_param_unit_range(adeg)
+
+adeg_sub <- adeg %>%
+  filter(!is.na(AVAL) & SAFFL == "Y" & ANL01FL == "Y" & !is.na(EGSEQ) & PARAMCD != "ECGINTP") %>%
+  mutate(
+    CRTNPT = paste(SITEID, sub('^.*-([[:alnum:]]+)$', '\\1', SUBJID), sep = "/"),
+    AGSXRC = paste(AGE, SEX, RACE, sep = "/"),
+    AVAL = format(round(AVAL, 2), nsmall = 2),
+    AVAL_ANRIND = ifelse(ANRIND %in% c("NORMAL", ""), AVAL, paste(AVAL, substr(ANRIND, 1, 1), sep = "/")),
+    CHG = format(round(CHG, 2), nsmall = 2)
+  )
+
+anl_eg <- adeg_sub %>%
+  select(SUBJID, CRTNPT, AGSXRC, TRT01A, PARAMCD, AVAL_ANRIND, CHG, ADY, AVISIT, ADTM) %>%
+  tidyr::pivot_wider(
+    id_cols = c(SUBJID, CRTNPT, AGSXRC, TRT01A, ADY, AVISIT, ADTM),
+    names_from = PARAMCD,
+    values_from = c(AVAL_ANRIND, CHG)
+  )
+
+out <- anl_eg %>%
+  select(CRTNPT, AGSXRC, TRT01A, AVISIT, ADY, AVAL_ANRIND_HR, CHG_HR, AVAL_ANRIND_QT, CHG_QT, AVAL_ANRIND_RR, CHG_RR) %>%
+  var_relabel(
+    CRTNPT = "Center/Subject ID",
+    AGSXRC = "Age/Sex/Race",
+    TRT01A = "Treatment",
+    AVISIT = "Visit",
+    ADY = "Study\nDay",
+    AVAL_ANRIND_HR = paste0("Heart Rate Result\n(", eg_u_rng$HR$unit, ");\nRange:(", eg_u_rng$HR$range, ")"),
+    CHG_HR = "Heart Rate\nChange from BL",
+    AVAL_ANRIND_QT = paste0("QT Duration Result\n(", eg_u_rng$QT$unit, ");\nRange:(", eg_u_rng$QT$range, ")"),
+    CHG_QT = "QT Duration\nChange from BL",
+    AVAL_ANRIND_RR = paste0("RR Duration Result\n(", eg_u_rng$RR$unit, ");\nRange:(", eg_u_rng$RR$range, ")"),
+    CHG_RR = "RR Duration\nChange from BL"
+  )
+```
+
+## Standard Listing
+
+```{r}
+lsting <- as_listing(
+  out,
+  key_cols = c("CRTNPT", "AGSXRC", "TRT01A", "AVISIT", "ADY"),
+  disp_cols = names(out),
+  main_title = "Listing of ECG Data: Safety-Evaluable Patients",
+  main_footer = "Baseline is the patient's last observation prior to initiation of study drug. Abnormalities are flagged as high (H) or low (L) if   
+  outside the Roche standard reference range."
+)
+
+head(lsting, 20)
+```
+:::

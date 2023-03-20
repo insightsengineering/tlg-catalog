@@ -1,0 +1,51 @@
+---
+title: DSL01
+subtitle: Listing of Patients with Study Drug Withdrawn Due to Adverse Events
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(rlistings)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+
+out <- adsl %>%
+  filter(AEWITHFL == "Y") %>%
+  mutate(ID = paste(SITEID, SUBJID, sep = "/"),
+         ASR = paste(AGE, SEX, RACE, sep = "/"),
+         SSADM = toupper(format(as.Date(TRTSDTM), format = "%d%b%Y")),
+         STDWD = as.numeric(ceiling(difftime(TRTEDTM, TRTSDTM, units = "days"))),
+         DISCONT = ifelse(!is.na(DCSREAS) & toupper(EOSSTT) == "DISCONTINUED", "Yes", "No")
+  ) %>%
+  select(ID, ASR, TRT01A, SSADM, STDWD, DISCONT)
+
+var_labels(out) <- c(
+  ID = "Center/Patient ID",
+  ASR = "Age/Sex/Race",
+  TRT01A = "Treatment",
+  SSADM = "Date of First\nStudy Drug\nAdministration",
+  STDWD = "Study Day\nof Withdrawal",
+  DISCONT = "Discontinued\nEarly from Study?"
+)
+```
+
+## Standard Listing
+
+```{r}
+lsting <- as_listing(
+  out,
+  disp_cols = names(out),
+  main_title = "Listing of Patients with Study Drug Withdrawn Due to Adverse Events"
+)
+
+head(lsting, 20)
+```
+:::
