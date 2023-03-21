@@ -1,0 +1,45 @@
+---
+title: DSUR4
+subtitle: Listing of Patients Who Died During Reporting Period
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(rlistings)
+
+adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
+
+out <- adsl %>%
+  filter(DTHFL == "Y") %>%
+  mutate(ID = paste(SITEID, SUBJID, sep = "/")) %>%
+  select(ARM, ID, DTHCAUS)
+death_num <- length(unique(out$ID))
+var_labels(out) <- c(
+  ARM = "Treatment Group",
+  ID = "Center/Patient ID",
+  DTHCAUS = "Cause of Death"
+)
+```
+
+## Standard Listing
+
+```{r}
+lsting <- as_listing(
+  out,
+  key_cols = c("ARM"),
+  disp_cols = names(out),
+  main_title = "Listing of Patients Who Died During Reporting Period",
+  subtitles = paste("Number of patient deaths during reporting period =", death_num)
+)
+
+head(lsting, 20)
+```
+:::
