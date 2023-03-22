@@ -15,8 +15,8 @@ library(scda)
 library(dplyr)
 library(tern)
 
-adsl <- synthetic_cdisc_dataset("rcd_2022_10_13", "adsl")
-adlb <- synthetic_cdisc_dataset("rcd_2022_10_13", "adlb")
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adlb <- synthetic_cdisc_dataset("latest", "adlb")
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -71,14 +71,12 @@ adlb_f <- adlb %>%
   )))
 
 # Construct analysis map
-map <- unique(
-  adlb_f[
-    adlb_f$abn_dir %in% c("Low", "High") & adlb_f$AVALCAT1 != "<Missing>", c("PARAM", "abn_dir")
-  ]
-) %>%
-  lapply(as.character) %>%
-  as.data.frame() %>%
-  arrange(PARAM, desc(abn_dir))
+  map <- expand.grid(
+    PARAM = levels(adlb$PARAM),
+    abn_dir = c("Low", "High"),
+    stringsAsFactors = FALSE
+  ) %>%
+    arrange(PARAM, desc(abn_dir))
 ```
 
 ## Standard Table
