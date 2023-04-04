@@ -1,0 +1,120 @@
+---
+title: CFBT01
+subtitle: Efficacy Data and Change from Baseline by Visit
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(tern)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adqs <- synthetic_cdisc_dataset("latest", "adqs")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adqs <- df_explicit_na(adqs)
+
+# This example focuses on "BFI All Questions" starting from baseline.
+adqs <- adqs %>%
+  dplyr::filter(
+    PARAM == "BFI All Questions",
+    AVISIT != "SCREENING"
+  ) %>%
+  var_relabel(
+    AVISIT = "Visit"
+  )
+
+# Define the split function for AVISIT
+split_fun <- drop_split_levels
+```
+
+## Standard Table
+
+```{r}
+lyt <- basic_table() %>%
+  split_cols_by("ARM") %>%
+  split_rows_by(
+    "AVISIT", 
+    split_fun = split_fun, 
+    label_pos = "topleft", 
+    split_label = obj_label(adqs$AVISIT)
+  ) %>%
+  split_cols_by_multivar(
+    vars = c("AVAL", "CHG"),
+    varlabels = c("Value at Visit", "Change from\nBaseline")
+  ) %>%
+  summarize_colvars()
+
+result <- build_table(lyt, adqs)
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 18)
+
+library(teal.modules.clinical)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adqs <- synthetic_cdisc_dataset("latest", "adqs")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adqs <- df_explicit_na(adqs)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL",
+      adsl,
+      code = 'adsl <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))'
+    ),
+    cdisc_dataset("ADQS",
+      adqs,
+      code = 'adqs <- df_explicit_na(synthetic_cdisc_dataset("latest", "adqs"))'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_summary_by(
+      label = "Efficacy Data and Change from Baseline by Visit",
+      dataname = "ADQS",
+      arm_var = choices_selected(
+        choices = variable_choices(adsl, c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      by_vars = choices_selected(
+        choices = variable_choices(adqs, c("PARAM", "AVISIT")),
+        selected = c("AVISIT")
+      ),
+      summarize_vars = choices_selected(
+        choices = variable_choices(adqs, c("AVAL", "CHG")),
+        selected = c("AVAL", "CHG")
+      ),
+      useNA = "ifany",
+      paramcd = choices_selected(
+        choices = value_choices(adqs, "PARAMCD", "PARAM"),
+        selected = "BFIALL"
+      ),
+      add_total = FALSE,
+      parallel_vars = TRUE
+    )
+  ),
+  filter = list(ADQS = list(AVISIT = list(), AVAL = list()))
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+:::
