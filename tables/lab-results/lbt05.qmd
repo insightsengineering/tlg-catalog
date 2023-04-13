@@ -37,7 +37,6 @@ avalcat1 <- c("LAST", "REPLICATED", "SINGLE")
 
 set.seed(1)
 adlb <- adlb %>%
-  group_by(USUBJID, PARAMCD, BASETYPE) %>%
   mutate(
     ANRIND = factor(
       case_when(
@@ -71,29 +70,19 @@ adlb_f <- adlb %>%
   )))
 
 # Construct analysis map
-map <- unique(
-  adlb_f[
-    adlb_f$abn_dir %in% c("Low", "High") & adlb_f$AVALCAT1 != "<Missing>", c("PARAM", "abn_dir")
-  ]
-) %>%
-  lapply(as.character) %>%
-  as.data.frame() %>%
-  arrange(PARAM, desc(abn_dir))
+  map <- expand.grid(
+    PARAM = levels(adlb$PARAM),
+    abn_dir = c("Low", "High"),
+    stringsAsFactors = FALSE
+  ) %>%
+    arrange(PARAM, desc(abn_dir))
+  
+adlb_f <- df_explicit_na(adlb_f, na_level = "<Missing>")
 ```
 
 ## Standard Table
 
 ```{r variant 1}
-# remove all marked abnormalities for ALT so that it can be demonstrated that
-# just the `Any Abnormality` row is shown when there is no marked abnormality.
-adlb_f2 <- adlb_f
-levels(adlb_f2$abn_dir) <- c(levels(adlb_f2$abn_dir), "<Missing>")
-levels(adlb_f2$AVALCAT1) <- c(levels(adlb_f2$AVALCAT1), "<Missing>")
-adlb_f2$abn_dir[adlb_f2$PARAMCD == "ALT"] <- "<Missing>"
-adlb_f2$AVALCAT1[adlb_f2$PARAMCD == "ALT"] <- "<Missing>"
-
-adlb_f2 <- df_explicit_na(adlb_f2, na_level = "<Missing>")
-
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ACTARMCD") %>%
   split_rows_by(
@@ -109,7 +98,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     variables = list(id = "USUBJID", param = "PARAM", direction = "abn_dir")
   )
 
-result <- build_table(lyt, df = adlb_f2, alt_counts_df = adsl)
+result <- build_table(lyt, df = adlb_f, alt_counts_df = adsl)
 
 all_zero_or_na_not_any <- function(tr) {
   if (!is(tr, "TableRow") || is(tr, "LabelRow") || obj_label(tr) == "Any Abnormality") {
@@ -126,8 +115,6 @@ result
 ## Table Showing <br/> All Categories
 
 ```{r variant 2}
-adlb_f <- df_explicit_na(adlb_f, na_level = "<Missing>") # abn_dir has ""
-
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ACTARMCD") %>%
   split_rows_by(
@@ -160,9 +147,6 @@ result
 ## Table of Lab Abnormalities Showing <br/> All Categories But Only for Parameter <br/> Codes with At Least One Abnormality
 
 ```{r variant 4}
-# adlb_f2 is used so that it can be demonstrated that
-# only parameters with at least one marked abnormality are displayed.
-# Create an empirical map removing rows belonging to "ALT" which does not contain abnormalities
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ACTARMCD") %>%
   split_rows_by(
@@ -180,7 +164,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   )
 
 # we should still use the prune_table() function to obtain the desired output.
-result <- build_table(lyt, df = adlb_f2, alt_counts_df = adsl) %>%
+result <- build_table(lyt, df = adlb_f, alt_counts_df = adsl) %>%
   prune_table()
 result
 
@@ -190,5 +174,4 @@ result
 ```
 
 {{< include ../../si.qmd >}}
-
 :::
