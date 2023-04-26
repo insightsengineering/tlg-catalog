@@ -26,61 +26,48 @@ adtte <- synthetic_cdisc_dataset("latest", "adtte")
 adsl <- df_explicit_na(adsl)
 adtte <- df_explicit_na(adtte)
 
-adsl_filtered <- dplyr::filter(
-  adsl,
-  RACE %in% c(
-    "ASIAN", "BLACK OR AFRICAN AMERICAN",
-    "WHITE"
-  )
+adsl_filtered <- adsl %>% dplyr::filter(
+  RACE %in% c("ASIAN", "BLACK OR AFRICAN AMERICAN", "WHITE")
 )
-adtte_filtered_alone <- adtte
 adtte_filtered <- dplyr::inner_join(
   x = adsl_filtered[, c("STUDYID", "USUBJID")],
-  y = adtte_filtered_alone,
+  y = adtte,
   by = c("STUDYID", "USUBJID")
 )
 
 anl <- adtte_filtered %>%
   filter(PARAMCD == "OS") %>%
-  mutate(event = 1 - CNSR) %>%
+  mutate(EVENT = 1 - CNSR) %>%
   filter(ARM %in% c("B: Placebo", "A: Drug X")) %>%
   mutate(ARM = droplevels(relevel(ARM, "B: Placebo"))) %>%
-  mutate(RACE = droplevels(RACE))
+  mutate(RACE = droplevels(RACE) %>% formatters::with_label("Race"))
+
+# Add variable for column split label
+anl <- anl %>% mutate(col_label = "Treatment Effect Adjusted for Covariate")
 ```
 
 ## Cox Regression
 
-The model is fitted using the function `fit_coxreg_univar` specifying the time, event, arm, and candidate covariates in a `variables` list, as well as the data where these variables live.
+The `summarize_coxreg` function fits, tidies and arranges a Cox regression model in a table layout using the `rtables` framework.
+For a Cox regression model, arguments `variables`, `control`, and `at` can be specified (see `?summarize_coxreg` for more details and customization options).
+All variables specified within `variables` must be present in the data used when building the table.
+
+To see the same model as a `data.frame` object, these three arguments (as well as the data) can be passed to the `fit_coxreg_univar` function, and the resulting list tidied using `broom::tidy()`.
 
 ```{r}
-model <- fit_coxreg_univar(
-  variables = list(
-    time = "AVAL",
-    event = "event",
-    arm = "ARM",
-    covariates = c("AGE", "SEX", "RACE")
-  ),
-  data = anl
+variables <- list(
+  time = "AVAL",
+  event = "EVENT",
+  arm = "ARM",
+  covariates = c("AGE", "SEX", "RACE")
 )
-```
-
-After fitting, the models are tidied and arranged in a table layout using the `rtables` framework.
-
-```{r}
-df <- broom::tidy(model)
-df <- df %>% mutate(col_label = "Treatment Effect Adjusted for Covariate")
-
-# Define the split function
-split_fun <- drop_split_levels
 
 lyt <- basic_table() %>%
   split_cols_by("col_label") %>%
-  split_rows_by("effect", split_fun = split_fun) %>%
-  split_rows_by("term", child_labels = "hidden", split_fun = split_fun) %>%
-  append_topleft("Effect/Covariate Included in the Model") %>%
-  summarize_coxreg(conf_level = 0.95, vars = c("n", "hr", "ci", "pval"))
+  summarize_coxreg(variables = variables) %>%
+  append_topleft("Effect/Covariate Included in the Model")
 
-result <- build_table(lyt = lyt, df = df)
+result <- build_table(lyt = lyt, df = anl)
 result
 ```
 
@@ -88,31 +75,25 @@ result
 
 The argument `control` can be used to modify standard outputs; `control_coxreg()` helps in adopting the right settings (see `?control_coxreg`).
 For instance, `control` is used to include the interaction terms.
-Note that the bulk of the layout from the previous table (in the Cox Regression tab) is unchanged and can be reused here.
 
 ```{r}
-model <- fit_coxreg_univar(
-  variables = list(
-    time = "AVAL",
-    event = "event",
-    arm = "ARM",
-    covariates = c("AGE", "RACE")
-  ),
-  data = anl,
-  control = control_coxreg(interaction = TRUE)
+variables <- list(
+  time = "AVAL",
+  event = "EVENT",
+  arm = "ARM",
+  covariates = c("AGE", "RACE")
 )
-
-df <- broom::tidy(model)
-df <- df %>% mutate(col_label = "Treatment Effect Adjusted for Covariate")
 
 lyt <- basic_table() %>%
   split_cols_by("col_label") %>%
-  split_rows_by("effect", split_fun = split_fun) %>%
-  split_rows_by("term", child_labels = "hidden", split_fun = split_fun) %>%
-  append_topleft("Effect/Covariate Included in the Model") %>%
-  summarize_coxreg(conf_level = 0.95, vars = c("n", "hr", "ci", "pval", "pval_inter"))
+  summarize_coxreg(
+    variables = variables,
+    control = control_coxreg(interaction = TRUE),
+    .stats = c("n", "hr", "ci", "pval", "pval_inter")
+  ) %>%
+  append_topleft("Effect/Covariate Included in the Model")
 
-result <- build_table(lyt = lyt, df = df)
+result <- build_table(lyt = lyt, df = anl)
 result
 ```
 
@@ -123,22 +104,24 @@ For instance, it might be relevant to choose the age at which the hazard ratio s
 If no input is provided to `at`, the median value is used in the row name (as in the previous tab).
 
 ```{r}
-model <- fit_coxreg_univar(
-  variables = list(
-    time = "AVAL",
-    event = "event",
-    arm = "ARM",
-    covariates = c("AGE", "SEX")
-  ),
-  data = anl,
-  control = control_coxreg(interaction = TRUE),
-  at = list(AGE = c(30, 40, 50))
+variables <- list(
+  time = "AVAL",
+  event = "EVENT",
+  arm = "ARM",
+  covariates = c("AGE", "SEX")
 )
 
-df <- broom::tidy(model)
-df <- df %>% mutate(col_label = "Treatment Effect Adjusted for Covariate")
+lyt <- basic_table() %>%
+  split_cols_by("col_label") %>%
+  summarize_coxreg(
+    variables = variables,
+    control = control_coxreg(interaction = TRUE),
+    at = list(AGE = c(30, 40, 50)),
+    .stats = c("n", "hr", "ci", "pval", "pval_inter")
+  ) %>%
+  append_topleft("Effect/Covariate Included in the Model")
 
-result <- build_table(lyt = lyt, df = df)
+result <- build_table(lyt = lyt, df = anl)
 result
 ```
 
@@ -146,37 +129,33 @@ result
 
 Additional controls can be customized using `control_coxreg` (see `?control_coxreg`) such as the ties calculation method and the confidence level.
 Stratification variables can be added via the `strata` element of the `variables` list.
-Note that confidence level needs to be specified directly using the `conf_level` argument to the `summarize_coxreg` function.
 
 ```{r}
-model <- fit_coxreg_univar(
-  variables = list(
-    time = "AVAL",
-    event = "event",
-    arm = "ARM",
-    covariates = c("AGE", "RACE"),
-    strata = "SEX"
-  ),
-  data = anl,
-  control = control_coxreg(
-    ties = "breslow",
-    interaction = TRUE,
-    conf_level = 0.90
-  ),
-  at = list(AGE = c(30, 40, 50))
+variables <- list(
+  time = "AVAL",
+  event = "EVENT",
+  arm = "ARM",
+  covariates = c("AGE", "RACE"),
+  strata = "SEX"
 )
-df <- broom::tidy(model)
-df <- df %>% mutate(col_label = "Treatment Effect Adjusted for Covariate")
+
+control <- control_coxreg(
+  ties = "breslow",
+  interaction = TRUE,
+  conf_level = 0.90
+)
+
 lyt <- basic_table() %>%
   split_cols_by("col_label") %>%
-  split_rows_by("effect", split_fun = split_fun) %>%
-  split_rows_by("term", child_labels = "hidden", split_fun = split_fun) %>%
-  append_topleft("Effect/Covariate Included in the Model") %>%
   summarize_coxreg(
-    conf_level = 0.90,
-    vars = c("n", "hr", "ci", "pval", "pval_inter")
-  )
-result <- build_table(lyt = lyt, df = df)
+    variables = variables,
+    control = control,
+    at = list(AGE = c(30, 40, 50)),
+    .stats = c("n", "hr", "ci", "pval", "pval_inter")
+  ) %>%
+  append_topleft("Effect/Covariate Included in the Model")
+
+result <- build_table(lyt = lyt, df = anl)
 result
 ```
 
@@ -188,12 +167,12 @@ result
 library(teal.modules.clinical)
 library(scda)
 
-ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adtte <- synthetic_cdisc_dataset("latest", "adtte")
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-ADSL <- df_explicit_na(ADSL)
-ADTTE <- df_explicit_na(ADTTE)
+adsl <- df_explicit_na(adsl)
+adtte <- df_explicit_na(adtte)
 
 arm_ref_comp <- list(
   ACTARMCD = list(
@@ -208,8 +187,8 @@ arm_ref_comp <- list(
 
 app <- init(
   data = cdisc_data(
-    cdisc_dataset("ADSL", ADSL, code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))'),
-    cdisc_dataset("ADTTE", ADTTE, code = 'ADTTE <- df_explicit_na(synthetic_cdisc_dataset("latest", "adtte"))'),
+    cdisc_dataset("ADSL", adsl, code = 'adsl <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))'),
+    cdisc_dataset("ADTTE", adtte, code = 'adtte <- df_explicit_na(synthetic_cdisc_dataset("latest", "adtte"))'),
     check = TRUE
   ),
   modules = modules(
@@ -219,7 +198,7 @@ app <- init(
       arm_var = choices_selected(c("ARM", "ARMCD", "ACTARMCD"), "ARM"),
       arm_ref_comp = arm_ref_comp,
       paramcd = choices_selected(
-        value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"
+        value_choices(adtte, "PARAMCD", "PARAM"), "OS"
       ),
       strata_var = choices_selected(
         c("SEX", "STRATA1", "STRATA2"), NULL
@@ -235,5 +214,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../si.qmd >}}
-
 :::
