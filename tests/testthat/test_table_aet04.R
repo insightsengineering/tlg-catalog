@@ -55,7 +55,13 @@
 #   )
 
 ### SETUP
-load(paste0(main_pkg_dir, "inst/extdata/aet04.Rdata"))
+test_dir <- rprojroot::find_testthat_root_file(path = rprojroot::find_package_root_file())
+data_file <- paste0(test_dir, "/_data/aet04.Rdata")
+if (isFALSE(file.exists(data_file))) {
+  testthat::skip(paste0("Data file ", data_file, " not found. Skipping tests for this table."))
+}
+
+load(data_file)
 
 testthat::test_that("AET04 variant 1 is produced correctly", {
   res <- testthat::expect_silent(result_v1) # topleft information changes pagination
