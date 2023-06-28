@@ -22,9 +22,6 @@ adlb <- synthetic_cdisc_dataset("latest", "adlb")
 adsl <- df_explicit_na(adsl)
 adlb <- df_explicit_na(adlb)
 
-# Modify ANRIND and create AVALCAT1/PARCAT2
-# PARCAT2 is just used for filtering, but in order to be the
-# filtering as realistic as possible, will create the variable.
 qntls <- adlb %>%
   group_by(PARAMCD) %>%
   summarise(as_tibble(t(quantile(AVAL, probs = c(0.1, 0.9)))), .groups = "drop_last") %>%
@@ -33,9 +30,11 @@ qntls <- adlb %>%
 adlb <- adlb %>%
   left_join(qntls, by = "PARAMCD")
 
-avalcat1 <- c("LAST", "REPLICATED", "SINGLE")
-
 set.seed(1)
+
+# Modify ANRIND and create AVALCAT1/PARCAT2
+# PARCAT2 is just used for filtering, but in order to be the
+# filtering as realistic as possible, will create the variable.
 adlb <- adlb %>%
   mutate(
     ANRIND = factor(
@@ -49,10 +48,10 @@ adlb <- adlb %>%
     AVALCAT1 = factor(
       case_when(
         ANRIND %in% c("HIGH HIGH", "LOW LOW") ~
-          sample(x = avalcat1, size = n(), replace = TRUE, prob = c(0.3, 0.6, 0.1)),
+          sample(x = c("LAST", "REPLICATED", "SINGLE"), size = n(), replace = TRUE, prob = c(0.3, 0.6, 0.1)),
         TRUE ~ ""
       ),
-      levels = c("", avalcat1)
+      levels = c("", c("LAST", "REPLICATED", "SINGLE"))
     ),
     PARCAT2 = factor(ifelse(ANRIND %in% c("HIGH HIGH", "LOW LOW"), "LS",
       sample(c("SI", "CV", "LS"), size = n(), replace = TRUE)
@@ -67,7 +66,8 @@ adlb_f <- adlb %>%
     ANRIND == "LOW LOW" ~ "Low",
     ANRIND == "HIGH HIGH" ~ "High",
     TRUE ~ ""
-  )))
+  ), levels = c("Low", "High", ""))) %>%
+  df_explicit_na()
 
 # Construct analysis map
 map <- expand.grid(
@@ -76,39 +76,31 @@ map <- expand.grid(
   stringsAsFactors = FALSE
 ) %>%
   arrange(PARAM, desc(abn_dir))
-
-adlb_f <- df_explicit_na(adlb_f, na_level = "<Missing>")
 ```
 
 ## Standard Table
 
 ```{r variant 1}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by("ACTARMCD") %>%
+  split_cols_by("ACTARM") %>%
   split_rows_by(
     "PARAM",
     label_pos = "topleft",
     split_label = "Laboratory Test"
   ) %>%
   summarize_num_patients(var = "USUBJID", .stats = "unique_count") %>%
-  append_topleft("  Direction of Abnormality") %>%
   split_rows_by("abn_dir", split_fun = trim_levels_to_map(map)) %>%
   count_abnormal_by_marked(
     var = "AVALCAT1",
     variables = list(id = "USUBJID", param = "PARAM", direction = "abn_dir")
-  )
+  ) %>%
+  append_topleft("  Direction of Abnormality")
 
 result <- build_table(lyt, df = adlb_f, alt_counts_df = adsl)
 
-all_zero_or_na_not_any <- function(tr) {
-  if (!is(tr, "TableRow") || is(tr, "LabelRow") || obj_label(tr) == "Any Abnormality") {
-    return(FALSE)
-  }
-  rvs <- unlist(unname(row_values(tr)))
-  all(is.na(rvs) | rvs == 0 | !is.finite(rvs))
-}
+has_lbl <- function(lbl) CombinationFunction(function(tr) obj_label(tr) == lbl || sum(unlist(row_values(tr))) != 0)
+result <- prune_table(result, keep_rows(has_lbl("Any Abnormality")))
 
-result <- trim_rows(result, criteria = all_zero_or_na_not_any)
 result
 ```
 
@@ -116,19 +108,19 @@ result
 
 ```{r variant 2}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by("ACTARMCD") %>%
+  split_cols_by("ACTARM") %>%
   split_rows_by(
     "PARAM",
     label_pos = "topleft",
     split_label = "Laboratory Test"
   ) %>%
   summarize_num_patients(var = "USUBJID", .stats = "unique_count") %>%
-  append_topleft("  Direction of Abnormality") %>%
   split_rows_by("abn_dir", split_fun = trim_levels_to_map(map)) %>%
   count_abnormal_by_marked(
     var = "AVALCAT1",
     variables = list(id = "USUBJID", param = "PARAM", direction = "abn_dir")
-  )
+  ) %>%
+  append_topleft("  Direction of Abnormality")
 
 result <- build_table(lyt, df = adlb_f, alt_counts_df = adsl)
 
@@ -148,7 +140,7 @@ result
 
 ```{r variant 4}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by("ACTARMCD") %>%
+  split_cols_by("ACTARM") %>%
   split_rows_by(
     "PARAM",
     label_pos = "topleft",
@@ -156,16 +148,16 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     split_fun = trim_levels_in_group("abn_dir", drop_outlevs = TRUE)
   ) %>%
   summarize_num_patients(var = "USUBJID", .stats = "unique_count") %>%
-  append_topleft("  Direction of Abnormality") %>%
   split_rows_by("abn_dir") %>%
   count_abnormal_by_marked(
     var = "AVALCAT1",
     variables = list(id = "USUBJID", param = "PARAM", direction = "abn_dir")
-  )
+  ) %>%
+  append_topleft("  Direction of Abnormality")
 
-# we should still use the prune_table() function to obtain the desired output.
-result <- build_table(lyt, df = adlb_f, alt_counts_df = adsl) %>%
-  prune_table()
+result <- build_table(lyt, df = adlb_f, alt_counts_df = adsl)
+
+result <- result %>% prune_table()
 result
 
 # Another approach would be to create an empirical map by removing the ALT records
