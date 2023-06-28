@@ -7,5 +7,7 @@ if (isFALSE(file.exists(path))) {
 data_snap <- readRDS(path)
 
 for (i in names(data_snap)) {
-    testthat::test_that(i, {testthat::expect_snapshot(print(data_snap[[i]]))})
+  testthat::test_that(i, {
+    testthat::expect_snapshot(print(data_snap[[i]]))
+  })
 }
