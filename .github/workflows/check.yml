@@ -20,6 +20,22 @@ jobs:
     if: github.event_name != 'push'
     name: Audit Dependencies 🕵️‍♂️
     uses: insightsengineering/r.pkg.template/.github/workflows/audit.yaml@main
+  r-cmd:
+    name: R CMD Check 🧬
+    uses: insightsengineering/r.pkg.template/.github/workflows/build-check-install.yaml@main
+    secrets:
+      REPO_GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
+    with:
+      additional-env-vars: |
+        _R_CHECK_CRAN_INCOMING_REMOTE_=false
+      additional-r-cmd-check-params: --as-cran
+      enforce-note-blocklist: true
+      note-blocklist: |
+        checking dependencies in R code ... NOTE
+        checking R code for possible problems ... NOTE
+        checking examples ... NOTE
+        checking Rd line widths ... NOTE
+    # need a new path parameter set to "./package"
   linter:
     if: github.event_name != 'push'
     name: SuperLinter 🦸‍♀️
@@ -34,36 +50,11 @@ jobs:
     uses: insightsengineering/r.pkg.template/.github/workflows/version-bump.yaml@main
     secrets:
       REPO_GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
-  copy_vbump:
-    name: Copy version to the package
-    needs: vbump
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && !(contains(github.event.commits[0].message, '[skip vbump]') || contains(github.event.head_commit.message, '[skip vbump]'))
-    container:
-      image: docker.io/rocker/tidyverse:4.3.1
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout repo 🛎
-        uses: actions/checkout@v3
-      - name: Copy version to the package
-        run: desc::desc_set_version(desc::desc_get_version(), "./package")
-        shell: Rscript {0}
-      - name: Copy date to the package
-        run: if (desc::desc_has_fields("Date", "./package")) desc::desc_set("Date", if (desc::desc_has_fields("Date")) desc::desc_get_field("Date") else Sys.Date(), file = "./package")
-        shell: Rscript {0}
-      - name: Commit and push changes 📌
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "[skip actions] Bump package version"
-          file_pattern: DESCRIPTION
-          commit_user_name: insights-engineering-bot
-          commit_user_email: >-
-            68416928+insights-engineering-bot@users.noreply.github.com
-        continue-on-error: true
+    # need a new path parameter set to "./package"
   version:
     name: Version Check 🏁
     uses: insightsengineering/r.pkg.template/.github/workflows/version.yaml@main
+    # need a new path parameter set to "./package"
   licenses:
     if: github.event_name != 'push'
     name: License Check 🃏
