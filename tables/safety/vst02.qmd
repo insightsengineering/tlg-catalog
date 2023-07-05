@@ -23,17 +23,13 @@ advs <- synthetic_cdisc_dataset("latest", "advs")
 adsl <- df_explicit_na(adsl)
 advs <- df_explicit_na(advs)
 
-advs <- advs %>%
-  mutate(
-    ONTRTFL = ifelse(AVISIT %in% c("SCREENING", "BASELINE"), "", "Y")
-  ) %>%
-  var_relabel(
-    ONTRTFL = "On Treatment Record Flag"
-  )
-
 # Note:  We keep only post-baseline for analysis.
 advs_f <- advs %>%
-  filter(ONTRTFL == "Y")
+  filter(ONTRTFL == "Y", ANRIND != "<Missing>") %>%
+  var_relabel(
+    PARAM = "Assessment",
+    ANRIND = "Abnormality"
+  )
 
 # If you want to control which parameters in the table have only `LOW` or only `HIGH` theoretical ranges defined,
 # see `tern::h_map_for_count_abnormal` with method "range" or refer to the `EGT02` example.
@@ -45,7 +41,7 @@ split_fun <- drop_split_levels
 
 ```{r variant 1}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   add_overall_col("All Patients") %>%
   split_rows_by("PARAM", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(advs_f$PARAM)) %>%
   count_abnormal(
@@ -64,7 +60,7 @@ result
 
 ```{r variant 2}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   add_overall_col("All Patients") %>%
   split_rows_by("PARAM", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(advs_f$PARAM)) %>%
   count_abnormal(
@@ -96,11 +92,7 @@ advs <- synthetic_cdisc_dataset("latest", "advs") %>%
 app <- init(
   data = cdisc_data(
     cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
-    cdisc_dataset("ADVS", advs,
-      code = 'ADVS <- synthetic_cdisc_dataset("latest", "advs") %>%
-                mutate(ONTRTFL = ifelse(AVISIT %in% c("SCREENING", "BASELINE"), "", "Y")) %>%
-                var_relabel(ONTRTFL = "On Treatment Record Flag")'
-    ),
+    cdisc_dataset("ADVS", advs, code = 'ADVS <- synthetic_cdisc_dataset("latest", "advs")'),
     check = TRUE
   ),
   modules = modules(
@@ -131,5 +123,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../si.qmd >}}
-
 :::

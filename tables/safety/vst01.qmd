@@ -84,14 +84,39 @@ var_labels(advs_f) <- advs_label
 ```{r}
 split_fun <- drop_split_levels
 
+afun <- function(x, .var, .spl_context, ...) {
+  n_fun <- sum(!is.na(x), na.rm = TRUE)
+  if (n_fun == 0) {
+    mean_sd_fun <- c(NA, NA)
+    median_fun <- NA
+    min_max_fun <- c(NA, NA)
+  } else {
+    mean_sd_fun <- c(mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))
+    median_fun <- median(x, na.rm = TRUE)
+    min_max_fun <- c(min(x), max(x))
+  }
+  is_chg <- .var == "CHG"
+  is_baseline <- .spl_context$value[which(.spl_context$split == "AVISIT")] == "BASELINE"
+  if (is_baseline && is_chg) n_fun <- mean_sd_fun <- median_fun <- min_max_fun <- NULL
+
+  in_rows(
+    "n" = n_fun,
+    "Mean (SD)" = mean_sd_fun,
+    "Median" = median_fun,
+    "Min - Max" = min_max_fun,
+    .formats = list("n" = "xx", "Mean (SD)" = "xx.xx (xx.xx)", "Median" = "xx.xx", "Min - Max" = "xx.xx - xx.xx"),
+    .format_na_strs = list("n" = "NE", "Mean (SD)" = "NE (NE)", "Median" = "NE", "Min - Max" = "NE - NE")
+  )
+}
+
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by("ARM") %>%
-  split_rows_by("AVISIT", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(advs_f$AVISIT)) %>%
+  split_cols_by("ACTARM") %>%
+  split_rows_by("AVISIT", split_fun = split_fun, label_pos = "topleft", split_label = "\n\nAnalysis Visit") %>%
   split_cols_by_multivar(
     vars = c("AVAL", "CHG"),
-    varlabels = c("Value at Visit", "Change from Baseline")
+    varlabels = c("Value at Visit", "Change from\nBaseline")
   ) %>%
-  summarize_colvars(.labels = c(range = "Min - Max"))
+  analyze_colvars(afun = afun)
 
 result <- build_table(lyt = lyt, df = advs_f, alt_counts_df = adsl)
 result
@@ -233,5 +258,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../si.qmd >}}
-
 :::
