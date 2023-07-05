@@ -30,7 +30,7 @@ create_subsection <- function(fpath, title) {
 # Create Index Header
 
 cat(
-  paste("---", "title: Index", "date: '`r Sys.Date()`'", "toc: true", "toc-depth: 4", "---", "", sep = "\n"),
+  paste("---", "title: Index", "toc: true", "toc-depth: 4", "---", "", sep = "\n"),
   file = "./tlg-index.qmd"
 )
 
