@@ -17,9 +17,26 @@ library(dplyr)
 
 set.seed(1, kind = "Mersenne-Twister")
 adsl <- synthetic_cdisc_dataset("latest", "adsl")
+
 # reorder EOSSTT factor levels so DISCONTINUED is the last level
 adsl <- df_explicit_na(adsl) %>%
   mutate(EOSSTT = factor(EOSSTT, levels = c("COMPLETED", "ONGOING", "DISCONTINUED")))
+
+adsl_gp_added <- adsl %>%
+  mutate(DCSREASGP = case_when(
+    DCSREAS %in% c("ADVERSE EVENT", "DEATH") ~ "Safety",
+    (DCSREAS != "<Missing>" & !DCSREAS %in% c("ADVERSE EVENT", "DEATH")) ~ "Non-Safety",
+    DCSREAS == "<Missing>" ~ "<Missing>"
+  ) %>% factor(levels = c("Safety", "Non-Safety", "<Missing>")))
+
+adsl_eotstt_added <- adsl_gp_added %>%
+  mutate(
+    EOTSTT = sample(
+      c("ONGOING", "COMPLETED", "DISCONTINUED"),
+      size = nrow(adsl),
+      replace = TRUE
+    ) %>% factor(levels = c("COMPLETED", "ONGOING", "DISCONTINUED"))
+  )
 ```
 
 ## Standard Table
@@ -50,13 +67,6 @@ result1
 ## Table with Grouping of Reasons
 
 ```{r}
-adsl_gp_added <- adsl %>%
-  mutate(DCSREASGP = case_when(
-    DCSREAS %in% c("ADVERSE EVENT", "DEATH") ~ "Safety",
-    (DCSREAS != "<Missing>" & !DCSREAS %in% c("ADVERSE EVENT", "DEATH")) ~ "Non-Safety",
-    DCSREAS == "<Missing>" ~ "<Missing>"
-  ) %>% factor(levels = c("Safety", "Non-Safety", "<Missing>")))
-
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(
     "ACTARM",
@@ -77,22 +87,13 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
 
 tbl <- build_table(lyt = lyt, df = adsl_gp_added)
 result2 <- prune_table(tbl) # remove rows containing all zeros
+
 result2
 ```
 
 ## Table Adding Optional Rows
 
 ```{r}
-set.seed(1)
-adsl_eotstt_added <- adsl_gp_added %>%
-  mutate(
-    EOTSTT = sample(
-      c("ONGOING", "COMPLETED", "DISCONTINUED"),
-      size = nrow(adsl),
-      replace = TRUE
-    ) %>% factor(levels = c("COMPLETED", "ONGOING", "DISCONTINUED"))
-  )
-
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(
     "ACTARM",
@@ -110,6 +111,7 @@ tbl <- prune_table(tbl) # remove rows containing all zeros
 # Combine tables
 col_info(result2) <- col_info(tbl)
 result3 <- rbind(result2, tbl)
+
 result3
 ```
 
