@@ -34,7 +34,7 @@ adsl <- adsl %>%
       SEX == "U" ~ "Unknown",
       SEX == "UNDIFFERENTIATED" ~ "Undifferentiated"
     )),
-    AGEGRP = factor(
+    AGEGR1 = factor(
       case_when(
         between(AGE, 18, 40) ~ "18-40",
         between(AGE, 41, 64) ~ "41-64",
@@ -77,52 +77,58 @@ get_param_adsub <- function(pname, plabel) {
   ds
 }
 adsl <- adsl %>%
-  left_join(get_param_advs("SBP", "Systolic Blood Pressure")) %>%
-  left_join(get_param_advs("DBP", "Diastolic Blood Pressure")) %>%
-  left_join(get_param_advs("WGT", "Weight")) %>%
-  left_join(get_param_adsub("BBMISI", "Baseline BMI"))
+  left_join(get_param_advs("SBP", "Systolic Blood Pressure"), by = "USUBJID") %>%
+  left_join(get_param_advs("DBP", "Diastolic Blood Pressure"), by = "USUBJID") %>%
+  left_join(get_param_advs("WGT", "Weight"), by = "USUBJID") %>%
+  left_join(get_param_adsub("BBMISI", "Baseline BMI"), by = "USUBJID")
 ```
 
 ## Table with an Additional <br/> Study-Specific Continuous Variable
 
 ```{r}
-vars <- c("AGE", "SEX", "RACE", "BMRKR1")
+vars <- c("AGE", "AGEGR1", "SEX", "ETHNIC", "RACE", "BMRKR1")
 var_labels <- c(
   "Age (yr)",
+  "Age Group",
   "Sex",
+  "Ethnicity",
   "Race",
   "Continous Level Biomarker 1"
 )
 
 result <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   add_overall_col("All Patients") %>%
   summarize_vars(
     vars = vars,
     var_labels = var_labels
   ) %>%
   build_table(adsl)
+
 result
 ```
 
 ## Table with an Additional <br/> Study-Specific Categorical Variable
 
 ```{r}
-vars <- c("AGE", "SEX", "RACE", "BMRKR1_CAT")
+vars <- c("AGE", "AGEGR1", "SEX", "ETHNIC", "RACE", "BMRKR1_CAT")
 var_labels <- c(
   "Age (yr)",
+  "Age Group",
   "Sex",
+  "Ethnicity",
   "Race",
   "Biomarker 1 Categories"
 )
 
 result <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   summarize_vars(
     vars = vars,
     var_labels = var_labels
   ) %>%
   build_table(adsl)
+
 result
 ```
 
@@ -132,7 +138,7 @@ result
 split_fun <- drop_split_levels
 
 result <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   summarize_vars(
     vars = c("AGE", "SEX", "RACE"),
     var_labels = c("Age", "Sex", "Race")
@@ -142,6 +148,7 @@ result <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   summarize_vars("BMRKR1") %>%
   build_table(adsl)
+
 result
 ```
 
@@ -149,7 +156,7 @@ result
 
 ```{r}
 result <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   summarize_vars(
     vars = c("AGE", "SEX", "RACE", "DBP", "SBP"),
     var_labels = c(
@@ -161,6 +168,7 @@ result <- basic_table(show_colcounts = TRUE) %>%
     )
   ) %>%
   build_table(adsl)
+
 result
 ```
 
@@ -168,7 +176,7 @@ result
 
 ```{r}
 result <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   summarize_vars(
     vars = c("AGE", "SEX", "RACE", "BBMISI"),
     var_labels = c(
@@ -179,6 +187,7 @@ result <- basic_table(show_colcounts = TRUE) %>%
     )
   ) %>%
   build_table(adsl)
+
 result
 ```
 
@@ -222,5 +231,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../si.qmd >}}
-
 :::
