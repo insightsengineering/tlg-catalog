@@ -13,7 +13,7 @@ print_ref_templates <- function(fpath) {
 
 section_header <- function(title) {
   cat(
-    paste("", "------------------------------------------------------------------------", "",
+    paste("", "------------------------------------------------------------------------", "", # nolint
       paste0("### ", "**", title, "**"), "",
       sep = "\n"
     ),
@@ -22,7 +22,7 @@ section_header <- function(title) {
 }
 
 create_subsection <- function(fpath, title) {
-  cat(paste("", paste("####", title), "", "", sep = "\n"), file = "./tlg-index.qmd", append = TRUE)
+  cat(paste("", paste("####", title), "", "", sep = "\n"), file = "./tlg-index.qmd", append = TRUE) # nolint
   all_files <- list.files(path = fpath, pattern = "*.qmd", full.names = TRUE)
   invisible(sapply(all_files, print_ref_templates))
 }
@@ -30,7 +30,7 @@ create_subsection <- function(fpath, title) {
 # Create Index Header
 
 cat(
-  paste("---", "title: Index", "toc: true", "toc-depth: 4", "---", "", sep = "\n"),
+  paste("---", "title: Index", "toc: true", "toc-depth: 4", "---", "", sep = "\n"), # nolint
   file = "./tlg-index.qmd"
 )
 
