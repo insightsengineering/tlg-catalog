@@ -20,7 +20,12 @@ adae <- synthetic_cdisc_dataset("latest", "adae")
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
-adae <- df_explicit_na(adae)
+adae <- df_explicit_na(adae) %>%
+  var_relabel(
+    AEBODSYS = "MedDRA System Organ Class",
+    AEDECOD = "MedDRA Preferred Term"
+  ) %>%
+  filter(ANL01FL == "Y")
 
 # Define the split function
 split_fun <- drop_split_levels
@@ -30,7 +35,7 @@ split_fun <- drop_split_levels
 
 ```{r aet02_01_1}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   add_overall_col(label = "All Patients") %>%
   analyze_num_patients(
     vars = "USUBJID",
@@ -62,11 +67,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-)
+result <- build_table(lyt, df = adae, alt_counts_df = adsl)
 ```
 
 The variable `result` corresponds to the adverse events table.
@@ -84,6 +85,7 @@ result <- result %>%
     path = c("AEBODSYS", "*", "AEDECOD"),
     scorefun = score_occurrences
   )
+
 result
 ```
 
@@ -91,7 +93,7 @@ result
 
 ```{r aet02_02}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   add_overall_col(label = "All Patients") %>%
   analyze_num_patients(
     vars = "USUBJID",
@@ -126,12 +128,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     .indent_mods = c(count = -1L)
   )
 
-result <- build_table(
-  lyt,
-  df = adae,
-  # col_count = c(table(adsl$ARM), sum(table(adsl$ARM)))
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>% # col_count = c(table(adsl$ACTARM), sum(table(adsl$ACTARM)))
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS", "*", "AEDECOD"),
@@ -149,7 +146,7 @@ result
 
 ```{r aet02_03}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   analyze_num_patients(
     vars = "USUBJID",
     .stats = c("unique", "nonunique"),
@@ -194,11 +191,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   count_occurrences(vars = "AEDECOD", .indent_mods = c(count_fraction = -1L)) %>%
   append_varlabels(adae, c("AEDECOD"), indent = 2L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -220,7 +213,7 @@ result
 
 ```{r aet02_04}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   analyze_num_patients(
     vars = "USUBJID",
     .stats = c("unique", "nonunique"),
@@ -233,13 +226,10 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   count_occurrences(vars = "AEDECOD") %>%
   append_varlabels(adae, "AEDECOD")
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   sort_at_path(
-    path = c("AEDECOD"), scorefun = score_occurrences
+    path = c("AEDECOD"),
+    scorefun = score_occurrences
   )
 
 result
@@ -248,10 +238,10 @@ result
 ## Table with Fill-In of <br/> Treatment Groups
 
 ```{r aet02_05}
-adae_5 <- adae %>% dplyr::filter(ARM != "C: Combination")
+adae_5 <- adae %>% dplyr::filter(ACTARM != "C: Combination")
 
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   analyze_num_patients(
     vars = "USUBJID",
     .stats = c("unique", "nonunique"),
@@ -279,11 +269,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   count_occurrences(vars = "AEDECOD", .indent_mods = c(count_fraction = -1L)) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae_5,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae_5, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -301,7 +287,7 @@ result
 
 ```{r aet02_06}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -322,11 +308,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -342,7 +324,7 @@ result <- trim_rows(result, criteria = criteria_fun)
 
 row_condition <- has_fraction_in_any_col(
   atleast = 0.05,
-  col_names = names(table(adsl$ARM))
+  col_names = names(table(adsl$ACTARM))
 )
 result <- prune_table(result, keep_rows(row_condition))
 
@@ -353,7 +335,7 @@ result
 
 ```{r aet02_07}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -406,7 +388,7 @@ result <- trim_rows(result, criteria = criteria_fun)
 
 row_condition <- has_fraction_in_any_col(
   atleast = 0.05,
-  col_names = names(table(adsl$ARM))
+  col_names = names(table(adsl$ACTARM))
 )
 result <- prune_table(result, keep_rows(row_condition))
 
@@ -417,7 +399,7 @@ result
 
 ```{r aet02_08}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -438,11 +420,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -458,7 +436,7 @@ result <- trim_rows(result, criteria = criteria_fun)
 
 row_condition <- has_fraction_in_any_col(
   atleast = 0.10,
-  col_names = names(table(adsl$ARM))
+  col_names = names(table(adsl$ACTARM))
 )
 result <- prune_table(result, keep_rows(row_condition))
 
@@ -469,7 +447,7 @@ result
 
 ```{r aet02_09}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -490,11 +468,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -510,7 +484,7 @@ result <- trim_rows(result, criteria = criteria_fun)
 
 row_condition <- has_count_in_any_col(
   atleast = 3,
-  col_names = names(table(adsl$ARM))
+  col_names = names(table(adsl$ACTARM))
 )
 result <- prune_table(result, keep_rows(row_condition))
 
@@ -521,7 +495,7 @@ result
 
 ```{r aet02_10}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -542,11 +516,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -562,9 +532,10 @@ result <- trim_rows(result, criteria = criteria_fun)
 
 row_condition <- has_fractions_difference(
   atleast = 0.05,
-  col_names = levels(adsl$ARM)
+  col_names = levels(adsl$ACTARM)
 )
 result <- prune_table(result, keep_rows(row_condition))
+
 result
 ```
 
@@ -572,7 +543,7 @@ result
 
 ```{r aet02_11}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -592,11 +563,8 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     .indent_mods = c(count_fraction = 1L)
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -606,13 +574,16 @@ result <- build_table(
     path = c("AEBODSYS", "*", "AEDECOD"),
     scorefun = score_occurrences
   )
+
 criteria_fun <- function(tr) is(tr, "ContentRow")
 result <- trim_rows(result, criteria = criteria_fun)
+
 row_condition <- has_fraction_in_cols(
   atleast = 0.05,
   col_names = c("B: Placebo")
 )
 result <- prune_table(result, keep_rows(row_condition))
+
 result
 ```
 
@@ -620,7 +591,7 @@ result
 
 ```{r aet02_12}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -641,11 +612,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -662,8 +629,8 @@ result <- trim_rows(result, criteria = criteria_fun)
 row_condition1 <- has_fractions_difference(atleast = 0.05, col_names = c("A: Drug X", "B: Placebo"))
 row_condition2 <- has_fractions_difference(atleast = 0.05, col_names = c("A: Drug X", "C: Combination"))
 row_condition <- row_condition1 | row_condition2
-
 result <- prune_table(result, keep_rows(row_condition))
+
 result
 ```
 

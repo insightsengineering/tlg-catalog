@@ -19,59 +19,24 @@ adsl <- synthetic_cdisc_dataset("latest", "adsl")
 adae <- synthetic_cdisc_dataset("latest", "adae")
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-adsl <- df_explicit_na(adsl) %>% dplyr::filter(TRT01A != "<Missing>")
-adae <- df_explicit_na(adae) %>% dplyr::filter(ANL01FL == "Y")
+adsl <- df_explicit_na(adsl) %>% filter(TRT01A != "<Missing>")
+adae <- df_explicit_na(adae) %>%
+  var_relabel(
+    AEBODSYS = "MedDRA System Organ Class",
+    AEDECOD = "MedDRA Preferred Term"
+  ) %>%
+  filter(
+    ANL01FL == "Y",
+    AETOXGR != "<Missing>"
+  )
 
 # Pre-Processing
-
-gr_grp <- list(
-  "- Any Grade -" = c("1", "2", "3", "4", "5"),
+grade_groups <- list(
   "Grade 1-2" = c("1", "2"),
   "Grade 3-4" = c("3", "4"),
   "Grade 5" = "5"
 )
-
-# Raw table used by variant 8/10
-raw_table <- basic_table() %>%
-  split_cols_by("ACTARM") %>%
-  add_colcounts() %>%
-  count_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp
-  ) %>%
-  split_rows_by("AEBODSYS",
-    split_fun = trim_levels_in_group("AETOXGR"),
-    child_labels = "visible", nested = TRUE
-  ) %>%
-  summarize_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp
-  ) %>%
-  split_rows_by("AEDECOD",
-    split_fun = trim_levels_in_group("AETOXGR"),
-    child_labels = "visible", nested = TRUE
-  ) %>%
-  summarize_num_patients(
-    var = "USUBJID",
-    .stats = "unique",
-    .labels = "- Any Grade -"
-  ) %>%
-  count_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp[-1],
-    .indent_mods = -1L
-  ) %>%
-  build_table(adae, alt_counts_df = adsl) %>%
-  sort_at_path(
-    path = "AEBODSYS",
-    scorefun = cont_n_allcols,
-    decreasing = TRUE
-  ) %>%
-  sort_at_path(
-    path = c("AEBODSYS", "*", "AEDECOD"),
-    scorefun = cont_n_allcols,
-    decreasing = TRUE
-  )
+adae$TOTAL_VAR <- "- Any adverse events - "
 
 # Helper function to avoid filtering also the first part of the table, where general information is given.
 my_row_condition <- function(row_fnc_condition) {
@@ -83,62 +48,138 @@ my_row_condition <- function(row_fnc_condition) {
     }
   }
 }
+
+# Helper function to calculate sum from first nested row
+score_all_sum <- function(tt) {
+  cleaf <- collect_leaves(tt)[[1]]
+  if (NROW(cleaf) == 0) {
+    stop("score_all_sum score function used at subtable [", obj_name(tt), "] that has no content.")
+  }
+  sum(sapply(row_values(cleaf), function(cv) cv[1]))
+}
+
+# Raw table used by variant 8/10
+raw_table <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  split_rows_by(
+    var = "TOTAL_VAR",
+    label_pos = "hidden",
+    child_labels = "visible",
+    indent_mod = -1L
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = "unique",
+    .labels = "- Any Grade -",
+    .indent_mods = 7L
+  ) %>%
+  count_occurrences_by_grade(
+    var = "AETOXGR",
+    grade_groups = grade_groups,
+    .indent_mods = 6L
+  ) %>%
+  split_rows_by(
+    "AEBODSYS",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = drop_split_levels,
+    split_label = var_labels(adae)[["AEBODSYS"]],
+    label_pos = "topleft"
+  ) %>%
+  split_rows_by(
+    "AEDECOD",
+    child_labels = "visible",
+    split_fun = add_overall_level("- Overall -", trim = TRUE),
+    split_label = var_labels(adae)[["AEDECOD"]],
+    label_pos = "topleft"
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = "unique",
+    .labels = "- Any Grade -",
+    .indent_mods = 6L
+  ) %>%
+  count_occurrences_by_grade(
+    var = "AETOXGR",
+    grade_groups = grade_groups,
+    .indent_mods = 5L
+  ) %>%
+  append_topleft("                            Grade") %>%
+  build_table(adae, alt_counts_df = adsl) %>%
+  prune_table() %>%
+  sort_at_path(
+    path = "AEBODSYS",
+    scorefun = score_all_sum,
+    decreasing = TRUE
+  ) %>%
+  sort_at_path(
+    path = c("AEBODSYS", "*", "AEDECOD"),
+    scorefun = score_all_sum,
+    decreasing = TRUE
+  )
 ```
 
 ## Standard Table
 
 ```{r variant1}
-split_fun <- trim_levels_in_group
-
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ACTARM") %>%
-  count_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp
-  ) %>%
   split_rows_by(
-    "AEBODSYS",
+    var = "TOTAL_VAR",
+    label_pos = "hidden",
     child_labels = "visible",
-    nested = TRUE,
-    split_fun = split_fun("AETOXGR"),
-    label_pos = "topleft",
-    split_label = obj_label(adae$AEBODSYS)
-  ) %>%
-  summarize_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp
-  ) %>%
-  split_rows_by(
-    "AEDECOD",
-    child_labels = "visible",
-    nested = TRUE,
-    indent_mod = -1L,
-    split_fun = split_fun("AETOXGR"),
-    label_pos = "topleft",
-    split_label = obj_label(adae$AEDECOD)
+    indent_mod = -1L
   ) %>%
   summarize_num_patients(
     var = "USUBJID",
     .stats = "unique",
-    .labels = "- Any Grade -"
+    .labels = "- Any Grade -",
+    .indent_mods = 7L
   ) %>%
   count_occurrences_by_grade(
     var = "AETOXGR",
-    grade_groups = gr_grp[-1],
-    .indent_mods = -1L
+    grade_groups = grade_groups,
+    .indent_mods = 6L
   ) %>%
-  append_varlabels(adae, "AETOXGR", indent = 2L)
+  split_rows_by(
+    "AEBODSYS",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = drop_split_levels,
+    split_label = var_labels(adae)[["AEBODSYS"]],
+    label_pos = "topleft"
+  ) %>%
+  split_rows_by(
+    "AEDECOD",
+    child_labels = "visible",
+    split_fun = add_overall_level("- Overall -", trim = TRUE),
+    split_label = var_labels(adae)[["AEDECOD"]],
+    label_pos = "topleft"
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = "unique",
+    .labels = "- Any Grade -",
+    .indent_mods = 6L
+  ) %>%
+  count_occurrences_by_grade(
+    var = "AETOXGR",
+    grade_groups = grade_groups,
+    .indent_mods = 5L
+  ) %>%
+  append_topleft("                            Grade")
 
 result <- lyt %>%
   build_table(adae, alt_counts_df = adsl) %>%
+  prune_table() %>%
   sort_at_path(
     path = "AEBODSYS",
-    scorefun = cont_n_allcols,
+    scorefun = score_all_sum,
     decreasing = TRUE
   ) %>%
   sort_at_path(
     path = c("AEBODSYS", "*", "AEDECOD"),
-    scorefun = cont_n_allcols,
+    scorefun = score_all_sum,
     decreasing = TRUE
   )
 
@@ -148,60 +189,66 @@ result
 ## Table with Fill-In <br/> of Treatment Groups
 
 ```{r variant2}
-adae2 <- adae %>%
-  dplyr::filter(ACTARM == "A: Drug X")
-
-split_fun <- trim_levels_in_group
+adae2 <- adae %>% filter(ACTARM == "A: Drug X")
 
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ACTARM") %>%
-  count_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp
-  ) %>%
   split_rows_by(
-    "AEBODSYS",
+    var = "TOTAL_VAR",
+    label_pos = "hidden",
     child_labels = "visible",
-    nested = TRUE,
-    split_fun = split_fun("AETOXGR"),
-    label_pos = "topleft",
-    split_label = obj_label(adae2$AEBODSYS)
-  ) %>%
-  summarize_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp
-  ) %>%
-  split_rows_by(
-    "AEDECOD",
-    child_labels = "visible",
-    nested = TRUE,
-    indent_mod = -1L,
-    split_fun = split_fun("AETOXGR"),
-    label_pos = "topleft",
-    split_label = obj_label(adae2$AEDECOD)
+    indent_mod = -1L
   ) %>%
   summarize_num_patients(
     var = "USUBJID",
     .stats = "unique",
-    .labels = "- Any Grade -"
+    .labels = "- Any Grade -",
+    .indent_mods = 7L
   ) %>%
   count_occurrences_by_grade(
     var = "AETOXGR",
-    grade_groups = gr_grp[-1],
-    .indent_mods = -1L
+    grade_groups = grade_groups,
+    .indent_mods = 6L
   ) %>%
-  append_varlabels(adae, "AETOXGR", indent = 2L)
+  split_rows_by(
+    "AEBODSYS",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = drop_split_levels,
+    split_label = var_labels(adae)[["AEBODSYS"]],
+    label_pos = "topleft"
+  ) %>%
+  split_rows_by(
+    "AEDECOD",
+    child_labels = "visible",
+    split_fun = add_overall_level("- Overall -", trim = TRUE),
+    split_label = var_labels(adae)[["AEDECOD"]],
+    label_pos = "topleft"
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = "unique",
+    .labels = "- Any Grade -",
+    .indent_mods = 6L
+  ) %>%
+  count_occurrences_by_grade(
+    var = "AETOXGR",
+    grade_groups = grade_groups,
+    .indent_mods = 5L
+  ) %>%
+  append_topleft("                            Grade")
 
 result <- lyt %>%
   build_table(adae2, alt_counts_df = adsl) %>%
+  prune_table() %>%
   sort_at_path(
     path = "AEBODSYS",
-    scorefun = cont_n_allcols,
+    scorefun = score_all_sum,
     decreasing = TRUE
   ) %>%
   sort_at_path(
     path = c("AEBODSYS", "*", "AEDECOD"),
-    scorefun = cont_n_allcols,
+    scorefun = score_all_sum,
     decreasing = TRUE
   )
 
@@ -211,57 +258,63 @@ result
 ## Table with Fill-In <br/> of Grades
 
 ```{r variant3}
-split_fun <- drop_split_levels
-
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ACTARM") %>%
-  count_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp
-  ) %>%
   split_rows_by(
-    "AEBODSYS",
+    var = "TOTAL_VAR",
+    label_pos = "hidden",
     child_labels = "visible",
-    nested = TRUE,
-    split_fun = split_fun,
-    label_pos = "topleft",
-    split_label = obj_label(adae$AEBODSYS)
-  ) %>%
-  summarize_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp
-  ) %>%
-  split_rows_by(
-    "AEDECOD",
-    child_labels = "visible",
-    nested = TRUE,
-    indent_mod = -1L,
-    split_fun = split_fun,
-    label_pos = "topleft",
-    split_label = obj_label(adae$AEDECOD)
+    indent_mod = -1L
   ) %>%
   summarize_num_patients(
     var = "USUBJID",
     .stats = "unique",
-    .labels = "- Any Grade -"
+    .labels = "- Any Grade -",
+    .indent_mods = 7L
   ) %>%
   count_occurrences_by_grade(
     var = "AETOXGR",
-    grade_groups = gr_grp[-1],
-    .indent_mods = -1L
+    grade_groups = grade_groups,
+    .indent_mods = 6L
   ) %>%
-  append_varlabels(adae, "AETOXGR", indent = 2L)
+  split_rows_by(
+    "AEBODSYS",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = drop_split_levels,
+    split_label = var_labels(adae)[["AEBODSYS"]],
+    label_pos = "topleft"
+  ) %>%
+  split_rows_by(
+    "AEDECOD",
+    child_labels = "visible",
+    split_fun = add_overall_level("- Overall -", trim = TRUE),
+    split_label = var_labels(adae)[["AEDECOD"]],
+    label_pos = "topleft"
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = "unique",
+    .labels = "- Any Grade -",
+    .indent_mods = 6L
+  ) %>%
+  count_occurrences_by_grade(
+    var = "AETOXGR",
+    grade_groups = grade_groups,
+    .indent_mods = 5L
+  ) %>%
+  append_topleft("                            Grade")
 
 result <- lyt %>%
   build_table(adae, alt_counts_df = adsl) %>%
   sort_at_path(
     path = "AEBODSYS",
-    scorefun = cont_n_allcols,
+    scorefun = score_all_sum,
     decreasing = TRUE
   ) %>%
   sort_at_path(
     path = c("AEBODSYS", "*", "AEDECOD"),
-    scorefun = cont_n_allcols,
+    scorefun = score_all_sum,
     decreasing = TRUE
   )
 
@@ -271,64 +324,69 @@ result
 ## Table with Collapsing <br/> of Grades
 
 ```{r variant4}
-gr_grp1 <- list(
-  "- Any Grade -" = c("1", "2", "3", "4", "5"),
+grade_groups_1 <- list(
   "Grade 1-2" = c("1", "2"),
   "Grade 3-5" = c("3", "4", "5")
 )
 
-split_fun <- trim_levels_in_group
-
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ACTARM") %>%
-  count_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp1
-  ) %>%
   split_rows_by(
-    "AEBODSYS",
+    var = "TOTAL_VAR",
+    label_pos = "hidden",
     child_labels = "visible",
-    nested = TRUE,
-    split_fun = split_fun("AETOXGR"),
-    label_pos = "topleft",
-    split_label = obj_label(adae$AEBODSYS)
-  ) %>%
-  summarize_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp1
-  ) %>%
-  split_rows_by(
-    "AEDECOD",
-    child_labels = "visible",
-    nested = TRUE,
-    indent_mod = -1L,
-    split_fun = split_fun("AETOXGR"),
-    label_pos = "topleft",
-    split_label = obj_label(adae$AEDECOD)
+    indent_mod = -1L
   ) %>%
   summarize_num_patients(
     var = "USUBJID",
     .stats = "unique",
-    .labels = "- Any Grade -"
+    .labels = "- Any Grade -",
+    .indent_mods = 7L
   ) %>%
   count_occurrences_by_grade(
     var = "AETOXGR",
-    grade_groups = gr_grp1[-1],
-    .indent_mods = -1L
+    grade_groups = grade_groups_1,
+    .indent_mods = 6L
   ) %>%
-  append_varlabels(adae, "AETOXGR", indent = 2L)
+  split_rows_by(
+    "AEBODSYS",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = drop_split_levels,
+    split_label = var_labels(adae)[["AEBODSYS"]],
+    label_pos = "topleft"
+  ) %>%
+  split_rows_by(
+    "AEDECOD",
+    child_labels = "visible",
+    split_fun = add_overall_level("- Overall -", trim = TRUE),
+    split_label = var_labels(adae)[["AEDECOD"]],
+    label_pos = "topleft"
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = "unique",
+    .labels = "- Any Grade -",
+    .indent_mods = 6L
+  ) %>%
+  count_occurrences_by_grade(
+    var = "AETOXGR",
+    grade_groups = grade_groups_1,
+    .indent_mods = 5L
+  ) %>%
+  append_topleft("                            Grade")
 
 result <- lyt %>%
   build_table(adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = "AEBODSYS",
-    scorefun = cont_n_allcols,
+    scorefun = score_all_sum,
     decreasing = TRUE
   ) %>%
   sort_at_path(
     path = c("AEBODSYS", "*", "AEDECOD"),
-    scorefun = cont_n_allcols,
+    scorefun = score_all_sum,
     decreasing = TRUE
   )
 
@@ -381,58 +439,64 @@ get_adae_trimmed <- function(adsl, adae, cutoff_rate) {
 
 adae6 <- get_adae_trimmed(adsl, adae, cutoff_rate = 0.4)
 
-split_fun <- trim_levels_in_group
-
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ACTARM") %>%
-  count_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp
-  ) %>%
   split_rows_by(
-    "AEBODSYS",
+    var = "TOTAL_VAR",
+    label_pos = "hidden",
     child_labels = "visible",
-    nested = TRUE,
-    split_fun = split_fun("AETOXGR"),
-    label_pos = "topleft",
-    split_label = obj_label(adae6$AEBODSYS)
-  ) %>%
-  summarize_occurrences_by_grade(
-    var = "AETOXGR",
-    grade_groups = gr_grp
-  ) %>%
-  split_rows_by(
-    "AEDECOD",
-    child_labels = "visible",
-    nested = TRUE,
-    indent_mod = -1L,
-    split_fun = split_fun("AETOXGR"),
-    label_pos = "topleft",
-    split_label = obj_label(adae6$AEDECOD)
+    indent_mod = -1L
   ) %>%
   summarize_num_patients(
     var = "USUBJID",
     .stats = "unique",
-    .labels = "- Any Grade -"
+    .labels = "- Any Grade -",
+    .indent_mods = 7L
   ) %>%
   count_occurrences_by_grade(
     var = "AETOXGR",
-    grade_groups = gr_grp[-1],
-    .indent_mods = -1L
+    grade_groups = grade_groups,
+    .indent_mods = 6L
   ) %>%
-  append_varlabels(adae, "AETOXGR", indent = 2L)
+  split_rows_by(
+    "AEBODSYS",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = drop_split_levels,
+    split_label = var_labels(adae)[["AEBODSYS"]],
+    label_pos = "topleft"
+  ) %>%
+  split_rows_by(
+    "AEDECOD",
+    child_labels = "visible",
+    split_fun = add_overall_level("- Overall -", trim = TRUE),
+    split_label = var_labels(adae)[["AEDECOD"]],
+    label_pos = "topleft"
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = "unique",
+    .labels = "- Any Grade -",
+    .indent_mods = 6L
+  ) %>%
+  count_occurrences_by_grade(
+    var = "AETOXGR",
+    grade_groups = grade_groups,
+    .indent_mods = 5L
+  ) %>%
+  append_topleft("                            Grade")
 
 result <- lyt %>%
   build_table(adae6, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = "AEBODSYS",
-    scorefun = cont_n_allcols,
+    scorefun = score_all_sum,
     decreasing = TRUE
   ) %>%
   sort_at_path(
     path = c("AEBODSYS", "*", "AEDECOD"),
-    scorefun = cont_n_allcols,
+    scorefun = score_all_sum,
     decreasing = TRUE
   )
 
