@@ -3,7 +3,7 @@ test_data_path <- testthat::test_path("_data")
 Sys.setenv("QUARTO_TESTTHAT_DATA_PATH" = normalizePath(test_data_path))
 
 cat("Start rendering the book...\n")
-quarto::quarto_render(file.path(test_book_path, "tables/adverse-events/aet04.qmd"), as_job = FALSE, quiet = FALSE, cache = FALSE) # @TODO: change to render the whole book
+quarto::quarto_render(file.path(test_book_path, "tables/adverse-events/aet04.qmd"), as_job = FALSE, quiet = FALSE, cache = FALSE) # @TODO: change to render the whole book # nolint
 # quarto::quarto_render(test_book_path, as_job = FALSE, quiet = FALSE, cache = FALSE) # nolint
 cat("Render finished!\n")
 
