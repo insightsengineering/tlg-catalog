@@ -5,6 +5,18 @@ subtitle: Adverse Events by Highest NCI CTCAE Grade
 
 ------------------------------------------------------------------------
 
+```{r testenv setup, echo=FALSE, message=FALSE}
+tenv <- new.env()
+knitr::knit_hooks$set(test = function(options, envir, before = FALSE) {
+  if (isFALSE(before)) {
+    for (i in seq_along(options$test)) {
+      expr <- substitute(tenv$id <- var, list(id = names(options$test)[i], var = as.name(options$test[[i]])))
+      eval(expr, envir = envir)
+    }
+  }
+})
+```
+
 ::: panel-tabset
 ## Data Setup
 
@@ -87,7 +99,7 @@ my_row_condition <- function(row_fnc_condition) {
 
 ## Standard Table
 
-```{r variant1}
+```{r variant1, test = list(result_v1 = "result")}
 split_fun <- trim_levels_in_group
 
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -147,7 +159,7 @@ result
 
 ## Table with Fill-In <br/> of Treatment Groups
 
-```{r variant2}
+```{r variant2, test = list(result_v2 = "result")}
 adae2 <- adae %>%
   dplyr::filter(ACTARM == "A: Drug X")
 
@@ -210,7 +222,7 @@ result
 
 ## Table with Fill-In <br/> of Grades
 
-```{r variant3}
+```{r variant3, test = list(result_v3 = "result")}
 split_fun <- drop_split_levels
 
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -270,7 +282,7 @@ result
 
 ## Table with Collapsing <br/> of Grades
 
-```{r variant4}
+```{r variant4, test = list(result_v4 = "result")}
 gr_grp1 <- list(
   "- Any Grade -" = c("1", "2", "3", "4", "5"),
   "Grade 1-2" = c("1", "2"),
@@ -345,7 +357,7 @@ result
 
 ## Table with an Incidence Rate <br/> $\geq$ 40%, Totals Restricted
 
-```{r variant6}
+```{r variant6, test = list(result_v6 = "result")}
 # Simple wrapper to return subset ADAE to a threshold of xx%.
 get_adae_trimmed <- function(adsl, adae, cutoff_rate) {
   n_per_arm <- adsl %>%
@@ -450,7 +462,7 @@ result
 
 ## Table with an Incidence <br/> Rate $\geq$ 58 Patients
 
-```{r variant8}
+```{r variant8, test = list(result_v8 = "result")}
 cutoff <- 58L
 row_condition <- has_count_in_any_col(atleast = cutoff, col_names = levels(adsl$ACTARM))
 
@@ -461,7 +473,7 @@ result
 
 ## Table with a Difference in <br/> Incidence Rate $\geq$ 10%
 
-```{r variant9}
+```{r variant9, test = list(result_v9 = "result")}
 cutoff <- 0.1
 row_condition <- has_fractions_difference(atleast = cutoff, col_names = levels(adsl$ACTARM))
 
@@ -482,7 +494,7 @@ result
 
 ## Table with an Incidence Rate $\geq$ 40%, <br/> All SOCs w/o Preferred Terms Removed
 
-```{r variant11}
+```{r variant11, test = list(result_v11 = "result")}
 cutoff <- 0.4
 row_condition <- has_fraction_in_any_col(atleast = cutoff, col_names = levels(adsl$ACTARM))
 
@@ -491,9 +503,17 @@ result <- prune_table(raw_table, keep_content_rows(my_row_condition(row_conditio
 result
 ```
 
+```{r save testenv, echo=FALSE, message=FALSE, cache=FALSE, eval=isTRUE(testthat::is_checking() || testthat::is_testing())}
+dirname <- Sys.getenv("QUARTO_TESTTHAT_DATA_PATH")
+filename <- paste0(gsub("\\.rmarkdown$", "", knitr::current_input()), ".rds")
+filepath <- file.path(dirname, filename)
+file.create(filepath)
+saveRDS(tenv, filepath)
+```
+
 ## Teal
 
-```{r teal, message=FALSE}
+```{r teal, message=FALSE, eval=isFALSE(testthat::is_checking() || testthat::is_testing())}
 #| screenshot.opts = list(delay = 12)
 
 library(dplyr)
