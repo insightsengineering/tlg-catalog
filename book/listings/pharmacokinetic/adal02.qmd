@@ -27,7 +27,7 @@ adab_x <- adab %>%
   filter(
     ARM == trt,
     PARCAT1 == drug_a,
-    ADABLPFL == "Y"
+    ADPBLPFL == "Y"
   ) %>%
   select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%
   unique() %>%
@@ -35,7 +35,8 @@ adab_x <- adab %>%
     names_from = PARAM,
     values_from = AVAL
   ) %>%
-  filter(`Treatment Emergent - Positive` == 1) %>%
+  filter(if_any(matches("Treatment Emergent - Positive"), ~.x == 1)) %>%
+  #filter(`Treatment Emergent - Positive` == 1) %>%
   mutate(
     VISN = factor(paste0(
       VISIT, "\n(Day ",
@@ -47,9 +48,9 @@ adab_x <- adab %>%
       ")"
     )),
     PTES = ifelse(
-      `Treatment induced ADA` == 1,
+      ifelse("Treatment induced ADA" %in% names(.), `Treatment induced ADA` == 1, F),
       ifelse(
-        `Transient ADA` == 1,
+        "Transient ADA" %in% names(.) & `Transient ADA` == 1,
         "Induced (Transient)",
         "Induced (Persistent)"
       ),
@@ -58,16 +59,24 @@ adab_x <- adab %>%
   ) %>%
   mutate(
     AVAL = paste0(
-      ifelse(`ADA interpreted per sample result` == 0,
+      ifelse(
+        ifelse("ADA interpreted per sample result" %in% names(.), `ADA interpreted per sample result` == 0, F),
         "NEGATIVE",
-        ifelse(is.na(`Antibody titer units`),
-          "---",
-          ifelse(`Antibody titer units` < min_titer,
+        ifelse(
+          ifelse("Antibody titer units" %in% names(.), !is.na(`Antibody titer units`), F),
+          ifelse(
+            `Antibody titer units` < min_titer,
             paste0("<", format(min_titer, nsmall = 2)),
             as.character(format(round(`Antibody titer units`, 2), nsmall = 2))
-          )
+          ),
+          "---"
         )
-      ), ifelse(`NAB interpreted per sample result` == 1, "*", "")
+      ),
+      ifelse(
+        ifelse("NAB interpreted per sample result" %in% names(.), `NAB interpreted per sample result` == 1, F),
+        "*",
+        ""
+      )
     )
   )
 
