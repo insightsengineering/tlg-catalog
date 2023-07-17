@@ -29,7 +29,7 @@ jobs:
         with:
           path: |
             ~/.staged.dependencies
-            _freeze
+            book/_freeze
           key: ${{ runner.os }}-tlg-catalog
 
       - name: Run Staged dependencies 🎦
@@ -42,13 +42,15 @@ jobs:
           direction: upstream
 
       - name: Render catalog 🖨
-        run: quarto render
+        run: |
+          cd book
+          quarto render
         shell: bash
 
       - name: Create artifact 📂
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          pushd _site
+          pushd book/_site
           zip -r9 $OLDPWD/site.zip *
           popd
         shell: bash
@@ -64,7 +66,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
+          publish_dir: ./book/_site
 
   upload-release-assets:
     name: Upload assets 🔼
