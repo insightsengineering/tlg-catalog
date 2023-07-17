@@ -16,7 +16,7 @@ library(rlistings)
 library(scda)
 
 adab <- synthetic_cdisc_dataset("latest", "adab") %>%
-  filter(NRELTM1 %% 1 == 0 & NRELTM1 > 0)
+  filter(NFRLT %% 1 == 0 & NFRLT > 0)
 
 trt <- "A: Drug X"
 drug_a <- "A: Drug X Antibody"
@@ -29,7 +29,7 @@ adab_x <- adab %>%
     PARCAT1 == drug_a,
     ADAPBLFL == "Y"
   ) %>%
-  select(-PARAMCD, -AVALC, -AVALU, -ARELTM2, -NRELTM2) %>%
+  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%
   unique() %>%
   tidyr::pivot_wider(
     names_from = PARAM,
@@ -40,9 +40,9 @@ adab_x <- adab %>%
     VISN = factor(paste0(
       VISIT, "\n(Day ",
       ifelse(
-        NRELTM1 %% 1 == 0,
-        NRELTM1,
-        as.character(format(round(NRELTM1, 2), nsmall = 2))
+        NFRLT %% 1 == 0,
+        NFRLT,
+        as.character(format(round(NFRLT, 2), nsmall = 2))
       ),
       ")"
     )),
@@ -77,7 +77,7 @@ out <- adab_x %>%
     names_from = VISN,
     values_from = AVAL
   ) %>%
-  select(USUBJID, unique(adab_x$VISN[order(adab_x$NRELTM1)]), PTES)
+  select(USUBJID, unique(adab_x$VISN[order(adab_x$NFRLT)]), PTES)
 
 var_labels(out) <- names(out)
 
