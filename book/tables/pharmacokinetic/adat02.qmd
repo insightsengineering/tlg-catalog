@@ -22,14 +22,14 @@ adab <- synthetic_cdisc_dataset("latest", "adab")
 adsl <- df_explicit_na(adsl)
 adab <- df_explicit_na(adab) %>%
   filter(
-    ADAPBLFL == "Y",
+    ADPBLPFL == "Y",
     !PARAM %in% c(
       "NAB interpreted per sample result",
       "NAB Status of a patient",
       "Treatment enhanced ADA"
     )
   ) %>%
-  select(-PARAMCD, -AVALC, -AVALU, -ARELTM2, -NRELTM2) %>%
+  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%
   unique() %>%
   tidyr::pivot_wider(
     names_from = PARAM,
@@ -40,11 +40,11 @@ adab <- df_explicit_na(adab) %>%
     as.logical
   ) %>%
   mutate(
-    ADAPBLFL = ADAPBLFL == "Y",
+    ADPBLPFL = ADPBLPFL == "Y",
     TI_ADA = `Treatment induced ADA`
   ) %>%
   var_relabel(
-    ADAPBLFL = "Post-baseline evaluable patients",
+    ADPBLPFL = "Post-baseline evaluable patients",
     TI_ADA = "Treatment-induced ADA patients"
   )
 
@@ -63,7 +63,7 @@ lyt_adab <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_patients_with_flags(
     "USUBJID",
-    flag_variables = var_labels(data.frame(ADAPBLFL = adab[, "ADAPBLFL"])),
+    flag_variables = var_labels(data.frame(ADPBLPFL = adab[, "ADPBLPFL"])),
     .stats = "count",
     table_names = "post_baseline"
   ) %>%
