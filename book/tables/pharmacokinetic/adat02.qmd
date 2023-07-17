@@ -35,13 +35,19 @@ adab <- df_explicit_na(adab) %>%
     names_from = PARAM,
     values_from = AVAL
   ) %>%
-  mutate_at(
-    c("Treatment induced ADA", "Transient ADA", "Persistent ADA"),
-    as.logical
+  mutate(
+    across(
+      any_of(c(
+        "Treatment induced ADA",
+        "Transient ADA",
+        "Persistent ADA"
+      )),
+      as.logical
+    )
   ) %>%
   mutate(
     ADPBLPFL = ADPBLPFL == "Y",
-    TI_ADA = `Treatment induced ADA`
+    TI_ADA = if (exists("Treatment induced ADA", where = .)) `Treatment induced ADA` else FALSE
   ) %>%
   var_relabel(
     ADPBLPFL = "Post-baseline evaluable patients",
@@ -49,7 +55,7 @@ adab <- df_explicit_na(adab) %>%
   )
 
 adab_ti <- adab %>%
-  filter(`Treatment induced ADA`)
+  filter(if (exists("Treatment induced ADA", where = .)) `Treatment induced ADA` else FALSE)
 ```
 
 ## Standard Table
