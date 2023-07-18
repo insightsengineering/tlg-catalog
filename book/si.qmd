@@ -4,6 +4,7 @@
 
 ```{r sessioninfo, message=FALSE}
 #| code-fold: show
+#| renv.ignore: TRUE
 
 sessionInfo()
 ```
@@ -15,7 +16,11 @@ sessionInfo()
 #| renv.ignore: TRUE
 
 parent_file_path <- knitr::current_input(dir = TRUE)
-lock_path <- file.path("../../assets/www/lock", paste0(gsub(file.path(Sys.getenv("QUARTO_PROJECT_DIR"), ""), "", knitr::current_input(dir = TRUE)), ".lock"))
+
+book_root_dir <- parent_file_path
+while(!file.exists(file.path(book_root_dir, "_quarto.yml"))) book_root_dir <- dirname(book_root_dir)
+
+lock_path <- file.path("../../assets/www/lock", paste0(gsub(file.path(book_root_dir, ""), "", gsub("\\.rmarkdown$", "", knitr::current_input(dir = TRUE))), ".lock"))
 
 renv::snapshot(parent_file_path, lockfile = lock_path, prompt = FALSE, force = TRUE)
 ```
