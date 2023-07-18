@@ -1,0 +1,166 @@
+---
+title: IPPG01
+subtitle: Individual Patient Plot Over Time
+---
+
+------------------------------------------------------------------------
+
+For illustration purposes, we will subset the `adlb` dataset for safety population in treatment arm A and a specific lab parameter (`ALT`).
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(scda)
+library(dplyr)
+library(ggplot2)
+library(nestcolor)
+
+# use small sample size
+adsl <- synthetic_cdisc_dataset("latest", "adsl") %>% slice(1:15)
+adlb <- synthetic_cdisc_dataset("latest", "adlb") %>% filter(USUBJID %in% adsl$USUBJID)
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adlb <- df_explicit_na(adlb)
+
+adlb_f <- adlb %>%
+  filter(
+    SAFFL == "Y",
+    PARAMCD == "ALT",
+    AVISIT != "SCREENING",
+    ARMCD == "ARM A"
+  ) %>%
+  mutate(Patient_ID = sub(".*id-", "", USUBJID))
+```
+
+## Standard Plot
+
+The user can select different `plotting_choices` depending on their preference.
+To demonstrate, separate plots are produced with a maximum of 3 observations each.
+
+```{r}
+result <- g_ipp(
+  df = adlb_f,
+  xvar = "AVISIT",
+  yvar = "AVAL",
+  xlab = "Visit",
+  ylab = "SGOT/ALT (U/L)",
+  id_var = "Patient_ID",
+  title = "Individual Patient Plots",
+  subtitle = "Treatment Arm A",
+  plotting_choices = "split_by_max_obs",
+  max_obs_per_plot = 3
+)
+result
+```
+
+## Plot with Patient Baselines as Reference
+
+Here, patients' individual baseline values will be shown for reference.
+Note that users can provide their own custom theme to the function via the `ggtheme` argument.
+
+```{r}
+result <- g_ipp(
+  df = adlb_f,
+  xvar = "AVISIT",
+  yvar = "AVAL",
+  xlab = "Visit",
+  ylab = "SGOT/ALT (U/L)",
+  id_var = "Patient_ID",
+  title = "Individual Patient Plots",
+  subtitle = "Treatment Arm A",
+  add_baseline_hline = TRUE,
+  yvar_baseline = "BASE",
+  ggtheme = theme_minimal(),
+  plotting_choices = "split_by_max_obs",
+  max_obs_per_plot = 3
+)
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 16)
+
+library(teal)
+library(teal.modules.clinical)
+library(tern)
+library(scda)
+
+# use small sample size
+adsl <- synthetic_cdisc_dataset("latest", "adsl") %>% slice(1:15)
+adlb <- synthetic_cdisc_dataset("latest", "adlb") %>% filter(USUBJID %in% adsl$USUBJID)
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adlb <- df_explicit_na(adlb) %>%
+  dplyr::filter(AVISIT != "SCREENING")
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset(
+      "ADSL",
+      adsl,
+      code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl") %>% slice(1:15)
+               ADSL <- df_explicit_na(ADSL)'
+    ),
+    cdisc_dataset(
+      "ADLB",
+      adlb,
+      code = 'ADLB <- synthetic_cdisc_dataset("latest", "adlb") %>% filter(USUBJID %in% adsl$USUBJID)
+             ADLB <- df_explicit_na(ADLB) %>%
+               dplyr::filter(USUBJID %in% ADSL$USUBJID,
+                             AVISIT != "SCREENING")'
+    )
+  ),
+  modules = modules(
+    tm_g_ipp(
+      label = "Individual Patient Plot",
+      dataname = "ADLB",
+      arm_var = choices_selected(
+        value_choices(adlb, c("ARMCD")),
+        "ARM A"
+      ),
+      paramcd = choices_selected(
+        value_choices(adlb, "PARAMCD"),
+        "ALT"
+      ),
+      aval_var = choices_selected(
+        variable_choices(adlb, c("AVAL")),
+        "AVAL"
+      ),
+      avalu_var = choices_selected(
+        variable_choices(adlb, c("AVALU")),
+        "AVALU",
+        fixed = TRUE
+      ),
+      id_var = choices_selected(
+        variable_choices(adlb, c("USUBJID")),
+        "USUBJID",
+        fixed = TRUE
+      ),
+      visit_var = choices_selected(
+        variable_choices(adlb, c("AVISIT")),
+        "AVISIT"
+      ),
+      base_var = choices_selected(
+        variable_choices(adlb, c("BASE")),
+        "BASE",
+        fixed = TRUE
+      ),
+      add_baseline_hline = FALSE,
+      separate_by_obs = FALSE
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::
