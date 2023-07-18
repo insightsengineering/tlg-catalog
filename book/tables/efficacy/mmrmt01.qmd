@@ -1,0 +1,275 @@
+---
+title: MMRMT01
+subtitle: Tables for Mixed-Effect Model Repeated Measures Analysis
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(tern.mmrm)
+library(scda)
+library(broom)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adqs <- synthetic_cdisc_dataset("latest", "adqs")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adqs <- df_explicit_na(adqs)
+
+adqs_f <- adqs %>%
+  dplyr::filter(PARAMCD == "FKSI-FWB" & !AVISIT %in% c("BASELINE")) %>%
+  droplevels() %>%
+  dplyr::mutate(ARMCD = factor(ARMCD, levels = c("ARM B", "ARM A", "ARM C"))) %>%
+  dplyr::mutate(
+    AVISITN = rank(AVISITN) %>%
+      as.factor() %>%
+      as.numeric() %>%
+      as.factor()
+  )
+adsl_sub <- adqs_f %>%
+  dplyr::filter(!is.na(CHG)) %>%
+  distinct(USUBJID) %>%
+  left_join(adsl, by = "USUBJID")
+var_labels(adqs_f) <- var_labels(adqs)
+```
+
+## Least Squares Means
+
+### Considering the treatment variable in the model
+
+```{r}
+mmrm_results <- fit_mmrm(
+  vars = list(
+    response = "CHG",
+    covariates = c("BASE", "STRATA1", "BMRKR2"),
+    id = "USUBJID",
+    arm = "ARMCD",
+    visit = "AVISIT"
+  ),
+  data = adqs_f,
+  weights_emmeans = "equal"
+)
+
+df <- tidy(mmrm_results)
+attr(df$AVISIT, "label") <- "Visit"
+
+# Define the split function
+split_fun <- drop_split_levels
+
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARMCD", ref_group = mmrm_results$ref_level) %>%
+  split_rows_by("AVISIT", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(df$AVISIT)) %>%
+  summarize_lsmeans(show_relative = "increase") %>%
+  append_topleft("  Statistics") %>%
+  build_table(df, alt_counts_df = adsl_sub)
+
+result
+```
+
+### Not considering the treatment variable in the model
+
+```{r}
+mmrm_results_no_arm <- fit_mmrm(
+  vars = list(
+    response = "CHG",
+    covariates = c("BMRKR2", "STRATA1"),
+    id = "USUBJID",
+    visit = "AVISIT"
+  ),
+  data = adqs_f,
+  weights_emmeans = "equal",
+  parallel = TRUE
+)
+
+df_no_arm <- tidy(mmrm_results_no_arm)
+attr(df_no_arm$AVISIT, "label") <- "Visit"
+
+# Define the split function
+split_fun <- drop_split_levels
+
+result <- basic_table(show_colcounts = TRUE) %>%
+  add_overall_col("All Patients") %>%
+  split_rows_by("AVISIT", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(df_no_arm$AVISIT)) %>%
+  summarize_lsmeans(arms = FALSE) %>%
+  append_topleft("  Statistics") %>%
+  build_table(df_no_arm, alt_counts_df = adsl_sub)
+
+result
+```
+
+### Adding baseline rows
+
+It may be of interest to summarize some different statistics at the baseline visit or summarize a different variable in the data set not used in the MMRM.
+For example, the model may use the variable `CHG` but the baseline visit row may summarize the `AVAL` variable, thus we would need to create two tables and then combine them to accomplish this.
+
+```{r}
+# First have the least-square means table.
+a <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARMCD", ref_group = mmrm_results$ref_level) %>%
+  split_rows_by("AVISIT", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(df$AVISIT)) %>%
+  summarize_lsmeans(show_relative = "increase") %>%
+  append_topleft("  Statistics") %>%
+  build_table(df, alt_counts_df = adsl_sub)
+
+# Second prepare the baseline values summary table.
+baseline_dat <- adqs %>%
+  filter(AVISIT == "BASELINE") %>%
+  droplevels()
+
+b <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARMCD") %>%
+  split_rows_by("AVISIT") %>%
+  summarize_vars("AVAL") %>%
+  append_topleft("  Statistics") %>%
+  build_table(baseline_dat, alt_counts_df = adsl_sub)
+
+# Now we can combine them as follows.
+col_info(b) <- EmptyColInfo
+rbind(b, a)
+```
+
+### Considering visit averages
+
+It may also be of interest to summarize several different statistics for an averaged combination of various visits in the MMRM.
+For example, you may want to see the statistics for the average of the first 2 visits, or the average statistics of all visits combined.
+This can be accomplished by specifying the `averages_emmeans` argument when fitting the MMRM model.
+
+```{r}
+mmrm_results_avg_visits <- fit_mmrm(
+  vars = list(
+    response = "CHG",
+    covariates = c("BASE", "STRATA1", "BMRKR2"),
+    id = "USUBJID",
+    arm = "ARMCD",
+    visit = "AVISIT"
+  ),
+  data = adqs_f,
+  weights_emmeans = "equal",
+  averages_emmeans = list(
+    "WEEKS 1-2" = c("WEEK 1 DAY 8", "WEEK 2 DAY 15"),
+    "WEEKS 3-5" = c("WEEK 3 DAY 22", "WEEK 4 DAY 29", "WEEK 5 DAY 36"),
+    "ALL VISITS" = c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22", "WEEK 4 DAY 29", "WEEK 5 DAY 36")
+  )
+)
+
+df_avgs <- tidy(mmrm_results_avg_visits)
+attr(df_avgs$AVISIT, "label") <- "Visit"
+
+# Define the split function
+split_fun <- drop_split_levels
+
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARMCD", ref_group = mmrm_results_avg_visits$ref_level) %>%
+  split_rows_by("AVISIT", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(df_avgs$AVISIT)) %>%
+  summarize_lsmeans(show_relative = "increase") %>%
+  append_topleft("  Statistics") %>%
+  build_table(df_avgs, alt_counts_df = adsl_sub)
+
+result
+```
+
+## Fixed Effects
+
+#### Considering the treatment variable in the model
+
+```{r}
+as.rtable(mmrm_results, type = "fixed")
+```
+
+#### Not considering the treatment variable in the model
+
+```{r}
+as.rtable(mmrm_results_no_arm, type = "fixed")
+```
+
+## Covariance Matrix
+
+```{r}
+as.rtable(mmrm_results, type = "cov")
+```
+
+## Model Diagnostics
+
+Model diagnostics are currently available to evaluate choice of covariates for the fixed and random effects.
+Statistics to evaluate choice of covariance structure are being investigated and will be included in a future release.
+
+```{r}
+as.rtable(mmrm_results, type = "diagnostic")
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 24)
+
+library(teal.modules.clinical)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adqs <- synthetic_cdisc_dataset("latest", "adqs") %>%
+  dplyr::filter(ABLFL != "Y" & ABLFL2 != "Y") %>%
+  dplyr::filter(AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22")) %>%
+  dplyr::mutate(
+    AVISIT = as.factor(AVISIT),
+    AVISITN = rank(AVISITN) %>%
+      as.factor() %>%
+      as.numeric() %>%
+      as.factor() # making consecutive numeric factor
+  )
+
+arm_ref_comp <- list(
+  ARMCD = list(
+    ref = "ARM A",
+    comp = c("ARM B", "ARM C")
+  )
+)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
+    cdisc_dataset("ADQS", adqs,
+      code = 'ADQS <- synthetic_cdisc_dataset("latest", "adqs") %>%
+              dplyr::filter(ABLFL != "Y" & ABLFL2 != "Y") %>%
+              dplyr::filter(AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22")) %>%
+              dplyr::mutate(
+                AVISIT = as.factor(AVISIT),
+                AVISITN = rank(AVISITN) %>%
+                  as.factor() %>%
+                  as.numeric() %>%
+                  as.factor() # making consecutive numeric factor
+              )'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_a_mmrm(
+      label = "MMRM",
+      dataname = "ADQS",
+      aval_var = choices_selected(c("AVAL", "CHG"), "CHG"),
+      id_var = choices_selected(c("USUBJID", "SUBJID"), "USUBJID"),
+      arm_var = choices_selected(c("ARM", "ARMCD"), "ARMCD"),
+      visit_var = choices_selected(c("AVISIT", "AVISITN"), "AVISIT"),
+      arm_ref_comp = arm_ref_comp,
+      paramcd = choices_selected(
+        choices = value_choices(adqs, "PARAMCD", "PARAM"),
+        selected = "FKSI-FWB"
+      ),
+      cov_var = choices_selected(c("BASE", "AGE", "SEX", "BASE:AVISIT"), NULL),
+      conf_level = choices_selected(c(0.95, 0.9, 0.8), 0.95)
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::

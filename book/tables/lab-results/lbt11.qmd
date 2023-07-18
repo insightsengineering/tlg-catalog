@@ -1,0 +1,203 @@
+---
+title: LBT11
+subtitle: Time to First Increase in Liver Laboratory Test Result Meeting Hy's Law Laboratory Critieria (with Respect to ULN)
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adsaftte <- synthetic_cdisc_dataset("latest", "adaette")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adsaftte <- df_explicit_na(adsaftte)
+
+adsl_safl <- dplyr::filter(adsl, .data$SAFFL == "Y")
+
+anl <- adsaftte %>%
+  dplyr::filter(
+    SAFFL == "Y",
+    PARAMCD == "HYSTTEUL"
+  ) %>%
+  dplyr::mutate(
+    AVAL = .data$AVAL * dplyr::case_when( # convert to days, if possible
+      .data$AVALU == "WEEKS" ~ 7,
+      .data$AVALU == "MONTHS" ~ 30.4375,
+      .data$AVALU == "YEARS" ~ 365,
+      TRUE ~ 1
+    ),
+    AVALU = factor(dplyr::case_when(
+      .data$AVALU %in% c("WEEKS", "MONTHS", "YEARS") ~ factor("DAYS"),
+      TRUE ~ .data$AVALU
+    ), levels = "DAYS"),
+    is_event = CNSR == 0, # this will be a LLT event
+    event_grp = factor(
+      dplyr::case_when(
+        CNSR == 0 ~ "Patients with LLT event (%)",
+        CNSR == 1 ~ "Patients without LLT event (%)"
+      ),
+      levels = c(
+        "Patients with LLT event (%)",
+        "Patients without LLT event (%)"
+      )
+    )
+  )
+```
+
+## Time-To-Event Summary
+
+```{r}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARMCD", ref_group = "ARM A") %>%
+  count_occurrences(vars = "event_grp") %>%
+  surv_time(
+    vars = "AVAL",
+    var_labels = paste0("Time to 1st LLT Event (", levels(anl$AVALU), ")"),
+    is_event = "is_event",
+    table_names = "time_to_event"
+  ) %>%
+  coxph_pairwise(
+    vars = "AVAL",
+    is_event = "is_event",
+    var_labels = "Unstratified Analysis",
+    control = control_coxph(pval_method = "log-rank"),
+    table_names = "coxph_unstratified"
+  )
+
+result <- build_table(lyt, df = anl, alt_counts_df = adsl_safl)
+result
+```
+
+## Time-To-Event Summary <br/> Selecting Sections to Display
+
+```{r}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARMCD", ref_group = "ARM A") %>%
+  count_occurrences(vars = "event_grp") %>%
+  surv_time(
+    vars = "AVAL",
+    var_labels = paste0("Time to 1st LLT Event (", levels(anl$AVALU), ")"),
+    is_event = "is_event",
+    table_names = "time_to_event"
+  )
+
+result <- build_table(lyt, df = anl, alt_counts_df = adsl_safl)
+result
+```
+
+## Time-To-Event Summary <br/> with Stratified Analysis
+
+```{r}
+strata <- c("RACE", "SEX")
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARMCD", ref_group = "ARM A") %>%
+  count_occurrences(vars = "event_grp") %>%
+  surv_time(
+    vars = "AVAL",
+    var_labels = paste0("Time to 1st LLT Event (", levels(anl$AVALU), ")"),
+    is_event = "is_event",
+    table_names = "time_to_event"
+  ) %>%
+  coxph_pairwise(
+    vars = "AVAL",
+    is_event = "is_event",
+    var_labels = "Unstratified Analysis",
+    control = control_coxph(pval_method = "log-rank"),
+    table_names = "coxph_unstratified"
+  ) %>%
+  coxph_pairwise(
+    vars = "AVAL",
+    is_event = "is_event",
+    var_labels = paste0("Stratified By: ", paste(strata, collapse = ", ")),
+    strat = strata,
+    table_names = "coxph_stratified"
+  )
+
+result <- build_table(lyt, df = anl, alt_counts_df = adsl_safl)
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 20)
+
+library(teal.modules.clinical)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adsaftte <- synthetic_cdisc_dataset("latest", "adaette")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adsaftte <- df_explicit_na(adsaftte)
+
+adsl <- dplyr::filter(adsl, .data$SAFFL == "Y")
+adsaftte <- dplyr::filter(adsaftte, .data$SAFFL == "Y")
+
+arm_ref_comp <- list(
+  ACTARMCD = list(
+    ref = "ARM B",
+    comp = c("ARM A", "ARM C")
+  ),
+  ARM = list(
+    ref = "B: Placebo",
+    comp = c("A: Drug X", "C: Combination")
+  )
+)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset(
+      "ADSL",
+      adsl,
+      code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl") %>% df_explicit_na() %>% dplyr::filter(.data$SAFFL == "Y")'
+    ),
+    cdisc_dataset(
+      "ADSAFTTE",
+      adsaftte,
+      keys = c("STUDYID", "USUBJID", "PARAMCD"),
+      code = 'ADSAFTTE <- synthetic_cdisc_dataset("latest", "adaette") %>% df_explicit_na() %>% dplyr::filter(.data$SAFFL == "Y")'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_tte(
+      label = "Time To LLT Event Table",
+      dataname = "ADSAFTTE",
+      arm_var = choices_selected(
+        variable_choices(adsl, c("ARM", "ARMCD", "ACTARMCD")),
+        "ARM"
+      ),
+      arm_ref_comp = arm_ref_comp,
+      paramcd = choices_selected(
+        value_choices(adsaftte, "PARAMCD", "PARAM"),
+        "HYSTTEUL"
+      ),
+      strata_var = choices_selected(
+        variable_choices(adsl, c("RACE", "SEX")),
+        c("RACE", "SEX")
+      ),
+      time_points = choices_selected(0, NULL),
+      event_desc_var = choices_selected("EVNTDESC", "EVNTDESC", fixed = TRUE)
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::

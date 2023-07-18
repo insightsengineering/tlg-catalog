@@ -1,0 +1,323 @@
+---
+title: DORT01
+subtitle: Duration of Response
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(tern)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adtte <- synthetic_cdisc_dataset("latest", "adtte")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adtte <- df_explicit_na(adtte)
+
+adtte_f <- adtte %>%
+  filter(PARAMCD == "CRSD" & BMEASIFL == "Y") %>%
+  dplyr::mutate(
+    AVAL = day2month(AVAL),
+    is_event = CNSR == 0,
+    is_not_event = CNSR == 1,
+    EVNT1 = factor(
+      case_when(
+        is_event == TRUE ~ "Responders with subsequent event (%)",
+        is_event == FALSE ~ "Responders without subsequent event (%)"
+      ),
+      levels = c("Responders with subsequent event (%)", "Responders without subsequent event (%)")
+    ),
+    EVNTDESC = factor(EVNTDESC)
+  )
+```
+
+## Standard Table
+
+```{r variant 1}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM", ref_group = "A: Drug X") %>%
+  count_values(
+    vars = "USUBJID",
+    values = unique(adtte$USUBJID),
+    .labels = "Responders",
+    .stats = "count"
+  ) %>%
+  summarize_vars(
+    vars = "is_event",
+    .stats = "count_fraction",
+    .labels = c(count_fraction = "Responders with subsequent event (%)"),
+    .indent_mods = c(count_fraction = 1L),
+    show_labels = "hidden",
+  ) %>%
+  split_rows_by(
+    "EVNT1",
+    split_label = "Earliest contributing event",
+    split_fun = keep_split_levels("Responders with subsequent event (%)"),
+    label_pos = "visible",
+    child_labels = "hidden",
+    indent_mod = 2L,
+  ) %>%
+  split_rows_by("EVNTDESC", split_fun = drop_split_levels) %>%
+  summarize_row_groups(format = "xx") %>%
+  summarize_vars(
+    vars = "is_not_event",
+    .stats = "count_fraction",
+    .labels = c(count_fraction = "Responders without subsequent event (%)"),
+    .indent_mods = c(count_fraction = 1L),
+    nested = FALSE,
+    show_labels = "hidden"
+  ) %>%
+  surv_time(
+    vars = "AVAL",
+    var_labels = "Duration of response (Months)",
+    is_event = "is_event"
+  ) %>%
+  surv_timepoint(
+    vars = "AVAL",
+    var_labels = "Months duration",
+    is_event = "is_event",
+    time_point = 12
+  )
+
+result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl)
+
+result
+```
+
+## Table Selecting <br/> Sections to Display
+
+```{r variant 2}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM", ref_group = "A: Drug X") %>%
+  count_values(
+    vars = "USUBJID",
+    values = unique(adtte$USUBJID),
+    .labels = "Responders",
+    .stats = "count"
+  ) %>%
+  summarize_vars(
+    vars = "is_event",
+    .stats = "count_fraction",
+    .labels = c(count_fraction = "Responders with subsequent event (%)"),
+    .indent_mods = c(count_fraction = 1L),
+    show_labels = "hidden",
+  ) %>%
+  split_rows_by(
+    "EVNT1",
+    split_label = "Earliest contributing event",
+    split_fun = keep_split_levels("Responders with subsequent event (%)"),
+    label_pos = "visible",
+    child_labels = "hidden",
+    indent_mod = 2L,
+  ) %>%
+  split_rows_by("EVNTDESC", split_fun = drop_split_levels) %>%
+  summarize_row_groups(format = "xx") %>%
+  summarize_vars(
+    vars = "is_not_event",
+    .stats = "count_fraction",
+    .labels = c(count_fraction = "Responders without subsequent event (%)"),
+    .indent_mods = c(count_fraction = 1L),
+    nested = FALSE,
+    show_labels = "hidden"
+  ) %>%
+  surv_time(
+    vars = "AVAL",
+    var_labels = "Duration of response (Months)",
+    is_event = "is_event",
+    table_names = "surv_time"
+  ) %>%
+  coxph_pairwise(
+    vars = "AVAL",
+    is_event = "is_event",
+    var_labels = c("Unstratified Analysis"),
+    control = control_coxph(pval_method = "log-rank"),
+    table_names = "cox_pair"
+  )
+
+result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl)
+
+result
+```
+
+## Table Modifying Analysis Details <br/> like Conf. Type and Alpha Level
+
+```{r variant 3}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM", ref_group = "A: Drug X") %>%
+  count_values(
+    vars = "USUBJID",
+    values = unique(adtte$USUBJID),
+    .labels = "Responders",
+    .stats = "count"
+  ) %>%
+  summarize_vars(
+    vars = "is_event",
+    .stats = "count_fraction",
+    .labels = c(count_fraction = "Responders with subsequent event (%)"),
+    .indent_mods = c(count_fraction = 1L),
+    show_labels = "hidden",
+  ) %>%
+  split_rows_by(
+    "EVNT1",
+    split_label = "Earliest contributing event",
+    split_fun = keep_split_levels("Responders with subsequent event (%)"),
+    label_pos = "visible",
+    child_labels = "hidden",
+    indent_mod = 2L,
+  ) %>%
+  split_rows_by("EVNTDESC", split_fun = drop_split_levels) %>%
+  summarize_row_groups(format = "xx") %>%
+  summarize_vars(
+    vars = "is_not_event",
+    .stats = "count_fraction",
+    .labels = c(count_fraction = "Responders without subsequent event (%)"),
+    .indent_mods = c(count_fraction = 1L),
+    nested = FALSE,
+    show_labels = "hidden"
+  ) %>%
+  surv_time(
+    vars = "AVAL",
+    var_labels = "Duration of response (Months)",
+    is_event = "is_event",
+    control = control_surv_time(conf_level = 0.90, conf_type = "log-log")
+  ) %>%
+  surv_timepoint(
+    vars = "AVAL",
+    var_labels = "Months duration",
+    is_event = "is_event",
+    time_point = 12,
+    control = control_surv_timepoint(conf_level = 0.975)
+  )
+
+result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl)
+
+result
+```
+
+## Table Modifying Time Point for <br/> the "XX Months duration" Analysis
+
+```{r variant 4}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM", ref_group = "A: Drug X") %>%
+  count_values(
+    vars = "USUBJID",
+    values = unique(adtte$USUBJID),
+    .labels = "Responders",
+    .stats = "count"
+  ) %>%
+  summarize_vars(
+    vars = "is_event",
+    .stats = "count_fraction",
+    .labels = c(count_fraction = "Responders with subsequent event (%)"),
+    .indent_mods = c(count_fraction = 1L),
+    show_labels = "hidden",
+  ) %>%
+  split_rows_by(
+    "EVNT1",
+    split_label = "Earliest contributing event",
+    split_fun = keep_split_levels("Responders with subsequent event (%)"),
+    label_pos = "visible",
+    child_labels = "hidden",
+    indent_mod = 2L,
+  ) %>%
+  split_rows_by("EVNTDESC", split_fun = drop_split_levels) %>%
+  summarize_row_groups(format = "xx") %>%
+  summarize_vars(
+    vars = "is_not_event",
+    .stats = "count_fraction",
+    .labels = c(count_fraction = "Responders without subsequent event (%)"),
+    .indent_mods = c(count_fraction = 1L),
+    nested = FALSE,
+    show_labels = "hidden"
+  ) %>%
+  surv_time(
+    vars = "AVAL",
+    var_labels = "Duration of response (Months)",
+    is_event = "is_event"
+  ) %>%
+  surv_timepoint(
+    vars = "AVAL",
+    var_labels = "Months duration",
+    is_event = "is_event",
+    time_point = 6
+  )
+
+result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl)
+
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 36)
+
+library(scda)
+library(teal.modules.clinical)
+library(tern)
+
+ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+ADSL <- df_explicit_na(ADSL)
+ADTTE <- df_explicit_na(ADTTE)
+
+arm_ref_comp <- list(
+  ACTARMCD = list(
+    ref = "ARM B",
+    comp = c("ARM A", "ARM C")
+  ),
+  ARM = list(
+    ref = "B: Placebo",
+    comp = c("A: Drug X", "C: Combination")
+  )
+)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", ADSL, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl") %>% df_explicit_na()'),
+    cdisc_dataset("ADTTE", ADTTE, code = 'ADTTE <- synthetic_cdisc_dataset("latest", "adtte") %>% df_explicit_na()'),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_tte(
+      label = "Time To Event Table",
+      dataname = "ADTTE",
+      arm_var = choices_selected(
+        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),
+        "ARM"
+      ),
+      arm_ref_comp = arm_ref_comp,
+      paramcd = choices_selected(
+        value_choices(ADTTE, "PARAMCD", "PARAM"),
+        "CRSD"
+      ),
+      strata_var = choices_selected(
+        variable_choices(ADSL, c("SEX", "BMRKR2")),
+        "SEX"
+      ),
+      time_points = choices_selected(c(6, 8), 6),
+      event_desc_var = choices_selected(
+        variable_choices(ADTTE, "EVNTDESC"),
+        "EVNTDESC",
+        fixed = TRUE
+      )
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::

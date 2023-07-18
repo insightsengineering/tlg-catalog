@@ -1,0 +1,126 @@
+---
+title: ADAT03
+subtitle: Summary of Serum Concentrations at Timepoints Where ADA Samples Were Collected and Analyzed
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(scda)
+library(tern)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adab <- synthetic_cdisc_dataset("latest", "adab")
+adpc <- synthetic_cdisc_dataset("latest", "adpc")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adab <- df_explicit_na(adab)
+adpc <- df_explicit_na(adpc)
+
+# Adjust zzz parameter
+max_conc <- 15
+
+adpc <- adpc %>% select(USUBJID, NFRLT, AVAL, AVALU, AVALCAT1)
+
+anl <- adab %>%
+  filter(., PARAM == "ADA interpreted per sample result") %>%
+  select(-AVAL, AVALC, AVALU)
+
+anl <- merge(anl, adpc, by = c("USUBJID", "NFRLT")) %>%
+  mutate(AVAL_LT = ifelse(AVAL <= max_conc, TRUE, FALSE))
+```
+
+## Standard Table (μg/mL)
+
+```{r}
+# parameters in columns
+adat03_stats <- c("n", "mean", "sd", "median", "min", "max", "cv", "geom_mean", "count_fraction")
+adat03_lbls <- c(
+  n = "Total Number\nof Measurable\n Samples",
+  mean = "Mean",
+  sd = "SD",
+  median = "Median",
+  min = "Minimum",
+  max = "Maximum",
+  cv = "CV (%)",
+  geom_mean = "Geometric Mean",
+  count_fraction = paste0("Samples with\nConcentration\n≤ ", max_conc, "μg/mL")
+)
+adat03_fmts <- c(
+  n = "xx.",
+  mean = sprintf_format("%.3e"),
+  sd = sprintf_format("%.3e"),
+  median = sprintf_format("%.3e"),
+  min = sprintf_format("%.3e"),
+  max = sprintf_format("%.3e"),
+  cv = "xx.x",
+  geom_mean = sprintf_format("%.3e"),
+  count_fraction = format_count_fraction
+)
+
+afun_list <- lapply(
+  1:9,
+  function(i) make_afun(s_summary, .stats = adat03_stats[i], .formats = adat03_fmts[i], .labels = "Overall")
+)
+
+# lyt creation
+lyt <- basic_table() %>%
+  split_rows_by(
+    var = "ARM",
+    label_pos = "topleft",
+    split_label = "Treatment Group",
+    split_fun = drop_split_levels,
+    section_div = ""
+  ) %>%
+  add_rowcounts() %>%
+  split_rows_by(
+    var = "VISIT",
+    label_pos = "topleft",
+    split_label = "Visit"
+  ) %>%
+  analyze_vars_in_cols(
+    vars = c(rep("AVAL", 8), "AVAL_LT"),
+    .stats = adat03_stats,
+    .labels = adat03_lbls,
+    .formats = adat03_fmts
+  ) %>%
+  analyze_colvars(
+    afun_list,
+    nested = FALSE,
+    extra_args = list(".labels" = "Overall")
+  )
+
+result <- build_table(lyt, anl, alt_counts_df = adsl)
+
+main_title(result) <- paste(
+  "Summary of Serum Concentrations (μg/mL) at Timepoints Where ADA Samples Were Collected and Analyzed\n
+  Protocol:", unique(adab$PARCAT1)[1]
+)
+subtitles(result) <- paste("Analyte:", unique(adab$PARAMCD)[1])
+fnotes_at_path(result, rowpath = NULL, colpath = c("multivars", "AVAL")) <- "Refers to the total no. of measurable ADA samples that have a corresponding measurable drug concentration sample (i.e. results with
+valid numeric values and LTRs). LTR results on post-dose samples are replaced by aaa µg/mL i.e. half of MQC value."
+fnotes_at_path(result, rowpath = NULL, colpath = c("multivars", "AVAL_LT")) <- "In validation, the assay was able to detect yyy ng/mL of surrogate ADA in the presence of zzz µg/mL of [drug]. BLQ = Below Limit of
+Quantitation, LTR = Lower than Reportable, MQC = Minimum Quantifiable Concentration, ADA = Anti-Drug Antibodies (is also referred to as ATA,
+or Anti-Therapeutic Antibodies). RXXXXXXX is also known as [drug]"
+
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| code-fold: show
+
+# In progress
+```
+
+{{< include ../../si.qmd >}}
+
+:::

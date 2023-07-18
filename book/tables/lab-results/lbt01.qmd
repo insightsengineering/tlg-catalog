@@ -1,0 +1,143 @@
+---
+title: LBT01
+subtitle: Laboratory Test Results and Change from Baseline by Visit
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+In order to generate the `LBT01` standard tabulation, the `adlb` dataset may be pre-processed so as to discriminate baseline from follow-up visits.
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(tern)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adlb <- synthetic_cdisc_dataset("latest", "adlb")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adlb <- df_explicit_na(adlb) %>%
+  filter(ANL01FL == "Y")
+
+# For illustration purpose, the example focuses on "Alanine Aminotransferase
+# Measurement" starting from baseline, while excluding visit at week 1 for
+# subjects who were prescribed a placebo.
+adlb_f <- adlb %>%
+  dplyr::filter(
+    PARAM == "Alanine Aminotransferase Measurement" &
+      !(ACTARM == "B: Placebo" & AVISIT == "WEEK 1 DAY 8") &
+      AVISIT != "SCREENING"
+  )
+```
+
+## Standard Table
+
+```{r example1}
+# Define the split function
+split_fun <- drop_split_levels
+
+afun <- function(x, .var, .spl_context, ...) {
+  n_fun <- sum(!is.na(x), na.rm = TRUE)
+  if (n_fun == 0) {
+    mean_sd_fun <- c(NA, NA)
+    median_fun <- NA
+    min_max_fun <- c(NA, NA)
+  } else {
+    mean_sd_fun <- c(mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))
+    median_fun <- median(x, na.rm = TRUE)
+    min_max_fun <- c(min(x), max(x))
+  }
+  is_chg <- .var == "CHG"
+  is_baseline <- .spl_context$value[which(.spl_context$split == "AVISIT")] == "BASELINE"
+  if (is_baseline && is_chg) n_fun <- mean_sd_fun <- median_fun <- min_max_fun <- NULL
+
+  in_rows(
+    "n" = n_fun,
+    "Mean (SD)" = mean_sd_fun,
+    "Median" = median_fun,
+    "Min - Max" = min_max_fun,
+    .formats = list("n" = "xx", "Mean (SD)" = "xx.xx (xx.xx)", "Median" = "xx.xx", "Min - Max" = "xx.xx - xx.xx"),
+    .format_na_strs = list("n" = "NE", "Mean (SD)" = "NE (NE)", "Median" = "NE", "Min - Max" = "NE - NE")
+  )
+}
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  split_rows_by("PARAM", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adlb_f$PARAM)) %>%
+  split_rows_by("AVISIT", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adlb_f$AVISIT)) %>%
+  split_cols_by_multivar(
+    vars = c("AVAL", "CHG"),
+    varlabels = c("Value at Visit", "Change from\nBaseline")
+  ) %>%
+  analyze_colvars(afun = afun)
+
+result <- build_table(lyt, adlb_f)
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 18)
+
+library(teal.modules.clinical)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adlb <- synthetic_cdisc_dataset("latest", "adlb")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adlb <- df_explicit_na(adlb)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL",
+      adsl,
+      code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))'
+    ),
+    cdisc_dataset("ADLB",
+      adlb,
+      code = 'ADLB <- df_explicit_na(synthetic_cdisc_dataset("latest", "adlb"))'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_summary_by(
+      label = "Laboratory Test Results and Change from Baseline by Visit",
+      dataname = "ADLB",
+      arm_var = choices_selected(
+        choices = variable_choices(adsl, c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      by_vars = choices_selected(
+        choices = variable_choices(adlb, c("PARAM", "AVISIT")),
+        selected = c("AVISIT")
+      ),
+      summarize_vars = choices_selected(
+        choices = variable_choices(adlb, c("AVAL", "CHG")),
+        selected = c("AVAL", "CHG")
+      ),
+      useNA = "ifany",
+      paramcd = choices_selected(
+        choices = value_choices(adlb, "PARAMCD", "PARAM"),
+        selected = "ALT"
+      ),
+      parallel_vars = TRUE
+    )
+  ),
+  filter = list(ADLB = list(AVAL = list()))
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+:::
