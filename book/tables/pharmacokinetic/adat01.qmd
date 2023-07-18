@@ -29,13 +29,13 @@ combodf <- tribble(
 adsl <- df_explicit_na(adsl)
 adab <- adab %>%
   filter(PARCAT1 == "A: Drug X Antibody") %>%
-  select(-ARELTM2, -NRELTM2)
+  select(-ARRLT, -NRRLT)
 
 # Baseline Pts
 adab_b <- df_explicit_na(adab) %>%
   filter(
     ABLFL == "Y",
-    ADABLFL == "Y",
+    ADABLPFL == "Y",
     PARAM %in% c("ADA interpreted per sample result")
   ) %>%
   select(-PARAMCD, -AVALC, -AVALU) %>%
@@ -48,21 +48,21 @@ adab_b <- df_explicit_na(adab) %>%
     as.logical
   ) %>%
   mutate(
-    ADABLFL = ADABLFL == "Y",
-    PADABLFL = `ADA interpreted per sample result` == "TRUE",
-    NADABLFL = `ADA interpreted per sample result` == "FALSE"
+    ADABLPFL = ADABLPFL == "Y",
+    PADABLPFL = `ADA interpreted per sample result` == "TRUE",
+    NADABLPFL = `ADA interpreted per sample result` == "FALSE"
   ) %>%
   var_relabel(
-    ADABLFL = "Baseline evaluable patients",
-    PADABLFL = "Patient with a positive sample at baseline",
-    NADABLFL = "Patient with no positive samples at baseline"
+    ADABLPFL = "Baseline evaluable patients",
+    PADABLPFL = "Patient with a positive sample at baseline",
+    NADABLPFL = "Patient with no positive samples at baseline"
   )
 
 # Post Baseline Treatment Enhanced NAb positive Pts
 adab_pb <- df_explicit_na(adab) %>%
   filter(
     ABLFL != "Y",
-    ADAPBLFL == "Y",
+    ADPBLPFL == "Y",
     PARAM %in% c(
       "ADA interpreted per sample result",
       "Treatment Emergent - Positive",
@@ -78,24 +78,26 @@ adab_pb <- df_explicit_na(adab) %>%
     names_from = PARAM,
     values_from = AVAL
   ) %>%
-  mutate_at(
-    c(
-      "ADA interpreted per sample result", "Treatment Emergent - Positive",
-      "Treatment induced ADA", "Treatment enhanced ADA",
-      "Treatment Emergent - Negative", "Treatment unaffected"
-    ),
-    as.logical
+  mutate(
+    across(
+      any_of(c(
+        "ADA interpreted per sample result", "Treatment Emergent - Positive",
+        "Treatment induced ADA", "Treatment enhanced ADA",
+        "Treatment Emergent - Negative", "Treatment unaffected"
+      )),
+      as.logical
+    )
   ) %>%
   mutate(
-    ADAPBLFL = ADAPBLFL == "Y",
-    PTEFL = `Treatment Emergent - Positive` == "TRUE",
-    TIFL = `Treatment induced ADA` == "TRUE",
-    TEFL = `Treatment enhanced ADA` == "TRUE",
-    NTEFL = `Treatment Emergent - Negative` == "TRUE",
-    TUFL = `Treatment unaffected` == "TRUE"
+    ADPBLPFL = ADPBLPFL == "Y",
+    PTEFL = if (exists("Treatment Emergent - Positive", where = .)) `Treatment Emergent - Positive` == "TRUE" else FALSE,
+    TIFL = if (exists("Treatment induced ADA", where = .)) `Treatment induced ADA` == "TRUE" else FALSE,
+    TEFL = if (exists("Treatment enhanced ADA", where = .)) `Treatment enhanced ADA` == "TRUE" else FALSE,
+    NTEFL = if (exists("Treatment Emergent - Negative", where = .)) `Treatment Emergent - Negative` == "TRUE" else FALSE,
+    TUFL = if (exists("Treatment unaffected", where = .)) `Treatment unaffected` == "TRUE" else FALSE
   ) %>%
   var_relabel(
-    ADAPBLFL = "Post-baseline evaluable patients",
+    ADPBLPFL = "Post-baseline evaluable patients",
     PTEFL = "Patient positive for Treatment Emergent ADA",
     TIFL = "Treatment-induced ADA",
     TEFL = "Treatment-enhanced ADA",
@@ -115,7 +117,7 @@ lyt_bl <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_patients_with_flags(
     "USUBJID",
-    flag_variables = formatters::var_labels(adab_b[, c("ADABLFL")]),
+    flag_variables = formatters::var_labels(adab_b[, c("ADABLPFL")]),
     .stats = "count",
     var_labels = "Baseline Prevalence of ADAs",
     show_labels = "visible",
@@ -123,7 +125,7 @@ lyt_bl <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_patients_with_flags(
     "USUBJID",
-    flag_variables = var_labels(adab_b[, "PADABLFL"]),
+    flag_variables = var_labels(adab_b[, "PADABLPFL"]),
     table_names = "t2",
     .indent_mods = 1L,
     var_labels = "a",
@@ -131,7 +133,7 @@ lyt_bl <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_patients_with_flags(
     "USUBJID",
-    flag_variables = formatters::var_labels(adab_b[, c("NADABLFL")]),
+    flag_variables = formatters::var_labels(adab_b[, c("NADABLPFL")]),
     .stats = "count",
     show_labels = "hidden",
     .indent_mods = 1L,
@@ -146,7 +148,7 @@ lyt_pb <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_patients_with_flags(
     "USUBJID",
-    flag_variables = formatters::var_labels(adab_pb[, c("ADAPBLFL")]),
+    flag_variables = formatters::var_labels(adab_pb[, c("ADPBLPFL")]),
     .stats = "count",
     var_labels = "Incidence of Treatment Emergent ADAs",
     show_labels = "visible",

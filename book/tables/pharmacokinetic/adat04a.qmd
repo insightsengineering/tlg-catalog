@@ -32,7 +32,7 @@ adsl <- df_explicit_na(adsl)
 adab_b <- df_explicit_na(adab) %>%
   filter(
     ABLFL == "Y",
-    ADABLFL == "Y",
+    ADABLPFL == "Y",
     PARAM %in% c(
       "ADA interpreted per sample result",
       "NAB interpreted per sample result"
@@ -43,19 +43,24 @@ adab_b <- df_explicit_na(adab) %>%
     names_from = PARAM,
     values_from = AVAL
   ) %>%
-  mutate_at(
-    c("ADA interpreted per sample result", "NAB interpreted per sample result"),
-    as.logical
+  mutate(
+    across(
+      any_of(c(
+        "ADA interpreted per sample result",
+        "NAB interpreted per sample result"
+      )),
+      as.logical
+    )
   ) %>%
   mutate(
-    ADABLFL = ADABLFL == "Y",
-    PADABLFL = `ADA interpreted per sample result` == "TRUE",
-    PNABBLFL = `NAB interpreted per sample result` == "TRUE",
-    NNABBLFL = `NAB interpreted per sample result` == "FALSE"
+    ADABLPFL = ADABLPFL == "Y",
+    PADABLPFL = if (exists("ADA interpreted per sample result", where = .)) `ADA interpreted per sample result` == "TRUE" else FALSE,
+    PNABBLFL = if (exists("NAB interpreted per sample result", where = .)) `NAB interpreted per sample result` == "TRUE" else FALSE,
+    NNABBLFL = if (exists("NAB interpreted per sample result", where = .)) `NAB interpreted per sample result` == "FALSE" else FALSE
   ) %>%
   var_relabel(
-    ADABLFL = "Baseline evaluable patients for ADA",
-    PADABLFL = "Patients with a positive ADA sample at baseline",
+    ADABLPFL = "Baseline evaluable patients for ADA",
+    PADABLPFL = "Patients with a positive ADA sample at baseline",
     PNABBLFL = "Patients with a positive NAb sample at baseline",
     NNABBLFL = "Patient with no positive NAb samples at baseline"
   )
@@ -64,7 +69,7 @@ adab_b <- df_explicit_na(adab) %>%
 adab_pb <- df_explicit_na(adab) %>%
   filter(
     ABLFL != "Y",
-    ADAPBLFL == "Y",
+    ADPBLPFL == "Y",
     PARAM %in% c(
       "ADA interpreted per sample result",
       "Treatment Emergent - Positive, Neutralizing Antibody",
@@ -74,33 +79,35 @@ adab_pb <- df_explicit_na(adab) %>%
       "Treatment unaffected, Neutralizing Antibody"
     )
   ) %>%
-  select(-PARAMCD, -AVALC, -AVALU, -ARELTM2, -NRELTM2) %>%
+  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%
   unique() %>%
   tidyr::pivot_wider(
     names_from = PARAM,
     values_from = AVAL
   ) %>%
-  mutate_at(
-    c(
-      "ADA interpreted per sample result", "NAB interpreted per sample result",
-      "Treatment Emergent - Positive, Neutralizing Antibody",
-      "Treatment induced ADA, Neutralizing Antibody",
-      "Treatment enhanced ADA, Neutralizing Antibody",
-      "Treatment unaffected, Neutralizing Antibody"
-    ),
-    as.logical
+  mutate(
+    across(
+      any_of(c(
+        "ADA interpreted per sample result", "NAB interpreted per sample result",
+        "Treatment Emergent - Positive, Neutralizing Antibody",
+        "Treatment induced ADA, Neutralizing Antibody",
+        "Treatment enhanced ADA, Neutralizing Antibody",
+        "Treatment unaffected, Neutralizing Antibody"
+      )),
+      as.logical
+    )
   ) %>%
   mutate(
-    ADAPBLFL = ADAPBLFL == "Y",
-    ADAPFL = `ADA interpreted per sample result` == "TRUE",
-    TENABPFL = `Treatment Emergent - Positive, Neutralizing Antibody` == "TRUE",
-    TINPBFL = `Treatment induced ADA, Neutralizing Antibody` == "TRUE",
-    TENPBFL = `Treatment enhanced ADA, Neutralizing Antibody` == "TRUE",
-    NABNFL = `NAB interpreted per sample result` == "FALSE",
-    TUNPBFL = `Treatment unaffected, Neutralizing Antibody` == "TRUE"
+    ADPBLPFL = ADPBLPFL == "Y",
+    ADAPFL = if (exists("ADA interpreted per sample result", where = .)) `ADA interpreted per sample result` == "TRUE" else FALSE,
+    TENABPFL = if (exists("Treatment Emergent - Positive, Neutralizing Antibody", where = .)) `Treatment Emergent - Positive, Neutralizing Antibody` == "TRUE" else FALSE,
+    TINPBFL = if (exists("Treatment induced ADA, Neutralizing Antibody", where = .)) `Treatment induced ADA, Neutralizing Antibody` == "TRUE" else FALSE,
+    TENPBFL = if (exists("Treatment enhanced ADA, Neutralizing Antibody", where = .)) `Treatment enhanced ADA, Neutralizing Antibody` == "TRUE" else FALSE,
+    NABNFL = if (exists("NAB interpreted per sample result", where = .)) `NAB interpreted per sample result` == "FALSE" else FALSE,
+    TUNPBFL = if (exists("Treatment unaffected, Neutralizing Antibody", where = .)) `Treatment unaffected, Neutralizing Antibody` == "TRUE" else FALSE
   ) %>%
   var_relabel(
-    ADAPBLFL = "Post-baseline evaluable patients for ADA",
+    ADPBLPFL = "Post-baseline evaluable patients for ADA",
     ADAPFL = "Patients positive for ADA",
     TENABPFL = "Patients positive for Treatment Emergent NAb",
     TINPBFL = "Treatment-induced NAb",
@@ -121,7 +128,7 @@ lyt_bl <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_patients_with_flags(
     "USUBJID",
-    flag_variables = formatters::var_labels(adab_b[, c("ADABLFL", "PADABLFL")]),
+    flag_variables = formatters::var_labels(adab_b[, c("ADABLPFL", "PADABLPFL")]),
     table_names = "t1",
     .stats = "count",
     var_labels = "Baseline Prevalence of NAbs",
@@ -150,7 +157,7 @@ lyt_pb <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_patients_with_flags(
     "USUBJID",
-    flag_variables = formatters::var_labels(adab_pb[, c("ADAPBLFL", "ADAPFL")]),
+    flag_variables = formatters::var_labels(adab_pb[, c("ADPBLPFL", "ADAPFL")]),
     .stats = "count",
     var_labels = "Incidence of Treatment Emergent NAbs",
     show_labels = "visible",

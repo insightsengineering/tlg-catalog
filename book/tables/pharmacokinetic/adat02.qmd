@@ -21,35 +21,42 @@ adab <- synthetic_cdisc_dataset("latest", "adab")
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
 adab <- df_explicit_na(adab) %>%
+  mutate(ADPBLPFL = "Y") %>% # temp fix
   filter(
-    ADAPBLFL == "Y",
+    ADPBLPFL == "Y",
     !PARAM %in% c(
       "NAB interpreted per sample result",
       "NAB Status of a patient",
       "Treatment enhanced ADA"
     )
   ) %>%
-  select(-PARAMCD, -AVALC, -AVALU, -ARELTM2, -NRELTM2) %>%
+  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%
   unique() %>%
   tidyr::pivot_wider(
     names_from = PARAM,
     values_from = AVAL
   ) %>%
-  mutate_at(
-    c("Treatment induced ADA", "Transient ADA", "Persistent ADA"),
-    as.logical
+  mutate(
+    across(
+      any_of(c(
+        "Treatment induced ADA",
+        "Transient ADA",
+        "Persistent ADA"
+      )),
+      as.logical
+    )
   ) %>%
   mutate(
-    ADAPBLFL = ADAPBLFL == "Y",
-    TI_ADA = `Treatment induced ADA`
+    ADPBLPFL = ADPBLPFL == "Y",
+    TI_ADA = if (exists("Treatment induced ADA", where = .)) `Treatment induced ADA` else FALSE
   ) %>%
   var_relabel(
-    ADAPBLFL = "Post-baseline evaluable patients",
+    ADPBLPFL = "Post-baseline evaluable patients",
     TI_ADA = "Treatment-induced ADA patients"
   )
 
 adab_ti <- adab %>%
-  filter(`Treatment induced ADA`)
+  filter(TI_ADA)
 ```
 
 ## Standard Table
@@ -63,7 +70,7 @@ lyt_adab <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_patients_with_flags(
     "USUBJID",
-    flag_variables = var_labels(data.frame(ADAPBLFL = adab[, "ADAPBLFL"])),
+    flag_variables = var_labels(data.frame(ADPBLPFL = adab[, "ADPBLPFL"])),
     .stats = "count",
     table_names = "post_baseline"
   ) %>%
@@ -76,7 +83,7 @@ lyt_adab <- basic_table(show_colcounts = TRUE) %>%
 lyt_adab_ti <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(
     "ACTARM",
-    split_fun = drop_split_levels
+    split_fun = keep_split_levels(c("A: Drug X", "C: Combination", "<Missing>")) # temp fix
   ) %>%
   count_patients_with_flags(
     "USUBJID",
