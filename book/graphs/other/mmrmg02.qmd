@@ -1,0 +1,131 @@
+---
+title: MMRMG02
+subtitle: Forest Plot for Mixed-Effect Model Repeated Measures
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(tern.mmrm)
+library(nestcolor)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adqs <- synthetic_cdisc_dataset("latest", "adqs")
+
+adqs_f <- adqs %>%
+  dplyr::filter(PARAMCD == "FKSI-FWB" & !AVISIT %in% c("BASELINE")) %>%
+  droplevels() %>%
+  dplyr::mutate(ARMCD = factor(ARMCD, levels = c("ARM B", "ARM A", "ARM C"))) %>%
+  dplyr::mutate(
+    AVISITN = rank(AVISITN) %>%
+      as.factor() %>%
+      as.numeric() %>%
+      as.factor()
+  )
+
+# Simulation of groups.
+set.seed(2)
+adqs_f_with_groups <- rbind(
+  within(
+    adqs_f[sample(1:nrow(adqs_f), size = 1 / 2 * nrow(adqs_f)), ],
+    group <- "subpopulation 1"
+  ),
+  within(
+    adqs_f,
+    {
+      group <- "subpopulation 2"
+      AVAL <- AVAL + rnorm(length(AVAL), mean = 10, sd = 2)
+      USUBJID <- paste0(USUBJID, "-S2")
+    }
+  )
+)
+adqs_f_with_groups$group <- factor(adqs_f_with_groups$group)
+```
+
+## Comparing Multiple Populations
+
+For the following part, an MMRM model is fitted for the dataset and from this result forest plots are constructed for each set of subgroups, treatment arm, and visit that is of interest.
+
+First an MMRM model is fitted for the whole dataset.
+
+```{r}
+#| code-fold: show
+
+mmrm_results <- fit_mmrm(
+  data = adqs_f_with_groups,
+  vars = list(
+    response = "AVAL",
+    covariates = c(),
+    id = "USUBJID",
+    arm = "ARMCD",
+    visit = "AVISIT"
+  ),
+  cor_struct = "unstructured",
+  weights_emmeans = "equal",
+  parallel = TRUE
+)
+```
+
+Applying the `tern.mmrm::extract_mmrm_subgroups` function prepares the obtained `mmrm_results` for a specific visit - in this case we use the `SCREENING` visit - and treatment arm relative to the reference arm.
+From these results a table is obtained using the `tern.mmrm::tabulate_mmrm_subgroups` function from which the graphic can be directly obtained with `tern::g_forest`.
+
+Here we compare `ARM A` with the reference arm, `ARM B`.
+
+```{r, warning=FALSE, fig.width = 15}
+df_a <- extract_mmrm_subgroups(
+  fit = mmrm_results,
+  visit = "SCREENING",
+  subgroups = c("group", "SEX"),
+  treatment_arm = "ARM A"
+)
+
+tab_a <- basic_table() %>%
+  tabulate_mmrm_subgroups(
+    df = df_a,
+    vars = c("n_tot", "diff", "ci", "pval")
+  )
+
+g_forest(
+  tab_a,
+  logx = FALSE,
+  xlim = c(-5, 2.5),
+  x_at = c(-5, -2.5, 0, 2.5),
+  vline = 0
+)
+```
+
+Then we compare `ARM C` with `ARM B`.
+
+```{r, warning=FALSE, fig.width = 15}
+df_c <- extract_mmrm_subgroups(
+  fit = mmrm_results,
+  visit = "SCREENING",
+  subgroups = c("group", "SEX"),
+  treatment_arm = "ARM C"
+)
+
+tab_c <- basic_table() %>%
+  tabulate_mmrm_subgroups(
+    df = df_c,
+    vars = c("n_tot", "diff", "ci", "pval")
+  )
+
+g_forest(
+  tab_c,
+  logx = FALSE,
+  xlim = c(-5, 2.5),
+  x_at = c(-5, -2.5, 0, 2.5),
+  vline = 0
+)
+```
+
+{{< include ../../si.qmd >}}
+
+:::

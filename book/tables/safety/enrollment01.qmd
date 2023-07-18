@@ -1,0 +1,210 @@
+---
+title: ENTXX
+subtitle: Enrollment Variants
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(forcats)
+library(scda)
+library(tern)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+
+adsl <- adsl %>%
+  mutate(
+    REGION1 = droplevels(REGION1),
+    COUNTRY = droplevels(COUNTRY),
+    INVID_INVNAM = paste(INVID, INVNAM, sep = " / ")
+  ) %>%
+  mutate(
+    INVID = factor(INVID),
+    SITEID = factor(SITEID),
+    INVNAM = factor(INVNAM),
+    INVID_INVNAM = factor(INVID_INVNAM)
+  ) %>%
+  var_relabel(
+    INVID_INVNAM = "Investigator Number/Name",
+    REGION1 = "Geographic Region 1",
+    COUNTRY = "Country",
+    INVID = "Investigator Identifier"
+  ) %>%
+  arrange(REGION1, COUNTRY, INVID)
+```
+
+## ENT01 -- Enrollment by Region, <br/> Country, and Investigator Number
+
+```{r}
+# Define the split function
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  add_overall_col(label = "All Patients") %>%
+  split_rows_by("REGION1", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adsl$REGION1)) %>%
+  summarize_row_groups() %>%
+  split_rows_by("COUNTRY", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adsl$COUNTRY)) %>%
+  summarize_row_groups() %>%
+  split_rows_by("INVID", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adsl$INVID)) %>%
+  summarize_row_groups()
+
+result <- build_table(lyt, adsl)
+result
+```
+
+## ENT01A -- Enrollment by Country <br/> and Investigator Number
+
+```{r}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  add_overall_col(label = "All Patients") %>%
+  split_rows_by("COUNTRY", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adsl$COUNTRY)) %>%
+  summarize_row_groups() %>%
+  split_rows_by("INVID", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adsl$INVID)) %>%
+  summarize_row_groups()
+
+result <- build_table(lyt, adsl)
+result
+```
+
+## ENT02 -- Enrollment by Region, Country, <br/> and Investigator Number/Name
+
+```{r}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  add_overall_col(label = "All Patients") %>%
+  split_rows_by("REGION1", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adsl$REGION1)) %>%
+  summarize_row_groups() %>%
+  split_rows_by("COUNTRY", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adsl$COUNTRY)) %>%
+  summarize_row_groups() %>%
+  split_rows_by("INVID_INVNAM",
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(adsl$INVID_INVNAM)
+  ) %>%
+  summarize_row_groups()
+
+result <- build_table(lyt, adsl)
+result
+```
+
+## ENT02A -- Enrollment by Country <br/> and Investigator Number/Name
+
+```{r}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  add_overall_col(label = "All Patients") %>%
+  split_rows_by("COUNTRY", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adsl$COUNTRY)) %>%
+  summarize_row_groups() %>%
+  split_rows_by("INVID_INVNAM",
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(adsl$INVID_INVNAM)
+  ) %>%
+  summarize_row_groups()
+
+result <- build_table(lyt, adsl)
+result
+```
+
+## Teal
+
+Note that for this module application, only the variables passed into `by_vars` are used when `row_groups` is selected.
+Variables passed into `summarize_vars` are additionally used when `row_groups` is deselected.
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 8)
+
+library(dplyr)
+library(forcats)
+library(scda)
+library(teal.modules.clinical)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+
+adsl_labels <- var_labels(adsl)
+
+adsl <- adsl %>%
+  mutate(
+    REGION1 = droplevels(REGION1),
+    COUNTRY = droplevels(COUNTRY),
+    INVID_INVNAM = paste(INVID, INVNAM, sep = " / ")
+  ) %>%
+  arrange(REGION1, COUNTRY, INVID) %>%
+  mutate(
+    INVID = factor(INVID),
+    SITEID = factor(SITEID),
+    INVNAM = factor(INVNAM),
+    INVID_INVNAM = factor(INVID_INVNAM)
+  )
+
+var_labels(adsl) <- c(adsl_labels, "Investigator Number/Name")
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl,
+      code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))
+                  ADSL_labels <- var_labels(ADSL)
+                  ADSL <- ADSL %>% mutate(
+                    REGION1 = droplevels(REGION1),
+                    COUNTRY = droplevels(COUNTRY),
+                    INVID_INVNAM = paste(INVID, INVNAM, sep = " / ")
+                  ) %>%
+                    arrange(REGION1, COUNTRY, INVID) %>%
+                    mutate(
+                      INVID = factor(INVID),
+                      SITEID = factor(SITEID),
+                      INVNAM = factor(INVNAM),
+                      INVID_INVNAM = factor(INVID_INVNAM)
+                    )
+
+                  var_labels(ADSL) <- c(ADSL_labels, "Investigator Number/Name")'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_summary_by(
+      label = "Enrollment Table",
+      dataname = "ADSL",
+      arm_var = choices_selected(
+        choices = variable_choices(adsl, c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      by_vars = choices_selected(
+        choices = variable_choices(adsl, c("REGION1", "COUNTRY", "SITEID", "INVID", "INVNAM", "INVID_INVNAM")),
+        selected = c("REGION1")
+      ),
+      summarize_vars = choices_selected(
+        choices = variable_choices(adsl, c("REGION1", "COUNTRY", "SITEID", "INVID", "INVNAM", "INVID_INVNAM")),
+        selected = c("SITEID")
+      ),
+      denominator = choices_selected(
+        choices = c("n", "N", "omit"),
+        selected = "N",
+        fixed = TRUE
+      ),
+      useNA = "ifany",
+      row_groups = TRUE
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::

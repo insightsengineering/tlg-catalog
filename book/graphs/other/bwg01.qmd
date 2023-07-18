@@ -1,0 +1,424 @@
+---
+title: BWG01
+subtitle: Box Plot
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+# generic code for all plots
+library(scda)
+library(dplyr)
+library(ggplot2)
+library(nestcolor)
+
+adlb <- synthetic_cdisc_dataset("latest", "adlb")
+adlb <- adlb %>% filter(PARAMCD == "ALT" & AVISIT == "WEEK 2 DAY 15")
+
+# Definition of boxplot boundaries and whiskers
+five_num <- function(x, probs = c(0, 0.25, 0.5, 0.75, 1)) {
+  r <- quantile(x, probs)
+  names(r) <- c("ymin", "lower", "middle", "upper", "ymax")
+  r
+}
+
+# get outliers based on quantile
+# for outliers based on IQR see coef in geom_boxplot
+get_outliers <- function(x, probs = c(0.05, 0.95)) {
+  r <- subset(x, x < quantile(x, probs[1]) | quantile(x, probs[2]) < x)
+  if (!is.null(x)) {
+    x_names <- subset(names(x), x < quantile(x, probs[1]) | quantile(x, probs[2]) < x)
+    names(r) <- x_names
+  }
+  r
+}
+
+# create theme used for all plots
+theme_bp <- theme(
+  plot.title = element_text(hjust = 0),
+  plot.subtitle = element_text(hjust = 0),
+  plot.caption = element_text(hjust = 0),
+  panel.background = element_rect(fill = "white", color = "grey50")
+)
+
+# assign fill color and outline color
+fc <- "#eaeef5"
+oc <- getOption("ggplot2.discrete.fill")[1]
+
+# get plot metadata data to derive coordinates for adding annotations
+bp_annos <- function(bp, color, annos = 1) {
+  bp_mdat <- ggplot_build(bp)$data[[1]]
+  # bp_metadata <<- bp_mdat
+  if (annos == 1) {
+    bp <- bp +
+      geom_segment(data = bp_mdat, aes(
+        x = xmin + (xmax - xmin) / 4, xend = xmax - (xmax - xmin) / 4,
+        y = ymax, yend = ymax
+      ), size = .5, color = color) +
+      geom_segment(data = bp_mdat, aes(
+        x = xmin + (xmax - xmin) / 4, xend = xmax - (xmax - xmin) / 4,
+        y = ymin, yend = ymin
+      ), size = .5, color = color)
+  } else {
+    bp <- bp +
+      geom_segment(data = bp_mdat, aes(
+        x = xmin + (xmax - xmin) / 4, xend = xmax - (xmax - xmin) / 4,
+        y = ymax, yend = ymax
+      ), size = .5, color = color) +
+      geom_segment(data = bp_mdat, aes(
+        x = xmin + (xmax - xmin) / 4, xend = xmax - (xmax - xmin) / 4,
+        y = ymin, yend = ymin
+      ), size = .5, color = color) +
+      geom_segment(data = bp_mdat, aes(
+        x = xmin, xend = xmax,
+        y = middle, yend = middle
+      ), colour = color, size = .5)
+  }
+  return(bp)
+}
+```
+
+## Standard Plot
+
+```{r}
+bp_1 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
+  stat_summary(geom = "boxplot", fun.data = five_num, fill = fc, color = oc) +
+  stat_summary(geom = "point", fun = mean, size = 3, shape = 8) +
+  labs(
+    title = "Box Plot of Laboratory Test Results",
+    subtitle = paste("Visit:", adlb$AVISIT[1]),
+    caption = "The whiskers extend to the minimum and maximum values.",
+    x = "Treatment Group",
+    y = paste0(adlb$PARAMCD[1], " (", adlb$AVALU[1], ")")
+  ) +
+  theme_bp
+
+bp_annos(bp_1, oc)
+```
+
+## Plot Changing <br/> Whiskers
+
+```{r}
+bp_3 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
+  stat_summary(
+    geom = "boxplot", fun.data = five_num,
+    fun.args = list(probs = c(0.05, 0.25, 0.5, 0.75, 0.95)), fill = fc, color = oc
+  ) +
+  stat_summary(geom = "point", fun = mean, size = 3, shape = 8) +
+  labs(
+    title = "Box Plot of Laboratory Test Results",
+    subtitle = paste("Visit:", adlb$AVISIT[1]),
+    caption = "The whiskers extend to the 5th and 95th percentile. Values outside the whiskers have not been plotted.",
+    x = "Treatment Group",
+    y = paste0(adlb$PARAMCD[1], " (", adlb$AVALU[1], ")")
+  ) +
+  theme_bp
+
+bp_annos(bp_3, oc)
+```
+
+## Plot Adding <br/> Outliers
+
+```{r}
+bp_4 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
+  stat_summary(
+    geom = "boxplot", fun.data = five_num,
+    fun.args = list(probs = c(0.05, 0.25, 0.5, 0.75, 0.95)), fill = fc, color = oc
+  ) +
+  stat_summary(geom = "point", fun = get_outliers, shape = 1) +
+  stat_summary(geom = "point", fun = mean, size = 3, shape = 8) +
+  labs(
+    title = "Box Plot of Laboratory Test Results",
+    subtitle = paste("Visit:", adlb$AVISIT[1]),
+    caption = "The whiskers extend to the 5th and 95th percentile.",
+    x = "Treatment Group",
+    y = paste0(adlb$PARAMCD[1], " (", adlb$AVALU[1], ")")
+  ) +
+  theme_bp
+
+bp_annos(bp_4, oc)
+```
+
+## Plot Specifying Marker <br/> for Outliers and <br/> Adding Patient ID
+
+```{r}
+adlb_o <- adlb %>%
+  group_by(ARMCD) %>%
+  mutate(OUTLIER = AVAL < quantile(AVAL, 0.01) | AVAL > quantile(AVAL, 0.99)) %>%
+  filter(OUTLIER == TRUE) %>%
+  select(ARMCD, AVAL, USUBJID)
+# Next step may be study-specific: shorten USUBJID to make annotation labels
+# next 2 lines of code split USUBJID by "-" and take the last syllable as ID
+n_split <- max(vapply(strsplit(adlb_o$USUBJID, "-"), length, numeric(1)))
+adlb_o$ID <- vapply(strsplit(adlb_o$USUBJID, "-"), `[[`, n_split, FUN.VALUE = "a")
+
+bp_5 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
+  stat_summary(
+    geom = "boxplot", fun.data = five_num,
+    fun.args = list(probs = c(0.01, 0.25, 0.5, 0.75, 0.99)), fill = fc, color = oc
+  ) +
+  stat_summary(geom = "point", fun = mean, size = 3, shape = 8) +
+  geom_point(data = adlb_o, aes(x = ARMCD, y = AVAL), shape = 1) +
+  geom_text(data = adlb_o, aes(x = ARMCD, y = AVAL, label = ID), size = 3, hjust = -0.2) +
+  labs(
+    title = "Box Plot of Laboratory Test Results",
+    subtitle = paste("Visit:", adlb$AVISIT[1]),
+    caption = "The whiskers extend to the largest and smallest observed value within 1.5*IQR.",
+    x = "Treatment Group",
+    y = paste0(adlb$PARAMCD[1], " (", adlb$AVALU[1], ")")
+  ) +
+  theme_bp
+
+bp_annos(bp_5, oc)
+```
+
+## Plot Specifying <br/> Marker for Mean
+
+```{r}
+bp_6 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
+  geom_boxplot(fill = fc, color = oc) +
+  stat_summary(geom = "point", fun = mean, size = 3, shape = 5) +
+  labs(
+    title = "Box Plot of Laboratory Test Results",
+    subtitle = paste("Visit:", adlb$AVISIT[1]),
+    caption = "The whiskers extend to the minimum and maximum values.",
+    x = "Treatment Group",
+    y = paste0(adlb$PARAMCD[1], " (", adlb$AVALU[1], ")")
+  ) +
+  theme_bp
+
+bp_annos(bp_6, oc)
+```
+
+## Plot by Treatment <br/> and Timepoint
+
+```{r}
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adlb <- synthetic_cdisc_dataset("latest", "adlb")
+
+adlb_v <- adlb %>%
+  filter(PARAMCD == "ALT" &
+    AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22", "WEEK 4 DAY 29"))
+
+bp_7 <- ggplot(adlb_v, aes(x = AVISIT, y = AVAL)) +
+  stat_summary(geom = "boxplot", fun.data = five_num, position = position_dodge2(.5), aes(fill = ARMCD, color = ARMCD)) +
+  stat_summary(geom = "point", fun = mean, aes(group = ARMCD), size = 3, shape = 8, position = position_dodge2(1)) +
+  labs(
+    title = "Box Plot of Laboratory Test Results",
+    caption = "The whiskers extend to the minimum and maximum values.",
+    x = "Visit",
+    y = paste0(adlb$PARAMCD[1], " (", adlb$AVALU[1], ")")
+  ) +
+  theme_bp
+
+bp_annos(bp_7, oc, 2)
+```
+
+## Plot by Timepoint <br/> and Treatment
+
+```{r}
+bp_8 <- ggplot(adlb_v, aes(x = ARMCD, y = AVAL)) +
+  stat_summary(geom = "boxplot", fun.data = five_num, position = position_dodge2(width = .5), aes(fill = AVISIT, color = AVISIT)) +
+  stat_summary(geom = "point", fun = mean, aes(group = AVISIT), size = 3, shape = 8, position = position_dodge2(1)) +
+  labs(
+    title = "Box Plot of Laboratory Test Results",
+    caption = "The whiskers extend to the minimum and maximum values.",
+    x = "Treatment Group",
+    y = paste0(adlb$PARAMCD[1], " (", adlb$AVALU[1], ")")
+  ) +
+  theme_bp
+
+bp_annos(bp_8, oc, 2)
+```
+
+## Plot with <br/> Table Section
+
+```{r}
+# Make wide dataset with summary statistics
+adlb_wide <- adlb %>%
+  group_by(ARMCD) %>%
+  summarise(
+    n = n(),
+    mean = round(mean(AVAL), 1),
+    median = round(median(AVAL), 1),
+    median_ci = paste(round(DescTools::MedianCI(AVAL)[1:2], 1), collapse = " - "),
+    q1_q3 = paste(round(quantile(AVAL, c(0.25, 0.75)), 1), collapse = " - "),
+    min_max = paste0(round(min(AVAL), 1), "-", max(round(AVAL, 2)))
+  )
+
+# Make long dataset
+adlb_long <- tidyr::gather(adlb_wide, key = type, value = stat, n:min_max)
+adlb_long <- adlb_long %>% mutate(
+  type_lbl = case_when(
+    type == "n" ~ "n",
+    type == "mean" ~ "Mean",
+    type == "median" ~ "Median",
+    type == "median_ci" ~ "95% CI for Median",
+    type == "q1_q3" ~ "25% and 75%-ile",
+    type == "min_max" ~ "Min - Max"
+  )
+)
+adlb_long$type_lbl <- factor(adlb_long$type_lbl,
+  levels = c("Min - Max", "25% and 75%-ile", "95% CI for Median", "Median", "Mean", "n")
+)
+
+bp_9 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
+  stat_summary(geom = "boxplot", fun.data = five_num, fill = fc, color = oc) +
+  stat_summary(geom = "point", fun = mean, size = 3, shape = 8) +
+  labs(
+    title = "Box Plot of Laboratory Test Results",
+    subtitle = paste("Visit:", adlb$AVISIT[1]),
+    x = "Treatment Group",
+    y = paste0(adlb$PARAMCD[1], " (", adlb$AVALU[1], ")")
+  ) +
+  theme_bp
+
+tbl_theme <- theme(
+  panel.border = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  axis.ticks = element_blank(),
+  axis.title = element_blank(),
+  axis.text.y = element_text(face = "plain"),
+  axis.text.x = element_blank()
+)
+
+tbl_1 <- ggplot(adlb_long, aes(x = ARMCD, y = type_lbl, label = stat), vjust = 10) +
+  geom_text(size = 3) +
+  scale_y_discrete(labels = levels(adlb_long$type_lbl)) +
+  theme_bw() +
+  tbl_theme +
+  labs(caption = "The whiskers extend to the minimum and maximum values.") +
+  theme_bp
+
+ggpubr::ggarrange(bp_annos(bp_9, oc), tbl_1,
+  heights = c(4, 2),
+  ncol = 1, nrow = 2, align = "v"
+)
+```
+
+## Plot with Number of Patients <br/> only in Table Section
+
+```{r}
+tbl_2 <- adlb_long %>%
+  filter(type == "n") %>%
+  ggplot(aes(x = ARMCD, y = type_lbl, label = stat)) +
+  geom_text(size = 3) +
+  scale_y_discrete(labels = "n") +
+  theme_bw() +
+  tbl_theme +
+  labs(caption = "The whiskers extend to the minimum and maximum values.") +
+  theme_bp
+
+ggpubr::ggarrange(bp_annos(bp_9, oc), tbl_2,
+  heights = c(6, 1),
+  ncol = 1, nrow = 2, align = "v"
+)
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 10)
+
+library(scda)
+library(teal.modules.general)
+
+ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+ADLB <- synthetic_cdisc_dataset("latest", "adlb")
+
+# If PARAMCD and AVISIT are not factors, convert to factors
+# Also fill in missing values with "<Missing>"
+ADLB <- ADLB %>%
+  tern::df_explicit_na(
+    omit_columns = setdiff(names(ADLB), c("PARAMCD", "AVISIT")),
+    char_as_factor = TRUE
+  )
+
+# If statment below fails, pre-process ADLB to be one record per
+# study, subject, param and visit eg. filter with ANLFL = 'Y'
+stopifnot(nrow(ADLB) == nrow(unique(ADLB[, c("STUDYID", "USUBJID", "PARAMCD", "AVISIT")])))
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", ADSL),
+    cdisc_dataset("ADLB", ADLB, keys = c("STUDYID", "USUBJID", "PARAMCD", "AVISIT")), # do not modify
+    code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+    ADLB <- synthetic_cdisc_dataset("latest", "adlb")
+    ADLB <- ADLB %>%
+      tern::df_explicit_na(
+        omit_columns = setdiff(names(ADLB), c("PARAMCD", "AVISIT")),
+        char_as_factor = TRUE)'
+  ),
+  modules = modules(
+    tm_g_bivariate(
+      x = data_extract_spec(
+        dataname = "ADSL",
+        select = select_spec(
+          label = "Select variable:",
+          choices = names(ADSL),
+          selected = "ARMCD",
+          fixed = FALSE
+        )
+      ),
+      y = data_extract_spec(
+        dataname = "ADLB",
+        filter = list(
+          filter_spec(
+            vars = c("PARAMCD"),
+            choices = levels(ADLB$PARAMCD),
+            selected = levels(ADLB$PARAMCD)[1],
+            multiple = FALSE,
+            label = "Choose lab parameter"
+          ),
+          filter_spec(
+            vars = c("AVISIT"),
+            choices = levels(ADLB$AVISIT),
+            selected = levels(ADLB$AVISIT)[1],
+            multiple = FALSE,
+            label = "Choose visit"
+          )
+        ),
+        select = select_spec(
+          label = "Select variable:",
+          choices = names(ADLB),
+          selected = "AVAL",
+          multiple = FALSE,
+          fixed = TRUE
+        )
+      ),
+      row_facet = data_extract_spec(
+        dataname = "ADLB",
+        select = select_spec(
+          label = "Select variables:",
+          choices = names(ADLB),
+          selected = NULL,
+          multiple = FALSE,
+          fixed = FALSE
+        )
+      ),
+      col_facet = data_extract_spec(
+        dataname = "ADLB",
+        select = select_spec(
+          label = "Select variables:",
+          choices = names(ADLB),
+          selected = NULL,
+          multiple = FALSE,
+          fixed = FALSE
+        )
+      )
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::

@@ -1,0 +1,203 @@
+---
+title: AET07
+subtitle: Adverse Events Resulting in Death
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+For illustrative purposes, we will pre-process `AESDTH` in ADAE so there are no deaths in arm A and concatenate `AEBODSYS` and `AEDECOD` as per GDSR output standards for AET07.
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(tern)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adae <- synthetic_cdisc_dataset("latest", "adae")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adae <- df_explicit_na(adae)
+
+adae_f <- adae %>%
+  mutate(
+    AESDTH = as.character(AESDTH), # characterizing AESDTH for next step
+    AESDTH = case_when(
+      ARM == "A: Drug X" ~ NA_character_, # For demonstration purpose only,
+      TRUE ~ AESDTH
+    ), # make "A: Drug X" as the arm without AE leading to death
+    AESDTH = as.factor(AESDTH),
+    SOC_PT = factor(paste(AEBODSYS, "/", AEDECOD))
+  ) %>%
+  filter(AESDTH == "Y") %>%
+  mutate(ARM = droplevels(ARM))
+```
+
+## Standard Table
+
+```{r}
+# Define the split function
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM", split_fun = drop_split_levels) %>%
+  analyze_num_patients(
+    var = "USUBJID",
+    .stats = "unique",
+    .labels = c(unique = "Total number of deaths"),
+    show_labels = "hidden"
+  ) %>%
+  count_occurrences(
+    vars = "SOC_PT"
+  ) %>%
+  append_topleft("MedDRA SOC and Preferred Term")
+
+result <- build_table(
+  lyt = lyt,
+  df = adae_f,
+  alt_counts_df = adsl
+) %>%
+  prune_table() %>%
+  sort_at_path(
+    path = "SOC_PT",
+    scorefun = score_occurrences,
+    decreasing = TRUE
+  )
+
+result
+```
+
+## Table with Fill-In of Treatment Groups without Deaths
+
+```{r}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  analyze_num_patients(
+    var = "USUBJID",
+    .stats = "unique",
+    .labels = c(unique = "Total number of deaths"),
+    show_labels = "hidden"
+  ) %>%
+  count_occurrences(
+    vars = "SOC_PT"
+  ) %>%
+  append_topleft("MedDRA SOC and Preferred Term")
+
+result <- build_table(
+  lyt = lyt,
+  df = adae_f,
+  alt_counts_df = adsl
+) %>%
+  prune_table() %>%
+  sort_at_path(
+    path = "SOC_PT",
+    scorefun = score_occurrences,
+    decreasing = TRUE
+  )
+
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 8)
+
+library(dplyr)
+library(scda)
+library(teal.modules.clinical)
+library(tern)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adae <- synthetic_cdisc_dataset("latest", "adae")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adae <- df_explicit_na(adae)
+
+adsl <- adsl %>%
+  mutate(
+    DTHFL = case_when(
+      !is.na(DTHDT) ~ "Y",
+      TRUE ~ ""
+    )
+  ) %>%
+  var_relabel(
+    DTHFL = "Subject Death Flag"
+  )
+
+adae <- adae %>%
+  mutate(
+    AESDTH = as.character(AESDTH), # characterizing AESDTH for next step
+    AESDTH = case_when(
+      ARM == "A: Drug X" ~ NA_character_, # For demonstration purpose only,
+      TRUE ~ AESDTH
+    ), # make "A: Drug X" as the arm without AE leading to death
+    AESDTH = as.factor(AESDTH),
+    SOC_PT = factor(paste(AEBODSYS, "/", AEDECOD))
+  ) %>%
+  filter(AESDTH == "Y") %>%
+  mutate(ARM = droplevels(ARM)) %>%
+  var_relabel(SOC_PT = "MedDRA SOC and Preferred Term")
+
+app <- teal::init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl, code = '
+                  ADSL <- synthetic_cdisc_dataset("latest", "adsl") %>%
+                    df_explicit_na() %>%
+                    mutate(
+                      DTHFL = case_when(
+                        !is.na(DTHDT) ~ "Y",
+                        TRUE ~ ""
+                      )
+                    ) %>%
+                    var_relabel(
+                      DTHFL = "Subject Death Flag"
+                    )
+                  '),
+    cdisc_dataset("ADAE", adae, code = '
+                  ADAE <- synthetic_cdisc_dataset("latest", "adae") %>%
+                    df_explicit_na() %>%
+                    mutate(
+                      AESDTH = as.character(AESDTH),
+                      AESDTH = case_when(
+                        ARM == "A: Drug X" ~ NA_character_,
+                        TRUE ~ AESDTH),
+                      AESDTH = as.factor(AESDTH),
+                      SOC_PT = factor(paste(AEBODSYS, "/", AEDECOD))
+                    ) %>%
+                    filter(AESDTH == "Y") %>%
+                    mutate(ARM = droplevels(ARM)) %>%
+                    var_relabel(SOC_PT = "MedDRA SOC and Preferred Term")
+                  '),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_events(
+      label = "Adverse Event Table",
+      dataname = "ADAE",
+      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
+      llt = choices_selected(
+        choices = variable_choices(adae, c("AETERM", "AEDECOD", "SOC_PT")),
+        selected = c("SOC_PT")
+      ),
+      hlt = choices_selected(
+        choices = variable_choices(adae, c("AETERM", "AEDECOD", "SOC_PT")),
+        selected = NULL
+      ),
+      add_total = FALSE,
+      event_type = "adverse event"
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+:::

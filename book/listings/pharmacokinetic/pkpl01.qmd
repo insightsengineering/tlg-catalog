@@ -1,0 +1,59 @@
+---
+title: PKPL01
+subtitle: Listing of Drug A Plasma PK Parameters
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(rlistings)
+library(scda)
+
+drug_a <- "Plasma Drug X"
+spec <- "Plasma"
+
+adpp <- synthetic_cdisc_dataset("latest", "adpp")
+adpp_x <- adpp %>% filter(
+  PPCAT == drug_a,
+  PPSPEC == spec
+)
+
+out <- adpp_x %>%
+  mutate(PARAM = paste0(PARAM, " (", AVALU, ")")) %>%
+  select(TRT01A, USUBJID, AVISIT, PARAM, AVAL) %>%
+  tidyr::pivot_wider(
+    id_cols = c(TRT01A, USUBJID, AVISIT),
+    names_from = PARAM,
+    values_from = AVAL
+  )
+
+var_labels(out) <- names(out)
+out <- out %>% var_relabel(
+  TRT01A = "Treatment Group",
+  USUBJID = "Subject ID",
+  AVISIT = "Visit"
+)
+```
+
+## Standard Listing
+
+```{r}
+lsting <- as_listing(
+  out,
+  key_cols = c("TRT01A", "USUBJID", "AVISIT"),
+  disp_cols = names(out),
+  main_title = paste("Listing of", drug_a, spec, "PK Parameters, PK Population\nProtocol: xxnnnnn"),
+  subtitles = paste("Analyte:", drug_a)
+)
+
+head(lsting, 20)
+```
+
+{{< include ../../si.qmd >}}
+:::

@@ -1,0 +1,282 @@
+---
+title: EXT01
+subtitle: Study Drug Exposure Table
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(tern)
+library(dplyr)
+library(tidyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adex <- synthetic_cdisc_dataset("latest", "adex")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adex <- df_explicit_na(adex)
+
+adex <- adex %>%
+  filter(PARCAT1 == "OVERALL" & PARCAT2 == "Drug A") %>%
+  select(STUDYID, USUBJID, ARM, PARAMCD, PARAM, AVAL) %>%
+  mutate(
+    PARAMCD = as.character(PARAMCD),
+    AVALC = ""
+  ) %>%
+  droplevels()
+
+# Add new param tdurd for treatment duration.
+set.seed(99)
+tdurd_adsl <- adsl %>%
+  select(STUDYID, USUBJID, ARM) %>%
+  mutate(
+    PARAMCD = "TDURD",
+    PARAM = "Treatment duration (days)",
+    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),
+    AVALC = case_when(
+      0 <= AVAL & AVAL <= 30 ~ "0 - 30",
+      31 <= AVAL & AVAL <= 60 ~ "31 - 60",
+      61 <= AVAL & AVAL <= 90 ~ "61 - 90",
+      TRUE ~ ">= 91"
+    )
+  )
+tdurd <- adex %>%
+  filter(PARAMCD == "TNDOSE") %>%
+  select(STUDYID, USUBJID) %>%
+  left_join(tdurd_adsl, by = c("STUDYID", "USUBJID"))
+
+# Add new param tndosmis for missed doses.
+tndosmis_adsl <- adsl %>%
+  select(STUDYID, USUBJID, ARM) %>%
+  mutate(
+    PARAMCD = "TNDOSMIS",
+    PARAM = "Total number of missed doses during study",
+    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),
+    AVALC = ""
+  )
+tndosmis <- adex %>%
+  filter(PARAMCD == "TNDOSE") %>%
+  select(STUDYID, USUBJID) %>%
+  left_join(tndosmis_adsl, by = c("STUDYID", "USUBJID"))
+
+adex <- dplyr::bind_rows(adex, tdurd, tndosmis)
+```
+
+## Table with Optional Analyses
+
+```{r}
+# When summary table contains only categorical or only numeric parameters
+
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  split_rows_by(
+    "PARAM",
+    split_fun = split_fun
+  ) %>%
+  summarize_vars(vars = "AVAL")
+
+result <- build_table(
+  lyt = lyt,
+  df = adex,
+  alt_counts_df = adsl
+)
+
+result
+```
+
+```{r}
+# When summary table contains both categorical and numeric parameters,
+# developer needs to do pre-processing to transform dataset to wide format.
+adex_avalc_wide <- adex %>%
+  filter(PARAMCD == "TDURD") %>%
+  select(STUDYID, USUBJID, PARAMCD, AVALC) %>%
+  tidyr::pivot_wider(
+    id_cols = c(STUDYID, USUBJID),
+    names_from = PARAMCD,
+    values_from = AVALC
+  ) %>%
+  mutate(
+    TDURDC = factor(TDURD, levels = c("0 - 30", "31 - 60", "61 - 90", ">= 91"))
+  ) %>%
+  select(-TDURD)
+
+anl <- adex %>%
+  select(STUDYID, USUBJID, ARM, PARAMCD, AVAL) %>%
+  tidyr::pivot_wider(
+    id_cols = c(STUDYID, USUBJID, ARM),
+    names_from = PARAMCD,
+    values_from = AVAL
+  ) %>%
+  left_join(adex_avalc_wide, by = c("STUDYID", "USUBJID")) %>%
+  var_relabel(
+    TDOSE = "Total dose administered",
+    TNDOSE = "Total number of doses administered",
+    TDURD = "Treatment duration (days)",
+    TNDOSMIS = "Total number of missed doses during study",
+    TDURDC = "Treatment duration (days)"
+  )
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  summarize_vars(
+    vars = c("TDURD", "TDURDC", "TDOSE", "TNDOSE"),
+    var_labels = var_labels(anl)[c("TDURD", "TDURDC", "TDOSE", "TNDOSE")]
+  )
+
+result <- build_table(
+  lyt = lyt,
+  df = anl,
+  alt_counts_df = adsl
+)
+
+result
+```
+
+## Table with User-Specified <br/> Categories for Missed Doses
+
+```{r}
+# When summary table contains both categorical and numeric parameters,
+# developer needs to do pre-processing to transform dataset to wide format.
+adex_avalc_wide <- adex %>%
+  filter(PARAMCD == "TDURD") %>%
+  select(STUDYID, USUBJID, PARAMCD, AVALC) %>%
+  tidyr::pivot_wider(
+    id_cols = c(STUDYID, USUBJID),
+    names_from = PARAMCD,
+    values_from = AVALC
+  ) %>%
+  mutate(
+    TDURDC = factor(TDURD, levels = c("0 - 30", "31 - 60", "61 - 90", ">= 91"))
+  ) %>%
+  select(-TDURD)
+
+anl <- adex %>%
+  select(STUDYID, USUBJID, ARM, PARAMCD, AVAL) %>%
+  tidyr::pivot_wider(
+    id_cols = c(STUDYID, USUBJID, ARM),
+    names_from = PARAMCD,
+    values_from = AVAL
+  ) %>%
+  left_join(adex_avalc_wide, by = c("STUDYID", "USUBJID")) %>%
+  var_relabel(
+    TDOSE = "Total dose administered",
+    TNDOSE = "Total number of doses administered",
+    TDURD = "Treatment duration (days)",
+    TNDOSMIS = "Total number of missed doses during study",
+    TDURDC = "Treatment duration (days)"
+  )
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  summarize_vars(
+    vars = c("TDURD", "TDURDC", "TDOSE", "TNDOSE"),
+    var_labels = var_labels(anl)[c("TDURD", "TDURDC", "TDOSE", "TNDOSE")]
+  ) %>%
+  count_missed_doses(
+    "TNDOSMIS",
+    thresholds = c(1, 5, 10, 15),
+    var_labels = "Missed Doses"
+  )
+
+result <- build_table(
+  lyt = lyt,
+  df = anl,
+  alt_counts_df = adsl
+)
+
+result
+```
+
+## Teal
+
+```{r teal, message=FALSE}
+#| screenshot.opts = list(delay = 8)
+
+library(scda)
+library(teal.modules.clinical)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adex <- synthetic_cdisc_dataset("latest", "adex")
+adex_labels <- unname(var_labels(adex))
+adex <- adex %>%
+  filter(PARCAT1 == "OVERALL") %>%
+  mutate(
+    AVALCAT1 = case_when(
+      PARAMCD == "TDOSE" & AVAL < 5000 ~ "LOW",
+      PARAMCD == "TDOSE" & AVAL >= 5000 ~ "HIGH",
+      PARAMCD == "TNDOSE" & AVAL < 10 ~ "< 10",
+      PARAMCD == "TNDOSE" & AVAL >= 10 ~ ">= 10"
+    )
+  )
+var_labels(adex) <- c(adex_labels, "")
+
+app <- teal::init(
+  data = cdisc_data(
+    cdisc_dataset(
+      "ADSL",
+      adsl,
+      code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'
+    ),
+    cdisc_dataset(
+      "ADEX",
+      adex,
+      code = 'ADEX <- synthetic_cdisc_dataset("latest", "adex")
+      ADEX_labels <- unname(var_labels(ADEX))
+      ADEX <- ADEX %>%
+        filter(PARCAT1 == "OVERALL") %>%
+        mutate(
+          AVALCAT1 = case_when(
+            PARAMCD == "TDOSE" &  AVAL < 5000 ~  "LOW",
+            PARAMCD == "TDOSE" &  AVAL >= 5000 ~ "HIGH",
+            PARAMCD == "TNDOSE" &  AVAL < 10 ~  "< 10",
+            PARAMCD == "TNDOSE" &  AVAL >= 10 ~  ">= 10")
+        )
+      var_labels(ADEX) <- c(ADEX_labels, "")'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_summary_by(
+      label = "Exposure Table",
+      dataname = "ADEX",
+      arm_var = choices_selected(
+        choices = variable_choices(adex, c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      by_vars = choices_selected(
+        choices = variable_choices(adex, c("PARCAT2", "PARAM")),
+        selected = c("PARCAT2", "PARAM")
+      ),
+      summarize_vars = choices_selected(
+        choices = variable_choices(adex, c("AVAL", "AVALCAT1")),
+        selected = c("AVAL", "AVALCAT1")
+      ),
+      paramcd = choices_selected(
+        choices = value_choices(adex, "PARAMCD", "PARAM"),
+        selected = c("TDOSE", "TNDOSE")
+      ),
+      denominator = choices_selected(
+        choices = c("n", "N", "omit"),
+        selected = "N"
+      )
+    )
+  ), # Set initial filter state as single study drug to produce smaller table
+  filter = list(ADEX = list(PARCAT2 = "Drug A", AVAL = list()))
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::
