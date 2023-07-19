@@ -9,6 +9,7 @@ on:
       - "v*"
     branches:
       - main
+      - test_render
   schedule:
     - cron: "17 17 * * 3,6"
 
@@ -61,34 +62,3 @@ jobs:
         with:
           name: site.zip
           path: site.zip
-
-      - name: Publish docs
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./book/_site
-
-  upload-release-assets:
-    name: Upload assets 🔼
-    needs: publish
-    runs-on: ubuntu-latest
-    if: >
-      startsWith(github.ref, 'refs/tags/v')
-        && !contains(github.event.commits[0].message, '[skip docs]')
-    steps:
-      - name: Checkout repo 🛎
-        uses: actions/checkout@v3
-
-      - name: Download artifact ⏬
-        uses: actions/download-artifact@v3
-        with:
-          name: site.zip
-
-      - name: Upload binaries to release ⤴
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: site.zip
-          asset_name: catalog.zip
-          tag: ${{ github.ref }}
-          overwrite: true
