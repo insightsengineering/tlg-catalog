@@ -11,9 +11,10 @@ snapshot_variants <- gsub("\\.qmd$", "", snapshot_docs)
 for (snapshot_variant in snapshot_variants) {
   path <- file.path(test_data_path, paste0(snapshot_variant, ".rds"))
   if (isFALSE(file.exists(path))) {
-    testthat::skip(paste0(
-      "Data snapshot file ", path,
-      " not found. Skipping tests for this table."
+    testthat::skip(paste(
+      "Data snapshot file", path,
+      "not found. Skipping tests for the article:",
+      paste0(snapshot_variant, ".qmd"), sep = " "
     ))
   }
   data_snap <- readRDS(path)

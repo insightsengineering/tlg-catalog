@@ -5,6 +5,8 @@ subtitle: Pharmacokinetic Parameter Summary of Serum PK Parameters by Treatment
 
 ------------------------------------------------------------------------
 
+{{< include ../../test-utils/envir_hook.qmd >}}
+
 ::: panel-tabset
 ## Data Setup
 
@@ -49,7 +51,7 @@ y_var <- "AUCinf"
 
 ## Summary of Pharmacokinetic <br/> Parameters -- Plasma
 
-```{r}
+```{r plot1, test = list(plot_v1 = "plot")}
 # calculate Summary Statistics (mean and sd) for each group
 SummaryStat <- adpp_adex %>%
   group_by(Dose = as.factor(Dose)) %>%
@@ -71,7 +73,7 @@ eq <- paste0(
   signif(summary(mod1)$adj.r.squared, 3)
 )
 
-result <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +
+plot <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +
   annotate(geom = "text", x = min(adpp_adex[[x_var]]), y = max(adpp_adex[[y_var]]), label = eq, hjust = 0.1) +
   geom_point(size = 1, aes(color = factor(`count`))) +
   scale_x_continuous(
@@ -104,19 +106,19 @@ result <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +
   labs(color = "Treatment Arm") +
   theme_nest()
 
-result
+plot
 ```
 
 ## Summary of Plasma Pharmacokinetic <br/> Parameters with Median Points
 
-```{r}
+```{r plot2, test = list(plot_v2 = "plot")}
 # calculate median for each group if preferred
 SummaryStat <- adpp_adex %>%
   group_by(Dose = as.factor(Dose)) %>%
   summarise(medAUC = median(AUCinf))
 SummaryStat$Dose <- as.numeric(as.character(SummaryStat$Dose))
 
-result <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +
+plot <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +
   annotate(geom = "text", x = min(adpp_adex[[x_var]]), y = max(adpp_adex[[y_var]]), label = eq, hjust = 0.1) +
   geom_point(size = 1, aes(color = factor(`count`))) +
   geom_smooth(method = "lm", formula = y ~ x, se = F, color = "black", linewidth = 0.5) +
@@ -135,8 +137,10 @@ result <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +
   ) +
   theme_nest()
 
-result
+plot
 ```
+
+{{< include ../../test-utils/save_results.qmd >}}
 
 ## Teal
 
