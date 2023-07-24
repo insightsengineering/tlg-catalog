@@ -8,7 +8,7 @@ quarto_docs <- list.files(
 snapshot_docs <- fs::path_file(quarto_docs)
 snapshot_variants <- gsub("\\.qmd$", "", snapshot_docs)
 rds_files <- list.files(test_data_path, pattern = "*.rds")
-rds_variants  <- gsub("\\.rds$", "", rds_files)
+rds_variants <- gsub("\\.rds$", "", rds_files)
 
 skip_tests <- setdiff(snapshot_variants, rds_variants)
 if (length(skip_tests)) {
@@ -26,7 +26,8 @@ for (snapshot_variant in intersect(snapshot_variants, rds_variants)) {
     testthat::skip(paste(
       "Data snapshot file", path,
       "not found. Skipping tests for the article:",
-      paste0(snapshot_variant, ".qmd"), sep = " "
+      paste0(snapshot_variant, ".qmd"),
+      sep = " "
     ))
   }
   data_snap <- readRDS(path)
