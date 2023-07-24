@@ -1,9 +1,5 @@
-library(ggplot2)
-library(dplyr)
-library(tern)
-
 quarto_docs <- list.files(
-  file.path("_book", "graphs"),
+  file.path("_book", c("tables", "listings")),
   recursive = TRUE,
   full.names = FALSE,
   pattern = "*.qmd"
@@ -36,25 +32,11 @@ for (snapshot_variant in intersect(snapshot_variants, rds_variants)) {
   }
   data_snap <- readRDS(path)
   for (i in names(data_snap)) {
-    # Some plot objects have multiple plots in them and stored as unnamed list of plots
-    if (inherits(data_snap[[i]], "list")) {
-      for (plot_index in seq_len(length(data_snap[[i]]))) {
-        # Random seed to get consistent graphs
-        set.seed(123)
-        vdiffr::expect_doppelganger(
-          title = paste(snapshot_variant, i, plot_index, sep = "-"),
-          fig = data_snap[[i]][[plot_index]]
-        )
-      }
-    } else {
-      testthat::test_that(i, {
-        # Random seed to get consistent graphs
-        set.seed(123)
-        vdiffr::expect_doppelganger(
-          title = paste(snapshot_variant, i, sep = "-"),
-          fig = data_snap[[i]]
-        )
-      })
-    }
+    testthat::test_that(i, {
+      testthat::expect_snapshot(
+        print(data_snap[[i]]),
+        variant = snapshot_variant
+      )
+    })
   }
 }
