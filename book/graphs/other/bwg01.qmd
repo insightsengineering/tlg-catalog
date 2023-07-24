@@ -5,6 +5,8 @@ subtitle: Box Plot
 
 ------------------------------------------------------------------------
 
+{{< include ../../test-utils/envir_hook.qmd >}}
+
 ::: panel-tabset
 ## Data Setup
 
@@ -85,7 +87,7 @@ bp_annos <- function(bp, color, annos = 1) {
 
 ## Standard Plot
 
-```{r}
+```{r plot1, test = list(plot_v1 = "plot")}
 bp_1 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
   stat_summary(geom = "boxplot", fun.data = five_num, fill = fc, color = oc) +
   stat_summary(geom = "point", fun = mean, size = 3, shape = 8) +
@@ -98,12 +100,13 @@ bp_1 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
   ) +
   theme_bp
 
-bp_annos(bp_1, oc)
+plot <- bp_annos(bp_1, oc)
+plot
 ```
 
 ## Plot Changing <br/> Whiskers
 
-```{r}
+```{r plot2, test = list(plot_v2 = "plot")}
 bp_3 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
   stat_summary(
     geom = "boxplot", fun.data = five_num,
@@ -119,12 +122,13 @@ bp_3 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
   ) +
   theme_bp
 
-bp_annos(bp_3, oc)
+plot <- bp_annos(bp_3, oc)
+plot
 ```
 
 ## Plot Adding <br/> Outliers
 
-```{r}
+```{r plot3, test = list(plot_v3 = "plot")}
 bp_4 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
   stat_summary(
     geom = "boxplot", fun.data = five_num,
@@ -141,12 +145,13 @@ bp_4 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
   ) +
   theme_bp
 
-bp_annos(bp_4, oc)
+plot <- bp_annos(bp_4, oc)
+plot
 ```
 
 ## Plot Specifying Marker <br/> for Outliers and <br/> Adding Patient ID
 
-```{r}
+```{r plot4, test = list(plot_v4 = "plot")}
 adlb_o <- adlb %>%
   group_by(ARMCD) %>%
   mutate(OUTLIER = AVAL < quantile(AVAL, 0.01) | AVAL > quantile(AVAL, 0.99)) %>%
@@ -174,12 +179,13 @@ bp_5 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
   ) +
   theme_bp
 
-bp_annos(bp_5, oc)
+plot <- bp_annos(bp_5, oc)
+plot
 ```
 
 ## Plot Specifying <br/> Marker for Mean
 
-```{r}
+```{r plot5, test = list(plot_v5 = "plot")}
 bp_6 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
   geom_boxplot(fill = fc, color = oc) +
   stat_summary(geom = "point", fun = mean, size = 3, shape = 5) +
@@ -192,12 +198,13 @@ bp_6 <- ggplot(adlb, aes(x = ARMCD, y = AVAL)) +
   ) +
   theme_bp
 
-bp_annos(bp_6, oc)
+plot <- bp_annos(bp_6, oc)
+plot
 ```
 
 ## Plot by Treatment <br/> and Timepoint
 
-```{r}
+```{r plot6, test = list(plot_v6 = "plot")}
 adsl <- synthetic_cdisc_dataset("latest", "adsl")
 adlb <- synthetic_cdisc_dataset("latest", "adlb")
 
@@ -216,12 +223,13 @@ bp_7 <- ggplot(adlb_v, aes(x = AVISIT, y = AVAL)) +
   ) +
   theme_bp
 
-bp_annos(bp_7, oc, 2)
+plot <- bp_annos(bp_7, oc, 2)
+plot
 ```
 
 ## Plot by Timepoint <br/> and Treatment
 
-```{r}
+```{r plot7, test = list(plot_v7 = "plot")}
 bp_8 <- ggplot(adlb_v, aes(x = ARMCD, y = AVAL)) +
   stat_summary(geom = "boxplot", fun.data = five_num, position = position_dodge2(width = .5), aes(fill = AVISIT, color = AVISIT)) +
   stat_summary(geom = "point", fun = mean, aes(group = AVISIT), size = 3, shape = 8, position = position_dodge2(1)) +
@@ -233,12 +241,13 @@ bp_8 <- ggplot(adlb_v, aes(x = ARMCD, y = AVAL)) +
   ) +
   theme_bp
 
-bp_annos(bp_8, oc, 2)
+plot <- bp_annos(bp_8, oc, 2)
+plot
 ```
 
 ## Plot with <br/> Table Section
 
-```{r}
+```{r plot8, test = list(plot_v8 = "plot")}
 # Make wide dataset with summary statistics
 adlb_wide <- adlb %>%
   group_by(ARMCD) %>%
@@ -296,15 +305,16 @@ tbl_1 <- ggplot(adlb_long, aes(x = ARMCD, y = type_lbl, label = stat), vjust = 1
   labs(caption = "The whiskers extend to the minimum and maximum values.") +
   theme_bp
 
-ggpubr::ggarrange(bp_annos(bp_9, oc), tbl_1,
+plot <- ggpubr::ggarrange(bp_annos(bp_9, oc), tbl_1,
   heights = c(4, 2),
   ncol = 1, nrow = 2, align = "v"
 )
+plot
 ```
 
 ## Plot with Number of Patients <br/> only in Table Section
 
-```{r}
+```{r plot9, test = list(plot_v9 = "plot")}
 tbl_2 <- adlb_long %>%
   filter(type == "n") %>%
   ggplot(aes(x = ARMCD, y = type_lbl, label = stat)) +
@@ -315,11 +325,14 @@ tbl_2 <- adlb_long %>%
   labs(caption = "The whiskers extend to the minimum and maximum values.") +
   theme_bp
 
-ggpubr::ggarrange(bp_annos(bp_9, oc), tbl_2,
+plot <- ggpubr::ggarrange(bp_annos(bp_9, oc), tbl_2,
   heights = c(6, 1),
   ncol = 1, nrow = 2, align = "v"
 )
+plot
 ```
+
+{{< include ../../test-utils/save_results.qmd >}}
 
 ## Teal
 
