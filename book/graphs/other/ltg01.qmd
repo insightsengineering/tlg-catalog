@@ -5,6 +5,8 @@ subtitle: Lattice Plot of Laboratory Tests by Treatment Group Over Time
 
 ------------------------------------------------------------------------
 
+{{< include ../../test-utils/envir_hook.qmd >}}
+
 Lattice plots are natively handled by R, the examples below rely mostly on the package `ggplot2`.
 
 ::: panel-tabset
@@ -50,7 +52,7 @@ pch <- c(
 
 #### Basic Plot
 
-```{r 1_1_application}
+```{r plot1, test = list(plot_v1 = "plot")}
 # General mapping and "lattice" ("facet" in ggplot2 nomenclature).
 g1 <- {
   ggplot(
@@ -64,21 +66,23 @@ g1 <- {
 # Add points and lines.
 g1 <- g1 + geom_point()
 g1 <- g1 + geom_line()
-g1
+plot <- g1
+plot
 ```
 
 #### Modifying Facets
 
 The units describing rows of panes and the number of patients under each arm is specified by modifying `facet_grid()`:
 
-```{r 1_2_modify_facets}
+```{r plot2, test = list(plot_v2 = "plot")}
 # Include the units and the sample size N.
 g2 <- g1 + facet_grid(
   paste0(LBTESTCD, "\n(", AVALU, ")") ~ ARM_N,
   scales = "free_y"
 )
 
-g2
+plot <- g2
+plot
 ```
 
 #### Modifying X-Axis
@@ -86,13 +90,14 @@ g2
 The graphic elements are modified through usual `ggplot2` functions.
 For instance, the x-axis could be improved as follows:
 
-```{r 1_3_theme}
+```{r plot3, test = list(plot_v3 = "g3")}
 g3 <- g2 + theme(
   axis.text.x = element_text(angle = 45, hjust = 1),
   axis.title = element_blank()
 ) + scale_x_continuous(breaks = adlb$AVISIT, labels = adlb$AVISIT_txt)
 
-g3
+plot <- g3
+plot
 ```
 
 ## Plot of Liver Function Tests <br/> Including Mean, Median, and 95% CIs
@@ -102,7 +107,7 @@ The example below suggests a larger dataset, where the individual subject legend
 
 #### Pre-Processing
 
-```{r 2_0_pre-processing}
+```{r pre-processing}
 #| code-fold: show
 
 # Datasets
@@ -132,7 +137,7 @@ pch <- c(
 
 #### Basic Plot
 
-```{r 2_1_application}
+```{r plot4, test = list(plot_v4 = "plot")}
 # General mapping and "lattice" ("facet" in ggplot2 nomenclature)
 g4 <- {
   ggplot(
@@ -155,57 +160,63 @@ g4 <- g4 + theme(
   axis.title  = element_blank()
 )
 g4 <- g4 + scale_x_continuous(breaks = adlb$AVISIT, labels = adlb$AVISIT_txt)
-g4
+plot <- g4
+plot
 ```
 
 #### Adding Mean
 
-```{r 2_2_add_mean}
+```{r plot51, test = list(plot_v51 = "plot")}
 # Add the mean along with the 95% CI at every visit.
-mean_text <- "Mean +/- 95% CI"
+mean_95_text <- "Mean +/- 95% CI"
 g51 <- g4 + stat_summary(
   fun = mean, linewidth = 1, geom = "line",
-  aes(group = 1, linetype = mean_text)
+  aes(group = 1, linetype = mean_95_text)
 )
 g51 <- g51 + stat_summary(
   fun.data = stat_mean_ci, geom = "errorbar",
-  aes(group = 1, linetype = mean_text)
+  aes(group = 1, linetype = mean_95_text)
 )
-g51
+plot <- g51
+plot
 ```
 
 #### Adding Median
 
-```{r 2_2_add_median}
+```{r plot52, test = list(plot_v52 = "plot")}
 # Instead of a mean, the median could be more relevant. Add the median and 95% CI as follows.
-median_text <- "Median +/- 95% CI"
+median_95_text <- "Median +/- 95% CI"
 g52 <- g51 + stat_summary(
   fun = median, linewidth = 1, geom = "line",
-  aes(group = 1, linetype = median_text)
+  aes(group = 1, linetype = median_95_text)
 )
 g52 <- g52 + stat_summary(
   fun.data = stat_median_ci, geom = "errorbar",
-  aes(group = 1, linetype = median_text)
+  aes(group = 1, linetype = median_95_text)
 )
-g52 + guides(linetype = guide_legend(title = "Aggregate"))
+plot <- g52 + guides(linetype = guide_legend(title = "Aggregate"))
+plot
 ```
 
 #### Changing Confidence Level
 
-```{r 2_2_change_conf_level}
+```{r plot53, test = list(plot_v53 = "plot")}
 # Change the confidence level of interval.
 # Note: check `?stat_mean_ci()` and `?stat_median_ci()` for further fine tuning.
-median_text <- "Median +/- 80% CI"
+median_80_text <- "Median +/- 80% CI"
 g53 <- g4 + stat_summary(
   fun = median, linewidth = 1, geom = "line",
-  aes(group = 1, linetype = median_text)
+  aes(group = 1, linetype = median_80_text)
 )
 g53 <- g53 + stat_summary(
   fun.data = function(x) stat_median_ci(x, conf_level = 0.8),
-  geom = "errorbar", aes(group = 1, linetype = median_text)
+  geom = "errorbar", aes(group = 1, linetype = median_80_text)
 )
-g53
+plot <- g53
+plot
 ```
+
+{{< include ../../test-utils/save_results.qmd >}}
 
 ## Teal
 
