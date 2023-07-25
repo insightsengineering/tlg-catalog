@@ -1,1 +1,0 @@
-test_data_path <- testthat::test_path("_data")
