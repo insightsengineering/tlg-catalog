@@ -20,6 +20,9 @@ if (length(skip_tests)) {
   )
 }
 
+if (!length(intersect(snapshot_variants, rds_variants)) > 0)
+  stop("No data snapshot found. Please be sure to have built the book correctly.")
+
 for (snapshot_variant in intersect(snapshot_variants, rds_variants)) {
   path <- file.path(test_data_path, paste0(snapshot_variant, ".rds"))
   if (isFALSE(file.exists(path))) {
