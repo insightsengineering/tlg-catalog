@@ -5,6 +5,8 @@ subtitle: Best Overall Response
 
 ------------------------------------------------------------------------
 
+{{< include ../../test-utils/envir_hook.qmd >}}
+
 ::: panel-tabset
 ## Data Setup
 
@@ -50,7 +52,7 @@ anl <- anl_adsl %>%
 
 The tabulation layout is built in layers for the analysis of overall response and applied to the pre-processed dataset.
 
-```{r}
+```{r variant1, test = list(result_v1 = "result")}
 lyt_01 <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(var = "ARM", ref_group = "A: Drug X") %>%
   estimate_proportion(
@@ -82,7 +84,7 @@ result
 Remove (or add) rows of results by removing/adding the corresponding layers from the layout.
 For instance, the odds-ratio row is removed by simply removing the `estimate_odds_ratio` call:
 
-```{r}
+```{r variant2, test = list(result_v2 = "result")}
 lyt_02 <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(var = "ARM", ref_group = "A: Drug X") %>%
   estimate_proportion(
@@ -110,7 +112,7 @@ result
 The confidence level is controlled by the `conf_level` parameter to the estimation functions.
 Similarly, the methods for tests and confidence interval can be modified (see `?estimate_proportion_diff`).
 
-```{r}
+```{r variant3, test = list(result_v3 = "result")}
 conf_level <- 0.90
 lyt_03 <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(var = "ARM", ref_group = "A: Drug X") %>%
@@ -152,7 +154,7 @@ result
 
 The stratified analysis section can be added by defining the analyses needed with `control_binary_comparison` for the argument `strat_analysis` and identifying the stratification variables to use.
 
-```{r}
+```{r variant4, test = list(result_v4 = "result")}
 strata <- "STRATA1"
 lyt_04 <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(var = "ARM", ref_group = "A: Drug X") %>%
@@ -204,7 +206,7 @@ result
 The definition of *responders* is realized during the pre-processing step.
 The layout does not need to be modified and can be reused.
 
-```{r}
+```{r variant5, test = list(result_v5 = "result")}
 anl <- anl_adsl %>%
   left_join(anl_adrs, by = c("STUDYID", "USUBJID")) %>%
   mutate(rsp_lab = d_onco_rsp_label(AVALC)) %>%
@@ -220,7 +222,7 @@ result
 
 Similarly to in the previous tab, redefinition or relabeling of the result is a pre-processing step and the original table layout can be reused.
 
-```{r}
+```{r variant6, test = list(result_v6 = "result")}
 anl <- anl_adsl %>%
   left_join(anl_adrs, by = c("STUDYID", "USUBJID")) %>%
   mutate(rsp_lab = as.character(d_onco_rsp_label(AVALC))) %>%
@@ -240,9 +242,11 @@ result <- build_table(lyt = lyt_01, df = anl)
 result
 ```
 
+{{< include ../../test-utils/save_results.qmd >}}
+
 ## Teal
 
-```{r teal, message=FALSE}
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 20)
 
 library(teal.modules.clinical)
