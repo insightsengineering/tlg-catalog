@@ -47,6 +47,17 @@ anl_y <- adpp %>%
   ) %>%
   mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %>%
   filter(!is.na(ratio), ratio != Inf)
+
+# functions to calculate custom quantiles and outliers
+quantiles <- function(x) {
+  quant <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))
+  names(quant) <- c("ymin", "lower", "middle", "upper", "ymax")
+  quant
+}
+
+outliers <- function(x) {
+  return(x < quantile(x, 0.05) | x > quantile(x, 0.95))
+}
 ```
 
 ## Plot with Whiskers at ±1.5 <br/> Times Inter-Quartile Range
@@ -128,17 +139,6 @@ plot
 ## Plot with Whiskers at <br/> 5th and 95th Percentiles
 
 ```{r plot4, warning=FALSE, test = list(plot_v4 = "plot")}
-# functions to calculate custom quantiles and outliers
-quantiles <- function(x) {
-  quant <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))
-  names(quant) <- c("ymin", "lower", "middle", "upper", "ymax")
-  quant
-}
-
-outliers <- function(x) {
-  return(x < quantile(x, 0.05) | x > quantile(x, 0.95))
-}
-
 plot <- ggplot(anl_x, aes(factor(PARAMCD), ratio, fill = factor(ACTARM), label = USUBJID)) +
   stat_summary(
     fun.data = quantiles, geom = "boxplot",
