@@ -3,13 +3,13 @@ library(dplyr)
 library(tern)
 
 quarto_docs <- list.files(
-  file.path("_book", "graphs"),
+  file.path(test_book_path, "graphs"),
   recursive = TRUE,
   full.names = FALSE,
   pattern = "*.qmd"
 )
 
-snapshot_docs <- fs::path_file(quarto_docs)
+snapshot_docs <- basename(quarto_docs)
 snapshot_variants <- gsub("\\.qmd$", "", snapshot_docs)
 rds_files <- list.files(test_data_path, pattern = "*.rds")
 rds_variants <- gsub("\\.rds$", "", rds_files)
