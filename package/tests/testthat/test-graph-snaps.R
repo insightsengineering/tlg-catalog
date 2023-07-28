@@ -1,7 +1,3 @@
-library(ggplot2)
-library(dplyr)
-library(tern)
-
 quarto_docs <- list.files(
   file.path(test_book_path, "graphs"),
   recursive = TRUE,
