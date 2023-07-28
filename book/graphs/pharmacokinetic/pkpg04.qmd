@@ -5,6 +5,8 @@ subtitle: Box Plot of Pharmacokinetic Parameters by Visit -- Plasma
 
 ------------------------------------------------------------------------
 
+{{< include ../../test-utils/envir_hook.qmd >}}
+
 ::: panel-tabset
 ## Data Setup
 
@@ -23,7 +25,7 @@ adpp <- synthetic_cdisc_dataset("latest", "adpp")
 
 ## Plot of CMAX by Visit
 
-```{r, warning=FALSE}
+```{r plot1, warning=FALSE, test = list(plot_v1 = "plot")}
 # filtered parameter
 adpp <- adpp %>% filter(toupper(PARAMCD) == "CMAX" & toupper(PPSPEC) == "PLASMA")
 
@@ -36,7 +38,7 @@ p <- ggplot(adpp, aes(x = AVISIT, y = AVAL, fill = ACTARM, label = SUBJID)) +
   stat_boxplot(geom = "errorbar") +
   stat_summary(geom = "point", fun = "mean", col = "black", size = 5, shape = 8, position = position_dodge(0.75)) +
   geom_text_repel(
-    data = . %>% group_by(AVISIT, ACTARM) %>% filter(AVAL %in% boxplot.stats(AVAL)$out),
+    data = . %>% dplyr::group_by(AVISIT, ACTARM) %>% dplyr::filter(AVAL %in% boxplot.stats(AVAL)$out),
     aes(x = AVISIT, y = AVAL, label = SUBJID, color = ACTARM),
     size = 3, hjust = -0.2, position = position_dodge(0.75)
   ) +
@@ -50,8 +52,11 @@ p <- ggplot(adpp, aes(x = AVISIT, y = AVAL, fill = ACTARM, label = SUBJID)) +
   theme(plot.caption = element_text(hjust = 0)) +
   theme_nest()
 
-p + geom_point(aes(fill = ACTARM), size = 2, shape = 21, position = position_dodge(0.75))
+plot <- p + geom_point(aes(fill = ACTARM), size = 2, shape = 21, position = position_dodge(0.75))
+plot
 ```
+
+{{< include ../../test-utils/save_results.qmd >}}
 
 {{< include ../../si.qmd >}}
 
