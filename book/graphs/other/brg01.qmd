@@ -5,6 +5,8 @@ subtitle: Bar Chart
 
 ------------------------------------------------------------------------
 
+{{< include ../../test-utils/envir_hook.qmd >}}
+
 ::: panel-tabset
 ## Data Setup
 
@@ -39,23 +41,24 @@ vl_lb <- var_labels(adlb)
 
 ## Plot of Frequency
 
-```{r}
+```{r plot1, test = list(plot_v1 = "plot")}
 anl <- adae %>%
   filter(AESER == "Y")
 anl <- anl[!duplicated(anl$USUBJID), ]
 
-ggplot(anl, aes(x = .data[["ACTARM"]])) +
+plot <- ggplot(anl, aes(x = .data[["ACTARM"]])) +
   geom_bar(fill = getOption("ggplot2.discrete.fill")[1]) +
-  geom_text(stat = "count", aes(label = after_stat(count)), vjust = -.5) +
+  geom_text(stat = "count", aes(label = ggplot2::after_stat(count)), vjust = -.5) +
   theme(plot.title = element_text(hjust = 0.5)) +
   ggtitle("Frequency of Subjects With Serious AEs: Safety-Evaluable Subjects") +
   xlab(paste0(getElement(vl_ae, "ACTARM"), " (N = ", denom, ")")) +
   ylab("Frequency")
+plot
 ```
 
 ## Plot of Percentage
 
-```{r}
+```{r plot2, test = list(plot_v2 = "plot")}
 anl <- adae %>%
   filter(AESOC == "cl A")
 
@@ -66,7 +69,7 @@ anl <- anl[!duplicated(anl$USUBJID), ] %>%
   mutate(N = as.numeric(N)) %>%
   mutate(pct = round((n / N) * 100, 2))
 
-ggplot(anl, aes(x = .data[["ACTARM"]])) +
+plot <- ggplot(anl, aes(x = .data[["ACTARM"]])) +
   geom_col(aes(x = ACTARM, y = pct), fill = getOption("ggplot2.discrete.fill")[1]) +
   scale_y_continuous(labels = scales::comma) +
   geom_text(aes(y = pct, label = pct), stat = "identity", vjust = -0.5) +
@@ -74,11 +77,12 @@ ggplot(anl, aes(x = .data[["ACTARM"]])) +
   ggtitle("Percent of Subjects With cl A Disorders: Safety-Evaluable Subjects") +
   xlab(paste0(getElement(vl_ae, "ACTARM"), " (N = ", denom, ")")) +
   ylab("Percent")
+plot
 ```
 
 ## Plot of Frequency with <br/> Total Number of Subjects
 
-```{r}
+```{r plot3, test = list(plot_v3 = "plot")}
 anl <- adae %>%
   filter(AESOC == "cl A")
 anl <- anl[!duplicated(anl$USUBJID), ]
@@ -88,33 +92,35 @@ anl <- anl %>%
   mutate(n = n()) %>%
   mutate(xvarlabel = paste0(ACTARM, "\n\nN = ", n))
 
-ggplot(anl, aes(x = .data[["xvarlabel"]])) +
+plot <- ggplot(anl, aes(x = .data[["xvarlabel"]])) +
   geom_bar(fill = getOption("ggplot2.discrete.fill")[1]) +
   theme(plot.title = element_text(hjust = 0.5)) +
   ggtitle("Frequency of Subjects With Serious AEs: Safety-Evaluable Subjects") +
   xlab(paste0(getElement(vl_ae, "ACTARM"), " (N = ", denom, ")")) +
   ylab("Frequency")
+plot
 ```
 
 ## Plot of Frequency <br/> with Horizontal Bars
 
-```{r}
+```{r plot4, test = list(plot_v4 = "plot")}
 anl <- adae %>%
   filter(AESER == "Y")
 anl <- anl[!duplicated(anl$USUBJID), ]
 
-ggplot(anl, aes(x = .data[["ACTARM"]])) +
+plot <- ggplot(anl, aes(x = .data[["ACTARM"]])) +
   geom_bar(fill = getOption("ggplot2.discrete.fill")[1]) +
   theme(plot.title = element_text(hjust = 0.5)) +
   ggtitle("Frequency of Subjects With Serious AEs: Safety-Evaluable Subjects") +
   xlab(paste0(getElement(vl_ae, "ACTARM"), " (N = ", denom, ")")) +
   ylab("Frequency") +
   coord_flip()
+plot
 ```
 
 ## Plot of Percentage <br/> and Confidence Intervals
 
-```{r}
+```{r plot5, test = list(plot_v5 = "plot")}
 anl <- adlb %>%
   filter(PARAMCD == "ALT" & ANRIND == "HIGH")
 anl <- anl[!duplicated(anl$USUBJID), ]
@@ -134,7 +140,7 @@ anl <- left_join(patpop5, anlpop, by = "ACTARM")
 CIs <- binom.confint(x = anl$EVENTCOUNT, n = anl$TRTPOP, methods = "exact")
 anl <- cbind(anl, CIs[, 4:6])
 
-ggplot(anl) +
+plot <- ggplot(anl) +
   geom_bar(aes(x = ACTARM, y = mean * 100), stat = "identity", fill = getOption("ggplot2.discrete.fill")[1], alpha = 0.7) +
   geom_errorbar(aes(x = ACTARM, ymin = lower * 100, ymax = upper * 100),
     width = 0.5, colour = "#20b4ff",
@@ -144,11 +150,12 @@ ggplot(anl) +
   ggtitle("Percent of Subjects with Abnormaly High ALT: Safety-Evaluable Subjects") +
   xlab(paste0(getElement(vl_ae, "ACTARM"), " (N = ", denom, ")")) +
   ylab("Percentage")
+plot
 ```
 
 ## Plot of Percentage by <br/> Treatment and Covariate
 
-```{r}
+```{r plot6, test = list(plot_v6 = "plot")}
 anl <- adae %>%
   filter(AESER == "Y")
 
@@ -160,7 +167,7 @@ anl <- anl[!duplicated(anl$USUBJID), ] %>%
   left_join(patpop6, by = c("ACTARM", "SEX")) %>%
   mutate(pct = round((n / N_arm_sex) * 100, 2))
 
-ggplot(anl, aes(x = .data[["ACTARM"]], fill = .data[["SEX"]])) +
+plot <- ggplot(anl, aes(x = .data[["ACTARM"]], fill = .data[["SEX"]])) +
   geom_col(aes(y = pct), position = position_dodge()) +
   guides(fill = guide_legend(title = getElement(vl_ae, "SEX"))) +
   scale_y_continuous(labels = scales::comma) +
@@ -168,11 +175,12 @@ ggplot(anl, aes(x = .data[["ACTARM"]], fill = .data[["SEX"]])) +
   ggtitle("Percent of Subjects With Serious AEs: Safety-Evaluable Subjects") +
   xlab(paste0(getElement(vl_ae, "ACTARM"), " (N = ", denom, ")")) +
   ylab("Percent")
+plot
 ```
 
 ## Plot of Percentage by <br/> Covariate and Treatment
 
-```{r}
+```{r plot7, test = list(plot_v7 = "plot")}
 anl <- adae %>%
   filter(AESER == "Y")
 
@@ -183,7 +191,7 @@ anl <- anl[!duplicated(anl$USUBJID), ] %>%
   mutate(N = as.numeric(N)) %>%
   mutate(pct = round((n / N) * 100, 2))
 
-ggplot(anl, aes(x = .data[["SEX"]], fill = .data[["ACTARM"]])) +
+plot <- ggplot(anl, aes(x = .data[["SEX"]], fill = .data[["ACTARM"]])) +
   geom_col(aes(y = pct), position = position_dodge()) +
   guides(fill = guide_legend(title = getElement(vl_ae, "ACTARM"))) +
   scale_y_continuous(labels = scales::comma) +
@@ -191,11 +199,12 @@ ggplot(anl, aes(x = .data[["SEX"]], fill = .data[["ACTARM"]])) +
   ggtitle("Percent of Subjects With Serious AEs: Safety-Evaluable Subjects") +
   xlab(paste0(getElement(vl_ae, "SEX"), " (N = ", denom, ")")) +
   ylab("Percent")
+plot
 ```
 
 ## Plot of Percentage <br/> with Mean and Median
 
-```{r}
+```{r plot8, test = list(plot_v8 = "plot")}
 anl1 <- adlb %>%
   filter(AVISIT == "BASELINE", PARAMCD == "CRP" & ANRIND == "HIGH")
 
@@ -206,7 +215,7 @@ anl <- anl1[!duplicated(anl1$USUBJID), ] %>%
   mutate(N = as.numeric(N)) %>%
   mutate(pct = round((n / N) * 100, 2))
 
-plot <- ggplot(anl, aes(x = .data[["ACTARM"]])) +
+graph <- ggplot(anl, aes(x = .data[["ACTARM"]])) +
   geom_col(aes(x = ACTARM, y = pct), fill = getOption("ggplot2.discrete.fill")[1]) +
   scale_y_continuous(labels = scales::comma, expand = expansion(c(0, .25))) +
   geom_text(aes(y = pct, label = pct), stat = "identity", vjust = -0.5) +
@@ -249,15 +258,16 @@ tbl <- ggplot(sd_l, aes(x = ACTARM, y = stat_lbl, label = value)) +
   theme_bw() +
   tbl_theme
 
-ggpubr::ggarrange(plot, tbl,
+plot <- ggpubr::ggarrange(graph, tbl,
   heights = c(4, 1),
   ncol = 1, nrow = 2, align = "v"
 )
+plot
 ```
 
 ## Plot of Categorical <br/> Variable
 
-```{r}
+```{r plot9, test = list(plot_v9 = "plot")}
 anl <- adae
 
 anl <- anl %>%
@@ -273,7 +283,7 @@ anl <- anl[!duplicated(anl$USUBJID), ] %>%
   mutate(N = as.numeric(N)) %>%
   mutate(pct = round((n / N) * 100, 2))
 
-ggplot(anl, aes(x = .data[["ACTARM"]], fill = .data[["AETOXGRC"]])) +
+plot <- ggplot(anl, aes(x = .data[["ACTARM"]], fill = .data[["AETOXGRC"]])) +
   geom_col(aes(y = pct)) +
   guides(fill = guide_legend(title = getElement(vl_ae, "AETOXGRC"))) +
   scale_y_continuous(labels = scales::comma) +
@@ -281,11 +291,14 @@ ggplot(anl, aes(x = .data[["ACTARM"]], fill = .data[["AETOXGRC"]])) +
   ggtitle("Percent of Subjects With AE by Highest \n NCI CTCAE Grade: Safety-Evaluable Subjects") +
   xlab(paste0(getElement(vl_ae, "ACTARM"), " (N = ", denom, ")")) +
   ylab("Percent")
+plot
 ```
+
+{{< include ../../test-utils/save_results.qmd >}}
 
 ## Teal
 
-```{r teal, message=FALSE}
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| code-fold: show
 
 # In progress

@@ -5,6 +5,8 @@ subtitle: Boxplot of Metabolite to Parent Ratios by Treatment
 
 ------------------------------------------------------------------------
 
+{{< include ../../test-utils/envir_hook.qmd >}}
+
 ::: panel-tabset
 ## Data Setup
 
@@ -33,7 +35,7 @@ anl_x <- adpp %>%
     names_from = PPCAT,
     values_from = AVAL
   ) %>%
-  mutate(ratio = `Metabolite Drug X` / `Plasma Drug X`) %>%
+  dplyr::mutate(ratio = `Metabolite Drug X` / `Plasma Drug X`) %>%
   filter(!is.na(ratio), ratio != Inf)
 
 anl_y <- adpp %>%
@@ -43,21 +45,32 @@ anl_y <- adpp %>%
     names_from = PPCAT,
     values_from = AVAL
   ) %>%
-  mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %>%
+  dplyr::mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %>%
   filter(!is.na(ratio), ratio != Inf)
+
+# functions to calculate custom quantiles and outliers
+quantiles <- function(x) {
+  quant <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))
+  names(quant) <- c("ymin", "lower", "middle", "upper", "ymax")
+  quant
+}
+
+outliers <- function(x) {
+  return(x < quantile(x, 0.05) | x > quantile(x, 0.95))
+}
 ```
 
 ## Plot with Whiskers at ±1.5 <br/> Times Inter-Quartile Range
 
 #### Drug X Boxplot
 
-```{r, warning=FALSE}
-p <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM, label = USUBJID)) +
+```{r plot1, warning=FALSE, test = list(plot_v1 = "plot")}
+plot <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM, label = USUBJID)) +
   geom_boxplot(outlier.size = 2) +
   stat_boxplot(geom = "errorbar") +
   stat_summary(geom = "point", fun = "mean", col = "black", size = 5, shape = 8, position = position_dodge(0.75)) +
   geom_text(
-    data = . %>% group_by(PARAMCD, ACTARM) %>% filter(ratio %in% boxplot.stats(ratio)$out),
+    data = . %>% dplyr::group_by(PARAMCD, ACTARM) %>% dplyr::filter(ratio %in% boxplot.stats(ratio)$out),
     aes(x = PARAMCD, y = ratio, label = USUBJID, col = factor(ACTARM)),
     size = 3, hjust = -0.2, position = position_dodge(0.75), show.legend = F
   ) +
@@ -72,18 +85,18 @@ p <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM, label = USUBJID)) 
   theme_nest()
 
 # PKPG06
-p
+plot
 ```
 
 #### Drug Y Boxplot
 
-```{r, warning=FALSE}
-p <- ggplot(anl_y, aes(x = PARAMCD, y = ratio, fill = ACTARM, label = USUBJID)) +
+```{r plot2, warning=FALSE, test = list(plot_v2 = "plot")}
+plot <- ggplot(anl_y, aes(x = PARAMCD, y = ratio, fill = ACTARM, label = USUBJID)) +
   geom_boxplot(outlier.size = 2) +
   stat_boxplot(geom = "errorbar") +
   stat_summary(geom = "point", fun = "mean", col = "black", size = 5, shape = 8, position = position_dodge(0.75)) +
   geom_text(
-    data = . %>% group_by(PARAMCD, ACTARM) %>% filter(ratio %in% boxplot.stats(ratio)$out),
+    data = . %>% dplyr::group_by(PARAMCD, ACTARM) %>% dplyr::filter(ratio %in% boxplot.stats(ratio)$out),
     aes(x = PARAMCD, y = ratio, label = USUBJID, color = ACTARM),
     size = 3, hjust = -0.2, position = position_dodge(0.75), show.legend = F
   ) +
@@ -98,14 +111,14 @@ p <- ggplot(anl_y, aes(x = PARAMCD, y = ratio, fill = ACTARM, label = USUBJID)) 
   theme_nest()
 
 # result
-p
+plot
 ```
 
 ## Plot with Whiskers at <br/> Minimum and Maximum Values
 
-```{r, warning=FALSE}
+```{r plot3, warning=FALSE, test = list(plot_v3 = "plot")}
 # whiskers are formed with the minimum and maximum values
-p <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM, label = USUBJID)) +
+plot <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM, label = USUBJID)) +
   geom_boxplot(outlier.size = 0) +
   stat_boxplot(geom = "errorbar", coef = NULL) +
   stat_summary(geom = "point", fun = "mean", col = "black", size = 5, shape = 8, position = position_dodge(0.75)) +
@@ -120,24 +133,15 @@ p <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM, label = USUBJID)) 
   theme_nest()
 
 # result
-p
+plot
 ```
 
 ## Plot with Whiskers at <br/> 5th and 95th Percentiles
 
-```{r, warning=FALSE}
-# functions to calculate custom quantiles and outliers
-quantiles <- function(x) {
-  quant <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))
-  names(quant) <- c("ymin", "lower", "middle", "upper", "ymax")
-  quant
-}
-
-outliers <- function(x) {
-  return(x < quantile(x, 0.05) | x > quantile(x, 0.95))
-}
-
-p <- ggplot(anl_x, aes(factor(PARAMCD), ratio, fill = factor(ACTARM), label = USUBJID)) +
+```{r plot4, warning=FALSE, test = list(plot_v4 = "plot")}
+anl_x_without_outliers <- anl_x %>% dplyr::group_by(PARAMCD, ACTARM) %>%
+      dplyr::mutate(outlier = ifelse(outliers(ratio), ratio, as.numeric(NA)))
+plot <- ggplot(anl_x, aes(factor(PARAMCD), ratio, fill = factor(ACTARM), label = USUBJID)) +
   stat_summary(
     fun.data = quantiles, geom = "boxplot",
     position = position_dodge(1)
@@ -148,14 +152,12 @@ p <- ggplot(anl_x, aes(factor(PARAMCD), ratio, fill = factor(ACTARM), label = US
     position = position_dodge(1)
   ) +
   geom_point(
-    data = . %>% group_by(PARAMCD, ACTARM) %>%
-      mutate(outlier = ifelse(outliers(ratio), ratio, as.numeric(NA))),
+    data = anl_x_without_outliers,
     aes(x = PARAMCD, y = outlier), na.rm = T,
     size = 2, position = position_dodge(1), show.legend = F
   ) +
   geom_text(
-    data = . %>% group_by(PARAMCD, ACTARM) %>%
-      mutate(outlier = ifelse(outliers(ratio), ratio, as.numeric(NA))),
+    data = anl_x_without_outliers,
     aes(x = PARAMCD, y = outlier, label = USUBJID, color = ACTARM), na.rm = T,
     size = 3, hjust = -0.2, vjust = 1, position = position_dodge(1), show.legend = F
   ) +
@@ -170,12 +172,14 @@ p <- ggplot(anl_x, aes(factor(PARAMCD), ratio, fill = factor(ACTARM), label = US
   theme_nest()
 
 # result
-p
+plot
 ```
+
+{{< include ../../test-utils/save_results.qmd >}}
 
 ## Teal
 
-```{r teal, message=FALSE}
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| code-fold: show
 
 # In progress
