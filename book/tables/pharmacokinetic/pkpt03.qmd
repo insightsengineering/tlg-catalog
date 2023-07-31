@@ -1,0 +1,114 @@
+---
+title: PKPT03
+subtitle: Pharmacokinetic Parameter Summary of Plasma by Treatment (Stats in Columns)
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(tern)
+
+adpp <- synthetic_cdisc_dataset("latest", "adpp")
+adpp <- adpp %>% filter(PPSPEC == "Plasma", AVISIT == "CYCLE 1 DAY 1")
+```
+
+## Standard Table
+
+```{r}
+# lyt creation
+lyt <- basic_table() %>%
+  split_rows_by(
+    var = "ARMCD",
+    split_fun = trim_levels_in_group("ARMCD"),
+    label_pos = "topleft",
+    split_label = "Treatment Arm"
+  ) %>%
+  split_rows_by(
+    var = "PKPARAM",
+    label_pos = "topleft",
+    split_label = "PK Parameter"
+  ) %>%
+  analyze_vars_in_cols(
+    vars = "AVAL",
+    .stats = c(
+      "n", "mean", "sd", "cv",
+      "geom_mean", "geom_cv", "median",
+      "min", "max"
+    ),
+    .labels = c(
+      n = "n",
+      mean = "Mean",
+      sd = "SD",
+      cv = "CV (%)",
+      geom_mean = "Geometric Mean",
+      geom_cv = "CV % Geometric Mean",
+      median = "Median",
+      min = "Minimum",
+      max = "Maximum"
+    ),
+    .formats = c(
+      n = "xx.",
+      mean = sprintf_format("%.3e"),
+      sd = sprintf_format("%.3e"),
+      cv = "xx.x",
+      median = sprintf_format("%.3e"),
+      geom_mean = sprintf_format("%.3e"),
+      geom_cv = "xx.x",
+      min = sprintf_format("%.3e"),
+      max = sprintf_format("%.3e")
+    )
+  )
+```
+
+#### Plasma Drug X
+
+```{r variant1, test = list(result_v1 = "result")}
+adpp0 <- adpp %>%
+  filter(PPCAT == "Plasma Drug X") %>%
+  h_pkparam_sort() %>%
+  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %>%
+  mutate(PKPARAM = reorder(PKPARAM, TLG_ORDER))
+
+result <- build_table(lyt, df = adpp0)
+main_title(result) <- paste("Summary of", unique(adpp0$PPSPEC), "PK Parameter by Treatment Arm, PK Population")
+subtitles(result) <- paste("Analyte:", unique(adpp0$PPCAT), "\nVisit:", unique(adpp0$AVISIT))
+result
+```
+
+#### Plasma Drug Y
+
+```{r variant2, test = list(result_v2 = "result")}
+adpp1 <- adpp %>%
+  filter(PPCAT == "Plasma Drug Y") %>%
+  h_pkparam_sort() %>%
+  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %>%
+  mutate(PKPARAM = reorder(PKPARAM, TLG_ORDER))
+
+result <- build_table(lyt, df = adpp1)
+main_title(result) <- paste("Summary of", unique(adpp1$PPSPEC), "PK Parameter by Treatment Arm, PK Population")
+subtitles(result) <- paste("Analyte:", unique(adpp1$PPCAT), "\nVisit:", unique(adpp1$AVISIT))
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| code-fold: show
+
+# In progress
+```
+
+{{< include ../../si.qmd >}}
+
+:::

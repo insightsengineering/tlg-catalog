@@ -1,0 +1,251 @@
+---
+title: EGT05_QTCAT
+subtitle: ECG Actual Values and Changes from Baseline by Visit
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adeg <- synthetic_cdisc_dataset("latest", "adeg")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adeg <- df_explicit_na(adeg)
+adeg_labels <- var_labels(adeg)
+adeg_f <- adeg %>%
+  filter(
+    PARAMCD == "QT",
+    ANL01FL == "Y"
+  ) %>%
+  mutate(
+    AVALCAT1 = case_when(
+      AVAL <= 450 ~ "<=450 msec",
+      AVAL <= 480 ~ ">450 to <=480 msec",
+      AVAL <= 500 ~ ">480 to <= 500 msec",
+      AVAL > 500 ~ ">500 msec",
+      is.na(AVAL) ~ "<Missing>"
+    ),
+    CHGCAT1 = case_when(
+      CHG <= 30 ~ "<=30 msec",
+      CHG <= 60 ~ ">30 to <=60 msec",
+      CHG > 60 ~ ">60 msec",
+      is.na(CHG) ~ "<Missing>"
+    )
+  ) %>%
+  mutate(
+    AVALCAT1 = factor(
+      AVALCAT1,
+      levels = c(
+        "<=450 msec",
+        ">450 to <=480 msec",
+        ">480 to <= 500 msec",
+        ">500 msec",
+        "<Missing>"
+      )
+    ),
+    CHGCAT1 = factor(
+      CHGCAT1,
+      levels = c(
+        "<=30 msec",
+        ">30 to <=60 msec",
+        ">60 msec",
+        "<Missing>"
+      )
+    )
+  )
+var_labels(adeg_f) <- c(
+  adeg_labels,
+  "AVALCAT1" = "Value at Visit",
+  "CHGCAT1" = "Change from Baseline"
+)
+```
+
+## Standard Table
+
+```{r variant1, test = list(result_v1 = "result")}
+split_fun <- drop_split_levels
+
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  split_rows_by(
+    "AVISIT",
+    split_label = obj_label(adeg_f$AVISIT),
+    split_fun = split_fun,
+    child_labels = "default",
+    label_pos = "topleft"
+  ) %>%
+  summarize_vars(
+    vars = c("AVALCAT1", "CHGCAT1"),
+    var_labels = c("Value at Visit", "Change from Baseline")
+  ) %>%
+  append_topleft("  Category") %>%
+  build_table(
+    df = adeg_f,
+    alt_counts_df = adsl
+  )
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| screenshot.opts = list(delay = 24)
+
+library(teal.modules.clinical)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adeg <- synthetic_cdisc_dataset("latest", "adeg")
+adsl <- df_explicit_na(adsl)
+adeg <- df_explicit_na(adeg)
+adeg_labels <- var_labels(adeg)
+
+adeg_f <- adeg %>%
+  filter(
+    ANL01FL == "Y" # no need to filter for PARAMCD here
+  ) %>%
+  mutate(
+    AVALCAT1 = case_when(
+      AVAL <= 450 ~ "<=450 msec",
+      AVAL <= 480 ~ ">450 to <=480 msec",
+      AVAL <= 500 ~ ">480 to <= 500 msec",
+      AVAL > 500 ~ ">500 msec",
+      is.na(AVAL) ~ "<Missing>"
+    ),
+    CHGCAT1 = case_when(
+      CHG <= 30 ~ "<=30 msec",
+      CHG <= 60 ~ ">30 to <=60 msec",
+      CHG > 60 ~ ">60 msec",
+      is.na(CHG) ~ "<Missing>"
+    )
+  ) %>%
+  mutate(
+    AVALCAT1 = factor(
+      AVALCAT1,
+      levels = c(
+        "<=450 msec",
+        ">450 to <=480 msec",
+        ">480 to <= 500 msec",
+        ">500 msec",
+        "<Missing>"
+      )
+    ),
+    CHGCAT1 = factor(
+      CHGCAT1,
+      levels = c(
+        "<=30 msec",
+        ">30 to <=60 msec",
+        ">60 msec",
+        "<Missing>"
+      )
+    )
+  )
+var_labels(adeg_f) <- c(
+  adeg_labels,
+  "AVALCAT1" = "Value at Visit",
+  "CHGCAT1" = "Change from Baseline"
+)
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL",
+      adsl,
+      code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+                  ADSL <- df_explicit_na(ADSL)'
+    ),
+    cdisc_dataset("ADEG",
+      adeg_f,
+      code = 'ADEG <- synthetic_cdisc_dataset("latest", "adeg")
+                  ADEG <- df_explicit_na(ADEG)
+                  ADEG_labels <- var_labels(ADEG)
+
+                  ADEG <- ADEG %>%
+                    filter(
+                      ANL01FL == "Y"
+                    ) %>%
+                     mutate(
+                      AVALCAT1 = case_when(
+                        AVAL <= 450 ~ "<=450 msec",
+                        AVAL <= 480 ~ ">450 to <=480 msec",
+                        AVAL <= 500 ~ ">480 to <= 500 msec",
+                        AVAL > 500 ~ ">500 msec",
+                        is.na(AVAL) ~ "<Missing>"),
+                      CHGCAT1 = case_when(
+                        CHG <= 30 ~ "<=30 msec",
+                        CHG <= 60 ~ ">30 to <=60 msec",
+                        CHG > 60 ~ ">60 msec",
+                        is.na(CHG) ~ "<Missing>")
+                    ) %>% mutate(
+                      AVALCAT1 = factor(
+                        AVALCAT1,
+                        levels = c(
+                          "<=450 msec",
+                          ">450 to <=480 msec",
+                          ">480 to <= 500 msec",
+                          ">500 msec",
+                          "<Missing>"
+                        )
+                      ),
+                      CHGCAT1 = factor(
+                        CHGCAT1,
+                        levels = c(
+                          "<=30 msec",
+                          ">30 to <=60 msec",
+                          ">60 msec",
+                          "<Missing>"
+                        )
+                      )
+                    )
+                  var_labels(ADEG) <- c(
+                    ADEG_labels,
+                    "AVALCAT1" = "Value at Visit",
+                    "CHGCAT1" = "Change from Baseline"
+                  )'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_summary_by(
+      label = "ECG Actual Values and Changes from Baseline by Visit",
+      dataname = "ADEG",
+      arm_var = choices_selected(
+        choices = variable_choices(adsl, c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      by_vars = choices_selected(
+        choices = variable_choices(adeg_f, c("PARAM", "AVISIT")),
+        selected = c("AVISIT")
+      ),
+      summarize_vars = choices_selected(
+        choices = variable_choices(adeg_f, c("AVALCAT1", "CHGCAT1")),
+        selected = c("AVALCAT1", "CHGCAT1")
+      ),
+      useNA = "ifany",
+      paramcd = choices_selected(
+        choices = value_choices(adeg_f, "PARAMCD", "PARAM"),
+        selected = "QT"
+      )
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::

@@ -1,0 +1,309 @@
+---
+title: CMT01A
+subtitle: Concomitant Medications by Medication Class and Preferred Name
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(tern)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adcm <- synthetic_cdisc_dataset("latest", "adcm")
+
+adcm$CMSEQ <- as.factor(adcm$CMSEQ)
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+# If you want your missing levels to show as "No Coding Available", please use
+# adsl <- df_explicit_na(adsl, na_level = "No Coding Available")
+# adcm <- df_explicit_na(adcm, na_level = "No Coding Available")
+adsl <- df_explicit_na(adsl)
+adcm <- df_explicit_na(adcm)
+
+# Keep only safety-evaluable patients and concomitant medications
+adsl <- adsl %>%
+  filter(SAFFL == "Y")
+
+adcm <- adcm %>%
+  filter(SAFFL == "Y" & ATIREL == "CONCOMITANT")
+```
+
+## Standard Table, <br/> Safety-Evaluable Patients
+
+```{r variant1, test = list(result_v1 = "result")}
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    count_by = "CMSEQ",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment",
+      nonunique = "Total number of treatments"
+    )
+  ) %>%
+  split_rows_by(
+    "ATC2",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(adcm$ATC2)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    count_by = "CMSEQ",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment",
+      nonunique = "Total number of treatments"
+    )
+  ) %>%
+  count_occurrences(vars = "CMDECOD", .indent_mods = -1L) %>%
+  append_varlabels(adcm, "CMDECOD", indent = 1L)
+
+result <- build_table(
+  lyt = lyt,
+  df = adcm,
+  alt_counts_df = adsl
+) %>%
+  prune_table() %>%
+  # Sort lowest level terms by descending frequency.
+  sort_at_path(
+    path = c("ATC2", "*", "CMDECOD"),
+    scorefun = score_occurrences
+  )
+
+result
+```
+
+## Table Changing <br/> ATC Class Level
+
+```{r variant2, test = list(result_v2 = "result")}
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    count_by = "CMSEQ",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment",
+      nonunique = "Total number of treatments"
+    )
+  ) %>%
+  split_rows_by(
+    "ATC1",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(adcm$ATC1)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    count_by = "CMSEQ",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment",
+      nonunique = "Total number of treatments"
+    )
+  ) %>%
+  count_occurrences(vars = "CMDECOD", .indent_mods = -1L) %>%
+  append_varlabels(adcm, "CMDECOD", indent = 1L)
+
+result <- build_table(
+  lyt = lyt,
+  df = adcm,
+  alt_counts_df = adsl
+) %>%
+  prune_table() %>%
+  # Sort lowest level terms by descending frequency.
+  sort_at_path(
+    path = c("ATC1", "*", "CMDECOD"),
+    scorefun = score_occurrences
+  )
+
+result
+```
+
+## Table with Classes <br/> Sorted by Frequency
+
+```{r variant3, test = list(result_v3 = "result")}
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    count_by = "CMSEQ",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment",
+      nonunique = "Total number of treatments"
+    )
+  ) %>%
+  split_rows_by(
+    "ATC2",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(adcm$ATC2)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    count_by = "CMSEQ",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment",
+      nonunique = "Total number of treatments"
+    )
+  ) %>%
+  count_occurrences(vars = "CMDECOD", .indent_mods = -1L) %>%
+  append_varlabels(adcm, "CMDECOD", indent = 1L)
+
+result <- build_table(
+  lyt = lyt,
+  df = adcm,
+  alt_counts_df = adsl
+) %>%
+  prune_table() %>%
+  sort_at_path(path = c("ATC2"), scorefun = cont_n_allcols) %>%
+  sort_at_path(path = c("ATC2", "*", "CMDECOD"), scorefun = score_occurrences)
+
+result
+```
+
+## Table with Total Number of Treatments <br/> per Medication Class Suppressed
+
+```{r variant4, test = list(result_v4 = "result")}
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    count_by = "CMSEQ",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment",
+      nonunique = "Total number of treatments"
+    )
+  ) %>%
+  split_rows_by(
+    "ATC2",
+    child_labels = "visible",
+    nested = FALSE,
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(adcm$ATC2)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    count_by = "CMSEQ",
+    .stats = c("unique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment"
+    )
+  ) %>%
+  count_occurrences(vars = "CMDECOD", .indent_mods = -1L) %>%
+  append_varlabels(adcm, "CMDECOD", indent = 1L)
+
+result <- build_table(
+  lyt = lyt,
+  df = adcm,
+  alt_counts_df = adsl
+) %>%
+  prune_table() %>%
+  # Sort lowest level terms by descending frequency.
+  sort_at_path(
+    path = c("ATC2", "*", "CMDECOD"),
+    scorefun = score_occurrences
+  )
+
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| screenshot.opts = list(delay = 10)
+
+library(dplyr)
+library(tern)
+library(scda)
+library(teal.modules.clinical)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adcm <- synthetic_cdisc_dataset("latest", "adcm")
+adcm$CMSEQ <- as.integer(adcm$CMSEQ)
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+# If you want your missing levels to show as "No Coding Available", please use
+# adsl <- df_explicit_na(adsl, na_level = "No Coding Available")
+# adcm <- df_explicit_na(adcm, na_level = "No Coding Available")
+adsl <- df_explicit_na(adsl)
+adcm <- df_explicit_na(adcm)
+
+adcm_keys <- c("STUDYID", "USUBJID", "ASTDTM", "CMSEQ", "ATC1", "ATC2", "ATC3", "ATC4")
+
+app <- teal::init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl, code = '
+                  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+                  ADSL <- df_explicit_na(ADSL)
+                  '),
+    cdisc_dataset("ADCM", adcm,
+      code = '
+      ADCM <- synthetic_cdisc_dataset("latest", "adcm")
+      ADCM$CMSEQ <- as.factor(ADCM$CMSEQ)
+      ADCM <- df_explicit_na(ADCM)
+      ',
+      keys = adcm_keys
+    )
+  ),
+  modules = modules(
+    tm_t_mult_events(
+      label = "Concomitant Medications by Medication Class and Preferred Name",
+      dataname = "ADCM",
+      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
+      seq_var = choices_selected("CMSEQ", selected = "CMSEQ", fixed = TRUE),
+      hlt = choices_selected(
+        choices = variable_choices(adcm, c("ATC1", "ATC2", "ATC3", "ATC4")),
+        selected = c("ATC2")
+      ),
+      llt = choices_selected(
+        choices = variable_choices(adcm, c("CMDECOD")),
+        selected = c("CMDECOD")
+      ),
+      add_total = FALSE,
+      event_type = "treatment"
+    )
+  ),
+  filter = list(
+    ADSL = list(SAFFL = "Y"),
+    ADCM = list(ATIREL = "CONCOMITANT")
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::

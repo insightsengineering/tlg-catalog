@@ -1,0 +1,62 @@
+---
+title: PKPG03
+subtitle: Box Plot of Pharmacokinetic Parameters by Visit -- Plasma
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(scda)
+library(dplyr)
+library(ggplot2)
+library(nestcolor)
+
+adpp <- synthetic_cdisc_dataset("latest", "adpp")
+```
+
+## Plot of CMAX by Visit
+
+
+```{r plot1, warning=FALSE, test = list(plot_v1 = "plot")}
+# filtered parameter
+adpp <- adpp %>% filter(PARAMCD == "CMAX", PPSPEC == "Plasma")
+
+use_title <- paste0("Boxplot of ", as.character(unique(adpp$PARAM)), " by Visit")
+use_subtitle <- paste0("Analyte:\nPK Parameter: ", as.character(unique(adpp$PARAM)), " (", as.character(unique(adpp$AVALU)), ")")
+use_footnote <- "Program: \nOutput:"
+
+plot <- ggplot(adpp, aes(x = AVISIT, y = AVAL, fill = ACTARM, label = SUBJID)) +
+  geom_boxplot(outlier.size = 2) +
+  stat_boxplot(geom = "errorbar") +
+  stat_summary(geom = "point", fun = "mean", col = "black", size = 5, shape = 8, position = position_dodge(0.75)) +
+  geom_text(
+    data = . %>% dplyr::group_by(AVISIT, ACTARM) %>% dplyr::filter(AVAL %in% boxplot.stats(AVAL)$out),
+    aes(x = AVISIT, y = AVAL, label = SUBJID, color = ACTARM),
+    size = 3, hjust = -0.2, position = position_dodge(0.75)
+  ) +
+  labs(
+    title = use_title,
+    subtitle = use_subtitle,
+    caption = use_footnote,
+    x = "Visit",
+    y = paste0(as.character(unique(adpp$PARAM)), " (", as.character(unique(adpp$AVALU)), ")")
+  ) +
+  theme(plot.caption = element_text(hjust = 0)) +
+  theme_nest()
+
+plot
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+{{< include ../../si.qmd >}}
+
+:::

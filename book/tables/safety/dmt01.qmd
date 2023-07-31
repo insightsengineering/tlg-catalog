@@ -1,0 +1,230 @@
+---
+title: DMT01
+subtitle: Demographics and Baseline Characteristics
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(scda)
+library(dplyr)
+library(tidyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+advs <- synthetic_cdisc_dataset("latest", "advs")
+adsub <- synthetic_cdisc_dataset("latest", "adsub")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+advs <- df_explicit_na(advs)
+adsub <- df_explicit_na(adsub)
+
+# Change description in variable SEX.
+adsl <- adsl %>%
+  mutate(
+    SEX = factor(case_when(
+      SEX == "M" ~ "Male",
+      SEX == "F" ~ "Female",
+      SEX == "U" ~ "Unknown",
+      SEX == "UNDIFFERENTIATED" ~ "Undifferentiated"
+    )),
+    AGEGRP = factor(
+      case_when(
+        between(AGE, 18, 40) ~ "18-40",
+        between(AGE, 41, 64) ~ "41-64",
+        AGE > 64 ~ ">=65"
+      ),
+      levels = c("18-40", "41-64", ">=65")
+    ),
+    BMRKR1_CAT = factor(
+      case_when(
+        BMRKR1 < 3.5 ~ "LOW",
+        BMRKR1 >= 3.5 & BMRKR1 < 10 ~ "MEDIUM",
+        BMRKR1 >= 10 ~ "HIGH"
+      ),
+      levels = c("LOW", "MEDIUM", "HIGH")
+    )
+  ) %>%
+  var_relabel(
+    BMRKR1_CAT = "Biomarker 1 Categories"
+  )
+# The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.
+# Obtain SBP, DBP and weight.
+get_param_advs <- function(pname, plabel) {
+  ds <- advs %>%
+    filter(PARAM == plabel & AVISIT == "BASELINE") %>%
+    select(USUBJID, AVAL)
+
+  colnames(ds) <- c("USUBJID", pname)
+
+  ds
+}
+# The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.
+# Obtain baseline BMI (BBMISI).
+get_param_adsub <- function(pname, plabel) {
+  ds <- adsub %>%
+    filter(PARAM == plabel) %>%
+    select(USUBJID, AVAL)
+
+  colnames(ds) <- c("USUBJID", pname)
+
+  ds
+}
+adsl <- adsl %>%
+  left_join(get_param_advs("SBP", "Systolic Blood Pressure")) %>%
+  left_join(get_param_advs("DBP", "Diastolic Blood Pressure")) %>%
+  left_join(get_param_advs("WGT", "Weight")) %>%
+  left_join(get_param_adsub("BBMISI", "Baseline BMI"))
+```
+
+## Table with an Additional <br/> Study-Specific Continuous Variable
+
+```{r variant1, test = list(result_v1 = "result")}
+vars <- c("AGE", "SEX", "RACE", "BMRKR1")
+var_labels <- c(
+  "Age (yr)",
+  "Sex",
+  "Race",
+  "Continous Level Biomarker 1"
+)
+
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM") %>%
+  add_overall_col("All Patients") %>%
+  summarize_vars(
+    vars = vars,
+    var_labels = var_labels
+  ) %>%
+  build_table(adsl)
+result
+```
+
+## Table with an Additional <br/> Study-Specific Categorical Variable
+
+```{r variant2, test = list(result_v2 = "result")}
+vars <- c("AGE", "SEX", "RACE", "BMRKR1_CAT")
+var_labels <- c(
+  "Age (yr)",
+  "Sex",
+  "Race",
+  "Biomarker 1 Categories"
+)
+
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM") %>%
+  summarize_vars(
+    vars = vars,
+    var_labels = var_labels
+  ) %>%
+  build_table(adsl)
+result
+```
+
+## Table with Subgrouping <br/> for Some Analyses
+
+```{r variant3, test = list(result_v3 = "result")}
+split_fun <- drop_split_levels
+
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM") %>%
+  summarize_vars(
+    vars = c("AGE", "SEX", "RACE"),
+    var_labels = c("Age", "Sex", "Race")
+  ) %>%
+  split_rows_by("STRATA1",
+    split_fun = split_fun
+  ) %>%
+  summarize_vars("BMRKR1") %>%
+  build_table(adsl)
+result
+```
+
+## Table with Additional Vital <br/> Signs Baseline Values
+
+```{r variant4, test = list(result_v4 = "result")}
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM") %>%
+  summarize_vars(
+    vars = c("AGE", "SEX", "RACE", "DBP", "SBP"),
+    var_labels = c(
+      "Age (yr)",
+      "Sex",
+      "Race",
+      "Diastolic Blood Pressure",
+      "Systolic Blood Pressure"
+    )
+  ) %>%
+  build_table(adsl)
+result
+```
+
+## Table with Additional <br/> Values from ADSUB
+
+```{r variant5, test = list(result_v5 = "result")}
+result <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM") %>%
+  summarize_vars(
+    vars = c("AGE", "SEX", "RACE", "BBMISI"),
+    var_labels = c(
+      "Age (yr)",
+      "Sex",
+      "Race",
+      "Baseline BMI"
+    )
+  ) %>%
+  build_table(adsl)
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| screenshot.opts = list(delay = 20)
+
+library(teal.modules.clinical)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+
+# Include `EOSDY` and `DCSREAS` variables below because they contain missing data.
+stopifnot(
+  any(is.na(adsl$EOSDY)),
+  any(is.na(adsl$DCSREAS))
+)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl),
+    code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")',
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_summary(
+      label = "Demographic Table",
+      dataname = "ADSL",
+      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
+      summarize_vars = choices_selected(
+        c("SEX", "RACE", "BMRKR2", "EOSDY", "DCSREAS"),
+        c("SEX", "RACE")
+      ),
+      useNA = "ifany"
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::

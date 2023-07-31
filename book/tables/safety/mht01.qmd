@@ -1,0 +1,211 @@
+---
+title: MHT01
+subtitle: Medical History
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(dplyr)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+admh <- synthetic_cdisc_dataset("latest", "admh")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+admh <- df_explicit_na(admh)
+
+adsl_f <- adsl %>%
+  filter(SAFFL == "Y") %>%
+  select(USUBJID, ARM) %>%
+  mutate(ARM = factor(ARM))
+
+admh_f <- admh %>%
+  filter(SAFFL == "Y" & MHBODSYS != "" & MHDECOD != "") %>%
+  mutate(ARM = factor(ARM))
+```
+
+## Standard Table
+
+```{r variant1, test = list(result_v1 = "result")}
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c("Total number of patients with at least one condition", "Total number of conditions")
+  ) %>%
+  split_rows_by(
+    var = "MHBODSYS",
+    split_fun = split_fun,
+    child_labels = "visible",
+    nested = FALSE,
+    indent_mod = -1L,
+    label_pos = "topleft",
+    split_label = obj_label(admh_f$MHBODSYS)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c("Total number of patients with at least one condition", "Total number of conditions")
+  ) %>%
+  count_occurrences(vars = "MHDECOD", .indent_mods = -1L) %>%
+  append_varlabels(admh_f, "MHDECOD", indent = 1L)
+
+result <- build_table(lyt, admh_f, alt_counts_df = adsl_f) %>%
+  prune_table()
+
+result
+```
+
+## Table of History <br/> Prior to Study
+
+```{r variant2, test = list(result_v2 = "result")}
+admh_f_prior <- admh_f %>%
+  filter(ASTDY <= 0)
+
+result <- build_table(lyt, admh_f_prior, alt_counts_df = adsl_f) %>%
+  prune_table()
+
+result
+```
+
+## Table with Total Number <br/> of Conditions Suppressed
+
+```{r variant3, test = list(result_v3 = "result")}
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    .stats = "unique",
+    .labels = "Total number of patients with at least one condition"
+  ) %>%
+  split_rows_by(
+    var = "MHBODSYS",
+    split_fun = split_fun,
+    child_labels = "visible",
+    nested = FALSE,
+    label_pos = "topleft",
+    split_label = obj_label(admh_f$MHBODSYS)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = "unique",
+    .labels = "Total number of patients with at least one condition"
+  ) %>%
+  count_occurrences(vars = "MHDECOD", .indent_mods = -1L) %>%
+  append_varlabels(admh_f, "MHDECOD", indent = 1L)
+
+result <- build_table(lyt, admh_f, alt_counts_df = adsl) %>%
+  prune_table()
+
+result
+```
+
+## Table with Total Number of Conditions Per Body <br/> System After The Summary of Patients
+
+Not currently supported by `rtables`.
+Users, please notify us if this variation is important to you.
+
+## Table Showing Additional <br/> "All Patients" Column
+
+Conditions are further sorted by decreasing high level terms and low level terms.
+
+```{r variant4, test = list(result_v4 = "result")}
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  add_overall_col("All Patients") %>%
+  analyze_num_patients(
+    "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(unique = "Total number of patients with at least one event")
+  ) %>%
+  split_rows_by(
+    var = "MHBODSYS",
+    split_fun = split_fun,
+    child_labels = "visible",
+    nested = FALSE,
+    label_pos = "topleft",
+    split_label = obj_label(admh_f$MHBODSYS)
+  ) %>%
+  summarize_num_patients(
+    "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(unique = "Total number of patients with at least one event")
+  ) %>%
+  count_occurrences(vars = "MHDECOD", .indent_mods = -1L) %>%
+  append_varlabels(admh_f, "MHDECOD", indent = 1L)
+
+scorefun_hlt <- cont_n_allcols
+scorefun_llt <- score_occurrences_cols(col_indices = nlevels(adsl_f$ARM) + 1)
+
+result <- build_table(lyt, admh_f, alt_counts_df = adsl_f) %>%
+  prune_table() %>%
+  sort_at_path(path = c("MHBODSYS"), scorefun = scorefun_hlt) %>%
+  sort_at_path(path = c("MHBODSYS", "*", "MHDECOD"), scorefun = scorefun_llt)
+
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| screenshot.opts = list(delay = 10)
+
+library(scda)
+library(teal.modules.clinical)
+
+adsl_f <- synthetic_cdisc_dataset("latest", "adsl") %>%
+  filter(SAFFL == "Y")
+admh_f <- synthetic_cdisc_dataset("latest", "admh") %>%
+  filter(SAFFL == "Y" & MHBODSYS != "" & MHDECOD != "")
+
+app <- teal::init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl_f, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl") %>%
+                  filter(SAFFL == "Y")'),
+    cdisc_dataset("ADMH", admh_f, code = 'ADMH <- synthetic_cdisc_dataset("latest", "admh") %>%
+                  filter(SAFFL == "Y" & MHBODSYS != "" & MHDECOD != "")'),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_events(
+      label = "Medical History Table",
+      dataname = "ADMH",
+      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
+      llt = choices_selected(
+        choices = variable_choices(admh_f, c("MHTERM", "MHDECOD")),
+        selected = c("MHDECOD")
+      ),
+      hlt = choices_selected(
+        choices = variable_choices(admh_f, c("MHBODSYS", "MHSOC")),
+        selected = "MHBODSYS"
+      ),
+      add_total = TRUE,
+      event_type = "condition"
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+:::

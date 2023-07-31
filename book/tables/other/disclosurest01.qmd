@@ -1,0 +1,387 @@
+---
+title: DISCLOSUREST01
+subtitle: Disclosures Outputs
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Patient Disposition Table <br/> (CTgov & EudraCT)
+
+#### Data Setup
+
+```{r setup, message=FALSE}
+library(tern)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+
+set.seed(1, kind = "Mersenne-Twister")
+
+# Add additional disposition variables to adsl.
+adsl0 <- adsl %>%
+  mutate(
+    STSTFL = case_when(
+      is.na(RANDDT) ~ "N",
+      TRUE ~ "Y"
+    ) %>% as.factor(),
+    COMPSTUD = sample(
+      c("Y", "N"),
+      size = nrow(adsl),
+      replace = TRUE
+    ) %>% as.factor(),
+    STUDONS = sample(
+      c("Alive: On Treatment", "Alive: In Follow-up", NA),
+      size = nrow(adsl),
+      replace = TRUE
+    ) %>% as.factor(),
+    STDDRS = sample(
+      c(
+        "Death", "Lost To Follow-Up",
+        "Protocol Violation", "Withdrawal By Subject",
+        "Other"
+      ),
+      size = nrow(adsl),
+      replace = TRUE
+    ) %>% as.factor(),
+    GOTTRT = ifelse(!is.na(ACTARMCD), "Y", "N") %>%
+      as.factor(),
+    DISTRTFL = sample(
+      c("Y", "N"),
+      size = nrow(adsl),
+      replace = TRUE
+    ) %>% as.factor(),
+    TRTDRS = sample(
+      c(
+        "ADVERSE EVENT", "PROGRESSIVE DISEASE",
+        "PHYSICIAN DECISION", "LACK OF EFFICACY",
+        "OTHER"
+      ),
+      size = nrow(adsl),
+      replace = TRUE
+    ) %>% as.factor(),
+    STUDONS = case_when(COMPSTUD == "N" ~ STUDONS),
+    STDDRS = case_when(COMPSTUD == "N" & is.na(STUDONS) ~ STDDRS),
+    DISSTDFL = case_when(!is.na(STDDRS) ~ "Y"),
+    DISTRTFL = case_when(GOTTRT == "Y" ~ DISTRTFL),
+    TRTDRS = case_when(DISTRTFL == "Y" ~ TRTDRS),
+    DRSCAT = case_when(
+      TRTDRS %in% c("ADVERSE EVENT", "PHYSICIAN DECISION") ~ "Safety",
+      !is.na(TRTDRS) ~ "Other"
+    )
+  ) %>%
+  var_relabel(
+    STSTFL = "Started Study",
+    COMPSTUD = "Complete Study",
+    STUDONS = "On-study Status",
+    DISSTDFL = "Discontinued Study",
+    STDDRS = "Reason for Study Discontinuation",
+    GOTTRT = "Received Treatment",
+    DISTRTFL = "Discontinued Treatment",
+    TRTDRS = "Reason for Treatment Discontinuation",
+    DRSCAT = "Subcategory for Treatment Discontinuation"
+  )
+```
+
+#### Patient Disposition Table
+
+```{r variant1, test = list(result_v1 = "result")}
+# Define the split function
+split_fun <- keep_split_levels("Y")
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(
+    "ARM",
+    split_fun = add_overall_level("All Patients", first = FALSE)
+  ) %>%
+  count_values("STSTFL",
+    values = "Y",
+    .labels = c(count_fraction = "Started Study")
+  ) %>%
+  count_values("COMPSTUD",
+    values = "Y",
+    .labels = c(count_fraction = "Completed Study")
+  ) %>%
+  split_rows_by(
+    "DISSTDFL",
+    split_fun = split_fun
+  ) %>%
+  summarize_row_groups(label_fstr = "Discontinued Study") %>%
+  summarize_vars(
+    "STDDRS",
+    .stats = "count_fraction"
+  ) %>%
+  append_topleft("Status")
+
+result <- build_table(lyt = lyt, df = adsl0)
+result
+```
+
+## Demographic Table <br/> (CTgov & EudraCT)
+
+#### Data Setup
+
+```{r}
+library(tern)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+
+# Change description in variable SEX.
+adsl <- adsl %>%
+  mutate(
+    SEX = factor(case_when(
+      SEX == "M" ~ "Male",
+      SEX == "F" ~ "Female",
+      SEX == "U" ~ "Unknown",
+      SEX == "UNDIFFERENTIATED" ~ "Undifferentiated"
+    )),
+    AGEGRP = factor(
+      case_when(
+        between(AGE, 18, 40) ~ "18-40",
+        between(AGE, 41, 64) ~ "41-64",
+        AGE > 64 ~ ">=65"
+      ),
+      levels = c("18-40", "41-64", ">=65")
+    )
+  )
+```
+
+#### Demographic Table
+
+```{r variant2, test = list(result_v2 = "result")}
+vars <- c("AGE", "AGEGRP", "SEX", "RACE", "ETHNIC")
+var_labels <- c("Age (yr)", "Age group", "Sex", "Race", "Ethnicity")
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM") %>%
+  add_overall_col("All Patients") %>%
+  summarize_vars(
+    vars = vars,
+    var_labels = var_labels
+  )
+
+result <- build_table(lyt = lyt, df = adsl)
+result
+```
+
+## Enrollment by Country <br/> Table (EudraCT only)
+
+#### Data Setup
+
+```{r}
+library(tern)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adsl_labels <- var_labels(adsl)
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+
+adsl <- adsl %>%
+  mutate(COUNTRY = droplevels(COUNTRY)) %>%
+  arrange(REGION1, COUNTRY)
+
+var_labels(adsl) <- c(adsl_labels)
+```
+
+#### Enrollment by Country Table
+
+```{r variant3, test = list(result_v3 = "result")}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  add_overall_col(label = "All Patients") %>%
+  summarize_vars("COUNTRY") %>%
+  append_varlabels(adsl, "COUNTRY")
+
+result <- build_table(lyt, adsl)
+result
+```
+
+## Non-Serious Adverse Events <br/> Reported in $\geq$ 5% of Patients in Any <br/> Treatment Group (CTgov & EudraCT)
+
+#### Data Setup
+
+Trimming function `get_adae_trimmed` is defined to filter AEs with greater than 5% incidence rate.
+
+```{r}
+library(tern)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adae <- synthetic_cdisc_dataset("latest", "adae")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adae <- df_explicit_na(adae)
+
+adae_nonser <- adae %>% filter(AESER != "Y", SAFFL == "Y")
+
+get_adae_trimmed <- function(adsl, adae, cutoff_rate) {
+  n_per_arm <- adsl %>%
+    dplyr::count(ARM)
+
+  anl_terms <- adae %>%
+    dplyr::group_by(ARM, AEBODSYS, AEDECOD) %>%
+    dplyr::count(
+      unique_terms = n_distinct(USUBJID)
+    ) %>%
+    dplyr::select(-n) %>%
+    dplyr::ungroup()
+
+  anl_terms <- dplyr::left_join(
+    anl_terms,
+    n_per_arm,
+    by = "ARM"
+  ) %>%
+    dplyr::mutate(
+      ae_rate = unique_terms / n
+    ) %>%
+    dplyr::filter(ae_rate >= cutoff_rate) %>%
+    dplyr::select(AEDECOD) %>%
+    unique()
+
+  anl <- dplyr::left_join(
+    anl_terms,
+    adae,
+    by = "AEDECOD"
+  )
+  anl
+}
+
+adae_trim <- get_adae_trimmed(adsl, adae_nonser, cutoff_rate = 0.05)
+```
+
+#### Non-Serious Adverse Events Report in $\geq$ 5% of Patients in Any Treatment Group
+
+```{r variant4, test = list(result_v4 = "result")}
+# Define the split function
+split_fun <- drop_split_levels
+
+lyt <- basic_table() %>%
+  split_cols_by("ARM") %>%
+  summarize_patients_events_in_cols(
+    custom_label = "Total number of patients with at least one non-serious adverse event occuring at a relative frequency of >=5%"
+  ) %>%
+  split_rows_by("AEBODSYS",
+    nested = FALSE,
+    split_fun = split_fun,
+    indent_mod = -1L,
+    label_pos = "topleft",
+    split_label = obj_label(adae_trim$AEBODSYS)
+  ) %>%
+  split_rows_by("AEDECOD", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adae_trim$AEDECOD)) %>%
+  summarize_patients_events_in_cols(
+    col_split = FALSE
+  )
+
+result <- build_table(lyt, adae_trim)
+result
+```
+
+## Serious Adverse Events, Fatal SAEs <br/> and SAEs Related to Study Medication, <br/> by Treatment Group (CTgov & EudraCT)
+
+For illustrative purposes, the `adae` data is filtered by arm "A: Drug X" here.
+
+#### Data Setup
+
+```{r}
+library(tern)
+library(scda)
+library(dplyr)
+
+adae <- synthetic_cdisc_dataset("latest", "adae")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adae <- df_explicit_na(adae)
+
+adae_serious <- adae %>% filter(AESER == "Y", SAFFL == "Y")
+adae_serious_arm <- adae_serious %>% filter(ARM == "A: Drug X")
+
+filters_list <- list(
+  related = with_label(c(AEREL = "Y"), "Events (Related)"),
+  fatal = with_label(c(AESDTH = "Y"), "Events (Fatal)"),
+  fatal_related = with_label(c(AEREL = "Y", AESDTH = "Y"), "Events (Fatal & Related)")
+)
+```
+
+#### Serious Adverse Events, Fatal SAEs and SAEs Related to Study Medication, by Treatment Group
+
+```{r variant5, test = list(result_v5 = "result")}
+# Define the split function
+split_fun <- drop_split_levels
+
+lyt <- basic_table() %>%
+  summarize_patients_events_in_cols(
+    filters_list = filters_list,
+    empty_stats = c("all", "related", "fatal", "fatal_related"),
+    custom_label = "Total number of patients with at least one serious adverse event"
+  ) %>%
+  split_rows_by("AEBODSYS",
+    nested = FALSE,
+    split_fun = split_fun,
+    indent_mod = -1L,
+    label_pos = "topleft",
+    split_label = obj_label(adae_trim$AEBODSYS)
+  ) %>%
+  split_rows_by("AEDECOD",
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(adae_serious_arm$AEDECOD)
+  ) %>%
+  summarize_patients_events_in_cols(
+    filters_list = filters_list,
+    col_split = FALSE
+  )
+
+result <- build_table(lyt, adae_serious_arm)
+result
+```
+
+## Death Table <br/> (EudraCT only)
+
+#### Data Setup
+
+```{r}
+library(tern)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adae <- synthetic_cdisc_dataset("latest", "adae")
+```
+
+#### Death Table
+
+```{r variant6, test = list(result_v6 = "result")}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM") %>%
+  add_overall_col("All Patients") %>%
+  count_patients_with_event(
+    "USUBJID",
+    filters = c("AESDTH" = "Y"),
+    .labels = c(count_fraction = "Total Number of Deaths"),
+    .formats = c(count_fraction = "xx (xx.xx%)")
+  )
+result <- build_table(lyt, adae, alt_counts_df = adsl)
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+{{< include ../../si.qmd >}}
+
+:::

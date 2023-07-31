@@ -1,0 +1,100 @@
+---
+title: PKPT08
+subtitle: Pharmacokinetic Parameter Summary of Cumulative Amount of Drug Eliminated and Cumulative Percentage of Drug Recovered (Stats in Columns)
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(scda)
+library(tern)
+
+adpp <- synthetic_cdisc_dataset("latest", "adpp")
+
+adpp <- adpp %>%
+  filter(PPSTINT != "NA" & PPENINT != "NA") %>%
+  mutate(PPINT = factor(paste0(gsub("[PH]", "", PPSTINT), "-", gsub("[PH]", "", PPENINT))))
+```
+
+## Standard Table -- Plasma
+
+```{r variant1, test = list(result_v1 = "result")}
+# create layout
+lyt <- basic_table() %>%
+  add_overall_col("Accumulation Interval (hours)") %>%
+  split_cols_by(var = "PPINT") %>%
+  split_cols_by(var = "PKPARAM") %>%
+  split_rows_by(
+    var = "ARMCD",
+    split_fun = trim_levels_in_group("ACTARM"),
+    label_pos = "topleft",
+    split_label = "Treatment Arm"
+  ) %>%
+  summarize_vars(
+    vars = "AVAL",
+    .stats = c(
+      "n", "mean", "sd", "cv",
+      "median", "min", "max"
+    ),
+    .labels = c(
+      n = "n",
+      mean = "Mean",
+      sd = "SD",
+      cv = "CV (%)",
+      median = "Median",
+      min = "Minimum",
+      max = "Maximum"
+    ),
+    .formats = c(
+      n = "xx.",
+      mean = sprintf_format("%.3e"),
+      sd = sprintf_format("%.3e"),
+      cv = "xx.x",
+      median = sprintf_format("%.3e"),
+      min = sprintf_format("%.3e"),
+      max = sprintf_format("%.3e")
+    )
+  )
+
+adpp0 <- adpp %>%
+  filter(
+    AVISIT == "CYCLE 1 DAY 1",
+    PPCAT == "Plasma Drug X"
+  ) %>%
+  h_pkparam_sort() %>%
+  mutate(
+    PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))
+  )
+
+result <- build_table(lyt, df = adpp0)
+main_title(result) <- paste(
+  "Summary of Cumulative Amount and Percentage of", unique(adpp0$PPSPEC), "Recovered from\n",
+  unique(adpp0$PPCAT), "following", unique(adpp0$REGIMEN), "Administration for",
+  unique(adpp0$PPINT)[length(unique(adpp0$PPINT))], "hours, PK Population"
+)
+subtitles(result) <- paste("Analyte:", unique(adpp0$PPCAT), "\nVisit:", unique(adpp0$AVISIT))
+
+cat(rtables::toString(result, indent_size = 10))
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| code-fold: show
+
+# In progress
+```
+
+{{< include ../../si.qmd >}}
+
+:::

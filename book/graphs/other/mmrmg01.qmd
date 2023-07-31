@@ -1,0 +1,185 @@
+---
+title: MMRMG01
+subtitle: Plots for Mixed-Effect Model Repeated Measures Analysis
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+Given an MMRM fitted with `s_mmrm`, `g_mmrm_lsmeans` displays for each visit the adjusted means within group and/or difference in adjusted means between groups.
+`g_mmrm_diagnostic` displays marginal residual plots for evaluating model fit.
+
+::: panel-tabset
+## Data Setup and <br/> Model Fitting
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(tern.mmrm)
+library(scda)
+library(nestcolor)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adqs <- synthetic_cdisc_dataset("latest", "adqs")
+
+adqs_f <- adqs %>%
+  dplyr::filter(PARAMCD == "FKSI-FWB" & !AVISIT %in% c("BASELINE")) %>%
+  droplevels() %>%
+  dplyr::mutate(ARM = factor(ARM, levels = c("B: Placebo", "A: Drug X", "C: Combination"))) %>%
+  dplyr::mutate(AVISITN = rank(AVISITN) %>% as.factor() %>% as.numeric() %>% as.factor())
+
+mmrm_results <- fit_mmrm(
+  vars = list(
+    response = "AVAL",
+    covariates = c("STRATA2"),
+    id = "USUBJID",
+    arm = "ARM",
+    visit = "AVISIT"
+  ),
+  data = adqs_f
+)
+```
+
+## Least Squares Means: <br/> Estimates Within Groups
+
+### Considering the treatment variable in the model
+
+```{r plot1, dev.args=list(pointsize=6), test = list(plot_v1 = "plot")}
+plot <- g_mmrm_lsmeans(
+  mmrm_results,
+  select = "estimates",
+  xlab = "Visit"
+)
+plot
+```
+
+### Considering the treatment variable in the model, with lines
+
+```{r plot2, dev.args=list(pointsize=6), test = list(plot_v2 = "plot")}
+plot <- g_mmrm_lsmeans(
+  mmrm_results,
+  select = "estimates",
+  xlab = "Visit",
+  show_lines = TRUE
+)
+plot
+```
+
+### Considering the treatment variable in the model, with statistics table
+
+```{r plot3, dev.args=list(pointsize=6), fig.height=7, test = list(plot_v3 = "plot")}
+plot <- g_mmrm_lsmeans(
+  mmrm_results,
+  select = "estimates",
+  xlab = "Visit",
+  table_stats = c("n", "estimate", "se", "ci"),
+  table_font_size = 4,
+  table_rel_height = 0.6
+)
+plot
+```
+
+## Least Squares Means: <br/> Contrasts Between Groups
+
+Users can choose to display both estimates and contrasts together by running `g_mmrm_lsmeans(mmrm_results)`.
+
+```{r plot4, dev.args=list(pointsize=6), test = list(plot_v4 = "plot")}
+plot <- g_mmrm_lsmeans(
+  mmrm_results,
+  select = "contrasts",
+  titles = c(contrasts = "Contrasts of FKSI-FWB means"),
+  xlab = "Visit"
+)
+plot
+```
+
+## Model Diagnostics: Marginal <br/> Fitted Values vs. Residuals
+
+```{r plot5, dev.args=list(pointsize=6), test = list(plot_v5 = "plot")}
+plot <- g_mmrm_diagnostic(mmrm_results)
+plot
+```
+
+## Model Diagnostics: Normality <br/> of Marginal Residuals
+
+```{r plot6, dev.args=list(pointsize=6), test = list(plot_v6 = "plot")}
+plot <- g_mmrm_diagnostic(mmrm_results, type = "q-q-residual")
+plot
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| screenshot.opts = list(delay = 20)
+
+library(teal.modules.clinical)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adqs <- synthetic_cdisc_dataset("latest", "adqs") %>%
+  dplyr::filter(ABLFL != "Y" & ABLFL2 != "Y") %>%
+  dplyr::filter(AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22")) %>%
+  dplyr::mutate(
+    AVISIT = as.factor(AVISIT),
+    AVISITN = rank(AVISITN) %>%
+      as.factor() %>%
+      as.numeric() %>%
+      as.factor() # making consecutive numeric factor
+  )
+
+arm_ref_comp <- list(
+  ARMCD = list(
+    ref = "ARM A",
+    comp = c("ARM B", "ARM C")
+  )
+)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl),
+    cdisc_dataset("ADQS", adqs),
+    code = '
+    ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+    ADQS <- synthetic_cdisc_dataset("latest", "adqs") %>%
+              dplyr::filter(ABLFL != "Y" & ABLFL2 != "Y") %>%
+              dplyr::filter(AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22")) %>%
+              dplyr::mutate(
+                AVISIT = as.factor(AVISIT),
+                AVISITN = rank(AVISITN) %>%
+                  as.factor() %>%
+                  as.numeric() %>%
+                  as.factor() # making consecutive numeric factor
+              )
+    ',
+    check = TRUE
+  ),
+  modules = modules(
+    tm_a_mmrm(
+      label = "MMRM",
+      dataname = "ADQS",
+      aval_var = choices_selected(c("AVAL", "CHG"), "AVAL"),
+      id_var = choices_selected(c("USUBJID", "SUBJID"), "USUBJID"),
+      arm_var = choices_selected(c("ARM", "ARMCD"), "ARMCD"),
+      visit_var = choices_selected(c("AVISIT", "AVISITN"), "AVISIT"),
+      arm_ref_comp = arm_ref_comp,
+      paramcd = choices_selected(
+        choices = value_choices(adqs, "PARAMCD", "PARAM"),
+        selected = "FKSI-FWB"
+      ),
+      cov_var = choices_selected(c("BASE", "AGE", "SEX", "BASE:AVISIT"), NULL),
+      conf_level = choices_selected(c(0.95, 0.9, 0.8), 0.95)
+    )
+  )
+)
+
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::
