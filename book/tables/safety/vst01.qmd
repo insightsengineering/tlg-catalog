@@ -1,0 +1,262 @@
+---
+title: VST01
+subtitle: Vital Sign Results and Change from Baseline by Visit
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(scda)
+library(dplyr)
+library(teal.modules.clinical)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+advs <- synthetic_cdisc_dataset("latest", "advs")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+advs <- df_explicit_na(advs)
+
+advs_label <- var_labels(advs)
+
+advs <- advs %>%
+  filter(
+    PARAMCD == "DIABP",
+    PARAM == "Diastolic Blood Pressure"
+  ) %>%
+  mutate(
+    PARAMCD = droplevels(PARAMCD),
+    PARAM = droplevels(PARAM)
+  )
+
+# post-baseline
+advs_pb <- advs %>%
+  filter(ABLFL != "Y", ABLFL2 != "Y")
+
+advs_pb_max <- advs_pb %>%
+  group_by(PARAM, USUBJID) %>%
+  arrange(desc(AVAL)) %>%
+  slice(1) %>%
+  ungroup() %>%
+  mutate(AVISIT = "Post-Baseline Maximum")
+
+advs_pb_min <- advs_pb %>%
+  group_by(PARAM, USUBJID) %>%
+  arrange(AVAL) %>%
+  slice(1) %>%
+  ungroup() %>%
+  mutate(AVISIT = "Post-Baseline Minimum")
+
+advs_pb_last <- advs_pb %>%
+  group_by(PARAM, USUBJID) %>%
+  arrange(desc(AVISITN)) %>%
+  slice(1) %>%
+  ungroup() %>%
+  mutate(AVISIT = "Post-Baseline Last")
+
+# Please note that for real data, per ADaM Spec 1.1, the advs_f can be obtained by filtering on PARAMCD, then
+# ANL01FL == 'Y' or AVISIT in c('POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST')
+
+advs_f <- rbind(
+  advs,
+  advs_pb_last,
+  advs_pb_min,
+  advs_pb_max
+)
+
+advs_f <- advs_f %>%
+  mutate(AVISIT = droplevels(AVISIT))
+
+var_labels(advs_f) <- advs_label
+```
+
+## Standard Table
+
+```{r variant1, test = list(result_v1 = "result")}
+split_fun <- drop_split_levels
+
+afun <- function(x, .var, .spl_context, ...) {
+  n_fun <- sum(!is.na(x), na.rm = TRUE)
+  if (n_fun == 0) {
+    mean_sd_fun <- c(NA, NA)
+    median_fun <- NA
+    min_max_fun <- c(NA, NA)
+  } else {
+    mean_sd_fun <- c(mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))
+    median_fun <- median(x, na.rm = TRUE)
+    min_max_fun <- c(min(x), max(x))
+  }
+  is_chg <- .var == "CHG"
+  is_baseline <- .spl_context$value[which(.spl_context$split == "AVISIT")] == "BASELINE"
+  if (is_baseline && is_chg) n_fun <- mean_sd_fun <- median_fun <- min_max_fun <- NULL
+
+  in_rows(
+    "n" = n_fun,
+    "Mean (SD)" = mean_sd_fun,
+    "Median" = median_fun,
+    "Min - Max" = min_max_fun,
+    .formats = list("n" = "xx", "Mean (SD)" = "xx.xx (xx.xx)", "Median" = "xx.xx", "Min - Max" = "xx.xx - xx.xx"),
+    .format_na_strs = list("n" = "NE", "Mean (SD)" = "NE (NE)", "Median" = "NE", "Min - Max" = "NE - NE")
+  )
+}
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  split_rows_by("AVISIT", split_fun = split_fun, label_pos = "topleft", split_label = "\n\nAnalysis Visit") %>%
+  split_cols_by_multivar(
+    vars = c("AVAL", "CHG"),
+    varlabels = c("Value at Visit", "Change from\nBaseline")
+  ) %>%
+  analyze_colvars(afun = afun)
+
+result <- build_table(lyt = lyt, df = advs_f, alt_counts_df = adsl)
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| screenshot.opts = list(delay = 30)
+
+library(scda)
+library(teal.modules.clinical)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+advs <- synthetic_cdisc_dataset("latest", "advs")
+advs_label <- var_labels(advs)
+
+# post-baseline
+advs_pb <- advs %>%
+  filter(
+    ABLFL != "Y",
+    ABLFL2 != "Y"
+  )
+
+advs_pb_max <- advs_pb %>%
+  group_by(PARAM, USUBJID) %>%
+  arrange(desc(AVAL)) %>%
+  slice(1) %>%
+  ungroup() %>%
+  mutate(AVISIT = "Post-Baseline Maximum")
+
+advs_pb_min <- advs_pb %>%
+  group_by(PARAM, USUBJID) %>%
+  arrange(AVAL) %>%
+  slice(1) %>%
+  ungroup() %>%
+  mutate(AVISIT = "Post-Baseline Minimum")
+
+advs_pb_last <- advs_pb %>%
+  group_by(PARAM, USUBJID) %>%
+  arrange(desc(AVISITN)) %>%
+  slice(1) %>%
+  ungroup() %>%
+  mutate(AVISIT = "Post-Baseline Last")
+
+advs_f <- rbind(
+  advs,
+  advs_pb_last,
+  advs_pb_min,
+  advs_pb_max
+)
+
+advs_f <- advs_f %>%
+  mutate(AVISIT = droplevels(AVISIT))
+
+var_labels(advs_f) <- advs_label
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL",
+      adsl,
+      code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'
+    ),
+    cdisc_dataset("ADVS",
+      advs_f,
+      code = 'ADVS <- synthetic_cdisc_dataset("latest", "advs")
+                  ADVS_label <- var_labels(ADVS)
+
+                  # post-baseline
+                  ADVS_pb <- ADVS %>%
+                    filter(
+                      ABLFL != "Y",
+                      ABLFL2 != "Y"
+                    )
+
+                  ADVS_pb_max <- ADVS_pb %>%
+                    group_by(PARAM, USUBJID) %>%
+                    arrange(desc(AVAL)) %>%
+                    slice(1) %>%
+                    ungroup() %>%
+                    mutate(AVISIT = "Post-Baseline Maximum")
+
+                  ADVS_pb_min <- ADVS_pb %>%
+                    group_by(PARAM, USUBJID) %>%
+                    arrange(AVAL) %>%
+                    slice(1) %>%
+                    ungroup() %>%
+                    mutate(AVISIT = "Post-Baseline Minimum")
+
+                  ADVS_pb_last <- ADVS_pb %>%
+                    group_by(PARAM, USUBJID) %>%
+                    arrange(desc(AVISITN)) %>%
+                    slice(1) %>%
+                    ungroup() %>%
+                    mutate(AVISIT = "Post-Baseline Last")
+
+                  ADVS_f <- rbind(
+                    ADVS,
+                    ADVS_pb_last,
+                    ADVS_pb_min,
+                    ADVS_pb_max
+                  )
+
+                  ADVS <- ADVS_f %>%
+                    mutate(AVISIT = droplevels(AVISIT))
+                  var_labels(ADVS) <- ADVS_label'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_summary_by(
+      label = "Vital Sign Results and Change from Baseline by Visit",
+      dataname = "ADVS",
+      arm_var = choices_selected(
+        choices = variable_choices(adsl, c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      by_vars = choices_selected(
+        choices = variable_choices(advs, c("PARAM", "AVISIT")),
+        selected = c("AVISIT", "PARAM")
+      ),
+      summarize_vars = choices_selected(
+        choices = variable_choices(advs, c("AVAL", "CHG")),
+        selected = c("AVAL", "CHG")
+      ),
+      useNA = "ifany",
+      paramcd = choices_selected(
+        choices = value_choices(advs, "PARAMCD", "PARAM"),
+        selected = "DIABP"
+      ),
+      parallel_vars = TRUE
+    )
+  ),
+  filter = list(ADVS = list(AVAL = list()))
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+:::

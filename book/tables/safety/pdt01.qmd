@@ -1,0 +1,112 @@
+---
+title: PDT01
+subtitle: Major Protocol Deviations
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(tern)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+addv <- synthetic_cdisc_dataset("latest", "addv")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+addv <- df_explicit_na(addv)
+
+addv <- addv %>%
+  var_relabel(
+    DVDECOD = "Category",
+    DVTERM = "Description"
+  )
+```
+
+## Standard Table
+
+```{r variant1, test = list(result_v1 = "result")}
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ACTARM") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one major protocol deviation",
+      nonunique = "Total number of major protocol deviations"
+    )
+  ) %>%
+  split_rows_by(
+    "DVDECOD",
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(addv$DVDECOD)
+  ) %>%
+  count_occurrences(vars = "DVTERM") %>%
+  append_varlabels(addv, "DVTERM", indent = 1L)
+
+result <- build_table(lyt = lyt, df = addv, alt_counts_df = adsl) %>%
+  prune_table() %>%
+  sort_at_path(path = c("DVDECOD", "*", "DVTERM"), scorefun = score_occurrences)
+
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| screenshot.opts = list(delay = 12)
+
+library(dplyr)
+library(scda)
+library(teal.modules.clinical)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+addv <- synthetic_cdisc_dataset("latest", "addv")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+addv <- df_explicit_na(addv)
+
+app <- teal::init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl, code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))'),
+    cdisc_dataset("ADDV", addv, code = 'ADDV <- df_explicit_na(synthetic_cdisc_dataset("latest", "addv"))'),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_events(
+      label = "Major Protocol Deviations Table",
+      dataname = "ADDV",
+      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
+      llt = choices_selected(
+        choices = variable_choices(addv, c("DVTERM")),
+        selected = c("DVTERM")
+      ),
+      hlt = choices_selected(
+        choices = variable_choices(addv, c("DVDECOD")),
+        selected = "DVDECOD"
+      ),
+      add_total = TRUE,
+      event_type = "major protocol deviation"
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+:::

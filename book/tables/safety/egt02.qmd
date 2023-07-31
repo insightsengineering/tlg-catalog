@@ -1,0 +1,126 @@
+---
+title: EGT02
+subtitle: ECG Abnormalities (EGT02_1 & EGT02_2)
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(scda)
+library(tern)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adeg <- synthetic_cdisc_dataset("latest", "adeg")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adeg <- df_explicit_na(adeg)
+
+# Note:  We keep only post-baseline for analysis.
+adeg_f <- adeg %>%
+  filter(ONTRTFL == "Y") %>%
+  filter(PARAM %in% c("Heart Rate", "QT Duration", "RR Duration")) %>%
+  filter(ANRIND != "<Missing>") %>%
+  var_relabel(
+    PARAM = "Assessment",
+    ANRIND = "Abnormality"
+  )
+```
+
+## ECG Abnormalities Regardless <br/> of Abnormality at Baseline
+
+```{r variant1, test = list(result_v1 = "result")}
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ACTARM") %>%
+  split_rows_by(
+    "PARAM",
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(adeg_f$PARAM)
+  ) %>%
+  count_abnormal("ANRIND", abnormal = list(Low = "LOW", High = "HIGH"), exclude_base_abn = FALSE) %>%
+  append_varlabels(adeg_f, "ANRIND", indent = 1L)
+
+result <- build_table(lyt = lyt, df = adeg_f, alt_counts_df = adsl)
+result
+```
+
+## ECG Abnormalities Among Subjects <br/> Without Abnormality at Baseline
+
+```{r variant 2}
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ACTARM") %>%
+  split_rows_by(
+    "PARAM",
+    split_fun = split_fun,
+    label_pos = "topleft",
+    split_label = obj_label(adeg_f$PARAM)
+  ) %>%
+  count_abnormal("ANRIND", abnormal = list(Low = "LOW", High = "HIGH"), exclude_base_abn = TRUE) %>%
+  append_varlabels(adeg_f, "ANRIND", indent = 1L)
+
+result <- build_table(lyt = lyt, df = adeg_f, alt_counts_df = adsl)
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| screenshot.opts = list(delay = 18)
+
+library(scda)
+library(teal.modules.clinical)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adeg <- synthetic_cdisc_dataset("latest", "adeg")
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
+    cdisc_dataset("ADEG", adeg, code = 'ADEG <- synthetic_cdisc_dataset("latest", "adeg")'),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_abnormality(
+      label = "Abnormality Table",
+      dataname = "ADEG",
+      arm_var = choices_selected(
+        choices = variable_choices(adsl, subset = c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      by_vars = choices_selected(
+        choices = variable_choices(adeg, subset = c("EGCAT", "PARAM", "AVISIT")),
+        selected = c("PARAM"),
+        keep_order = TRUE
+      ),
+      grade = choices_selected(
+        choices = variable_choices(adeg, subset = "ANRIND"),
+        selected = "ANRIND",
+        fixed = TRUE
+      ),
+      abnormal = list(Low = "LOW", High = "HIGH"),
+      exclude_base_abn = FALSE
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+:::

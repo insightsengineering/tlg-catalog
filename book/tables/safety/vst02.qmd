@@ -1,0 +1,130 @@
+---
+title: VST02
+subtitle: Vital Sign Abnormalities
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(tern)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+advs <- synthetic_cdisc_dataset("latest", "advs")
+
+# Ensure character variables are converted to factors and empty strings
+# and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+advs <- df_explicit_na(advs)
+
+# Note:  We keep only post-baseline for analysis.
+advs_f <- advs %>%
+  filter(ONTRTFL == "Y", ANRIND != "<Missing>") %>%
+  var_relabel(
+    PARAM = "Assessment",
+    ANRIND = "Abnormality"
+  )
+
+# If you want to control which parameters in the table have only `LOW` or only `HIGH` theoretical ranges defined,
+# see `tern::h_map_for_count_abnormal` with method "range" or refer to the `EGT02` example.
+# For `VST02` we want to keep both directions for all parameters so we will not use `trim_levels_to_map` as the split function.
+split_fun <- drop_split_levels
+```
+
+## VST02_1 -- Table of Abnormalities <br/> Regardless of Abnormality at Baseline
+
+```{r variant1, test = list(result_v1 = "result")}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ACTARM") %>%
+  add_overall_col("All Patients") %>%
+  split_rows_by("PARAM", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(advs_f$PARAM)) %>%
+  count_abnormal(
+    "ANRIND",
+    abnormal = list(Low = c("LOW", "LOW LOW"), High = c("HIGH", "HIGH HIGH")),
+    exclude_base_abn = FALSE
+  ) %>%
+  append_varlabels(advs_f, "ANRIND", indent = 1L)
+
+result <- build_table(lyt = lyt, df = advs_f, alt_counts_df = adsl)
+
+result
+```
+
+## VST02_2 -- Table of Abnormalities Among <br/> Subjects Without Abnormality at Baseline
+
+```{r variant2, test = list(result_v2 = "result")}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ACTARM") %>%
+  add_overall_col("All Patients") %>%
+  split_rows_by("PARAM", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(advs_f$PARAM)) %>%
+  count_abnormal(
+    "ANRIND",
+    abnormal = list(Low = c("LOW", "LOW LOW"), High = c("HIGH", "HIGH HIGH")),
+    exclude_base_abn = TRUE
+  ) %>%
+  append_varlabels(advs_f, "ANRIND", indent = 1L)
+
+result <- build_table(lyt = lyt, df = advs_f, alt_counts_df = adsl)
+
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| screenshot.opts = list(delay = 10)
+
+library(teal.modules.clinical)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+advs <- synthetic_cdisc_dataset("latest", "advs") %>%
+  mutate(ONTRTFL = ifelse(AVISIT %in% c("SCREENING", "BASELINE"), "", "Y")) %>%
+  var_relabel(ONTRTFL = "On Treatment Record Flag")
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
+    cdisc_dataset("ADVS", advs, code = 'ADVS <- synthetic_cdisc_dataset("latest", "advs")'),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_abnormality(
+      label = "Abnormality Table",
+      dataname = "ADVS",
+      arm_var = choices_selected(
+        choices = variable_choices(adsl, subset = c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      by_vars = choices_selected(
+        choices = variable_choices(advs, subset = c("VSCAT", "PARAM", "AVISIT")),
+        selected = c("PARAM"),
+        keep_order = TRUE
+      ),
+      grade = choices_selected(
+        choices = variable_choices(advs, subset = "ANRIND"),
+        selected = "ANRIND",
+        fixed = TRUE
+      ),
+      abnormal = list(Low = c("LOW", "LOW LOW"), High = c("HIGH", "HIGH HIGH")),
+      exclude_base_abn = FALSE
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+:::
