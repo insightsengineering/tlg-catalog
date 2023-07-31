@@ -1,0 +1,59 @@
+---
+title: EXL01
+subtitle: Listing of Exposure to Study Drug
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(scda)
+library(rlistings)
+
+adex <- synthetic_cdisc_dataset("latest", "adex")
+
+out <- adex %>%
+  filter(PARAMCD == "DOSE" & !is.na(AVAL) & SAFFL == "Y") %>%
+  mutate(
+    CRTNPT = paste(SITEID, SUBJID, sep = "/")
+  ) %>%
+  arrange(CRTNPT, AVISIT) %>%
+  select(CRTNPT, AVISIT, EXSTDY, EXENDY, TRT01A, AVAL, AVALU, EXDOSFRQ, EXROUTE)
+
+var_labels(out) <- c(
+  CRTNPT = "Center/Subject ID",
+  AVISIT = "Visit",
+  EXSTDY = "Study Day\nFrom",
+  EXENDY = "Study Day\nTo",
+  TRT01A = "Treatment",
+  AVAL = "Dose",
+  AVALU = "Unit",
+  EXDOSFRQ = "Frequency",
+  EXROUTE = "Route"
+)
+```
+
+## Standard Listing
+
+```{r lsting, test = list(lsting = "lsting")}
+lsting <- as_listing(
+  out,
+  key_cols = c("CRTNPT", "AVISIT"),
+  disp_cols = names(out),
+  main_title = "Listing of Exposure to Study Drug"
+)
+
+head(lsting, 20)
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+{{< include ../../si.qmd >}}
+:::

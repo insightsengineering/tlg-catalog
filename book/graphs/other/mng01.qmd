@@ -1,0 +1,191 @@
+---
+title: MNG01
+subtitle: Mean Plot
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(tern)
+library(scda)
+library(nestcolor)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adlb <- synthetic_cdisc_dataset("latest", "adlb")
+advs <- synthetic_cdisc_dataset("latest", "advs")
+
+adsl_f <- adsl %>%
+  filter(SAFFL == "Y") %>%
+  df_explicit_na()
+
+adlb_f <- adlb %>%
+  mutate(AVISIT = forcats::fct_reorder(AVISIT, AVISITN, min)) %>%
+  dplyr::filter(
+    SAFFL == "Y",
+    ANL01FL == "Y",
+    ONTRTFL == "Y",
+    PARAMCD == "ALT",
+    AVISIT != "SCREENING"
+  ) %>%
+  droplevels() %>%
+  df_explicit_na()
+
+advs_f <- advs %>%
+  mutate(AVISIT = forcats::fct_reorder(AVISIT, AVISITN, min)) %>%
+  dplyr::filter(
+    SAFFL == "Y",
+    ONTRTFL == "Y",
+    PARAMCD == "DIABP",
+    AVISIT != "SCREENING"
+  ) %>%
+  droplevels() %>%
+  df_explicit_na()
+```
+
+## Plot of Mean <br/> and CI
+
+```{r plot1, test = list(plot_v1 = "plot")}
+plot <- g_lineplot(
+  df = adlb_f,
+  alt_counts_df = adsl_f,
+  subtitle = "Laboratory Test:"
+)
+plot
+```
+
+## Plot of Mean and CIs of Change <br/> from Baseline (Changing the Input <br/> Analysis Data Set and Analysis Variable)
+
+```{r plot2, test = list(plot_v2 = "plot")}
+plot <- g_lineplot(
+  df = advs_f,
+  alt_counts_df = adsl_f,
+  variables = control_lineplot_vars(y = "CHG"),
+  title = "Plot of Mean and 95% Confidence Intervals of Change from Baseline by Visit",
+  subtitle = "Assessment:"
+)
+plot
+```
+
+## Plot of Mean (+/-SD) <br/> (Changing the Statistics)
+
+```{r plot3, test = list(plot_v3 = "plot")}
+plot <- g_lineplot(
+  df = adlb_f,
+  alt_counts_df = adsl_f,
+  interval = "mean_sdi",
+  whiskers = c("mean_sdi_lwr", "mean_sdi_upr"),
+  title = "Plot of Mean (+/-SD)",
+  subtitle = "Laboratory Test:"
+)
+plot
+```
+
+## Plot of Mean and CI <br/> (Modify Alpha Level)
+
+```{r plot4, test = list(plot_v4 = "plot")}
+plot <- g_lineplot(
+  df = adlb_f,
+  alt_counts_df = adsl_f,
+  control = control_summarize_vars(conf_level = 0.80),
+  title = "Plot of Mean and 80% Confidence Limits by Visit",
+  subtitle = "Laboratory Test:"
+)
+plot
+```
+
+## Plot of Mean and CI (with Number <br/> of Patients only in Table Section)
+
+```{r plot5, test = list(plot_v5 = "plot")}
+plot <- g_lineplot(
+  df = adlb_f,
+  alt_counts_df = adsl_f,
+  table = "n",
+  subtitle = "Laboratory Test:"
+)
+plot
+```
+
+## Plot of Mean and CI <br/> (with Table Section)
+
+```{r plot6, fig.height = 8, test = list(plot_v6 = "plot")}
+plot <- g_lineplot(
+  df = adlb_f,
+  alt_counts_df = adsl_f,
+  table = c("n", "mean", "mean_ci"),
+  subtitle = "Laboratory Test:"
+)
+plot
+```
+
+## Plot of Median and CI (Visits <br/> Condensed in Table Section)
+
+This option is not supported.
+
+## Plot of Mean and <br/> Upper Confidence Limit
+
+```{r plot7, test = list(plot_v7 = "plot")}
+plot <- g_lineplot(
+  df = adlb_f,
+  alt_counts_df = adsl_f,
+  whiskers = "mean_ci_upr",
+  subtitle = "Laboratory Test:"
+)
+plot
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| screenshot.opts = list(delay = 8)
+
+library(scda)
+library(dplyr)
+library(teal.modules.clinical)
+
+ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+ADLB <- synthetic_cdisc_dataset("latest", "adlb") %>%
+  mutate(AVISIT = forcats::fct_reorder(AVISIT, AVISITN, min))
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", ADSL, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
+    cdisc_dataset("ADLB", ADLB, code = 'ADLB <- synthetic_cdisc_dataset("latest", "adlb") %>%
+                    mutate(AVISIT = forcats::fct_reorder(AVISIT, AVISITN, min))'),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_g_lineplot(
+      label = "LINE PLOT",
+      dataname = "ADLB",
+      strata = choices_selected(
+        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),
+        "ARM"
+      ),
+      y = choices_selected(
+        variable_choices(ADLB, c("AVAL", "BASE", "CHG", "PCHG")),
+        "AVAL"
+      ),
+      param = choices_selected(
+        value_choices(ADLB, "PARAMCD", "PARAM"),
+        "ALT"
+      )
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::

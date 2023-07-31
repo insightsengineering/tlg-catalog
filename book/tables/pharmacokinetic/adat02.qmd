@@ -1,0 +1,152 @@
+---
+title: ADAT02
+subtitle: Summary of Patients with Treatment-Induced ADA
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(dplyr)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adab <- synthetic_cdisc_dataset("latest", "adab")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adab <- df_explicit_na(adab) %>%
+  mutate(ADPBLPFL = "Y") %>% # temp fix
+  filter(
+    ADPBLPFL == "Y",
+    !PARAM %in% c(
+      "NAB interpreted per sample result",
+      "NAB Status of a patient",
+      "Treatment enhanced ADA"
+    )
+  ) %>%
+  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%
+  unique() %>%
+  tidyr::pivot_wider(
+    names_from = PARAM,
+    values_from = AVAL
+  ) %>%
+  mutate(
+    across(
+      any_of(c(
+        "Treatment induced ADA",
+        "Transient ADA",
+        "Persistent ADA"
+      )),
+      as.logical
+    )
+  ) %>%
+  mutate(
+    ADPBLPFL = ADPBLPFL == "Y",
+    TI_ADA = if (exists("Treatment induced ADA", where = .)) `Treatment induced ADA` else FALSE
+  ) %>%
+  var_relabel(
+    ADPBLPFL = "Post-baseline evaluable patients",
+    TI_ADA = "Treatment-induced ADA patients"
+  )
+
+adab_ti <- adab %>%
+  filter(TI_ADA)
+```
+
+## Standard Table
+
+```{r variant1, test = list(result_v1 = "result")}
+# Layout for post-baseline evaluable patient variables from adab dataset.
+lyt_adab <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(
+    "ACTARM",
+    split_fun = drop_split_levels
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = var_labels(data.frame(ADPBLPFL = adab[, "ADPBLPFL"])),
+    .stats = "count",
+    table_names = "post_baseline"
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = var_labels(data.frame(TI_ADA = adab[, "TI_ADA"]))
+  )
+
+# Layout for treatment-induced patient variables from adab dataset.
+lyt_adab_ti <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(
+    "ACTARM",
+    split_fun = keep_split_levels(c("A: Drug X", "C: Combination", "<Missing>")) # temp fix
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = c("Transient ADA", "Persistent ADA"),
+    var_labels = "Treatment-induced ADA patients with",
+    show_labels = "visible"
+  ) %>%
+  summarize_vars(
+    "Time to onset of ADA",
+    .stats = "median",
+    nested = FALSE,
+    .labels = c(median = "Median time to onset of ADA (weeks)")
+  ) %>%
+  summarize_vars(
+    "Antibody titer units",
+    .stats = "range",
+    nested = FALSE,
+    .labels = c(range = "ADA titer range (min - max)")
+  )
+
+result_adab <- build_table(lyt_adab, df = adab, alt_counts_df = adsl)
+result_adab_ti <- build_table(lyt_adab_ti, df = adab_ti, alt_counts_df = adsl)
+
+# Combine tables.
+col_info(result_adab) <- col_info(result_adab_ti)
+result <- rbind(
+  result_adab,
+  result_adab_ti
+)
+
+main_title(result) <- paste(
+  "Summary of Patients with Treatment-Induced ADA, PK Population"
+)
+subtitles(result) <- paste("Protocol:", unique(adab$PARCAT1)[1])
+main_footer(result) <- paste(
+  "ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic
+  Antibodies)
+  Treatment-induced ADA = negative or missing baseline.
+  ADA result(s) and at least one positive post-baseline ADA result.
+  Transient ADA = ADA positive result detected (a) at only one post-baseline
+  sampling timepoint (excluding last timepoint) OR (b) at 2 or more timepoints
+  during treatment where the first and last ADA positive samples are separated
+  by a period of < 16 weeks, irrespective of any negative samples in between.
+  Persistent ADA = ADA positive result detected (a) at the last post-baseline
+  sampling timepoint, OR (b) at 2 or more time points during treatment where
+  the first and last ADA positive samples are separated by a period ≥ 16
+  weeks, irrespective of any negative samples in between."
+)
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| code-fold: show
+
+# In progress
+```
+
+{{< include ../../si.qmd >}}
+
+:::

@@ -1,0 +1,90 @@
+---
+title: AEL02
+subtitle: Listing of Adverse Events
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(scda)
+library(rlistings)
+
+adae <- synthetic_cdisc_dataset("latest", "adae")
+
+out <- adae %>%
+  mutate(
+    CPID = paste(SITEID, SUBJID, sep = "/"),
+    ASR = paste(AGE, SEX, RACE, sep = "/"),
+    Date_First = toupper(format(as.Date(TRTSDTM), "%d%b%Y")),
+    Duration = AENDY - ASTDY + 1,
+    Serious = ifelse(AESER == "Y", "Yes", ifelse(AESER == "N", "No", "")),
+    Related = ifelse(AEREL == "Y", "Yes", ifelse(AEREL == "N", "No", "")),
+    Outcome = case_when(
+      AEOUT == "FATAL" ~ 1,
+      AEOUT == "NOT RECOVERED/NOT RESOLVED" ~ 2,
+      AEOUT == "RECOVERED/RESOLVED" ~ 3,
+      AEOUT == "RECOVERED/RESOLVED WITH SEQUELAE" ~ 4,
+      AEOUT == "RECOVERING/RESOLVING" ~ 5,
+      AEOUT == "UNKNOWN" ~ 6
+    ),
+    Treated = ifelse(AECONTRT == "Y", "Yes", ifelse(AECONTRT == "N", "No", "")),
+    Action = case_when(
+      AEACN == "DOSE INCREASED" ~ 1,
+      AEACN == "DOSE NOT CHANGED" ~ 2,
+      AEACN == "DOSE REDUCED" | AEACN == "DOSE RATE REDUCED" ~ 3,
+      AEACN == "DRUG INTERRUPTED" ~ 4,
+      AEACN == "DRUG WITHDRAWN" ~ 5,
+      AEACN == "NOT APPLICABLE" | AEACN == "NOT EVALUABLE" ~ 6,
+      AEACN == "UNKNOWN" ~ 7
+    )
+  ) %>%
+  select(CPID, ASR, TRT01A, AEDECOD, Date_First, ASTDY, Duration, Serious, AESEV, Related, Outcome, Treated, Action)
+
+var_labels(out) <- c(
+  CPID = "Center/Patient ID",
+  ASR = "Age/Sex/Race",
+  TRT01A = "Treatment",
+  AEDECOD = "Adverse\nEvent MedDRA\nPreferred Term",
+  Date_First = "Date of\nFirst Study\nDrug\nAdministration",
+  ASTDY = "Study\nDay of\nOnset",
+  Duration = "AE\nDuration\nin Days",
+  Serious = "Serious",
+  AESEV = "Most\nExtreme\nIntensity",
+  Related = "Caused by\nStudy\nDrug",
+  Outcome = "Outcome\n(1)",
+  Treated = "Treatment\nfor AE",
+  Action = "Action\nTaken\n(2)"
+)
+```
+
+## Standard Listing
+
+```{r lsting, test = list(lsting = "lsting")}
+lsting <- as_listing(
+  out,
+  key_cols = c("CPID", "ASR", "TRT01A"),
+  disp_cols = names(out),
+  main_title = "Listing of Adverse Events",
+  main_footer = "(1) Outcome: 1 = fatal; 2 = not recovered/not resolved; 3 = recovered/resolved; 4 = recovered/resolved with sequelae; 5 =
+    recovering/resolving; 6 = unknown.
+(2) Action taken with study drug: 1 = dose increased; 2 = dose not changed; 3 = dose reduced; 4 = drug interrupted; 5 = drug
+    withdrawn; 6 = not applicable; 7 = unknown.
+*  Study day derived from imputed onset date.
+** Duration derived from imputed onset date and/or end date."
+)
+
+head(lsting, 20)
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+{{< include ../../si.qmd >}}
+:::

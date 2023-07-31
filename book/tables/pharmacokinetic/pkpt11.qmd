@@ -1,0 +1,163 @@
+---
+title: PKPT11
+subtitle: Pharmacokinetic Parameter Estimated Ratios of Geometric Means and 90% Confidence Intervals for AUC and CMAX
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(tern)
+
+adpp <- synthetic_cdisc_dataset("latest", "adpp")
+
+# Comparator Dose - A: Drug X
+comp_dose <- "A: Drug X"
+other_doses <- as.character(unique(adpp$TRT01A)[unique(adpp$TRT01A) != comp_dose])
+
+adpp <- adpp %>%
+  filter(AVISIT == "CYCLE 1 DAY 1") %>%
+  mutate(
+    COMP = paste0(TRT01A, "/", comp_dose),
+    COMP_AVAL = ifelse(TRT01A == comp_dose, paste0(AVAL, comp_dose), AVAL)
+  )
+
+for (dose in other_doses) {
+  temp_df <- adpp[adpp$TRT01A == comp_dose, ]
+  temp_df$COMP <- paste0(dose, "/", comp_dose)
+  adpp <- rbind(adpp, temp_df)
+}
+
+formats <- c(
+  n = "xx.",
+  geom_mean_ratio = sprintf_format("%.3e"),
+  gmr_ci_lwr = sprintf_format("%.3e"),
+  gmr_ci_upr = sprintf_format("%.3e")
+)
+```
+
+## Standard Table -- Plasma
+
+```{r variant1, test = list(result_v1 = "result")}
+# summary function
+# compare_dose - comparator, defaults to comp_dose defined above (string)
+# denom - use comparator as denominator, defaults to TRUE (logical)
+s_gmr <- function(x,
+                  labelstr = "",
+                  compare_dose = comp_dose,
+                  denom = TRUE) {
+  row_label <- labelstr
+
+  x_num <- as.numeric(x[!grepl(compare_dose, x)])
+  x_num <- x_num[!is.na(x_num)]
+  x_num_no_negative_vals <- x_num
+  x_num_no_negative_vals[x_num_no_negative_vals <= 0] <- NA
+
+  x_denom <- as.numeric(gsub(compare_dose, "", x[grepl(compare_dose, x)]))
+  x_denom <- x_denom[!is.na(x_denom)]
+  x_denom_no_negative_vals <- x_denom
+  x_denom_no_negative_vals[x_denom_no_negative_vals <= 0] <- NA
+
+  x_num_log <- log(x_num_no_negative_vals)
+  x_denom_log <- log(x_denom_no_negative_vals)
+
+  if (denom) {
+    geom_mean_ratio <- exp(mean(x_num_log, na.rm = FALSE)) / exp(mean(x_denom_log, na.rm = FALSE))
+    geom_mean_ci <- t.test(x_num_log, x_denom_log, conf.level = 0.90)$conf.int
+  } else {
+    row_label <- paste0(unlist(strsplit(labelstr, "/"))[c(2, 1)], collapse = "/")
+    geom_mean_ratio <- exp(mean(x_denom_log, na.rm = FALSE)) / exp(mean(x_num_log, na.rm = FALSE))
+    geom_mean_ci <- t.test(x_denom_log, x_num_log, conf.level = 0.90)$conf.int
+  }
+
+  results <- list(
+    n = length(x),
+    geom_mean_ratio = geom_mean_ratio,
+    gmr_ci_lwr = exp(geom_mean_ci[1]),
+    gmr_ci_upr = exp(geom_mean_ci[2])
+  )
+
+  lapply(results, formatters::with_label, row_label)
+}
+
+# tabulation function
+afun_list <- Map(
+  function(stat) {
+    make_afun(
+      s_gmr,
+      .stats = stat,
+      .formats = formats[names(formats) %in% stat]
+    )
+  },
+  stat = c("n", "geom_mean_ratio", "gmr_ci_lwr", "gmr_ci_upr")
+)
+
+# create layout
+lyt <- basic_table() %>%
+  split_rows_by(
+    var = "PKPARAM",
+    label_pos = "topleft",
+    split_fun = keep_split_levels(c("AUCinf obs (day*ug/mL)", "Cmax (ug/mL)")),
+    split_label = "PK Parameter"
+  ) %>%
+  split_rows_by(
+    var = "COMP",
+    label_pos = "topleft",
+    split_label = "Comparison",
+    split_fun = remove_split_levels(paste0(comp_dose, "/", comp_dose))
+  ) %>%
+  split_cols_by_multivar(
+    vars = rep("AVAL", 4),
+    varlabels = c(
+      "n",
+      "Geometric Mean Ratio",
+      "90% CI Lower Bound",
+      "90% CI Upper Bound"
+    )
+  ) %>%
+  summarize_row_groups(
+    var = "COMP_AVAL",
+    cfun = afun_list,
+    extra_args = list(
+      compare_dose = comp_dose,
+      denom = TRUE
+    )
+  )
+
+# Plasma Drug X
+adpp0 <- adpp %>%
+  filter(PPCAT == "Plasma Drug X") %>%
+  h_pkparam_sort() %>%
+  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")")))
+result <- build_table(lyt, df = adpp0)
+main_title(result) <- paste0(
+  "Estimated Ratios of Geometric Means and 90% Confidence Intervals for AUC and CMAX Following ",
+  unique(adpp0$REGIMEN), "\nof ", comp_dose, " in Comparison with ",
+  paste(other_doses, collapse = " & "), ", PK Population"
+)
+subtitles(result) <- paste("Analyte:", unique(adpp0$PPCAT))
+
+cat(rtables::toString(result, indent_size = 24))
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| code-fold: show
+
+# In progress
+```
+
+{{< include ../../si.qmd >}}
+
+:::

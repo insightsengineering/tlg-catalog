@@ -1,0 +1,214 @@
+---
+title: LGRT02
+subtitle: Multi-Variable Logistic Regression
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(tern)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adrs <- synthetic_cdisc_dataset("latest", "adrs")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adrs <- df_explicit_na(adrs)
+
+adsl <- adsl %>%
+  dplyr::filter(SEX %in% c("F", "M"))
+
+adrs <- adrs %>%
+  dplyr::filter(PARAMCD == "BESRSPI") %>%
+  dplyr::mutate(
+    Response = case_when(AVALC %in% c("PR", "CR") ~ 1, TRUE ~ 0),
+    SEX = factor(SEX, c("M", "F")),
+    RACE = factor(
+      RACE,
+      levels = c(
+        "AMERICAN INDIAN OR ALASKA NATIVE", "ASIAN", "BLACK OR AFRICAN AMERICAN",
+        "WHITE", "MULTIPLE", "NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER"
+      )
+    )
+  ) %>%
+  var_relabel(Response = "Response", SEX = "Sex", RACE = "Race")
+```
+
+## Multi-Variable Logistic Regression
+
+```{r variant1, test = list(result_v1 = "result")}
+model <- fit_logistic(
+  adrs,
+  variables = list(response = "Response", arm = "ARMCD", covariates = c("SEX", "AGE"))
+)
+conf_level <- 0.95
+df <- broom::tidy(model, conf_level = conf_level)
+
+# empty string flag
+df <- df_explicit_na(df, na_level = "_NA_")
+
+result <- basic_table() %>%
+  summarize_logistic(
+    conf_level = conf_level,
+    drop_and_remove_str = "_NA_"
+  ) %>%
+  append_topleft("Logistic regression") %>%
+  build_table(df = df)
+result
+```
+
+## Multi-Variable Logistic Regression <br/> with Interaction Term
+
+```{r variant2, test = list(result_v2 = "result")}
+model <- fit_logistic(
+  adrs,
+  variables = list(
+    response = "Response",
+    arm = "ARMCD",
+    covariates = c("SEX", "AGE"),
+    interaction = "SEX"
+  )
+)
+conf_level <- 0.95
+df <- broom::tidy(model, conf_level = conf_level)
+
+# empty string flag
+df <- df_explicit_na(df, na_level = "_NA_")
+
+result <- basic_table() %>%
+  summarize_logistic(
+    conf_level = conf_level,
+    drop_and_remove_str = "_NA_"
+  ) %>%
+  append_topleft("Logistic regression with interaction") %>%
+  build_table(df = df)
+result
+```
+
+## Multi-Variable Logistic Regression <br/> Specifying Covariates
+
+```{r variant3, test = list(result_v3 = "result")}
+model <- fit_logistic(
+  adrs,
+  variables = list(
+    response = "Response",
+    arm = "ARMCD",
+    covariates = c("SEX", "AGE", "RACE")
+  )
+)
+conf_level <- 0.95
+df <- broom::tidy(model, conf_level = conf_level)
+
+# empty string flag
+df <- df_explicit_na(df, na_level = "_NA_")
+
+result <- basic_table() %>%
+  summarize_logistic(
+    conf_level = conf_level,
+    drop_and_remove_str = "_NA_"
+  ) %>%
+  append_topleft("y ~ ARM + SEX + AGE + RACE") %>%
+  build_table(df = df)
+result
+```
+
+## Multi-Variable Logistic Regression Setting <br/> an Event, Alpha Level, and Level for Interaction
+
+```{r variant4, test = list(result_v4 = "result")}
+model <- fit_logistic(
+  adrs,
+  variables = list(
+    response = "Response",
+    arm = "ARMCD",
+    covariates = c("SEX", "AGE"),
+    interaction = "AGE"
+  ),
+  response_definition = "1 - response"
+)
+conf_level <- 0.9
+df <- broom::tidy(model, conf_level = conf_level, at = c(30, 50))
+
+# empty string flag
+df <- df_explicit_na(df, na_level = "_NA_")
+
+result <- basic_table() %>%
+  summarize_logistic(
+    conf_level = conf_level,
+    drop_and_remove_str = "_NA_"
+  ) %>%
+  append_topleft("Estimations at age 30 and 50") %>%
+  build_table(df = df)
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| screenshot.opts = list(delay = 16)
+
+library(teal.modules.clinical)
+library(scda)
+library(dplyr)
+
+ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+ADRS <- synthetic_cdisc_dataset("latest", "adrs") %>%
+  filter(PARAMCD %in% c("BESRSPI", "INVET"))
+
+arm_ref_comp <- list(
+  ACTARMCD = list(
+    ref = "ARM B",
+    comp = c("ARM A", "ARM C")
+  ),
+  ARM = list(
+    ref = "B: Placebo",
+    comp = c("A: Drug X", "C: Combination")
+  )
+)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", ADSL, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
+    cdisc_dataset(
+      "ADRS", ADRS,
+      code = 'ADRS <- synthetic_cdisc_dataset("latest", "adrs") %>% filter(PARAMCD %in% c("BESRSPI", "INVET"))'
+    ),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_t_logistic(
+      label = "Logistic Regression",
+      dataname = "ADRS",
+      arm_var = choices_selected(
+        choices = variable_choices(ADRS, c("ARM", "ARMCD")),
+        selected = "ARM"
+      ),
+      arm_ref_comp = arm_ref_comp,
+      paramcd = choices_selected(
+        choices = value_choices(ADRS, "PARAMCD", "PARAM"),
+        selected = "BESRSPI"
+      ),
+      cov_var = choices_selected(
+        choices = c("SEX", "AGE", "BMRKR1", "BMRKR2"),
+        selected = "SEX"
+      )
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::

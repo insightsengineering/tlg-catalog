@@ -1,0 +1,241 @@
+---
+title: ADAT04A
+subtitle: Baseline Prevalence and Incidence of Treatment Emergent NAbs
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(dplyr)
+library(scda)
+library(tibble)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adab <- synthetic_cdisc_dataset("latest", "adab")
+
+combodf <- tribble(
+  ~valname, ~label, ~levelcombo, ~exargs,
+  "all_X", "All Drug X", c("A: Drug X", "C: Combination"), list(),
+  "all_pt", "All Patients", c("A: Drug X", "B: Placebo", "C: Combination"), list()
+)
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+
+# Baseline Pts
+adab_b <- df_explicit_na(adab) %>%
+  filter(
+    ABLFL == "Y",
+    ADABLPFL == "Y",
+    PARAM %in% c(
+      "ADA interpreted per sample result",
+      "NAB interpreted per sample result"
+    )
+  ) %>%
+  select(-PARAMCD, -AVALC, -AVALU) %>%
+  tidyr::pivot_wider(
+    names_from = PARAM,
+    values_from = AVAL
+  ) %>%
+  mutate(
+    across(
+      any_of(c(
+        "ADA interpreted per sample result",
+        "NAB interpreted per sample result"
+      )),
+      as.logical
+    )
+  ) %>%
+  mutate(
+    ADABLPFL = ADABLPFL == "Y",
+    PADABLPFL = if (exists("ADA interpreted per sample result", where = .)) `ADA interpreted per sample result` == "TRUE" else FALSE,
+    PNABBLFL = if (exists("NAB interpreted per sample result", where = .)) `NAB interpreted per sample result` == "TRUE" else FALSE,
+    NNABBLFL = if (exists("NAB interpreted per sample result", where = .)) `NAB interpreted per sample result` == "FALSE" else FALSE
+  ) %>%
+  var_relabel(
+    ADABLPFL = "Baseline evaluable patients for ADA",
+    PADABLPFL = "Patients with a positive ADA sample at baseline",
+    PNABBLFL = "Patients with a positive NAb sample at baseline",
+    NNABBLFL = "Patient with no positive NAb samples at baseline"
+  )
+
+# Post Baseline Treatment Enhanced NAb positive Pts
+adab_pb <- df_explicit_na(adab) %>%
+  filter(
+    ABLFL != "Y",
+    ADPBLPFL == "Y",
+    PARAM %in% c(
+      "ADA interpreted per sample result",
+      "Treatment Emergent - Positive, Neutralizing Antibody",
+      "Treatment induced ADA, Neutralizing Antibody",
+      "Treatment enhanced ADA, Neutralizing Antibody",
+      "NAB interpreted per sample result",
+      "Treatment unaffected, Neutralizing Antibody"
+    )
+  ) %>%
+  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%
+  unique() %>%
+  tidyr::pivot_wider(
+    names_from = PARAM,
+    values_from = AVAL
+  ) %>%
+  mutate(
+    across(
+      any_of(c(
+        "ADA interpreted per sample result", "NAB interpreted per sample result",
+        "Treatment Emergent - Positive, Neutralizing Antibody",
+        "Treatment induced ADA, Neutralizing Antibody",
+        "Treatment enhanced ADA, Neutralizing Antibody",
+        "Treatment unaffected, Neutralizing Antibody"
+      )),
+      as.logical
+    )
+  ) %>%
+  mutate(
+    ADPBLPFL = ADPBLPFL == "Y",
+    ADAPFL = if (exists("ADA interpreted per sample result", where = .)) `ADA interpreted per sample result` == "TRUE" else FALSE,
+    TENABPFL = if (exists("Treatment Emergent - Positive, Neutralizing Antibody", where = .)) `Treatment Emergent - Positive, Neutralizing Antibody` == "TRUE" else FALSE,
+    TINPBFL = if (exists("Treatment induced ADA, Neutralizing Antibody", where = .)) `Treatment induced ADA, Neutralizing Antibody` == "TRUE" else FALSE,
+    TENPBFL = if (exists("Treatment enhanced ADA, Neutralizing Antibody", where = .)) `Treatment enhanced ADA, Neutralizing Antibody` == "TRUE" else FALSE,
+    NABNFL = if (exists("NAB interpreted per sample result", where = .)) `NAB interpreted per sample result` == "FALSE" else FALSE,
+    TUNPBFL = if (exists("Treatment unaffected, Neutralizing Antibody", where = .)) `Treatment unaffected, Neutralizing Antibody` == "TRUE" else FALSE
+  ) %>%
+  var_relabel(
+    ADPBLPFL = "Post-baseline evaluable patients for ADA",
+    ADAPFL = "Patients positive for ADA",
+    TENABPFL = "Patients positive for Treatment Emergent NAb",
+    TINPBFL = "Treatment-induced NAb",
+    TENPBFL = "Treatment-enhanced NAb",
+    NABNFL = "Patients negative for NAb",
+    TUNPBFL = "Treatment unaffected"
+  )
+```
+
+## Summary of Treatment Emergent NAbs
+
+```{r variant1, test = list(result_v1 = "result")}
+# Layout for Baseline Prevalence of NAbs
+lyt_bl <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(
+    "ACTARM",
+    split_fun = add_combo_levels(combodf)
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = formatters::var_labels(adab_b[, c("ADABLPFL", "PADABLPFL")]),
+    table_names = "t1",
+    .stats = "count",
+    var_labels = "Baseline Prevalence of NAbs",
+    show_labels = "visible"
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = var_labels(adab_b[, "PNABBLFL"]),
+    table_names = "t2",
+    .indent_mods = 1L
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = var_labels(adab_b[, "NNABBLFL"]),
+    .stats = "count",
+    table_names = "t3",
+    .indent_mods = 1L,
+    show_labels = "hidden"
+  )
+
+# Layout for incidence of NAbs
+lyt_pb <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(
+    "ACTARM",
+    split_fun = add_combo_levels(combodf)
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = formatters::var_labels(adab_pb[, c("ADPBLPFL", "ADAPFL")]),
+    .stats = "count",
+    var_labels = "Incidence of Treatment Emergent NAbs",
+    show_labels = "visible",
+    table_names = "tb1"
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = formatters::var_labels(data.frame(TENABPFL = adab_pb[, "TENABPFL"])),
+    table_names = "tb2",
+    .indent_mods = 1L,
+    show_labels = "hidden"
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = formatters::var_labels(adab_pb[, c("TINPBFL", "TENPBFL")]),
+    .stats = "count",
+    table_names = "tb3",
+    .indent_mods = 1L,
+    show_labels = "hidden"
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = formatters::var_labels(data.frame(NABNFL = adab_pb[, "NABNFL"])),
+    table_names = "tb4",
+    .indent_mods = 1L,
+    show_labels = "hidden"
+  ) %>%
+  count_patients_with_flags(
+    "USUBJID",
+    flag_variables = formatters::var_labels(data.frame(TUNPBFL = adab_pb[, "TUNPBFL"])),
+    .stats = "count",
+    table_names = "tb5",
+    .indent_mods = 1L,
+    show_labels = "hidden"
+  )
+
+result_1 <- build_table(lyt_bl, df = adab_b, alt_counts_df = adsl)
+result_2 <- build_table(lyt_pb, df = adab_pb, alt_counts_df = adsl)
+
+# Combine tables
+result <- rbind(result_1, result_2)
+
+# Change the column order
+result <- cbind_rtables(result[, 1], result[, 3]) %>%
+  cbind_rtables(result[, 4]) %>%
+  cbind_rtables(result[, 2]) %>%
+  cbind_rtables(result[, 5])
+
+main_title(result) <- paste(
+  "Baseline Prevalence and Incidence of Treatment Emergent NAbs"
+)
+subtitles(result) <- paste("Protocol:", unique(adab$PARCAT1)[1])
+main_footer(result) <- paste(
+  "NAb = Neutralizing Antibodies ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies) Baseline evaluable patient for ADA = a patient with an ADA assay result from a baseline sample(s)
+  Baseline evaluable patient for NAb = a patient with a NAb assay result from a baseline sample(s)
+  Post-baseline evaluable patient for ADA = a patient with an ADA assay result from at least one post-baseline sample
+  Post-baseline evaluable patient for NAb = a patient with a NAb assay result from at least one post-baseline sample
+  Number of patients positive for ADA = the number of post-baseline evaluable patients for ADA determined to have Treatment Emergent ADA during the study period.
+Number of patients positive for Treatment Emergent NAb = the number (and percentage) of post-baseline evaluable patients for ADA determined to have treatment-induced NAb or treatment-enhanced NAb during the study period.
+Treatment-induced = a patient with negative or missing baseline result(s) and at least one positive post-baseline result. Treatment-enhanced = a patient with positive result at baseline who has one or more post-baseline titer results that are at least 0.60 t.u. greater than the baseline titer result.
+Number of patients negative for Treatment Emergent NAb = number of post-baseline evaluable patients with negative or missing baseline NAb result(s) and all negative post-baseline NAb results, or a patient who is NAb treatment unaffected.
+Treatment unaffected = A post-baseline evaluable patient with a positive result at baseline and (a) where all post-baseline titer results are less than 0.60 t.u. greater than the baseline titer result, OR (b) where all post-baseline results are negative or missing. For any positive sample with titer result less than the minimum reportable titer or any positive sample where a titer cannot be obtained, titer value is imputed as equal to the minimum reportable titer."
+)
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| code-fold: show
+
+# In progress
+```
+
+{{< include ../../si.qmd >}}
+
+:::

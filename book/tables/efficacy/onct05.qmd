@@ -1,0 +1,202 @@
+---
+title: ONCT05
+subtitle: Objective Response Rate by Subgroup
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(dplyr)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adrs <- synthetic_cdisc_dataset("latest", "adrs")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adrs <- df_explicit_na(adrs)
+
+adsl <- adsl %>%
+  select(STUDYID, USUBJID, ARM, SEX, RACE, STRATA1, STRATA2)
+
+adrs <- adrs %>%
+  filter(PARAMCD == "INVET") %>%
+  select(STUDYID, USUBJID, PARAMCD, AVALC)
+
+anl <- inner_join(adsl, adrs, by = c("STUDYID", "USUBJID"))
+anl_labels <- var_labels(anl)
+
+anl <- anl %>%
+  filter(ARM %in% c("A: Drug X", "B: Placebo")) %>%
+  mutate(
+    # Reorder levels of factor to make the placebo group the reference arm.
+    ARM = relevel(ARM, ref = "B: Placebo") %>%
+      droplevels()
+  ) %>%
+  droplevels() %>%
+  mutate(rsp = AVALC %in% c("CR", "PR"))
+
+var_labels(anl) <- c(anl_labels, rsp = "Is Response")
+```
+
+## Standard Table
+
+```{r variant1, test = list(result_v1 = "result")}
+df <- extract_rsp_subgroups(
+  variables = list(
+    rsp = "rsp",
+    arm = "ARM",
+    subgroups = c("SEX", "STRATA2")
+  ),
+  data = anl
+)
+
+result <- basic_table() %>%
+  tabulate_rsp_subgroups(df, vars = c("n_tot", "n", "n_rsp", "prop", "or", "ci"))
+
+result
+```
+
+## Table Specifying <br/> Class Variables
+
+Here, the levels of subgroup variables `SEX` and `STRATA1` are reordered.
+`STRATA1` is reordered by frequency.
+
+```{r variant2, test = list(result_v2 = "result")}
+anl_reorder <- anl %>%
+  mutate(
+    SEX = forcats::fct_relevel(SEX, "M", "F"),
+    STRATA1 = forcats::fct_infreq(STRATA1)
+  )
+
+df <- extract_rsp_subgroups(
+  variables = list(rsp = "rsp", arm = "ARM", subgroups = c("SEX", "STRATA1")),
+  data = anl_reorder
+)
+
+result <- basic_table() %>%
+  tabulate_rsp_subgroups(df, vars = c("n_tot", "n", "n_rsp", "prop", "or", "ci"))
+
+result
+```
+
+## Table Selecting Columns <br/> and Changing the Alpha Level
+
+```{r variant3, test = list(result_v3 = "result")}
+df <- extract_rsp_subgroups(
+  variables = list(
+    rsp = "rsp",
+    arm = "ARM",
+    subgroups = c("SEX", "STRATA2")
+  ),
+  data = anl,
+  conf_level = 0.9,
+  method = "chisq"
+)
+
+result <- basic_table() %>%
+  tabulate_rsp_subgroups(df, vars = c("n_tot", "n", "n_rsp", "prop", "or", "ci", "pval"))
+
+result
+```
+
+## Table Setting Values <br/> Indicating Response
+
+Create a new variable `new_rsp` in `anl` data that uses new criteria for responder.
+
+```{r variant4, test = list(result_v4 = "result")}
+anl_new <- anl %>%
+  mutate(new_rsp = AVALC == "CR")
+
+df <- extract_rsp_subgroups(
+  variables = list(
+    rsp = "new_rsp",
+    arm = "ARM",
+    subgroups = c("SEX", "STRATA2")
+  ),
+  data = anl_new
+)
+
+result <- basic_table() %>%
+  tabulate_rsp_subgroups(df, vars = c("n_tot", "n", "n_rsp", "prop", "or", "ci"))
+
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## Teal
+
+```{r teal, message=FALSE, opts.label='skip_if_testing'}
+#| screenshot.opts = list(delay = 24)
+
+# Use table, embedded in response forest plot module.
+library(teal.modules.clinical)
+library(dplyr)
+library(forcats)
+library(scda)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adrs <- synthetic_cdisc_dataset("latest", "adrs")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adrs <- df_explicit_na(adrs)
+
+arm_ref_comp <- list(
+  ARM = list(
+    ref = "B: Placebo",
+    comp = c("A: Drug X", "C: Combination")
+  ),
+  ARMCD = list(
+    ref = "ARM B",
+    comp = c("ARM A", "ARM C")
+  )
+)
+
+app <- init(
+  data = cdisc_data(
+    cdisc_dataset("ADSL", adsl, code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))'),
+    cdisc_dataset("ADRS", adrs, code = 'ADRS <- df_explicit_na(synthetic_cdisc_dataset("latest", "adrs"))'),
+    check = TRUE
+  ),
+  modules = modules(
+    tm_g_forest_rsp(
+      label = "Forest Response",
+      dataname = "ADRS",
+      arm_var = choices_selected(
+        variable_choices(adsl, c("ARM", "ARMCD")),
+        "ARMCD"
+      ),
+      arm_ref_comp = arm_ref_comp,
+      paramcd = choices_selected(
+        value_choices(adrs, "PARAMCD", "PARAM"),
+        "BESRSPI"
+      ),
+      subgroup_var = choices_selected(
+        variable_choices(adsl, names(adsl)),
+        c("SEX")
+      ),
+      strata_var = choices_selected(
+        variable_choices(adsl, c("STRATA1", "STRATA2")),
+        "STRATA2"
+      ),
+      plot_height = c(600L, 200L, 2000L)
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../si.qmd >}}
+
+:::
