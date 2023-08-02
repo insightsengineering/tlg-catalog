@@ -180,8 +180,8 @@
         p-value (log-rank)                                   0.9998            0.1541    
         p-value (wald)                                       0.9998            0.1552    
         p-value (likelihood)                                 0.9998            0.1543    
-        Hazard Ratio                                          1.00              1.29     
-          95% CI                                          (0.69, 1.44)      (0.91, 1.83) 
+          Hazard Ratio                                        1.00              1.29     
+            95% CI                                        (0.69, 1.44)      (0.91, 1.83) 
       12 Months                                                                          
         Patients remaining at risk            49               48                37      
         Event Free Rate (%)                 56.72             56.72            47.73     
