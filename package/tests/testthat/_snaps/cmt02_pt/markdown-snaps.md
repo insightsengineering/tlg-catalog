@@ -3,8 +3,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Standardized Medication Name                            A: Drug X    B: Placebo    C: Combination   All Patients
-                                                               (N=134)       (N=134)        (N=132)         (N=400)   
+                                                              A: Drug X    B: Placebo    C: Combination   All Patients
+      Other Treatment                                          (N=134)       (N=134)        (N=132)         (N=400)   
       ————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       Total number of patients with at least one treatment   117 (87.3%)   116 (86.6%)    116 (87.9%)     349 (87.2%) 
       Total number of treatments                                 415           414            460             1289    

@@ -23,6 +23,7 @@ adeg <- synthetic_cdisc_dataset("latest", "adeg")
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
 adeg <- df_explicit_na(adeg)
+
 adeg_labels <- var_labels(adeg)
 adeg_f <- adeg %>%
   filter(
@@ -64,12 +65,11 @@ adeg_f <- adeg %>%
         "<Missing>"
       )
     )
+  ) %>%
+  var_relabel(
+    AVALCAT1 = "Value at Visit",
+    CHGCAT1 = "Change from Baseline"
   )
-var_labels(adeg_f) <- c(
-  adeg_labels,
-  "AVALCAT1" = "Value at Visit",
-  "CHGCAT1" = "Change from Baseline"
-)
 ```
 
 ## Standard Table
@@ -77,24 +77,29 @@ var_labels(adeg_f) <- c(
 ```{r variant1, test = list(result_v1 = "result")}
 split_fun <- drop_split_levels
 
-result <- basic_table(show_colcounts = TRUE) %>%
+lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ARM") %>%
+  split_rows_by(
+    "PARAM",
+    split_label = obj_label(adeg_f$PARAM),
+    split_fun = split_fun,
+    label_pos = "topleft"
+  ) %>%
   split_rows_by(
     "AVISIT",
     split_label = obj_label(adeg_f$AVISIT),
     split_fun = split_fun,
-    child_labels = "default",
     label_pos = "topleft"
   ) %>%
   summarize_vars(
     vars = c("AVALCAT1", "CHGCAT1"),
     var_labels = c("Value at Visit", "Change from Baseline")
   ) %>%
-  append_topleft("  Category") %>%
-  build_table(
-    df = adeg_f,
-    alt_counts_df = adsl
-  )
+  append_topleft("    Category")
+
+result <- build_table(lyt = lyt, df = adeg_f, alt_counts_df = adsl) %>%
+  prune_table()
+
 result
 ```
 
@@ -247,5 +252,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../si.qmd >}}
-
 :::
