@@ -19,9 +19,16 @@ library(dplyr)
 
 adsl <- synthetic_cdisc_dataset("latest", "adsl")
 addv <- synthetic_cdisc_dataset("latest", "addv")
+
 adsl <- df_explicit_na(adsl)
 addv <- df_explicit_na(addv)
-addv_pan <- addv %>% filter(AEPRELFL == "Y" & DVCAT == "MAJOR")
+
+addv_pan <- addv %>%
+  filter(AEPRELFL == "Y" & DVCAT == "MAJOR") %>%
+  var_relabel(
+    DVREAS = "Primary Reason",
+    DVTERM = "Description"
+  )
 ```
 
 ## Standard Table
@@ -46,7 +53,8 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   summarize_num_patients(
     var = "USUBJID",
-    .stats = c("unique_count")
+    .stats = c("unique"),
+    .labels = "Site action due to epidemic/pandemic"
   ) %>%
   count_occurrences(vars = "DVTERM") %>%
   append_varlabels(addv_pan, "DVTERM", indent = 1L)
@@ -66,5 +74,4 @@ result
 ```
 
 {{< include ../../si.qmd >}}
-
 :::

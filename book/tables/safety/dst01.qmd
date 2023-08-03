@@ -19,7 +19,26 @@ library(dplyr)
 
 set.seed(1, kind = "Mersenne-Twister")
 adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adsl <- df_explicit_na(adsl)
+
+# reorder EOSSTT factor levels so DISCONTINUED is the last level
+adsl <- df_explicit_na(adsl) %>%
+  mutate(EOSSTT = factor(EOSSTT, levels = c("COMPLETED", "ONGOING", "DISCONTINUED")))
+
+adsl_gp_added <- adsl %>%
+  mutate(DCSREASGP = case_when(
+    DCSREAS %in% c("ADVERSE EVENT", "DEATH") ~ "Safety",
+    (DCSREAS != "<Missing>" & !DCSREAS %in% c("ADVERSE EVENT", "DEATH")) ~ "Non-Safety",
+    DCSREAS == "<Missing>" ~ "<Missing>"
+  ) %>% factor(levels = c("Safety", "Non-Safety", "<Missing>")))
+
+adsl_eotstt_added <- adsl_gp_added %>%
+  mutate(
+    EOTSTT = sample(
+      c("ONGOING", "COMPLETED", "DISCONTINUED"),
+      size = nrow(adsl),
+      replace = TRUE
+    ) %>% factor(levels = c("COMPLETED", "ONGOING", "DISCONTINUED"))
+  )
 ```
 
 ## Standard Table
@@ -27,22 +46,20 @@ adsl <- df_explicit_na(adsl)
 ```{r variant1, test = list(result_v1 = "result1")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(
-    "ARM",
+    "ACTARM",
     split_fun = add_overall_level("All Patients", first = FALSE)
   ) %>%
-  count_values("EOSSTT",
-    values = "COMPLETED",
-    .labels = c(count_fraction = "Completed Study")
-  ) %>%
-  split_rows_by(
+  count_occurrences(
     "EOSSTT",
-    split_fun = keep_split_levels("DISCONTINUED")
+    .stats = "count_fraction",
+    show_labels = "hidden"
   ) %>%
-  summarize_row_groups(label_fstr = "Discontinued Study") %>%
   summarize_vars(
     "DCSREAS",
     .stats = "count_fraction",
-    denom = "N_col"
+    denom = "N_col",
+    show_labels = "hidden",
+    .indent_mods = c(count_fraction = 1L)
   )
 
 result1 <- build_table(lyt = lyt, df = adsl)
@@ -52,80 +69,42 @@ result1
 ## Table with Grouping of Reasons
 
 ```{r variant2, test = list(result_v2 = "result2")}
-adsl_gp_added <- adsl %>%
-  mutate(DCSREASGP = case_when(
-    DCSREAS %in% c("ADVERSE EVENT", "DEATH") ~ "Safety",
-    (DCSREAS != "<Missing>" & !DCSREAS %in% c("ADVERSE EVENT", "DEATH")) ~ "Non-Safety",
-    DCSREAS == "<Missing>" ~ "<Missing>"
-  ) %>% as.factor())
-
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(
-    "ARM",
+    "ACTARM",
     split_fun = add_overall_level("All Patients", first = FALSE)
   ) %>%
-  count_values("EOSSTT",
-    values = "COMPLETED",
-    .labels = c(count_fraction = "Completed Study")
-  ) %>%
-  split_rows_by(
+  count_occurrences(
     "EOSSTT",
-    split_fun = keep_split_levels("DISCONTINUED")
+    .stats = "count_fraction",
+    show_labels = "hidden"
   ) %>%
-  summarize_row_groups(label_fstr = "Discontinued Study") %>%
-  split_rows_by(
-    "DCSREASGP",
-    split_fun = reorder_split_levels(neworder = c("Safety", "Non-Safety"))
-  ) %>%
-  summarize_row_groups() %>%
+  split_rows_by("DCSREASGP", indent_mod = 1L) %>%
   summarize_vars(
     "DCSREAS",
     .stats = "count_fraction",
-    denom = "N_col"
+    denom = "N_col",
+    show_labels = "hidden"
   )
 
 tbl <- build_table(lyt = lyt, df = adsl_gp_added)
 result2 <- prune_table(tbl) # remove rows containing all zeros
+
 result2
 ```
 
 ## Table Adding Optional Rows
 
 ```{r variant3, test = list(result_v3 = "result3")}
-adsl_eotstt_added <- adsl_gp_added %>%
-  mutate(
-    EOTSTT = sample(
-      c("ONGOING", "COMPLETED", "DISCONTINUED"),
-      size = nrow(adsl),
-      replace = TRUE
-    ) %>% as.factor()
-  ) %>%
-  var_relabel(
-    EOTSTT = "End Of Treatment Status"
-  )
-
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(
-    "ARM",
+    "ACTARM",
     split_fun = add_overall_level("All Patients", first = FALSE)
   ) %>%
-  count_values(
+  count_occurrences(
     "EOTSTT",
-    values = "COMPLETED",
-    .labels = c(count_fraction = "Completed Treatment"),
-    table_names = c("COMPLETED")
-  ) %>%
-  count_values(
-    "EOTSTT",
-    values = "ONGOING",
-    .labels = c(count_fraction = "Ongoing Treatment"),
-    table_names = c("ONGOING")
-  ) %>%
-  count_values(
-    "EOTSTT",
-    values = "DISCONTINUED",
-    .labels = c(count_fraction = "Discontinued Treatment"),
-    table_names = c("DISCONTINUED")
+    .stats = "count_fraction",
+    show_labels = "hidden"
   )
 
 tbl <- build_table(lyt = lyt, df = adsl_eotstt_added)
@@ -134,6 +113,7 @@ tbl <- prune_table(tbl) # remove rows containing all zeros
 # Combine tables
 col_info(result2) <- col_info(tbl)
 result3 <- rbind(result2, tbl)
+
 result3
 ```
 
@@ -214,5 +194,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../si.qmd >}}
-
 :::
