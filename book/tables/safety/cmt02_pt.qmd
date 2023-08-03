@@ -24,10 +24,8 @@ adcm$CMSEQ <- as.factor(adcm$CMSEQ)
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 # If you want your missing levels to show as "No Coding Available", please use
-# adsl <- df_explicit_na(adsl, na_level = "No Coding Available")
-# adcm <- df_explicit_na(adcm, na_level = "No Coding Available")
-adsl <- df_explicit_na(adsl)
-adcm <- df_explicit_na(adcm)
+adsl <- df_explicit_na(adsl, na_level = "No Coding Available")
+adcm <- df_explicit_na(adcm, na_level = "No Coding Available")
 
 # Keep only safety-evaluable patients and concomitant medications
 adsl <- adsl %>%
@@ -43,7 +41,7 @@ adcm <- adcm %>% filter(ATIREL == "CONCOMITANT")
 split_fun <- drop_split_levels
 
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by("ARM") %>%
+  split_cols_by("ACTARM") %>%
   add_overall_col("All Patients") %>%
   analyze_num_patients(
     vars = "USUBJID",
@@ -56,13 +54,9 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     show_labels = "hidden"
   ) %>%
   count_occurrences(vars = "CMDECOD") %>%
-  append_varlabels(adcm, "CMDECOD", indent = 0)
+  append_topleft(paste("\nOther Treatment"))
 
-result <- build_table(
-  lyt = lyt,
-  df = adcm,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt = lyt, df = adcm, alt_counts_df = adsl) %>%
   sort_at_path(
     path = c("CMDECOD"),
     scorefun = score_occurrences

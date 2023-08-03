@@ -4,7 +4,7 @@
       print(data_snap[[i]])
     Output
       ATC Level 2 Text                                          A: Drug X    B: Placebo    C: Combination
-        Standardized Medication Name                             (N=134)       (N=134)        (N=132)    
+        Other Treatment                                          (N=134)       (N=134)        (N=132)    
       ———————————————————————————————————————————————————————————————————————————————————————————————————
       Total number of patients with at least one treatment     117 (87.3%)   116 (86.6%)    116 (87.9%)  
       Total number of treatments                                   415           414            460      
@@ -51,7 +51,7 @@
       print(data_snap[[i]])
     Output
       ATC Level 1 Text                                          A: Drug X    B: Placebo    C: Combination
-        Standardized Medication Name                             (N=134)       (N=134)        (N=132)    
+        Other Treatment                                          (N=134)       (N=134)        (N=132)    
       ———————————————————————————————————————————————————————————————————————————————————————————————————
       Total number of patients with at least one treatment     117 (87.3%)   116 (86.6%)    116 (87.9%)  
       Total number of treatments                                   415           414            460      
@@ -98,7 +98,7 @@
       print(data_snap[[i]])
     Output
       ATC Level 2 Text                                          A: Drug X    B: Placebo    C: Combination
-        Standardized Medication Name                             (N=134)       (N=134)        (N=132)    
+        Other Treatment                                          (N=134)       (N=134)        (N=132)    
       ———————————————————————————————————————————————————————————————————————————————————————————————————
       Total number of patients with at least one treatment     117 (87.3%)   116 (86.6%)    116 (87.9%)  
       Total number of treatments                                   415           414            460      
@@ -145,7 +145,7 @@
       print(data_snap[[i]])
     Output
       ATC Level 2 Text                                          A: Drug X    B: Placebo    C: Combination
-        Standardized Medication Name                             (N=134)       (N=134)        (N=132)    
+        Other Treatment                                          (N=134)       (N=134)        (N=132)    
       ———————————————————————————————————————————————————————————————————————————————————————————————————
       Total number of patients with at least one treatment     117 (87.3%)   116 (86.6%)    116 (87.9%)  
       Total number of treatments                                   415           414            460      

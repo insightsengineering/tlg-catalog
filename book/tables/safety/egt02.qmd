@@ -24,44 +24,32 @@ adeg <- synthetic_cdisc_dataset("latest", "adeg")
 adsl <- df_explicit_na(adsl)
 adeg <- df_explicit_na(adeg)
 
-adeg <- adeg %>%
-  mutate(
-    ONTRTFL = ifelse(AVISIT %in% c("SCREENING", "BASELINE"), "", "Y")
-  ) %>%
-  var_relabel(
-    ONTRTFL = "On Treatment Record Flag"
-  )
-
 # Note:  We keep only post-baseline for analysis.
 adeg_f <- adeg %>%
   filter(ONTRTFL == "Y") %>%
-  filter(PARAM %in% c("Heart Rate", "QT Duration", "RR Duration"))
-
-map <- h_map_for_count_abnormal(
-  df = adeg_f,
-  variables = list(anl = "ANRIND", split_rows = "PARAM", range_low = "ANRLO", range_high = "ANRHI"),
-  abnormal = list(low = "LOW", high = "HIGH"),
-  method = "range",
-  na_level = "<Missing>"
-)
+  filter(PARAM %in% c("Heart Rate", "QT Duration", "RR Duration")) %>%
+  filter(ANRIND != "<Missing>") %>%
+  var_relabel(
+    PARAM = "Assessment",
+    ANRIND = "Abnormality"
+  )
 ```
 
 ## ECG Abnormalities Regardless <br/> of Abnormality at Baseline
 
 ```{r variant1, test = list(result_v1 = "result")}
-split_fun <- trim_levels_to_map(map = map)
+split_fun <- drop_split_levels
 
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "PARAM",
     split_fun = split_fun,
     label_pos = "topleft",
     split_label = obj_label(adeg_f$PARAM)
   ) %>%
-  count_abnormal("ANRIND", abnormal = list(low = "LOW", high = "HIGH"), exclude_base_abn = FALSE) %>%
+  count_abnormal("ANRIND", abnormal = list(Low = "LOW", High = "HIGH"), exclude_base_abn = FALSE) %>%
   append_varlabels(adeg_f, "ANRIND", indent = 1L)
-
 
 result <- build_table(lyt = lyt, df = adeg_f, alt_counts_df = adsl)
 result
@@ -70,17 +58,17 @@ result
 ## ECG Abnormalities Among Subjects <br/> Without Abnormality at Baseline
 
 ```{r variant2, test = list(result_v2 = "result")}
-split_fun <- trim_levels_to_map(map = map)
+split_fun <- drop_split_levels
 
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "PARAM",
     split_fun = split_fun,
     label_pos = "topleft",
     split_label = obj_label(adeg_f$PARAM)
   ) %>%
-  count_abnormal("ANRIND", abnormal = list(low = "LOW", high = "HIGH"), exclude_base_abn = TRUE) %>%
+  count_abnormal("ANRIND", abnormal = list(Low = "LOW", High = "HIGH"), exclude_base_abn = TRUE) %>%
   append_varlabels(adeg_f, "ANRIND", indent = 1L)
 
 result <- build_table(lyt = lyt, df = adeg_f, alt_counts_df = adsl)
@@ -99,26 +87,12 @@ library(teal.modules.clinical)
 library(dplyr)
 
 adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adeg <- synthetic_cdisc_dataset("latest", "adeg") %>%
-  mutate(
-    ONTRTFL = ifelse(AVISIT %in% c("SCREENING", "BASELINE"), "", "Y")
-  ) %>%
-  var_relabel(
-    ONTRTFL = "On Treatment Record Flag"
-  )
+adeg <- synthetic_cdisc_dataset("latest", "adeg")
 
 app <- init(
   data = cdisc_data(
     cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
-    cdisc_dataset("ADEG", adeg,
-      code = 'ADEG <- synthetic_cdisc_dataset("latest", "adeg") %>%
-                mutate(
-                  ONTRTFL = ifelse(AVISIT %in% c("SCREENING", "BASELINE"), "", "Y")
-                ) %>%
-                var_relabel(
-                  ONTRTFL = "On Treatment Record Flag"
-                )'
-    ),
+    cdisc_dataset("ADEG", adeg, code = 'ADEG <- synthetic_cdisc_dataset("latest", "adeg")'),
     check = TRUE
   ),
   modules = modules(
@@ -139,7 +113,7 @@ app <- init(
         selected = "ANRIND",
         fixed = TRUE
       ),
-      abnormal = list(low = "LOW", high = "HIGH"),
+      abnormal = list(Low = "LOW", High = "HIGH"),
       exclude_base_abn = FALSE
     )
   )
@@ -149,5 +123,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../si.qmd >}}
-
 :::
