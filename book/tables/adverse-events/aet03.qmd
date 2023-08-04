@@ -22,34 +22,26 @@ adae <- synthetic_cdisc_dataset("latest", "adae")
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
-adae <- df_explicit_na(adae)
+adae <- df_explicit_na(adae) %>%
+  var_relabel(
+    AEBODSYS = "MedDRA System Organ Class",
+    AEDECOD = "MedDRA Preferred Term"
+  ) %>%
+  filter(ANL01FL == "Y")
 ```
 
 For illustrative purposes, we will create a new factor variable in ADAE, `ASEV`, with all intensity levels including `"LIFE THREATENING"`.
 
 ```{r pre-processing}
-adae <- adae %>%
-  mutate(
-    ASEV = as.character(AESEV)
-  )
-
+adae <- adae %>% mutate(ASEV = as.character(AESEV))
 adae$ASEV[1:15] <- "LIFE THREATENING"
-
-adae <- adae %>%
-  mutate(
-    ASEV = factor(
-      ASEV,
-      levels = c("MILD", "MODERATE", "SEVERE", "LIFE THREATENING")
-    )
-  )
+adae <- adae %>% mutate(ASEV = factor(ASEV, levels = c("MILD", "MODERATE", "SEVERE", "LIFE THREATENING")))
 ```
 
 ## Standard Table
 
 ```{r variant1, test = list(result_v1 = "result")}
-grade_groups <- list(
-  "- Any Intensity -" = c("MILD", "MODERATE", "SEVERE", "LIFE THREATENING")
-)
+grade_groups <- list("- Any Intensity -" = c("MILD", "MODERATE", "SEVERE", "LIFE THREATENING"))
 
 split_fun <- trim_levels_in_group
 

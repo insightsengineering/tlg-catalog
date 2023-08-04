@@ -22,7 +22,12 @@ adae <- synthetic_cdisc_dataset("latest", "adae")
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
-adae <- df_explicit_na(adae)
+adae <- df_explicit_na(adae) %>%
+  var_relabel(
+    AEBODSYS = "MedDRA System Organ Class",
+    AEDECOD = "MedDRA Preferred Term"
+  ) %>%
+  filter(ANL01FL == "Y")
 
 # Define the split function
 split_fun <- drop_split_levels
@@ -32,7 +37,7 @@ split_fun <- drop_split_levels
 
 ```{r variant1, test = list(result_v1 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   add_overall_col(label = "All Patients") %>%
   analyze_num_patients(
     vars = "USUBJID",
@@ -64,12 +69,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-)
-result
+result <- build_table(lyt, df = adae, alt_counts_df = adsl)
 ```
 
 The variable `result` corresponds to the adverse events table.
@@ -87,6 +87,7 @@ result <- result %>%
     path = c("AEBODSYS", "*", "AEDECOD"),
     scorefun = score_occurrences
   )
+
 result
 ```
 
@@ -94,7 +95,7 @@ result
 
 ```{r variant3, test = list(result_v3 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   add_overall_col(label = "All Patients") %>%
   analyze_num_patients(
     vars = "USUBJID",
@@ -129,12 +130,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     .indent_mods = c(count = -1L)
   )
 
-result <- build_table(
-  lyt,
-  df = adae,
-  # col_count = c(table(adsl$ARM), sum(table(adsl$ARM)))
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>% # col_count = c(table(adsl$ACTARM), sum(table(adsl$ACTARM)))
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS", "*", "AEDECOD"),
@@ -152,7 +148,7 @@ result
 
 ```{r variant4, test = list(result_v4 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   analyze_num_patients(
     vars = "USUBJID",
     .stats = c("unique", "nonunique"),
@@ -197,11 +193,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   count_occurrences(vars = "AEDECOD", .indent_mods = c(count_fraction = -1L)) %>%
   append_varlabels(adae, c("AEDECOD"), indent = 2L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -223,7 +215,7 @@ result
 
 ```{r variant5, test = list(result_v5 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   analyze_num_patients(
     vars = "USUBJID",
     .stats = c("unique", "nonunique"),
@@ -236,13 +228,10 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   count_occurrences(vars = "AEDECOD") %>%
   append_varlabels(adae, "AEDECOD")
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   sort_at_path(
-    path = c("AEDECOD"), scorefun = score_occurrences
+    path = c("AEDECOD"),
+    scorefun = score_occurrences
   )
 
 result
@@ -251,10 +240,10 @@ result
 ## Table with Fill-In of <br/> Treatment Groups
 
 ```{r variant6, test = list(result_v6 = "result")}
-adae_5 <- adae %>% dplyr::filter(ARM != "C: Combination")
+adae_5 <- adae %>% dplyr::filter(ACTARM != "C: Combination")
 
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   analyze_num_patients(
     vars = "USUBJID",
     .stats = c("unique", "nonunique"),
@@ -282,11 +271,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   count_occurrences(vars = "AEDECOD", .indent_mods = c(count_fraction = -1L)) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae_5,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae_5, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -304,7 +289,7 @@ result
 
 ```{r variant7, test = list(result_v7 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -325,11 +310,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -345,7 +326,7 @@ result <- trim_rows(result, criteria = criteria_fun)
 
 row_condition <- has_fraction_in_any_col(
   atleast = 0.05,
-  col_names = names(table(adsl$ARM))
+  col_names = names(table(adsl$ACTARM))
 )
 result <- prune_table(result, keep_rows(row_condition))
 
@@ -356,7 +337,7 @@ result
 
 ```{r variant8, test = list(result_v8 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -409,7 +390,7 @@ result <- trim_rows(result, criteria = criteria_fun)
 
 row_condition <- has_fraction_in_any_col(
   atleast = 0.05,
-  col_names = names(table(adsl$ARM))
+  col_names = names(table(adsl$ACTARM))
 )
 result <- prune_table(result, keep_rows(row_condition))
 
@@ -420,7 +401,7 @@ result
 
 ```{r variant9, test = list(result_v9 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -441,11 +422,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -461,7 +438,7 @@ result <- trim_rows(result, criteria = criteria_fun)
 
 row_condition <- has_fraction_in_any_col(
   atleast = 0.10,
-  col_names = names(table(adsl$ARM))
+  col_names = names(table(adsl$ACTARM))
 )
 result <- prune_table(result, keep_rows(row_condition))
 
@@ -472,7 +449,7 @@ result
 
 ```{r variant10, test = list(result_v10 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -493,11 +470,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -513,7 +486,7 @@ result <- trim_rows(result, criteria = criteria_fun)
 
 row_condition <- has_count_in_any_col(
   atleast = 3,
-  col_names = names(table(adsl$ARM))
+  col_names = names(table(adsl$ACTARM))
 )
 result <- prune_table(result, keep_rows(row_condition))
 
@@ -524,7 +497,7 @@ result
 
 ```{r variant11, test = list(result_v11 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -545,11 +518,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -565,9 +534,10 @@ result <- trim_rows(result, criteria = criteria_fun)
 
 row_condition <- has_fractions_difference(
   atleast = 0.05,
-  col_names = levels(adsl$ARM)
+  col_names = levels(adsl$ACTARM)
 )
 result <- prune_table(result, keep_rows(row_condition))
+
 result
 ```
 
@@ -575,7 +545,7 @@ result
 
 ```{r variant12, test = list(result_v12 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -595,11 +565,8 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     .indent_mods = c(count_fraction = 1L)
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -609,13 +576,16 @@ result <- build_table(
     path = c("AEBODSYS", "*", "AEDECOD"),
     scorefun = score_occurrences
   )
+
 criteria_fun <- function(tr) is(tr, "ContentRow")
 result <- trim_rows(result, criteria = criteria_fun)
+
 row_condition <- has_fraction_in_cols(
   atleast = 0.05,
   col_names = c("B: Placebo")
 )
 result <- prune_table(result, keep_rows(row_condition))
+
 result
 ```
 
@@ -623,7 +593,7 @@ result
 
 ```{r variant13, test = list(result_v13 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by(var = "ARM") %>%
+  split_cols_by(var = "ACTARM") %>%
   split_rows_by(
     "AEBODSYS",
     child_labels = "visible",
@@ -644,11 +614,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
-result <- build_table(
-  lyt,
-  df = adae,
-  alt_counts_df = adsl
-) %>%
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS"),
@@ -665,8 +631,8 @@ result <- trim_rows(result, criteria = criteria_fun)
 row_condition1 <- has_fractions_difference(atleast = 0.05, col_names = c("A: Drug X", "B: Placebo"))
 row_condition2 <- has_fractions_difference(atleast = 0.05, col_names = c("A: Drug X", "C: Combination"))
 row_condition <- row_condition1 | row_condition2
-
 result <- prune_table(result, keep_rows(row_condition))
+
 result
 ```
 
