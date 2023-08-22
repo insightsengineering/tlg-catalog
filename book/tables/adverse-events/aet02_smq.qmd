@@ -116,7 +116,9 @@ result
 ## Table with Customized Queries
 
 ```{r variant2, test = list(result_v2 = "result")}
-criteria_fun <- function(tr) !is(tr, "ContentRow") && all_zero_or_na(tr)
+criteria_fun <- function(tr) {
+  !is(tr, "ContentRow") && all_zero_or_na(tr) && !grepl("Total number of", obj_label(tr))
+}
 
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ACTARMCD") %>%
@@ -135,27 +137,32 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     label_pos = "topleft",
     split_label = "Standardized MedDRA Query"
   ) %>%
-  summarize_num_patients(
+  analyze_num_patients(
     var = "USUBJID",
     .stats = c("unique", "nonunique"),
     .labels = c(
       unique = "Total number of patients with at least one adverse event",
       nonunique = "Total number of events"
-    )
+    ),
+    show_labels = "hidden"
   ) %>%
   count_occurrences(
     vars = "AEDECOD",
-    .indent_mods = -1L,
     drop = FALSE
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
+
+score_ae_pts <- function(tt) {
+  count_vals <- cell_values(tree_children(tt)[["USUBJID"]])[[1]]
+  sum(matrix(unlist(count_vals), nrow = length(count_vals), byrow = TRUE)[, 1])
+}
 
 result <- build_table(
   lyt,
   df = adae_smq_all,
   alt_counts_df = adsl
 ) %>%
-  sort_at_path(path = c("SMQ"), scorefun = cont_n_allcols) %>%
+  sort_at_path(path = c("SMQ"), scorefun = score_ae_pts) %>%
   sort_at_path(path = c("SMQ", "*", "AEDECOD"), scorefun = score_occurrences, na.pos = "last") %>%
   trim_rows(criteria = criteria_fun)
 
