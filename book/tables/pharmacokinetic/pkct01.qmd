@@ -19,6 +19,16 @@ library(tern)
 
 adpc <- synthetic_cdisc_dataset("latest", "adpc")
 
+# Setting up the data
+adpc_1 <- adpc %>%
+  mutate(
+    NFRLT = as.factor(NFRLT),
+    AVALCAT1 = as.factor(AVALCAT1)
+  ) %>%
+  filter(ACTARM == "A: Drug X", PARAM == "Plasma Drug X") %>%
+  mutate(ACTARM = factor(ACTARM, levels = c("A: Drug X"))) %>%
+  select(NFRLT, ACTARM, VISIT, AVAL, PARAM, AVALCAT1)
+
 # Helper function
 threesigfmt <- function(x, ...) {
   as.character(signif(x, 3))
@@ -28,16 +38,6 @@ threesigfmt <- function(x, ...) {
 ## Standard Table (Stats in Columns)
 
 ```{r variant1, test = list(result_v1 = "result")}
-# Setting up the data
-adpc_1 <- adpc %>%
-  mutate(
-    NFRLT = as.factor(NFRLT),
-    AVALCAT1 = as.factor(AVALCAT1)
-  ) %>%
-  filter(ACTARM %in% c("A: Drug X")) %>%
-  mutate(ACTARM = factor(ACTARM, levels = c("A: Drug X"))) %>%
-  select(NFRLT, ACTARM, VISIT, AVAL, PARAM, AVALCAT1)
-
 # Row structure
 l_rows <- basic_table() %>%
   split_rows_by(
@@ -53,7 +53,8 @@ l_rows <- basic_table() %>%
   split_rows_by(
     var = "NFRLT",
     split_label = "Norminal Time from First Dose",
-    label_pos = "topleft"
+    label_pos = "topleft",
+    child_labels = "hidden"
   )
 
 # Column results for numeric values
@@ -79,7 +80,7 @@ lyt <- l_rows %>%
     ),
     .labels = c(
       n = "n",
-      n_blq = "Number\nof\n<LTR/BLQ>s",
+      n_blq = "Number\nof\nLTRs/BLQs",
       mean = "Mean",
       sd = "SD",
       cv = "CV (%) Mean",
@@ -94,8 +95,8 @@ lyt <- l_rows %>%
 result <- build_table(lyt, df = adpc_1) %>% prune_table()
 
 # Decorating
-main_title(result) <- "Summary of PK Concentrations by Nominal Time and Treatment: PK Evaluable\n Protocol: xxxxx"
-subtitles(result) <- paste("Analyte: ", unique(unique(adpc$PARAM)), "Treatment:", unique(unique(adpc$ACTARM)))
+main_title(result) <- "Summary of PK Concentrations by Nominal Time and Treatment: PK Evaluable"
+subtitles(result) <- c("Protocol: xxxxx", paste("Analyte: ", unique(adpc_1$PARAM)), paste("Treatment:", unique(adpc_1$ACTARM)))
 main_footer(result) <- "NE: Not Estimable"
 result
 ```
@@ -111,5 +112,4 @@ result
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::
