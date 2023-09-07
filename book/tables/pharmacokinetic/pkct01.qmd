@@ -17,7 +17,10 @@ library(scda)
 library(dplyr)
 library(tern)
 
-adpc <- synthetic_cdisc_dataset("latest", "adpc")
+adsl <- synthetic_cdisc_dataset("latest", "adsl") %>%
+  filter(ACTARM == "A: Drug X")
+adpc <- synthetic_cdisc_dataset("latest", "adpc") %>%
+  filter(ACTARM == "A: Drug X", PARAM == "Plasma Drug X")
 
 # Setting up the data
 adpc_1 <- adpc %>%
@@ -25,7 +28,6 @@ adpc_1 <- adpc %>%
     NFRLT = as.factor(NFRLT),
     AVALCAT1 = as.factor(AVALCAT1)
   ) %>%
-  filter(ACTARM == "A: Drug X", PARAM == "Plasma Drug X") %>%
   select(NFRLT, ACTARM, VISIT, AVAL, PARAM, AVALCAT1) %>%
   var_relabel(NFRLT = "Nominal Time from First Dose (hr)")
 
@@ -37,6 +39,7 @@ lyt_rows <- basic_table() %>%
     split_label = "Treatment Group",
     label_pos = "topleft"
   ) %>%
+  add_rowcounts(alt_counts = TRUE) %>%
   split_rows_by(
     var = "VISIT",
     split_fun = drop_split_levels,
@@ -71,7 +74,7 @@ lyt <- lyt_rows %>%
     .aligns = "decimal"
   )
 
-result <- build_table(lyt, df = adpc_1) %>% prune_table()
+result <- build_table(lyt, df = adpc_1, alt_counts_df = adsl) %>% prune_table()
 
 # Decorating
 main_title(result) <- "Summary of PK Concentrations by Nominal Time and Treatment: PK Evaluable"
@@ -100,7 +103,7 @@ lyt <- lyt_rows %>%
     .aligns = "decimal"
   )
 
-result <- build_table(lyt, df = adpc_1) %>% prune_table()
+result <- build_table(lyt, df = adpc_1, alt_counts_df = adsl) %>% prune_table()
 
 # Decorating
 main_title(result) <- "Summary of PK Concentrations by Nominal Time and Treatment: PK Evaluable"
@@ -129,7 +132,7 @@ lyt <- lyt_rows %>%
     .aligns = "decimal"
   )
 
-result <- build_table(lyt, df = adpc_1) %>% prune_table()
+result <- build_table(lyt, df = adpc_1, alt_counts_df = adsl) %>% prune_table()
 
 # Decorate table
 main_title(result) <- "Summary of PK Concentrations by Nominal Time and Treatment: PK Evaluable"
