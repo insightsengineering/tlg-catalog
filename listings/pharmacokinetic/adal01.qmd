@@ -1,0 +1,120 @@
+---
+title: ADAL01
+subtitle: Listing of Anti-Drug Antibody Data for Patients with At Least One ADA Sample Datum by Treatment
+---
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(rlistings)
+library(scda)
+
+adpc <- synthetic_cdisc_dataset("latest", "adpc")
+adab <- synthetic_cdisc_dataset("latest", "adab")
+
+trt <- "A: Drug X"
+min_titer_ada <- 1.10
+min_titer_nab <- 0
+min_conc <- 0
+
+adpc_f <- adpc %>% filter(PARAM == "Plasma Drug X")
+
+if (unique(adab$RELTMU) == "day") adab$NRELTM1 <- adab$NRELTM1 * 24
+
+drug_a <- unique(adab$PARCAT1)[1]
+drugcd <- unique(adab$PARAMCD[adab$PARAM == "Antibody titer units"])[1]
+conc_u <- unique(adab$AVALU[adab$PARAM == "Antibody titer units"])[1]
+
+adpc_f <- adpc_f %>% select(USUBJID, NRELTM1, AVAL)
+adab_f <- adab %>%
+  filter(ARM == trt) %>%
+  select(-PARAMCD, -PARCAT1, -AVALC, -AVALU) %>%
+  left_join(
+    adpc_f,
+    by = c("USUBJID", "NRELTM1"),
+    suffix = c("_ab", "_pk")
+  ) %>%
+  filter(!is.na(AVAL_ab))
+
+adab_f <- adab_f %>%
+  tidyr::pivot_wider(
+    names_from = PARAM,
+    values_from = AVAL_ab
+  ) %>%
+  rename(
+    RES_ADA = `ADA interpreted per sample result`,
+    TES_ADA = `Treatment Emergent - Positive`,
+    TU_ADA = `Antibody titer units`,
+    RES_NAB = `NAB interpreted per sample result`,
+    TES_NAB = `Treatment Emergent - Positive, Neutralizing Antibody`,
+    TU_NAB = `Neutralizing Antibody titer units`
+  )
+
+out <- adab_f %>%
+  mutate_at(
+    c("NRELTM1", "TU_ADA", "TU_NAB", "AVAL_pk"),
+    ~ ifelse(is.na(.), replace(., is.na(.), "N/A"), format(round(., 2), nsmall = 2))
+  ) %>%
+  mutate(NRELTM1 = as.numeric(NRELTM1)) %>%
+  mutate(
+    RES_ADA = ifelse(RES_ADA == 1, "Positive", "Negative"),
+    TES_ADA = ifelse(TES_ADA == 1, "Positive", "Negative"),
+    RES_NAB = ifelse(RES_NAB == 1, "Positive", "Negative"),
+    TES_NAB = ifelse(TES_NAB == 1, "Positive", "Negative"),
+    TU_ADA = ifelse(TU_ADA <= min_titer_ada, "BLQ", TU_ADA),
+    TU_NAB = ifelse(TU_NAB <= min_titer_nab, "BLQ", TU_NAB),
+    AVAL_pk = ifelse(AVAL_pk <= min_conc, "BLQ", AVAL_pk)
+  ) %>%
+  select(USUBJID, VISIT, ISTPT, NRELTM1, RES_ADA, TU_ADA, ATACHAR, TES_ADA, RES_NAB, TU_NAB, TES_NAB, AVAL_pk)
+
+var_labels(out) <- names(out)
+
+out <- out %>%
+  var_relabel(
+    USUBJID = "Subject ID",
+    VISIT = "Visit",
+    ISTPT = "Timepoint",
+    NRELTM1 = "Nominal\nTime\n(hr)",
+    RES_ADA = "Sample\nADA\nResult",
+    TU_ADA = "ADA\nTiter\nUnits\n(1)",
+    ATACHAR = "Character-\nization\nResults",
+    TES_ADA = "Patient\nTreatment\nEmergent ADA\nStatus",
+    RES_NAB = "Sample\nNeutralizing\nAntibody\n(NAb) Result",
+    TU_NAB = "NAb\nTiter\nUnits\n(2)",
+    TES_NAB = "Patient\nTreatment\nEmergent NAb\nStatus",
+    AVAL_pk = paste0("Drug\nConcentration\n(", conc_u, ") (3)")
+  ) %>%
+  arrange(USUBJID, VISIT, desc(ISTPT), NRELTM1)
+```
+
+## Standard Listing
+
+```{r}
+lsting <- as_listing(
+  out,
+  key_cols = c("USUBJID", "VISIT"),
+  disp_cols = names(out),
+  main_title = paste0(
+    "Listing of Anti-", drugcd, " Antibody Data for Patients with At Least One ADA Sample Datum by Treatment, ",
+    "PK Population\nProtocol: ", drug_a
+  ),
+  subtitles = paste("\nTreatment Group:", trt),
+  main_footer = "(1) Minimum reportable titer = 1.10 (example only)
+(2) Minimum reportable titer = 0 (example only)
+(3) Minimum reportable concentration = 0 (example only)
+BLQ = Below Limit of Quantitation, LTR = Lower than Reportable, N/A = Not Applicable, N.C. = Not Calculable,
+ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies)
+ROXXXXXXX is also known as [drug]"
+)
+
+tail(lsting, 50)[1:20, ]
+```
+
+{{< include ../../si.qmd >}}
+:::
