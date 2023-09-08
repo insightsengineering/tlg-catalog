@@ -1362,7 +1362,7 @@ WEEK 5 DAY 36
 </div>
 </section><section id="adding-baseline-rows" class="level3"><h3 class="anchored" data-anchor-id="adding-baseline-rows">Adding baseline rows</h3>
 <p>It may be of interest to summarize some different statistics at the baseline visit or summarize a different variable in the data set not used in the MMRM. For example, the model may use the variable <code>CHG</code> but the baseline visit row may summarize the <code>AVAL</code> variable, thus we would need to create two tables and then combine them to accomplish this.</p>
-<div class="cell" data-hash="mmrmt01_cache/html/unnamed-chunk-1_50751029970f87081c735e7998366bc0">
+<div class="cell" data-hash="mmrmt01_cache/html/unnamed-chunk-1_0e3dfb7d655c930aa79518151d095686">
 <details><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="co"># First have the least-square means table.</span></span>
 <span id="cb6-2"><a href="#cb6-2"></a>a <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb6-3"><a href="#cb6-3"></a>  <span class="fu">split_cols_by</span>(<span class="st">"ARMCD"</span>, <span class="at">ref_group =</span> mmrm_results<span class="sc">$</span>ref_level) <span class="sc">%&gt;%</span></span>
@@ -1379,16 +1379,13 @@ WEEK 5 DAY 36
 <span id="cb6-14"><a href="#cb6-14"></a>b <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb6-15"><a href="#cb6-15"></a>  <span class="fu">split_cols_by</span>(<span class="st">"ARMCD"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb6-16"><a href="#cb6-16"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb6-17"><a href="#cb6-17"></a>  <span class="fu">summarize_vars</span>(<span class="st">"AVAL"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-17"><a href="#cb6-17"></a>  <span class="fu">analyze_vars</span>(<span class="st">"AVAL"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb6-18"><a href="#cb6-18"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb6-19"><a href="#cb6-19"></a>  <span class="fu">build_table</span>(baseline_dat, <span class="at">alt_counts_df =</span> adsl_sub)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output cell-output-stderr">
-<pre><code>Warning: `summarize_vars()` was deprecated in tern 0.8.5.9010.
-ℹ Please use `analyze_vars()` instead.</code></pre>
-</div>
-<details><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># Now we can combine them as follows.</span></span>
-<span id="cb8-2"><a href="#cb8-2"></a><span class="fu">col_info</span>(b) <span class="ot">&lt;-</span> EmptyColInfo</span>
-<span id="cb8-3"><a href="#cb8-3"></a><span class="fu">rbind</span>(b, a)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-19"><a href="#cb6-19"></a>  <span class="fu">build_table</span>(baseline_dat, <span class="at">alt_counts_df =</span> adsl_sub)</span>
+<span id="cb6-20"><a href="#cb6-20"></a></span>
+<span id="cb6-21"><a href="#cb6-21"></a><span class="co"># Now we can combine them as follows.</span></span>
+<span id="cb6-22"><a href="#cb6-22"></a><span class="fu">col_info</span>(b) <span class="ot">&lt;-</span> EmptyColInfo</span>
+<span id="cb6-23"><a href="#cb6-23"></a><span class="fu">rbind</span>(b, a)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>Visit                                      ARM B              ARM A              ARM C      
   Statistics                              (N=134)            (N=134)            (N=132)     
@@ -1443,37 +1440,37 @@ WEEK 5 DAY 36
 </section><section id="considering-visit-averages" class="level3"><h3 class="anchored" data-anchor-id="considering-visit-averages">Considering visit averages</h3>
 <p>It may also be of interest to summarize several different statistics for an averaged combination of various visits in the MMRM. For example, you may want to see the statistics for the average of the first 2 visits, or the average statistics of all visits combined. This can be accomplished by specifying the <code>averages_emmeans</code> argument when fitting the MMRM model.</p>
 <div class="cell" data-test="{&quot;result_v3&quot;:&quot;result&quot;}" data-hash="mmrmt01_cache/html/variant3_5297bc0be3b57f81c1ce6c065ed0a21c">
-<details><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>mmrm_results_avg_visits <span class="ot">&lt;-</span> <span class="fu">fit_mmrm</span>(</span>
-<span id="cb10-2"><a href="#cb10-2"></a>  <span class="at">vars =</span> <span class="fu">list</span>(</span>
-<span id="cb10-3"><a href="#cb10-3"></a>    <span class="at">response =</span> <span class="st">"CHG"</span>,</span>
-<span id="cb10-4"><a href="#cb10-4"></a>    <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"BASE"</span>, <span class="st">"STRATA1"</span>, <span class="st">"BMRKR2"</span>),</span>
-<span id="cb10-5"><a href="#cb10-5"></a>    <span class="at">id =</span> <span class="st">"USUBJID"</span>,</span>
-<span id="cb10-6"><a href="#cb10-6"></a>    <span class="at">arm =</span> <span class="st">"ARMCD"</span>,</span>
-<span id="cb10-7"><a href="#cb10-7"></a>    <span class="at">visit =</span> <span class="st">"AVISIT"</span></span>
-<span id="cb10-8"><a href="#cb10-8"></a>  ),</span>
-<span id="cb10-9"><a href="#cb10-9"></a>  <span class="at">data =</span> adqs_f,</span>
-<span id="cb10-10"><a href="#cb10-10"></a>  <span class="at">weights_emmeans =</span> <span class="st">"equal"</span>,</span>
-<span id="cb10-11"><a href="#cb10-11"></a>  <span class="at">averages_emmeans =</span> <span class="fu">list</span>(</span>
-<span id="cb10-12"><a href="#cb10-12"></a>    <span class="st">"WEEKS 1-2"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"WEEK 1 DAY 8"</span>, <span class="st">"WEEK 2 DAY 15"</span>),</span>
-<span id="cb10-13"><a href="#cb10-13"></a>    <span class="st">"WEEKS 3-5"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"WEEK 3 DAY 22"</span>, <span class="st">"WEEK 4 DAY 29"</span>, <span class="st">"WEEK 5 DAY 36"</span>),</span>
-<span id="cb10-14"><a href="#cb10-14"></a>    <span class="st">"ALL VISITS"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"WEEK 1 DAY 8"</span>, <span class="st">"WEEK 2 DAY 15"</span>, <span class="st">"WEEK 3 DAY 22"</span>, <span class="st">"WEEK 4 DAY 29"</span>, <span class="st">"WEEK 5 DAY 36"</span>)</span>
-<span id="cb10-15"><a href="#cb10-15"></a>  )</span>
-<span id="cb10-16"><a href="#cb10-16"></a>)</span>
-<span id="cb10-17"><a href="#cb10-17"></a></span>
-<span id="cb10-18"><a href="#cb10-18"></a>df_avgs <span class="ot">&lt;-</span> <span class="fu">tidy</span>(mmrm_results_avg_visits)</span>
-<span id="cb10-19"><a href="#cb10-19"></a><span class="fu">attr</span>(df_avgs<span class="sc">$</span>AVISIT, <span class="st">"label"</span>) <span class="ot">&lt;-</span> <span class="st">"Visit"</span></span>
-<span id="cb10-20"><a href="#cb10-20"></a></span>
-<span id="cb10-21"><a href="#cb10-21"></a><span class="co"># Define the split function</span></span>
-<span id="cb10-22"><a href="#cb10-22"></a>split_fun <span class="ot">&lt;-</span> drop_split_levels</span>
-<span id="cb10-23"><a href="#cb10-23"></a></span>
-<span id="cb10-24"><a href="#cb10-24"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb10-25"><a href="#cb10-25"></a>  <span class="fu">split_cols_by</span>(<span class="st">"ARMCD"</span>, <span class="at">ref_group =</span> mmrm_results_avg_visits<span class="sc">$</span>ref_level) <span class="sc">%&gt;%</span></span>
-<span id="cb10-26"><a href="#cb10-26"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>, <span class="at">split_fun =</span> split_fun, <span class="at">label_pos =</span> <span class="st">"topleft"</span>, <span class="at">split_label =</span> <span class="fu">obj_label</span>(df_avgs<span class="sc">$</span>AVISIT)) <span class="sc">%&gt;%</span></span>
-<span id="cb10-27"><a href="#cb10-27"></a>  <span class="fu">summarize_lsmeans</span>(<span class="at">show_relative =</span> <span class="st">"increase"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb10-28"><a href="#cb10-28"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb10-29"><a href="#cb10-29"></a>  <span class="fu">build_table</span>(df_avgs, <span class="at">alt_counts_df =</span> adsl_sub)</span>
-<span id="cb10-30"><a href="#cb10-30"></a></span>
-<span id="cb10-31"><a href="#cb10-31"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>mmrm_results_avg_visits <span class="ot">&lt;-</span> <span class="fu">fit_mmrm</span>(</span>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="at">vars =</span> <span class="fu">list</span>(</span>
+<span id="cb8-3"><a href="#cb8-3"></a>    <span class="at">response =</span> <span class="st">"CHG"</span>,</span>
+<span id="cb8-4"><a href="#cb8-4"></a>    <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"BASE"</span>, <span class="st">"STRATA1"</span>, <span class="st">"BMRKR2"</span>),</span>
+<span id="cb8-5"><a href="#cb8-5"></a>    <span class="at">id =</span> <span class="st">"USUBJID"</span>,</span>
+<span id="cb8-6"><a href="#cb8-6"></a>    <span class="at">arm =</span> <span class="st">"ARMCD"</span>,</span>
+<span id="cb8-7"><a href="#cb8-7"></a>    <span class="at">visit =</span> <span class="st">"AVISIT"</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a>  ),</span>
+<span id="cb8-9"><a href="#cb8-9"></a>  <span class="at">data =</span> adqs_f,</span>
+<span id="cb8-10"><a href="#cb8-10"></a>  <span class="at">weights_emmeans =</span> <span class="st">"equal"</span>,</span>
+<span id="cb8-11"><a href="#cb8-11"></a>  <span class="at">averages_emmeans =</span> <span class="fu">list</span>(</span>
+<span id="cb8-12"><a href="#cb8-12"></a>    <span class="st">"WEEKS 1-2"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"WEEK 1 DAY 8"</span>, <span class="st">"WEEK 2 DAY 15"</span>),</span>
+<span id="cb8-13"><a href="#cb8-13"></a>    <span class="st">"WEEKS 3-5"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"WEEK 3 DAY 22"</span>, <span class="st">"WEEK 4 DAY 29"</span>, <span class="st">"WEEK 5 DAY 36"</span>),</span>
+<span id="cb8-14"><a href="#cb8-14"></a>    <span class="st">"ALL VISITS"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"WEEK 1 DAY 8"</span>, <span class="st">"WEEK 2 DAY 15"</span>, <span class="st">"WEEK 3 DAY 22"</span>, <span class="st">"WEEK 4 DAY 29"</span>, <span class="st">"WEEK 5 DAY 36"</span>)</span>
+<span id="cb8-15"><a href="#cb8-15"></a>  )</span>
+<span id="cb8-16"><a href="#cb8-16"></a>)</span>
+<span id="cb8-17"><a href="#cb8-17"></a></span>
+<span id="cb8-18"><a href="#cb8-18"></a>df_avgs <span class="ot">&lt;-</span> <span class="fu">tidy</span>(mmrm_results_avg_visits)</span>
+<span id="cb8-19"><a href="#cb8-19"></a><span class="fu">attr</span>(df_avgs<span class="sc">$</span>AVISIT, <span class="st">"label"</span>) <span class="ot">&lt;-</span> <span class="st">"Visit"</span></span>
+<span id="cb8-20"><a href="#cb8-20"></a></span>
+<span id="cb8-21"><a href="#cb8-21"></a><span class="co"># Define the split function</span></span>
+<span id="cb8-22"><a href="#cb8-22"></a>split_fun <span class="ot">&lt;-</span> drop_split_levels</span>
+<span id="cb8-23"><a href="#cb8-23"></a></span>
+<span id="cb8-24"><a href="#cb8-24"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-25"><a href="#cb8-25"></a>  <span class="fu">split_cols_by</span>(<span class="st">"ARMCD"</span>, <span class="at">ref_group =</span> mmrm_results_avg_visits<span class="sc">$</span>ref_level) <span class="sc">%&gt;%</span></span>
+<span id="cb8-26"><a href="#cb8-26"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>, <span class="at">split_fun =</span> split_fun, <span class="at">label_pos =</span> <span class="st">"topleft"</span>, <span class="at">split_label =</span> <span class="fu">obj_label</span>(df_avgs<span class="sc">$</span>AVISIT)) <span class="sc">%&gt;%</span></span>
+<span id="cb8-27"><a href="#cb8-27"></a>  <span class="fu">summarize_lsmeans</span>(<span class="at">show_relative =</span> <span class="st">"increase"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-28"><a href="#cb8-28"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-29"><a href="#cb8-29"></a>  <span class="fu">build_table</span>(df_avgs, <span class="at">alt_counts_df =</span> adsl_sub)</span>
+<span id="cb8-30"><a href="#cb8-30"></a></span>
+<span id="cb8-31"><a href="#cb8-31"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>Visit                                      ARM B              ARM A              ARM C      
   Statistics                              (N=134)            (N=134)            (N=132)     
@@ -1549,7 +1546,7 @@ ALL VISITS
 <div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
 <section id="considering-the-treatment-variable-in-the-model-1" class="level4"><h4 class="anchored" data-anchor-id="considering-the-treatment-variable-in-the-model-1">Considering the treatment variable in the model</h4>
 <div class="cell" data-hash="mmrmt01_cache/html/unnamed-chunk-2_0bd9a81f8a774f3744b94bec963e23d7">
-<details><summary>Code</summary><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">as.rtable</span>(mmrm_results, <span class="at">type =</span> <span class="st">"fixed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">as.rtable</span>(mmrm_results, <span class="at">type =</span> <span class="st">"fixed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>                                 Estimate   Std. Error   t value    df    Pr(&gt;|t|)
 ——————————————————————————————————————————————————————————————————————————————————
@@ -1577,7 +1574,7 @@ ARMCDARM C:AVISITWEEK 5 DAY 36    0.5257      1.7863      0.2943    397    0.768
 </div>
 </section><section id="not-considering-the-treatment-variable-in-the-model-1" class="level4"><h4 class="anchored" data-anchor-id="not-considering-the-treatment-variable-in-the-model-1">Not considering the treatment variable in the model</h4>
 <div class="cell" data-hash="mmrmt01_cache/html/unnamed-chunk-3_741b155218e8733c3f20aac5521db782">
-<details><summary>Code</summary><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="fu">as.rtable</span>(mmrm_results_no_arm, <span class="at">type =</span> <span class="st">"fixed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details><summary>Code</summary><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">as.rtable</span>(mmrm_results_no_arm, <span class="at">type =</span> <span class="st">"fixed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>                      Estimate   Std. Error   t value   df    Pr(&gt;|t|)
 ——————————————————————————————————————————————————————————————————————
@@ -1596,7 +1593,7 @@ AVISITWEEK 5 DAY 36   20.4130      0.7266     28.0921   399   &lt;0.0001 </code>
 </div>
 <div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
 <div class="cell" data-hash="mmrmt01_cache/html/unnamed-chunk-4_45dab418e42dffe1ff32f4330f817560">
-<details><summary>Code</summary><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="fu">as.rtable</span>(mmrm_results, <span class="at">type =</span> <span class="st">"cov"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details><summary>Code</summary><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="fu">as.rtable</span>(mmrm_results, <span class="at">type =</span> <span class="st">"cov"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>                WEEK 1 DAY 8   WEEK 2 DAY 15   WEEK 3 DAY 22   WEEK 4 DAY 29   WEEK 5 DAY 36
 ————————————————————————————————————————————————————————————————————————————————————————————
@@ -1611,7 +1608,7 @@ WEEK 5 DAY 36      0.2589         -0.4261         7.1145          -5.3739       
 <div id="tabset-1-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-5-tab">
 <p>Model diagnostics are currently available to evaluate choice of covariates for the fixed and random effects. Statistics to evaluate choice of covariance structure are being investigated and will be included in a future release.</p>
 <div class="cell" data-hash="mmrmt01_cache/html/unnamed-chunk-5_2052440b5ad038985e3d7864f66abf7a">
-<details><summary>Code</summary><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="fu">as.rtable</span>(mmrm_results, <span class="at">type =</span> <span class="st">"diagnostic"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details><summary>Code</summary><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="fu">as.rtable</span>(mmrm_results, <span class="at">type =</span> <span class="st">"diagnostic"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>                 Diagnostic statistic value
 ———————————————————————————————————————————
@@ -1624,67 +1621,67 @@ BIC                      14925.8688        </code></pre>
 </div>
 <div id="tabset-1-6" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-6-tab">
 <div class="cell" data-opts.label="skip_if_testing" data-screenshot.opts="{&quot;delay&quot;:24}" data-hash="mmrmt01_cache/html/teal_25903afb40c32569ba24ef8c63803377">
-<details><summary>Code</summary><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
-<span id="cb20-2"><a href="#cb20-2"></a><span class="fu">library</span>(scda)</span>
-<span id="cb20-3"><a href="#cb20-3"></a></span>
-<span id="cb20-4"><a href="#cb20-4"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
-<span id="cb20-5"><a href="#cb20-5"></a>adqs <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adqs"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb20-6"><a href="#cb20-6"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(ABLFL <span class="sc">!=</span> <span class="st">"Y"</span> <span class="sc">&amp;</span> ABLFL2 <span class="sc">!=</span> <span class="st">"Y"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb20-7"><a href="#cb20-7"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(AVISIT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"WEEK 1 DAY 8"</span>, <span class="st">"WEEK 2 DAY 15"</span>, <span class="st">"WEEK 3 DAY 22"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb20-8"><a href="#cb20-8"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
-<span id="cb20-9"><a href="#cb20-9"></a>    <span class="at">AVISIT =</span> <span class="fu">as.factor</span>(AVISIT),</span>
-<span id="cb20-10"><a href="#cb20-10"></a>    <span class="at">AVISITN =</span> <span class="fu">rank</span>(AVISITN) <span class="sc">%&gt;%</span></span>
-<span id="cb20-11"><a href="#cb20-11"></a>      <span class="fu">as.factor</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb20-12"><a href="#cb20-12"></a>      <span class="fu">as.numeric</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb20-13"><a href="#cb20-13"></a>      <span class="fu">as.factor</span>() <span class="co"># making consecutive numeric factor</span></span>
-<span id="cb20-14"><a href="#cb20-14"></a>  )</span>
-<span id="cb20-15"><a href="#cb20-15"></a></span>
-<span id="cb20-16"><a href="#cb20-16"></a>arm_ref_comp <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb20-17"><a href="#cb20-17"></a>  <span class="at">ARMCD =</span> <span class="fu">list</span>(</span>
-<span id="cb20-18"><a href="#cb20-18"></a>    <span class="at">ref =</span> <span class="st">"ARM A"</span>,</span>
-<span id="cb20-19"><a href="#cb20-19"></a>    <span class="at">comp =</span> <span class="fu">c</span>(<span class="st">"ARM B"</span>, <span class="st">"ARM C"</span>)</span>
-<span id="cb20-20"><a href="#cb20-20"></a>  )</span>
-<span id="cb20-21"><a href="#cb20-21"></a>)</span>
-<span id="cb20-22"><a href="#cb20-22"></a></span>
-<span id="cb20-23"><a href="#cb20-23"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb20-24"><a href="#cb20-24"></a>  <span class="at">data =</span> <span class="fu">cdisc_data</span>(</span>
-<span id="cb20-25"><a href="#cb20-25"></a>    <span class="fu">cdisc_dataset</span>(<span class="st">"ADSL"</span>, adsl, <span class="at">code =</span> <span class="st">'ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")'</span>),</span>
-<span id="cb20-26"><a href="#cb20-26"></a>    <span class="fu">cdisc_dataset</span>(<span class="st">"ADQS"</span>, adqs,</span>
-<span id="cb20-27"><a href="#cb20-27"></a>      <span class="at">code =</span> <span class="st">'ADQS &lt;- synthetic_cdisc_dataset("latest", "adqs") %&gt;%</span></span>
-<span id="cb20-28"><a href="#cb20-28"></a><span class="st">              dplyr::filter(ABLFL != "Y" &amp; ABLFL2 != "Y") %&gt;%</span></span>
-<span id="cb20-29"><a href="#cb20-29"></a><span class="st">              dplyr::filter(AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22")) %&gt;%</span></span>
-<span id="cb20-30"><a href="#cb20-30"></a><span class="st">              dplyr::mutate(</span></span>
-<span id="cb20-31"><a href="#cb20-31"></a><span class="st">                AVISIT = as.factor(AVISIT),</span></span>
-<span id="cb20-32"><a href="#cb20-32"></a><span class="st">                AVISITN = rank(AVISITN) %&gt;%</span></span>
-<span id="cb20-33"><a href="#cb20-33"></a><span class="st">                  as.factor() %&gt;%</span></span>
-<span id="cb20-34"><a href="#cb20-34"></a><span class="st">                  as.numeric() %&gt;%</span></span>
-<span id="cb20-35"><a href="#cb20-35"></a><span class="st">                  as.factor() # making consecutive numeric factor</span></span>
-<span id="cb20-36"><a href="#cb20-36"></a><span class="st">              )'</span></span>
-<span id="cb20-37"><a href="#cb20-37"></a>    ),</span>
-<span id="cb20-38"><a href="#cb20-38"></a>    <span class="at">check =</span> <span class="cn">TRUE</span></span>
-<span id="cb20-39"><a href="#cb20-39"></a>  ),</span>
-<span id="cb20-40"><a href="#cb20-40"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb20-41"><a href="#cb20-41"></a>    <span class="fu">tm_a_mmrm</span>(</span>
-<span id="cb20-42"><a href="#cb20-42"></a>      <span class="at">label =</span> <span class="st">"MMRM"</span>,</span>
-<span id="cb20-43"><a href="#cb20-43"></a>      <span class="at">dataname =</span> <span class="st">"ADQS"</span>,</span>
-<span id="cb20-44"><a href="#cb20-44"></a>      <span class="at">aval_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"AVAL"</span>, <span class="st">"CHG"</span>), <span class="st">"CHG"</span>),</span>
-<span id="cb20-45"><a href="#cb20-45"></a>      <span class="at">id_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"USUBJID"</span>, <span class="st">"SUBJID"</span>), <span class="st">"USUBJID"</span>),</span>
-<span id="cb20-46"><a href="#cb20-46"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>), <span class="st">"ARMCD"</span>),</span>
-<span id="cb20-47"><a href="#cb20-47"></a>      <span class="at">visit_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"AVISIT"</span>, <span class="st">"AVISITN"</span>), <span class="st">"AVISIT"</span>),</span>
-<span id="cb20-48"><a href="#cb20-48"></a>      <span class="at">arm_ref_comp =</span> arm_ref_comp,</span>
-<span id="cb20-49"><a href="#cb20-49"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb20-50"><a href="#cb20-50"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(adqs, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>),</span>
-<span id="cb20-51"><a href="#cb20-51"></a>        <span class="at">selected =</span> <span class="st">"FKSI-FWB"</span></span>
-<span id="cb20-52"><a href="#cb20-52"></a>      ),</span>
-<span id="cb20-53"><a href="#cb20-53"></a>      <span class="at">cov_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"BASE"</span>, <span class="st">"AGE"</span>, <span class="st">"SEX"</span>, <span class="st">"BASE:AVISIT"</span>), <span class="cn">NULL</span>),</span>
-<span id="cb20-54"><a href="#cb20-54"></a>      <span class="at">conf_level =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="fl">0.95</span>, <span class="fl">0.9</span>, <span class="fl">0.8</span>), <span class="fl">0.95</span>)</span>
-<span id="cb20-55"><a href="#cb20-55"></a>    )</span>
-<span id="cb20-56"><a href="#cb20-56"></a>  )</span>
-<span id="cb20-57"><a href="#cb20-57"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details><summary>Code</summary><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
+<span id="cb18-2"><a href="#cb18-2"></a><span class="fu">library</span>(scda)</span>
+<span id="cb18-3"><a href="#cb18-3"></a></span>
+<span id="cb18-4"><a href="#cb18-4"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
+<span id="cb18-5"><a href="#cb18-5"></a>adqs <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adqs"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-6"><a href="#cb18-6"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(ABLFL <span class="sc">!=</span> <span class="st">"Y"</span> <span class="sc">&amp;</span> ABLFL2 <span class="sc">!=</span> <span class="st">"Y"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-7"><a href="#cb18-7"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(AVISIT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"WEEK 1 DAY 8"</span>, <span class="st">"WEEK 2 DAY 15"</span>, <span class="st">"WEEK 3 DAY 22"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb18-8"><a href="#cb18-8"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb18-9"><a href="#cb18-9"></a>    <span class="at">AVISIT =</span> <span class="fu">as.factor</span>(AVISIT),</span>
+<span id="cb18-10"><a href="#cb18-10"></a>    <span class="at">AVISITN =</span> <span class="fu">rank</span>(AVISITN) <span class="sc">%&gt;%</span></span>
+<span id="cb18-11"><a href="#cb18-11"></a>      <span class="fu">as.factor</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb18-12"><a href="#cb18-12"></a>      <span class="fu">as.numeric</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb18-13"><a href="#cb18-13"></a>      <span class="fu">as.factor</span>() <span class="co"># making consecutive numeric factor</span></span>
+<span id="cb18-14"><a href="#cb18-14"></a>  )</span>
+<span id="cb18-15"><a href="#cb18-15"></a></span>
+<span id="cb18-16"><a href="#cb18-16"></a>arm_ref_comp <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb18-17"><a href="#cb18-17"></a>  <span class="at">ARMCD =</span> <span class="fu">list</span>(</span>
+<span id="cb18-18"><a href="#cb18-18"></a>    <span class="at">ref =</span> <span class="st">"ARM A"</span>,</span>
+<span id="cb18-19"><a href="#cb18-19"></a>    <span class="at">comp =</span> <span class="fu">c</span>(<span class="st">"ARM B"</span>, <span class="st">"ARM C"</span>)</span>
+<span id="cb18-20"><a href="#cb18-20"></a>  )</span>
+<span id="cb18-21"><a href="#cb18-21"></a>)</span>
+<span id="cb18-22"><a href="#cb18-22"></a></span>
+<span id="cb18-23"><a href="#cb18-23"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb18-24"><a href="#cb18-24"></a>  <span class="at">data =</span> <span class="fu">cdisc_data</span>(</span>
+<span id="cb18-25"><a href="#cb18-25"></a>    <span class="fu">cdisc_dataset</span>(<span class="st">"ADSL"</span>, adsl, <span class="at">code =</span> <span class="st">'ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")'</span>),</span>
+<span id="cb18-26"><a href="#cb18-26"></a>    <span class="fu">cdisc_dataset</span>(<span class="st">"ADQS"</span>, adqs,</span>
+<span id="cb18-27"><a href="#cb18-27"></a>      <span class="at">code =</span> <span class="st">'ADQS &lt;- synthetic_cdisc_dataset("latest", "adqs") %&gt;%</span></span>
+<span id="cb18-28"><a href="#cb18-28"></a><span class="st">              dplyr::filter(ABLFL != "Y" &amp; ABLFL2 != "Y") %&gt;%</span></span>
+<span id="cb18-29"><a href="#cb18-29"></a><span class="st">              dplyr::filter(AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22")) %&gt;%</span></span>
+<span id="cb18-30"><a href="#cb18-30"></a><span class="st">              dplyr::mutate(</span></span>
+<span id="cb18-31"><a href="#cb18-31"></a><span class="st">                AVISIT = as.factor(AVISIT),</span></span>
+<span id="cb18-32"><a href="#cb18-32"></a><span class="st">                AVISITN = rank(AVISITN) %&gt;%</span></span>
+<span id="cb18-33"><a href="#cb18-33"></a><span class="st">                  as.factor() %&gt;%</span></span>
+<span id="cb18-34"><a href="#cb18-34"></a><span class="st">                  as.numeric() %&gt;%</span></span>
+<span id="cb18-35"><a href="#cb18-35"></a><span class="st">                  as.factor() # making consecutive numeric factor</span></span>
+<span id="cb18-36"><a href="#cb18-36"></a><span class="st">              )'</span></span>
+<span id="cb18-37"><a href="#cb18-37"></a>    ),</span>
+<span id="cb18-38"><a href="#cb18-38"></a>    <span class="at">check =</span> <span class="cn">TRUE</span></span>
+<span id="cb18-39"><a href="#cb18-39"></a>  ),</span>
+<span id="cb18-40"><a href="#cb18-40"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb18-41"><a href="#cb18-41"></a>    <span class="fu">tm_a_mmrm</span>(</span>
+<span id="cb18-42"><a href="#cb18-42"></a>      <span class="at">label =</span> <span class="st">"MMRM"</span>,</span>
+<span id="cb18-43"><a href="#cb18-43"></a>      <span class="at">dataname =</span> <span class="st">"ADQS"</span>,</span>
+<span id="cb18-44"><a href="#cb18-44"></a>      <span class="at">aval_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"AVAL"</span>, <span class="st">"CHG"</span>), <span class="st">"CHG"</span>),</span>
+<span id="cb18-45"><a href="#cb18-45"></a>      <span class="at">id_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"USUBJID"</span>, <span class="st">"SUBJID"</span>), <span class="st">"USUBJID"</span>),</span>
+<span id="cb18-46"><a href="#cb18-46"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>), <span class="st">"ARMCD"</span>),</span>
+<span id="cb18-47"><a href="#cb18-47"></a>      <span class="at">visit_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"AVISIT"</span>, <span class="st">"AVISITN"</span>), <span class="st">"AVISIT"</span>),</span>
+<span id="cb18-48"><a href="#cb18-48"></a>      <span class="at">arm_ref_comp =</span> arm_ref_comp,</span>
+<span id="cb18-49"><a href="#cb18-49"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb18-50"><a href="#cb18-50"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(adqs, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>),</span>
+<span id="cb18-51"><a href="#cb18-51"></a>        <span class="at">selected =</span> <span class="st">"FKSI-FWB"</span></span>
+<span id="cb18-52"><a href="#cb18-52"></a>      ),</span>
+<span id="cb18-53"><a href="#cb18-53"></a>      <span class="at">cov_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"BASE"</span>, <span class="st">"AGE"</span>, <span class="st">"SEX"</span>, <span class="st">"BASE:AVISIT"</span>), <span class="cn">NULL</span>),</span>
+<span id="cb18-54"><a href="#cb18-54"></a>      <span class="at">conf_level =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="fl">0.95</span>, <span class="fl">0.9</span>, <span class="fl">0.8</span>), <span class="fl">0.95</span>)</span>
+<span id="cb18-55"><a href="#cb18-55"></a>    )</span>
+<span id="cb18-56"><a href="#cb18-56"></a>  )</span>
+<span id="cb18-57"><a href="#cb18-57"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[INFO] 2023-09-08 05:08:45.6965 pid:7466 token:[] teal.modules.clinical Initializing tm_a_mmrm</code></pre>
+<pre><code>[INFO] 2023-09-08 16:59:13.2932 pid:7594 token:[] teal.modules.clinical Initializing tm_a_mmrm</code></pre>
 </div>
-<details><summary>Code</summary><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details><summary>Code</summary><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <p><img src="mmrmt01_files/figure-html/teal-1.png" class="img-fluid" width="1440"></p>
 </div>
@@ -1693,7 +1690,7 @@ BIC                      14925.8688        </code></pre>
 <div id="tabset-1-7" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-7-tab">
 <section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true" data-hash="mmrmt01_cache/html/sessioninfo_d89cbbc30756259cb09342b381f61f74">
-<details open=""><summary>Code</summary><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open=""><summary>Code</summary><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>R version 4.3.1 (2023-06-16)
 Platform: x86_64-pc-linux-gnu (64-bit)
@@ -1722,7 +1719,7 @@ other attached packages:
  [3] teal.transform_0.4.0.9003         teal.slice_0.4.0.9011            
  [5] teal.data_0.3.0.9003              shiny_1.7.5                      
  [7] broom_1.0.5                       scda_0.1.6.9012                  
- [9] tern.mmrm_0.2.2.9006              tern_0.9.0.9000                  
+ [9] tern.mmrm_0.2.2.9006              tern_0.9.0.9001                  
 [11] rtables_0.6.3.9000                magrittr_2.0.3                   
 [13] formatters_0.5.2.9001             dplyr_1.1.2                      
 
@@ -1764,17 +1761,17 @@ loaded via a namespace (and not attached):
 <code>.lock</code> file</h3>
 <p>Download the <code>.lock</code> file and use <a href="https://rstudio.github.io/renv/reference/restore.html"><code>renv::restore()</code></a> on it to recreate environment used to generate this website.</p>
 <div class="cell" data-opts.label="skip_if_testing" data-renv.ignore="true" data-hash="mmrmt01_cache/html/snapshot_64b8fd70e14bb068a9e3d22acfaf0ee9">
-<details><summary>Code</summary><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb25-2"><a href="#cb25-2"></a></span>
-<span id="cb25-3"><a href="#cb25-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
-<span id="cb25-4"><a href="#cb25-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
-<span id="cb25-5"><a href="#cb25-5"></a></span>
-<span id="cb25-6"><a href="#cb25-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="st">"../../assets/www/lock"</span>, <span class="fu">paste0</span>(<span class="fu">gsub</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>), <span class="st">""</span>, <span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>, <span class="st">""</span>, knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>))), <span class="st">".lock"</span>))</span>
-<span id="cb25-7"><a href="#cb25-7"></a></span>
-<span id="cb25-8"><a href="#cb25-8"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
-<span id="cb25-9"><a href="#cb25-9"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb25-10"><a href="#cb25-10"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb25-11"><a href="#cb25-11"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details><summary>Code</summary><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-2"><a href="#cb23-2"></a></span>
+<span id="cb23-3"><a href="#cb23-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
+<span id="cb23-4"><a href="#cb23-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
+<span id="cb23-5"><a href="#cb23-5"></a></span>
+<span id="cb23-6"><a href="#cb23-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="st">"../../assets/www/lock"</span>, <span class="fu">paste0</span>(<span class="fu">gsub</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>), <span class="st">""</span>, <span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>, <span class="st">""</span>, knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>))), <span class="st">".lock"</span>))</span>
+<span id="cb23-7"><a href="#cb23-7"></a></span>
+<span id="cb23-8"><a href="#cb23-8"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
+<span id="cb23-9"><a href="#cb23-9"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb23-10"><a href="#cb23-10"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-11"><a href="#cb23-11"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p><a href="../../assets/www/lock/tables/efficacy/mmrmt01.lock">Download</a></p>
@@ -2197,284 +2194,284 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb26" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb26-1"><a href="#cb26-1"></a><span class="co">---</span></span>
-<span id="cb26-2"><a href="#cb26-2"></a><span class="an">title:</span><span class="co"> MMRMT01</span></span>
-<span id="cb26-3"><a href="#cb26-3"></a><span class="an">subtitle:</span><span class="co"> Tables for Mixed-Effect Model Repeated Measures Analysis</span></span>
-<span id="cb26-4"><a href="#cb26-4"></a><span class="co">---</span></span>
-<span id="cb26-5"><a href="#cb26-5"></a></span>
-<span id="cb26-6"><a href="#cb26-6"></a>------------------------------------------------------------------------</span>
-<span id="cb26-7"><a href="#cb26-7"></a></span>
-<span id="cb26-8"><a href="#cb26-8"></a>{{&lt; include ../../test-utils/envir_hook.qmd &gt;}}</span>
-<span id="cb26-9"><a href="#cb26-9"></a></span>
-<span id="cb26-10"><a href="#cb26-10"></a>::: panel-tabset</span>
-<span id="cb26-11"><a href="#cb26-11"></a><span class="fu">## Data Setup</span></span>
-<span id="cb26-12"><a href="#cb26-12"></a></span>
-<span id="cb26-13"><a href="#cb26-13"></a><span class="in">```{r setup, message=FALSE}</span></span>
-<span id="cb26-14"><a href="#cb26-14"></a><span class="co">#| code-fold: show</span></span>
-<span id="cb26-15"><a href="#cb26-15"></a></span>
-<span id="cb26-16"><a href="#cb26-16"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb26-17"><a href="#cb26-17"></a><span class="fu">library</span>(tern.mmrm)</span>
-<span id="cb26-18"><a href="#cb26-18"></a><span class="fu">library</span>(scda)</span>
-<span id="cb26-19"><a href="#cb26-19"></a><span class="fu">library</span>(broom)</span>
-<span id="cb26-20"><a href="#cb26-20"></a></span>
-<span id="cb26-21"><a href="#cb26-21"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
-<span id="cb26-22"><a href="#cb26-22"></a>adqs <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adqs"</span>)</span>
-<span id="cb26-23"><a href="#cb26-23"></a></span>
-<span id="cb26-24"><a href="#cb26-24"></a><span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb26-25"><a href="#cb26-25"></a>adsl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adsl)</span>
-<span id="cb26-26"><a href="#cb26-26"></a>adqs <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adqs)</span>
-<span id="cb26-27"><a href="#cb26-27"></a></span>
-<span id="cb26-28"><a href="#cb26-28"></a>adqs_f <span class="ot">&lt;-</span> adqs <span class="sc">%&gt;%</span></span>
-<span id="cb26-29"><a href="#cb26-29"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(PARAMCD <span class="sc">==</span> <span class="st">"FKSI-FWB"</span> <span class="sc">&amp;</span> <span class="sc">!</span>AVISIT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"BASELINE"</span>, <span class="st">"SCREENING"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb26-30"><a href="#cb26-30"></a>  <span class="fu">droplevels</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb26-31"><a href="#cb26-31"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">ARMCD =</span> <span class="fu">factor</span>(ARMCD, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"ARM B"</span>, <span class="st">"ARM A"</span>, <span class="st">"ARM C"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb26-32"><a href="#cb26-32"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
-<span id="cb26-33"><a href="#cb26-33"></a>    <span class="at">AVISITN =</span> <span class="fu">rank</span>(AVISITN) <span class="sc">%&gt;%</span></span>
-<span id="cb26-34"><a href="#cb26-34"></a>      <span class="fu">as.factor</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb26-35"><a href="#cb26-35"></a>      <span class="fu">as.numeric</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb26-36"><a href="#cb26-36"></a>      <span class="fu">as.factor</span>()</span>
-<span id="cb26-37"><a href="#cb26-37"></a>  )</span>
-<span id="cb26-38"><a href="#cb26-38"></a>adsl_sub <span class="ot">&lt;-</span> adqs_f <span class="sc">%&gt;%</span></span>
-<span id="cb26-39"><a href="#cb26-39"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(CHG)) <span class="sc">%&gt;%</span></span>
-<span id="cb26-40"><a href="#cb26-40"></a>  <span class="fu">distinct</span>(USUBJID) <span class="sc">%&gt;%</span></span>
-<span id="cb26-41"><a href="#cb26-41"></a>  <span class="fu">left_join</span>(adsl, <span class="at">by =</span> <span class="st">"USUBJID"</span>)</span>
-<span id="cb26-42"><a href="#cb26-42"></a><span class="fu">var_labels</span>(adqs_f) <span class="ot">&lt;-</span> <span class="fu">var_labels</span>(adqs)</span>
-<span id="cb26-43"><a href="#cb26-43"></a><span class="in">```</span></span>
-<span id="cb26-44"><a href="#cb26-44"></a></span>
-<span id="cb26-45"><a href="#cb26-45"></a><span class="fu">## Least Squares Means</span></span>
-<span id="cb26-46"><a href="#cb26-46"></a></span>
-<span id="cb26-47"><a href="#cb26-47"></a><span class="fu">### Considering the treatment variable in the model</span></span>
-<span id="cb26-48"><a href="#cb26-48"></a></span>
-<span id="cb26-49"><a href="#cb26-49"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb26-50"><a href="#cb26-50"></a>mmrm_results <span class="ot">&lt;-</span> <span class="fu">fit_mmrm</span>(</span>
-<span id="cb26-51"><a href="#cb26-51"></a>  <span class="at">vars =</span> <span class="fu">list</span>(</span>
-<span id="cb26-52"><a href="#cb26-52"></a>    <span class="at">response =</span> <span class="st">"CHG"</span>,</span>
-<span id="cb26-53"><a href="#cb26-53"></a>    <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"BASE"</span>, <span class="st">"STRATA1"</span>, <span class="st">"BMRKR2"</span>),</span>
-<span id="cb26-54"><a href="#cb26-54"></a>    <span class="at">id =</span> <span class="st">"USUBJID"</span>,</span>
-<span id="cb26-55"><a href="#cb26-55"></a>    <span class="at">arm =</span> <span class="st">"ARMCD"</span>,</span>
-<span id="cb26-56"><a href="#cb26-56"></a>    <span class="at">visit =</span> <span class="st">"AVISIT"</span></span>
-<span id="cb26-57"><a href="#cb26-57"></a>  ),</span>
-<span id="cb26-58"><a href="#cb26-58"></a>  <span class="at">data =</span> adqs_f,</span>
-<span id="cb26-59"><a href="#cb26-59"></a>  <span class="at">weights_emmeans =</span> <span class="st">"equal"</span></span>
-<span id="cb26-60"><a href="#cb26-60"></a>)</span>
-<span id="cb26-61"><a href="#cb26-61"></a></span>
-<span id="cb26-62"><a href="#cb26-62"></a>df <span class="ot">&lt;-</span> <span class="fu">tidy</span>(mmrm_results)</span>
-<span id="cb26-63"><a href="#cb26-63"></a><span class="fu">attr</span>(df<span class="sc">$</span>AVISIT, <span class="st">"label"</span>) <span class="ot">&lt;-</span> <span class="st">"Visit"</span></span>
-<span id="cb26-64"><a href="#cb26-64"></a></span>
-<span id="cb26-65"><a href="#cb26-65"></a><span class="co"># Define the split function</span></span>
-<span id="cb26-66"><a href="#cb26-66"></a>split_fun <span class="ot">&lt;-</span> drop_split_levels</span>
-<span id="cb26-67"><a href="#cb26-67"></a></span>
-<span id="cb26-68"><a href="#cb26-68"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-69"><a href="#cb26-69"></a>  <span class="fu">split_cols_by</span>(<span class="st">"ARMCD"</span>, <span class="at">ref_group =</span> mmrm_results<span class="sc">$</span>ref_level) <span class="sc">%&gt;%</span></span>
-<span id="cb26-70"><a href="#cb26-70"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>, <span class="at">split_fun =</span> split_fun, <span class="at">label_pos =</span> <span class="st">"topleft"</span>, <span class="at">split_label =</span> <span class="fu">obj_label</span>(df<span class="sc">$</span>AVISIT)) <span class="sc">%&gt;%</span></span>
-<span id="cb26-71"><a href="#cb26-71"></a>  <span class="fu">summarize_lsmeans</span>(<span class="at">show_relative =</span> <span class="st">"increase"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-72"><a href="#cb26-72"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-73"><a href="#cb26-73"></a>  <span class="fu">build_table</span>(df, <span class="at">alt_counts_df =</span> adsl_sub)</span>
-<span id="cb26-74"><a href="#cb26-74"></a></span>
-<span id="cb26-75"><a href="#cb26-75"></a>result</span>
-<span id="cb26-76"><a href="#cb26-76"></a><span class="in">```</span></span>
-<span id="cb26-77"><a href="#cb26-77"></a></span>
-<span id="cb26-78"><a href="#cb26-78"></a><span class="fu">### Not considering the treatment variable in the model</span></span>
-<span id="cb26-79"><a href="#cb26-79"></a></span>
-<span id="cb26-80"><a href="#cb26-80"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb26-81"><a href="#cb26-81"></a>mmrm_results_no_arm <span class="ot">&lt;-</span> <span class="fu">fit_mmrm</span>(</span>
-<span id="cb26-82"><a href="#cb26-82"></a>  <span class="at">vars =</span> <span class="fu">list</span>(</span>
-<span id="cb26-83"><a href="#cb26-83"></a>    <span class="at">response =</span> <span class="st">"CHG"</span>,</span>
-<span id="cb26-84"><a href="#cb26-84"></a>    <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"BMRKR2"</span>, <span class="st">"STRATA1"</span>),</span>
-<span id="cb26-85"><a href="#cb26-85"></a>    <span class="at">id =</span> <span class="st">"USUBJID"</span>,</span>
-<span id="cb26-86"><a href="#cb26-86"></a>    <span class="at">visit =</span> <span class="st">"AVISIT"</span></span>
-<span id="cb26-87"><a href="#cb26-87"></a>  ),</span>
-<span id="cb26-88"><a href="#cb26-88"></a>  <span class="at">data =</span> adqs_f,</span>
-<span id="cb26-89"><a href="#cb26-89"></a>  <span class="at">weights_emmeans =</span> <span class="st">"equal"</span>,</span>
-<span id="cb26-90"><a href="#cb26-90"></a>  <span class="at">parallel =</span> <span class="cn">TRUE</span></span>
-<span id="cb26-91"><a href="#cb26-91"></a>)</span>
-<span id="cb26-92"><a href="#cb26-92"></a></span>
-<span id="cb26-93"><a href="#cb26-93"></a>df_no_arm <span class="ot">&lt;-</span> <span class="fu">tidy</span>(mmrm_results_no_arm)</span>
-<span id="cb26-94"><a href="#cb26-94"></a><span class="fu">attr</span>(df_no_arm<span class="sc">$</span>AVISIT, <span class="st">"label"</span>) <span class="ot">&lt;-</span> <span class="st">"Visit"</span></span>
-<span id="cb26-95"><a href="#cb26-95"></a></span>
-<span id="cb26-96"><a href="#cb26-96"></a><span class="co"># Define the split function</span></span>
-<span id="cb26-97"><a href="#cb26-97"></a>split_fun <span class="ot">&lt;-</span> drop_split_levels</span>
-<span id="cb26-98"><a href="#cb26-98"></a></span>
-<span id="cb26-99"><a href="#cb26-99"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-100"><a href="#cb26-100"></a>  <span class="fu">add_overall_col</span>(<span class="st">"All Patients"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-101"><a href="#cb26-101"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>, <span class="at">split_fun =</span> split_fun, <span class="at">label_pos =</span> <span class="st">"topleft"</span>, <span class="at">split_label =</span> <span class="fu">obj_label</span>(df_no_arm<span class="sc">$</span>AVISIT)) <span class="sc">%&gt;%</span></span>
-<span id="cb26-102"><a href="#cb26-102"></a>  <span class="fu">summarize_lsmeans</span>(<span class="at">arms =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-103"><a href="#cb26-103"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-104"><a href="#cb26-104"></a>  <span class="fu">build_table</span>(df_no_arm, <span class="at">alt_counts_df =</span> adsl_sub)</span>
-<span id="cb26-105"><a href="#cb26-105"></a></span>
-<span id="cb26-106"><a href="#cb26-106"></a>result</span>
-<span id="cb26-107"><a href="#cb26-107"></a><span class="in">```</span></span>
-<span id="cb26-108"><a href="#cb26-108"></a></span>
-<span id="cb26-109"><a href="#cb26-109"></a><span class="fu">### Adding baseline rows</span></span>
-<span id="cb26-110"><a href="#cb26-110"></a></span>
-<span id="cb26-111"><a href="#cb26-111"></a>It may be of interest to summarize some different statistics at the baseline visit or summarize a different variable in the data set not used in the MMRM.</span>
-<span id="cb26-112"><a href="#cb26-112"></a>For example, the model may use the variable <span class="in">`CHG`</span> but the baseline visit row may summarize the <span class="in">`AVAL`</span> variable, thus we would need to create two tables and then combine them to accomplish this.</span>
-<span id="cb26-113"><a href="#cb26-113"></a></span>
-<span id="cb26-116"><a href="#cb26-116"></a><span class="in">```{r}</span></span>
-<span id="cb26-117"><a href="#cb26-117"></a><span class="co"># First have the least-square means table.</span></span>
-<span id="cb26-118"><a href="#cb26-118"></a>a <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-119"><a href="#cb26-119"></a>  <span class="fu">split_cols_by</span>(<span class="st">"ARMCD"</span>, <span class="at">ref_group =</span> mmrm_results<span class="sc">$</span>ref_level) <span class="sc">%&gt;%</span></span>
-<span id="cb26-120"><a href="#cb26-120"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>, <span class="at">split_fun =</span> split_fun, <span class="at">label_pos =</span> <span class="st">"topleft"</span>, <span class="at">split_label =</span> <span class="fu">obj_label</span>(df<span class="sc">$</span>AVISIT)) <span class="sc">%&gt;%</span></span>
-<span id="cb26-121"><a href="#cb26-121"></a>  <span class="fu">summarize_lsmeans</span>(<span class="at">show_relative =</span> <span class="st">"increase"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-122"><a href="#cb26-122"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-123"><a href="#cb26-123"></a>  <span class="fu">build_table</span>(df, <span class="at">alt_counts_df =</span> adsl_sub)</span>
-<span id="cb26-124"><a href="#cb26-124"></a></span>
-<span id="cb26-125"><a href="#cb26-125"></a><span class="co"># Second prepare the baseline values summary table.</span></span>
-<span id="cb26-126"><a href="#cb26-126"></a>baseline_dat <span class="ot">&lt;-</span> adqs <span class="sc">%&gt;%</span></span>
-<span id="cb26-127"><a href="#cb26-127"></a>  <span class="fu">filter</span>(AVISIT <span class="sc">==</span> <span class="st">"BASELINE"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-128"><a href="#cb26-128"></a>  <span class="fu">droplevels</span>()</span>
-<span id="cb26-129"><a href="#cb26-129"></a></span>
-<span id="cb26-130"><a href="#cb26-130"></a>b <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-131"><a href="#cb26-131"></a>  <span class="fu">split_cols_by</span>(<span class="st">"ARMCD"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-132"><a href="#cb26-132"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-133"><a href="#cb26-133"></a>  <span class="fu">summarize_vars</span>(<span class="st">"AVAL"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-134"><a href="#cb26-134"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-135"><a href="#cb26-135"></a>  <span class="fu">build_table</span>(baseline_dat, <span class="at">alt_counts_df =</span> adsl_sub)</span>
-<span id="cb26-136"><a href="#cb26-136"></a></span>
-<span id="cb26-137"><a href="#cb26-137"></a><span class="co"># Now we can combine them as follows.</span></span>
-<span id="cb26-138"><a href="#cb26-138"></a><span class="fu">col_info</span>(b) <span class="ot">&lt;-</span> EmptyColInfo</span>
-<span id="cb26-139"><a href="#cb26-139"></a><span class="fu">rbind</span>(b, a)</span>
-<span id="cb26-140"><a href="#cb26-140"></a><span class="in">```</span></span>
-<span id="cb26-141"><a href="#cb26-141"></a></span>
-<span id="cb26-142"><a href="#cb26-142"></a><span class="fu">### Considering visit averages</span></span>
-<span id="cb26-143"><a href="#cb26-143"></a></span>
-<span id="cb26-144"><a href="#cb26-144"></a>It may also be of interest to summarize several different statistics for an averaged combination of various visits in the MMRM.</span>
-<span id="cb26-145"><a href="#cb26-145"></a>For example, you may want to see the statistics for the average of the first 2 visits, or the average statistics of all visits combined.</span>
-<span id="cb26-146"><a href="#cb26-146"></a>This can be accomplished by specifying the <span class="in">`averages_emmeans`</span> argument when fitting the MMRM model.</span>
-<span id="cb26-147"><a href="#cb26-147"></a></span>
-<span id="cb26-148"><a href="#cb26-148"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
-<span id="cb26-149"><a href="#cb26-149"></a>mmrm_results_avg_visits <span class="ot">&lt;-</span> <span class="fu">fit_mmrm</span>(</span>
-<span id="cb26-150"><a href="#cb26-150"></a>  <span class="at">vars =</span> <span class="fu">list</span>(</span>
-<span id="cb26-151"><a href="#cb26-151"></a>    <span class="at">response =</span> <span class="st">"CHG"</span>,</span>
-<span id="cb26-152"><a href="#cb26-152"></a>    <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"BASE"</span>, <span class="st">"STRATA1"</span>, <span class="st">"BMRKR2"</span>),</span>
-<span id="cb26-153"><a href="#cb26-153"></a>    <span class="at">id =</span> <span class="st">"USUBJID"</span>,</span>
-<span id="cb26-154"><a href="#cb26-154"></a>    <span class="at">arm =</span> <span class="st">"ARMCD"</span>,</span>
-<span id="cb26-155"><a href="#cb26-155"></a>    <span class="at">visit =</span> <span class="st">"AVISIT"</span></span>
-<span id="cb26-156"><a href="#cb26-156"></a>  ),</span>
-<span id="cb26-157"><a href="#cb26-157"></a>  <span class="at">data =</span> adqs_f,</span>
-<span id="cb26-158"><a href="#cb26-158"></a>  <span class="at">weights_emmeans =</span> <span class="st">"equal"</span>,</span>
-<span id="cb26-159"><a href="#cb26-159"></a>  <span class="at">averages_emmeans =</span> <span class="fu">list</span>(</span>
-<span id="cb26-160"><a href="#cb26-160"></a>    <span class="st">"WEEKS 1-2"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"WEEK 1 DAY 8"</span>, <span class="st">"WEEK 2 DAY 15"</span>),</span>
-<span id="cb26-161"><a href="#cb26-161"></a>    <span class="st">"WEEKS 3-5"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"WEEK 3 DAY 22"</span>, <span class="st">"WEEK 4 DAY 29"</span>, <span class="st">"WEEK 5 DAY 36"</span>),</span>
-<span id="cb26-162"><a href="#cb26-162"></a>    <span class="st">"ALL VISITS"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"WEEK 1 DAY 8"</span>, <span class="st">"WEEK 2 DAY 15"</span>, <span class="st">"WEEK 3 DAY 22"</span>, <span class="st">"WEEK 4 DAY 29"</span>, <span class="st">"WEEK 5 DAY 36"</span>)</span>
-<span id="cb26-163"><a href="#cb26-163"></a>  )</span>
-<span id="cb26-164"><a href="#cb26-164"></a>)</span>
-<span id="cb26-165"><a href="#cb26-165"></a></span>
-<span id="cb26-166"><a href="#cb26-166"></a>df_avgs <span class="ot">&lt;-</span> <span class="fu">tidy</span>(mmrm_results_avg_visits)</span>
-<span id="cb26-167"><a href="#cb26-167"></a><span class="fu">attr</span>(df_avgs<span class="sc">$</span>AVISIT, <span class="st">"label"</span>) <span class="ot">&lt;-</span> <span class="st">"Visit"</span></span>
-<span id="cb26-168"><a href="#cb26-168"></a></span>
-<span id="cb26-169"><a href="#cb26-169"></a><span class="co"># Define the split function</span></span>
-<span id="cb26-170"><a href="#cb26-170"></a>split_fun <span class="ot">&lt;-</span> drop_split_levels</span>
-<span id="cb26-171"><a href="#cb26-171"></a></span>
-<span id="cb26-172"><a href="#cb26-172"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-173"><a href="#cb26-173"></a>  <span class="fu">split_cols_by</span>(<span class="st">"ARMCD"</span>, <span class="at">ref_group =</span> mmrm_results_avg_visits<span class="sc">$</span>ref_level) <span class="sc">%&gt;%</span></span>
-<span id="cb26-174"><a href="#cb26-174"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>, <span class="at">split_fun =</span> split_fun, <span class="at">label_pos =</span> <span class="st">"topleft"</span>, <span class="at">split_label =</span> <span class="fu">obj_label</span>(df_avgs<span class="sc">$</span>AVISIT)) <span class="sc">%&gt;%</span></span>
-<span id="cb26-175"><a href="#cb26-175"></a>  <span class="fu">summarize_lsmeans</span>(<span class="at">show_relative =</span> <span class="st">"increase"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-176"><a href="#cb26-176"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-177"><a href="#cb26-177"></a>  <span class="fu">build_table</span>(df_avgs, <span class="at">alt_counts_df =</span> adsl_sub)</span>
-<span id="cb26-178"><a href="#cb26-178"></a></span>
-<span id="cb26-179"><a href="#cb26-179"></a>result</span>
-<span id="cb26-180"><a href="#cb26-180"></a><span class="in">```</span></span>
-<span id="cb26-181"><a href="#cb26-181"></a></span>
-<span id="cb26-182"><a href="#cb26-182"></a><span class="fu">## Fixed Effects</span></span>
-<span id="cb26-183"><a href="#cb26-183"></a></span>
-<span id="cb26-184"><a href="#cb26-184"></a><span class="fu">#### Considering the treatment variable in the model</span></span>
-<span id="cb26-185"><a href="#cb26-185"></a></span>
-<span id="cb26-188"><a href="#cb26-188"></a><span class="in">```{r}</span></span>
-<span id="cb26-189"><a href="#cb26-189"></a><span class="fu">as.rtable</span>(mmrm_results, <span class="at">type =</span> <span class="st">"fixed"</span>)</span>
-<span id="cb26-190"><a href="#cb26-190"></a><span class="in">```</span></span>
-<span id="cb26-191"><a href="#cb26-191"></a></span>
-<span id="cb26-192"><a href="#cb26-192"></a><span class="fu">#### Not considering the treatment variable in the model</span></span>
-<span id="cb26-193"><a href="#cb26-193"></a></span>
-<span id="cb26-196"><a href="#cb26-196"></a><span class="in">```{r}</span></span>
-<span id="cb26-197"><a href="#cb26-197"></a><span class="fu">as.rtable</span>(mmrm_results_no_arm, <span class="at">type =</span> <span class="st">"fixed"</span>)</span>
-<span id="cb26-198"><a href="#cb26-198"></a><span class="in">```</span></span>
-<span id="cb26-199"><a href="#cb26-199"></a></span>
-<span id="cb26-200"><a href="#cb26-200"></a><span class="fu">## Covariance Matrix</span></span>
-<span id="cb26-201"><a href="#cb26-201"></a></span>
-<span id="cb26-204"><a href="#cb26-204"></a><span class="in">```{r}</span></span>
-<span id="cb26-205"><a href="#cb26-205"></a><span class="fu">as.rtable</span>(mmrm_results, <span class="at">type =</span> <span class="st">"cov"</span>)</span>
-<span id="cb26-206"><a href="#cb26-206"></a><span class="in">```</span></span>
-<span id="cb26-207"><a href="#cb26-207"></a></span>
-<span id="cb26-208"><a href="#cb26-208"></a><span class="fu">## Model Diagnostics</span></span>
-<span id="cb26-209"><a href="#cb26-209"></a></span>
-<span id="cb26-210"><a href="#cb26-210"></a>Model diagnostics are currently available to evaluate choice of covariates for the fixed and random effects.</span>
-<span id="cb26-211"><a href="#cb26-211"></a>Statistics to evaluate choice of covariance structure are being investigated and will be included in a future release.</span>
-<span id="cb26-212"><a href="#cb26-212"></a></span>
-<span id="cb26-215"><a href="#cb26-215"></a><span class="in">```{r}</span></span>
-<span id="cb26-216"><a href="#cb26-216"></a><span class="fu">as.rtable</span>(mmrm_results, <span class="at">type =</span> <span class="st">"diagnostic"</span>)</span>
-<span id="cb26-217"><a href="#cb26-217"></a><span class="in">```</span></span>
-<span id="cb26-218"><a href="#cb26-218"></a></span>
-<span id="cb26-219"><a href="#cb26-219"></a>{{&lt; include ../../test-utils/save_results.qmd &gt;}}</span>
-<span id="cb26-220"><a href="#cb26-220"></a></span>
-<span id="cb26-221"><a href="#cb26-221"></a><span class="fu">## `teal` App</span></span>
-<span id="cb26-222"><a href="#cb26-222"></a></span>
-<span id="cb26-223"><a href="#cb26-223"></a><span class="in">```{r teal, message=FALSE, opts.label='skip_if_testing'}</span></span>
-<span id="cb26-224"><a href="#cb26-224"></a><span class="co">#| screenshot.opts = list(delay = 24)</span></span>
-<span id="cb26-225"><a href="#cb26-225"></a></span>
-<span id="cb26-226"><a href="#cb26-226"></a><span class="fu">library</span>(teal.modules.clinical)</span>
-<span id="cb26-227"><a href="#cb26-227"></a><span class="fu">library</span>(scda)</span>
-<span id="cb26-228"><a href="#cb26-228"></a></span>
-<span id="cb26-229"><a href="#cb26-229"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
-<span id="cb26-230"><a href="#cb26-230"></a>adqs <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adqs"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-231"><a href="#cb26-231"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(ABLFL <span class="sc">!=</span> <span class="st">"Y"</span> <span class="sc">&amp;</span> ABLFL2 <span class="sc">!=</span> <span class="st">"Y"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-232"><a href="#cb26-232"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(AVISIT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"WEEK 1 DAY 8"</span>, <span class="st">"WEEK 2 DAY 15"</span>, <span class="st">"WEEK 3 DAY 22"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb26-233"><a href="#cb26-233"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
-<span id="cb26-234"><a href="#cb26-234"></a>    <span class="at">AVISIT =</span> <span class="fu">as.factor</span>(AVISIT),</span>
-<span id="cb26-235"><a href="#cb26-235"></a>    <span class="at">AVISITN =</span> <span class="fu">rank</span>(AVISITN) <span class="sc">%&gt;%</span></span>
-<span id="cb26-236"><a href="#cb26-236"></a>      <span class="fu">as.factor</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb26-237"><a href="#cb26-237"></a>      <span class="fu">as.numeric</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb26-238"><a href="#cb26-238"></a>      <span class="fu">as.factor</span>() <span class="co"># making consecutive numeric factor</span></span>
-<span id="cb26-239"><a href="#cb26-239"></a>  )</span>
-<span id="cb26-240"><a href="#cb26-240"></a></span>
-<span id="cb26-241"><a href="#cb26-241"></a>arm_ref_comp <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb26-242"><a href="#cb26-242"></a>  <span class="at">ARMCD =</span> <span class="fu">list</span>(</span>
-<span id="cb26-243"><a href="#cb26-243"></a>    <span class="at">ref =</span> <span class="st">"ARM A"</span>,</span>
-<span id="cb26-244"><a href="#cb26-244"></a>    <span class="at">comp =</span> <span class="fu">c</span>(<span class="st">"ARM B"</span>, <span class="st">"ARM C"</span>)</span>
-<span id="cb26-245"><a href="#cb26-245"></a>  )</span>
-<span id="cb26-246"><a href="#cb26-246"></a>)</span>
-<span id="cb26-247"><a href="#cb26-247"></a></span>
-<span id="cb26-248"><a href="#cb26-248"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb26-249"><a href="#cb26-249"></a>  <span class="at">data =</span> <span class="fu">cdisc_data</span>(</span>
-<span id="cb26-250"><a href="#cb26-250"></a>    <span class="fu">cdisc_dataset</span>(<span class="st">"ADSL"</span>, adsl, <span class="at">code =</span> <span class="st">'ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")'</span>),</span>
-<span id="cb26-251"><a href="#cb26-251"></a>    <span class="fu">cdisc_dataset</span>(<span class="st">"ADQS"</span>, adqs,</span>
-<span id="cb26-252"><a href="#cb26-252"></a>      <span class="at">code =</span> <span class="st">'ADQS &lt;- synthetic_cdisc_dataset("latest", "adqs") %&gt;%</span></span>
-<span id="cb26-253"><a href="#cb26-253"></a><span class="st">              dplyr::filter(ABLFL != "Y" &amp; ABLFL2 != "Y") %&gt;%</span></span>
-<span id="cb26-254"><a href="#cb26-254"></a><span class="st">              dplyr::filter(AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22")) %&gt;%</span></span>
-<span id="cb26-255"><a href="#cb26-255"></a><span class="st">              dplyr::mutate(</span></span>
-<span id="cb26-256"><a href="#cb26-256"></a><span class="st">                AVISIT = as.factor(AVISIT),</span></span>
-<span id="cb26-257"><a href="#cb26-257"></a><span class="st">                AVISITN = rank(AVISITN) %&gt;%</span></span>
-<span id="cb26-258"><a href="#cb26-258"></a><span class="st">                  as.factor() %&gt;%</span></span>
-<span id="cb26-259"><a href="#cb26-259"></a><span class="st">                  as.numeric() %&gt;%</span></span>
-<span id="cb26-260"><a href="#cb26-260"></a><span class="st">                  as.factor() # making consecutive numeric factor</span></span>
-<span id="cb26-261"><a href="#cb26-261"></a><span class="st">              )'</span></span>
-<span id="cb26-262"><a href="#cb26-262"></a>    ),</span>
-<span id="cb26-263"><a href="#cb26-263"></a>    <span class="at">check =</span> <span class="cn">TRUE</span></span>
-<span id="cb26-264"><a href="#cb26-264"></a>  ),</span>
-<span id="cb26-265"><a href="#cb26-265"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb26-266"><a href="#cb26-266"></a>    <span class="fu">tm_a_mmrm</span>(</span>
-<span id="cb26-267"><a href="#cb26-267"></a>      <span class="at">label =</span> <span class="st">"MMRM"</span>,</span>
-<span id="cb26-268"><a href="#cb26-268"></a>      <span class="at">dataname =</span> <span class="st">"ADQS"</span>,</span>
-<span id="cb26-269"><a href="#cb26-269"></a>      <span class="at">aval_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"AVAL"</span>, <span class="st">"CHG"</span>), <span class="st">"CHG"</span>),</span>
-<span id="cb26-270"><a href="#cb26-270"></a>      <span class="at">id_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"USUBJID"</span>, <span class="st">"SUBJID"</span>), <span class="st">"USUBJID"</span>),</span>
-<span id="cb26-271"><a href="#cb26-271"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>), <span class="st">"ARMCD"</span>),</span>
-<span id="cb26-272"><a href="#cb26-272"></a>      <span class="at">visit_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"AVISIT"</span>, <span class="st">"AVISITN"</span>), <span class="st">"AVISIT"</span>),</span>
-<span id="cb26-273"><a href="#cb26-273"></a>      <span class="at">arm_ref_comp =</span> arm_ref_comp,</span>
-<span id="cb26-274"><a href="#cb26-274"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb26-275"><a href="#cb26-275"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(adqs, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>),</span>
-<span id="cb26-276"><a href="#cb26-276"></a>        <span class="at">selected =</span> <span class="st">"FKSI-FWB"</span></span>
-<span id="cb26-277"><a href="#cb26-277"></a>      ),</span>
-<span id="cb26-278"><a href="#cb26-278"></a>      <span class="at">cov_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"BASE"</span>, <span class="st">"AGE"</span>, <span class="st">"SEX"</span>, <span class="st">"BASE:AVISIT"</span>), <span class="cn">NULL</span>),</span>
-<span id="cb26-279"><a href="#cb26-279"></a>      <span class="at">conf_level =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="fl">0.95</span>, <span class="fl">0.9</span>, <span class="fl">0.8</span>), <span class="fl">0.95</span>)</span>
-<span id="cb26-280"><a href="#cb26-280"></a>    )</span>
-<span id="cb26-281"><a href="#cb26-281"></a>  )</span>
-<span id="cb26-282"><a href="#cb26-282"></a>)</span>
-<span id="cb26-283"><a href="#cb26-283"></a></span>
-<span id="cb26-284"><a href="#cb26-284"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span>
-<span id="cb26-285"><a href="#cb26-285"></a><span class="in">```</span></span>
-<span id="cb26-286"><a href="#cb26-286"></a></span>
-<span id="cb26-287"><a href="#cb26-287"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb26-288"><a href="#cb26-288"></a>:::</span>
+<div class="sourceCode" id="cb24" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb24-1"><a href="#cb24-1"></a><span class="co">---</span></span>
+<span id="cb24-2"><a href="#cb24-2"></a><span class="an">title:</span><span class="co"> MMRMT01</span></span>
+<span id="cb24-3"><a href="#cb24-3"></a><span class="an">subtitle:</span><span class="co"> Tables for Mixed-Effect Model Repeated Measures Analysis</span></span>
+<span id="cb24-4"><a href="#cb24-4"></a><span class="co">---</span></span>
+<span id="cb24-5"><a href="#cb24-5"></a></span>
+<span id="cb24-6"><a href="#cb24-6"></a>------------------------------------------------------------------------</span>
+<span id="cb24-7"><a href="#cb24-7"></a></span>
+<span id="cb24-8"><a href="#cb24-8"></a>{{&lt; include ../../test-utils/envir_hook.qmd &gt;}}</span>
+<span id="cb24-9"><a href="#cb24-9"></a></span>
+<span id="cb24-10"><a href="#cb24-10"></a>::: panel-tabset</span>
+<span id="cb24-11"><a href="#cb24-11"></a><span class="fu">## Data Setup</span></span>
+<span id="cb24-12"><a href="#cb24-12"></a></span>
+<span id="cb24-13"><a href="#cb24-13"></a><span class="in">```{r setup, message=FALSE}</span></span>
+<span id="cb24-14"><a href="#cb24-14"></a><span class="co">#| code-fold: show</span></span>
+<span id="cb24-15"><a href="#cb24-15"></a></span>
+<span id="cb24-16"><a href="#cb24-16"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb24-17"><a href="#cb24-17"></a><span class="fu">library</span>(tern.mmrm)</span>
+<span id="cb24-18"><a href="#cb24-18"></a><span class="fu">library</span>(scda)</span>
+<span id="cb24-19"><a href="#cb24-19"></a><span class="fu">library</span>(broom)</span>
+<span id="cb24-20"><a href="#cb24-20"></a></span>
+<span id="cb24-21"><a href="#cb24-21"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
+<span id="cb24-22"><a href="#cb24-22"></a>adqs <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adqs"</span>)</span>
+<span id="cb24-23"><a href="#cb24-23"></a></span>
+<span id="cb24-24"><a href="#cb24-24"></a><span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb24-25"><a href="#cb24-25"></a>adsl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adsl)</span>
+<span id="cb24-26"><a href="#cb24-26"></a>adqs <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adqs)</span>
+<span id="cb24-27"><a href="#cb24-27"></a></span>
+<span id="cb24-28"><a href="#cb24-28"></a>adqs_f <span class="ot">&lt;-</span> adqs <span class="sc">%&gt;%</span></span>
+<span id="cb24-29"><a href="#cb24-29"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(PARAMCD <span class="sc">==</span> <span class="st">"FKSI-FWB"</span> <span class="sc">&amp;</span> <span class="sc">!</span>AVISIT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"BASELINE"</span>, <span class="st">"SCREENING"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-30"><a href="#cb24-30"></a>  <span class="fu">droplevels</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb24-31"><a href="#cb24-31"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">ARMCD =</span> <span class="fu">factor</span>(ARMCD, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"ARM B"</span>, <span class="st">"ARM A"</span>, <span class="st">"ARM C"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb24-32"><a href="#cb24-32"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb24-33"><a href="#cb24-33"></a>    <span class="at">AVISITN =</span> <span class="fu">rank</span>(AVISITN) <span class="sc">%&gt;%</span></span>
+<span id="cb24-34"><a href="#cb24-34"></a>      <span class="fu">as.factor</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb24-35"><a href="#cb24-35"></a>      <span class="fu">as.numeric</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb24-36"><a href="#cb24-36"></a>      <span class="fu">as.factor</span>()</span>
+<span id="cb24-37"><a href="#cb24-37"></a>  )</span>
+<span id="cb24-38"><a href="#cb24-38"></a>adsl_sub <span class="ot">&lt;-</span> adqs_f <span class="sc">%&gt;%</span></span>
+<span id="cb24-39"><a href="#cb24-39"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(CHG)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-40"><a href="#cb24-40"></a>  <span class="fu">distinct</span>(USUBJID) <span class="sc">%&gt;%</span></span>
+<span id="cb24-41"><a href="#cb24-41"></a>  <span class="fu">left_join</span>(adsl, <span class="at">by =</span> <span class="st">"USUBJID"</span>)</span>
+<span id="cb24-42"><a href="#cb24-42"></a><span class="fu">var_labels</span>(adqs_f) <span class="ot">&lt;-</span> <span class="fu">var_labels</span>(adqs)</span>
+<span id="cb24-43"><a href="#cb24-43"></a><span class="in">```</span></span>
+<span id="cb24-44"><a href="#cb24-44"></a></span>
+<span id="cb24-45"><a href="#cb24-45"></a><span class="fu">## Least Squares Means</span></span>
+<span id="cb24-46"><a href="#cb24-46"></a></span>
+<span id="cb24-47"><a href="#cb24-47"></a><span class="fu">### Considering the treatment variable in the model</span></span>
+<span id="cb24-48"><a href="#cb24-48"></a></span>
+<span id="cb24-49"><a href="#cb24-49"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb24-50"><a href="#cb24-50"></a>mmrm_results <span class="ot">&lt;-</span> <span class="fu">fit_mmrm</span>(</span>
+<span id="cb24-51"><a href="#cb24-51"></a>  <span class="at">vars =</span> <span class="fu">list</span>(</span>
+<span id="cb24-52"><a href="#cb24-52"></a>    <span class="at">response =</span> <span class="st">"CHG"</span>,</span>
+<span id="cb24-53"><a href="#cb24-53"></a>    <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"BASE"</span>, <span class="st">"STRATA1"</span>, <span class="st">"BMRKR2"</span>),</span>
+<span id="cb24-54"><a href="#cb24-54"></a>    <span class="at">id =</span> <span class="st">"USUBJID"</span>,</span>
+<span id="cb24-55"><a href="#cb24-55"></a>    <span class="at">arm =</span> <span class="st">"ARMCD"</span>,</span>
+<span id="cb24-56"><a href="#cb24-56"></a>    <span class="at">visit =</span> <span class="st">"AVISIT"</span></span>
+<span id="cb24-57"><a href="#cb24-57"></a>  ),</span>
+<span id="cb24-58"><a href="#cb24-58"></a>  <span class="at">data =</span> adqs_f,</span>
+<span id="cb24-59"><a href="#cb24-59"></a>  <span class="at">weights_emmeans =</span> <span class="st">"equal"</span></span>
+<span id="cb24-60"><a href="#cb24-60"></a>)</span>
+<span id="cb24-61"><a href="#cb24-61"></a></span>
+<span id="cb24-62"><a href="#cb24-62"></a>df <span class="ot">&lt;-</span> <span class="fu">tidy</span>(mmrm_results)</span>
+<span id="cb24-63"><a href="#cb24-63"></a><span class="fu">attr</span>(df<span class="sc">$</span>AVISIT, <span class="st">"label"</span>) <span class="ot">&lt;-</span> <span class="st">"Visit"</span></span>
+<span id="cb24-64"><a href="#cb24-64"></a></span>
+<span id="cb24-65"><a href="#cb24-65"></a><span class="co"># Define the split function</span></span>
+<span id="cb24-66"><a href="#cb24-66"></a>split_fun <span class="ot">&lt;-</span> drop_split_levels</span>
+<span id="cb24-67"><a href="#cb24-67"></a></span>
+<span id="cb24-68"><a href="#cb24-68"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-69"><a href="#cb24-69"></a>  <span class="fu">split_cols_by</span>(<span class="st">"ARMCD"</span>, <span class="at">ref_group =</span> mmrm_results<span class="sc">$</span>ref_level) <span class="sc">%&gt;%</span></span>
+<span id="cb24-70"><a href="#cb24-70"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>, <span class="at">split_fun =</span> split_fun, <span class="at">label_pos =</span> <span class="st">"topleft"</span>, <span class="at">split_label =</span> <span class="fu">obj_label</span>(df<span class="sc">$</span>AVISIT)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-71"><a href="#cb24-71"></a>  <span class="fu">summarize_lsmeans</span>(<span class="at">show_relative =</span> <span class="st">"increase"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-72"><a href="#cb24-72"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-73"><a href="#cb24-73"></a>  <span class="fu">build_table</span>(df, <span class="at">alt_counts_df =</span> adsl_sub)</span>
+<span id="cb24-74"><a href="#cb24-74"></a></span>
+<span id="cb24-75"><a href="#cb24-75"></a>result</span>
+<span id="cb24-76"><a href="#cb24-76"></a><span class="in">```</span></span>
+<span id="cb24-77"><a href="#cb24-77"></a></span>
+<span id="cb24-78"><a href="#cb24-78"></a><span class="fu">### Not considering the treatment variable in the model</span></span>
+<span id="cb24-79"><a href="#cb24-79"></a></span>
+<span id="cb24-80"><a href="#cb24-80"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb24-81"><a href="#cb24-81"></a>mmrm_results_no_arm <span class="ot">&lt;-</span> <span class="fu">fit_mmrm</span>(</span>
+<span id="cb24-82"><a href="#cb24-82"></a>  <span class="at">vars =</span> <span class="fu">list</span>(</span>
+<span id="cb24-83"><a href="#cb24-83"></a>    <span class="at">response =</span> <span class="st">"CHG"</span>,</span>
+<span id="cb24-84"><a href="#cb24-84"></a>    <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"BMRKR2"</span>, <span class="st">"STRATA1"</span>),</span>
+<span id="cb24-85"><a href="#cb24-85"></a>    <span class="at">id =</span> <span class="st">"USUBJID"</span>,</span>
+<span id="cb24-86"><a href="#cb24-86"></a>    <span class="at">visit =</span> <span class="st">"AVISIT"</span></span>
+<span id="cb24-87"><a href="#cb24-87"></a>  ),</span>
+<span id="cb24-88"><a href="#cb24-88"></a>  <span class="at">data =</span> adqs_f,</span>
+<span id="cb24-89"><a href="#cb24-89"></a>  <span class="at">weights_emmeans =</span> <span class="st">"equal"</span>,</span>
+<span id="cb24-90"><a href="#cb24-90"></a>  <span class="at">parallel =</span> <span class="cn">TRUE</span></span>
+<span id="cb24-91"><a href="#cb24-91"></a>)</span>
+<span id="cb24-92"><a href="#cb24-92"></a></span>
+<span id="cb24-93"><a href="#cb24-93"></a>df_no_arm <span class="ot">&lt;-</span> <span class="fu">tidy</span>(mmrm_results_no_arm)</span>
+<span id="cb24-94"><a href="#cb24-94"></a><span class="fu">attr</span>(df_no_arm<span class="sc">$</span>AVISIT, <span class="st">"label"</span>) <span class="ot">&lt;-</span> <span class="st">"Visit"</span></span>
+<span id="cb24-95"><a href="#cb24-95"></a></span>
+<span id="cb24-96"><a href="#cb24-96"></a><span class="co"># Define the split function</span></span>
+<span id="cb24-97"><a href="#cb24-97"></a>split_fun <span class="ot">&lt;-</span> drop_split_levels</span>
+<span id="cb24-98"><a href="#cb24-98"></a></span>
+<span id="cb24-99"><a href="#cb24-99"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-100"><a href="#cb24-100"></a>  <span class="fu">add_overall_col</span>(<span class="st">"All Patients"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-101"><a href="#cb24-101"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>, <span class="at">split_fun =</span> split_fun, <span class="at">label_pos =</span> <span class="st">"topleft"</span>, <span class="at">split_label =</span> <span class="fu">obj_label</span>(df_no_arm<span class="sc">$</span>AVISIT)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-102"><a href="#cb24-102"></a>  <span class="fu">summarize_lsmeans</span>(<span class="at">arms =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-103"><a href="#cb24-103"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-104"><a href="#cb24-104"></a>  <span class="fu">build_table</span>(df_no_arm, <span class="at">alt_counts_df =</span> adsl_sub)</span>
+<span id="cb24-105"><a href="#cb24-105"></a></span>
+<span id="cb24-106"><a href="#cb24-106"></a>result</span>
+<span id="cb24-107"><a href="#cb24-107"></a><span class="in">```</span></span>
+<span id="cb24-108"><a href="#cb24-108"></a></span>
+<span id="cb24-109"><a href="#cb24-109"></a><span class="fu">### Adding baseline rows</span></span>
+<span id="cb24-110"><a href="#cb24-110"></a></span>
+<span id="cb24-111"><a href="#cb24-111"></a>It may be of interest to summarize some different statistics at the baseline visit or summarize a different variable in the data set not used in the MMRM.</span>
+<span id="cb24-112"><a href="#cb24-112"></a>For example, the model may use the variable <span class="in">`CHG`</span> but the baseline visit row may summarize the <span class="in">`AVAL`</span> variable, thus we would need to create two tables and then combine them to accomplish this.</span>
+<span id="cb24-113"><a href="#cb24-113"></a></span>
+<span id="cb24-116"><a href="#cb24-116"></a><span class="in">```{r}</span></span>
+<span id="cb24-117"><a href="#cb24-117"></a><span class="co"># First have the least-square means table.</span></span>
+<span id="cb24-118"><a href="#cb24-118"></a>a <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-119"><a href="#cb24-119"></a>  <span class="fu">split_cols_by</span>(<span class="st">"ARMCD"</span>, <span class="at">ref_group =</span> mmrm_results<span class="sc">$</span>ref_level) <span class="sc">%&gt;%</span></span>
+<span id="cb24-120"><a href="#cb24-120"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>, <span class="at">split_fun =</span> split_fun, <span class="at">label_pos =</span> <span class="st">"topleft"</span>, <span class="at">split_label =</span> <span class="fu">obj_label</span>(df<span class="sc">$</span>AVISIT)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-121"><a href="#cb24-121"></a>  <span class="fu">summarize_lsmeans</span>(<span class="at">show_relative =</span> <span class="st">"increase"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-122"><a href="#cb24-122"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-123"><a href="#cb24-123"></a>  <span class="fu">build_table</span>(df, <span class="at">alt_counts_df =</span> adsl_sub)</span>
+<span id="cb24-124"><a href="#cb24-124"></a></span>
+<span id="cb24-125"><a href="#cb24-125"></a><span class="co"># Second prepare the baseline values summary table.</span></span>
+<span id="cb24-126"><a href="#cb24-126"></a>baseline_dat <span class="ot">&lt;-</span> adqs <span class="sc">%&gt;%</span></span>
+<span id="cb24-127"><a href="#cb24-127"></a>  <span class="fu">filter</span>(AVISIT <span class="sc">==</span> <span class="st">"BASELINE"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-128"><a href="#cb24-128"></a>  <span class="fu">droplevels</span>()</span>
+<span id="cb24-129"><a href="#cb24-129"></a></span>
+<span id="cb24-130"><a href="#cb24-130"></a>b <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-131"><a href="#cb24-131"></a>  <span class="fu">split_cols_by</span>(<span class="st">"ARMCD"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-132"><a href="#cb24-132"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-133"><a href="#cb24-133"></a>  <span class="fu">analyze_vars</span>(<span class="st">"AVAL"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-134"><a href="#cb24-134"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-135"><a href="#cb24-135"></a>  <span class="fu">build_table</span>(baseline_dat, <span class="at">alt_counts_df =</span> adsl_sub)</span>
+<span id="cb24-136"><a href="#cb24-136"></a></span>
+<span id="cb24-137"><a href="#cb24-137"></a><span class="co"># Now we can combine them as follows.</span></span>
+<span id="cb24-138"><a href="#cb24-138"></a><span class="fu">col_info</span>(b) <span class="ot">&lt;-</span> EmptyColInfo</span>
+<span id="cb24-139"><a href="#cb24-139"></a><span class="fu">rbind</span>(b, a)</span>
+<span id="cb24-140"><a href="#cb24-140"></a><span class="in">```</span></span>
+<span id="cb24-141"><a href="#cb24-141"></a></span>
+<span id="cb24-142"><a href="#cb24-142"></a><span class="fu">### Considering visit averages</span></span>
+<span id="cb24-143"><a href="#cb24-143"></a></span>
+<span id="cb24-144"><a href="#cb24-144"></a>It may also be of interest to summarize several different statistics for an averaged combination of various visits in the MMRM.</span>
+<span id="cb24-145"><a href="#cb24-145"></a>For example, you may want to see the statistics for the average of the first 2 visits, or the average statistics of all visits combined.</span>
+<span id="cb24-146"><a href="#cb24-146"></a>This can be accomplished by specifying the <span class="in">`averages_emmeans`</span> argument when fitting the MMRM model.</span>
+<span id="cb24-147"><a href="#cb24-147"></a></span>
+<span id="cb24-148"><a href="#cb24-148"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
+<span id="cb24-149"><a href="#cb24-149"></a>mmrm_results_avg_visits <span class="ot">&lt;-</span> <span class="fu">fit_mmrm</span>(</span>
+<span id="cb24-150"><a href="#cb24-150"></a>  <span class="at">vars =</span> <span class="fu">list</span>(</span>
+<span id="cb24-151"><a href="#cb24-151"></a>    <span class="at">response =</span> <span class="st">"CHG"</span>,</span>
+<span id="cb24-152"><a href="#cb24-152"></a>    <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"BASE"</span>, <span class="st">"STRATA1"</span>, <span class="st">"BMRKR2"</span>),</span>
+<span id="cb24-153"><a href="#cb24-153"></a>    <span class="at">id =</span> <span class="st">"USUBJID"</span>,</span>
+<span id="cb24-154"><a href="#cb24-154"></a>    <span class="at">arm =</span> <span class="st">"ARMCD"</span>,</span>
+<span id="cb24-155"><a href="#cb24-155"></a>    <span class="at">visit =</span> <span class="st">"AVISIT"</span></span>
+<span id="cb24-156"><a href="#cb24-156"></a>  ),</span>
+<span id="cb24-157"><a href="#cb24-157"></a>  <span class="at">data =</span> adqs_f,</span>
+<span id="cb24-158"><a href="#cb24-158"></a>  <span class="at">weights_emmeans =</span> <span class="st">"equal"</span>,</span>
+<span id="cb24-159"><a href="#cb24-159"></a>  <span class="at">averages_emmeans =</span> <span class="fu">list</span>(</span>
+<span id="cb24-160"><a href="#cb24-160"></a>    <span class="st">"WEEKS 1-2"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"WEEK 1 DAY 8"</span>, <span class="st">"WEEK 2 DAY 15"</span>),</span>
+<span id="cb24-161"><a href="#cb24-161"></a>    <span class="st">"WEEKS 3-5"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"WEEK 3 DAY 22"</span>, <span class="st">"WEEK 4 DAY 29"</span>, <span class="st">"WEEK 5 DAY 36"</span>),</span>
+<span id="cb24-162"><a href="#cb24-162"></a>    <span class="st">"ALL VISITS"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"WEEK 1 DAY 8"</span>, <span class="st">"WEEK 2 DAY 15"</span>, <span class="st">"WEEK 3 DAY 22"</span>, <span class="st">"WEEK 4 DAY 29"</span>, <span class="st">"WEEK 5 DAY 36"</span>)</span>
+<span id="cb24-163"><a href="#cb24-163"></a>  )</span>
+<span id="cb24-164"><a href="#cb24-164"></a>)</span>
+<span id="cb24-165"><a href="#cb24-165"></a></span>
+<span id="cb24-166"><a href="#cb24-166"></a>df_avgs <span class="ot">&lt;-</span> <span class="fu">tidy</span>(mmrm_results_avg_visits)</span>
+<span id="cb24-167"><a href="#cb24-167"></a><span class="fu">attr</span>(df_avgs<span class="sc">$</span>AVISIT, <span class="st">"label"</span>) <span class="ot">&lt;-</span> <span class="st">"Visit"</span></span>
+<span id="cb24-168"><a href="#cb24-168"></a></span>
+<span id="cb24-169"><a href="#cb24-169"></a><span class="co"># Define the split function</span></span>
+<span id="cb24-170"><a href="#cb24-170"></a>split_fun <span class="ot">&lt;-</span> drop_split_levels</span>
+<span id="cb24-171"><a href="#cb24-171"></a></span>
+<span id="cb24-172"><a href="#cb24-172"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-173"><a href="#cb24-173"></a>  <span class="fu">split_cols_by</span>(<span class="st">"ARMCD"</span>, <span class="at">ref_group =</span> mmrm_results_avg_visits<span class="sc">$</span>ref_level) <span class="sc">%&gt;%</span></span>
+<span id="cb24-174"><a href="#cb24-174"></a>  <span class="fu">split_rows_by</span>(<span class="st">"AVISIT"</span>, <span class="at">split_fun =</span> split_fun, <span class="at">label_pos =</span> <span class="st">"topleft"</span>, <span class="at">split_label =</span> <span class="fu">obj_label</span>(df_avgs<span class="sc">$</span>AVISIT)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-175"><a href="#cb24-175"></a>  <span class="fu">summarize_lsmeans</span>(<span class="at">show_relative =</span> <span class="st">"increase"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-176"><a href="#cb24-176"></a>  <span class="fu">append_topleft</span>(<span class="st">"  Statistics"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-177"><a href="#cb24-177"></a>  <span class="fu">build_table</span>(df_avgs, <span class="at">alt_counts_df =</span> adsl_sub)</span>
+<span id="cb24-178"><a href="#cb24-178"></a></span>
+<span id="cb24-179"><a href="#cb24-179"></a>result</span>
+<span id="cb24-180"><a href="#cb24-180"></a><span class="in">```</span></span>
+<span id="cb24-181"><a href="#cb24-181"></a></span>
+<span id="cb24-182"><a href="#cb24-182"></a><span class="fu">## Fixed Effects</span></span>
+<span id="cb24-183"><a href="#cb24-183"></a></span>
+<span id="cb24-184"><a href="#cb24-184"></a><span class="fu">#### Considering the treatment variable in the model</span></span>
+<span id="cb24-185"><a href="#cb24-185"></a></span>
+<span id="cb24-188"><a href="#cb24-188"></a><span class="in">```{r}</span></span>
+<span id="cb24-189"><a href="#cb24-189"></a><span class="fu">as.rtable</span>(mmrm_results, <span class="at">type =</span> <span class="st">"fixed"</span>)</span>
+<span id="cb24-190"><a href="#cb24-190"></a><span class="in">```</span></span>
+<span id="cb24-191"><a href="#cb24-191"></a></span>
+<span id="cb24-192"><a href="#cb24-192"></a><span class="fu">#### Not considering the treatment variable in the model</span></span>
+<span id="cb24-193"><a href="#cb24-193"></a></span>
+<span id="cb24-196"><a href="#cb24-196"></a><span class="in">```{r}</span></span>
+<span id="cb24-197"><a href="#cb24-197"></a><span class="fu">as.rtable</span>(mmrm_results_no_arm, <span class="at">type =</span> <span class="st">"fixed"</span>)</span>
+<span id="cb24-198"><a href="#cb24-198"></a><span class="in">```</span></span>
+<span id="cb24-199"><a href="#cb24-199"></a></span>
+<span id="cb24-200"><a href="#cb24-200"></a><span class="fu">## Covariance Matrix</span></span>
+<span id="cb24-201"><a href="#cb24-201"></a></span>
+<span id="cb24-204"><a href="#cb24-204"></a><span class="in">```{r}</span></span>
+<span id="cb24-205"><a href="#cb24-205"></a><span class="fu">as.rtable</span>(mmrm_results, <span class="at">type =</span> <span class="st">"cov"</span>)</span>
+<span id="cb24-206"><a href="#cb24-206"></a><span class="in">```</span></span>
+<span id="cb24-207"><a href="#cb24-207"></a></span>
+<span id="cb24-208"><a href="#cb24-208"></a><span class="fu">## Model Diagnostics</span></span>
+<span id="cb24-209"><a href="#cb24-209"></a></span>
+<span id="cb24-210"><a href="#cb24-210"></a>Model diagnostics are currently available to evaluate choice of covariates for the fixed and random effects.</span>
+<span id="cb24-211"><a href="#cb24-211"></a>Statistics to evaluate choice of covariance structure are being investigated and will be included in a future release.</span>
+<span id="cb24-212"><a href="#cb24-212"></a></span>
+<span id="cb24-215"><a href="#cb24-215"></a><span class="in">```{r}</span></span>
+<span id="cb24-216"><a href="#cb24-216"></a><span class="fu">as.rtable</span>(mmrm_results, <span class="at">type =</span> <span class="st">"diagnostic"</span>)</span>
+<span id="cb24-217"><a href="#cb24-217"></a><span class="in">```</span></span>
+<span id="cb24-218"><a href="#cb24-218"></a></span>
+<span id="cb24-219"><a href="#cb24-219"></a>{{&lt; include ../../test-utils/save_results.qmd &gt;}}</span>
+<span id="cb24-220"><a href="#cb24-220"></a></span>
+<span id="cb24-221"><a href="#cb24-221"></a><span class="fu">## `teal` App</span></span>
+<span id="cb24-222"><a href="#cb24-222"></a></span>
+<span id="cb24-223"><a href="#cb24-223"></a><span class="in">```{r teal, message=FALSE, opts.label='skip_if_testing'}</span></span>
+<span id="cb24-224"><a href="#cb24-224"></a><span class="co">#| screenshot.opts = list(delay = 24)</span></span>
+<span id="cb24-225"><a href="#cb24-225"></a></span>
+<span id="cb24-226"><a href="#cb24-226"></a><span class="fu">library</span>(teal.modules.clinical)</span>
+<span id="cb24-227"><a href="#cb24-227"></a><span class="fu">library</span>(scda)</span>
+<span id="cb24-228"><a href="#cb24-228"></a></span>
+<span id="cb24-229"><a href="#cb24-229"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
+<span id="cb24-230"><a href="#cb24-230"></a>adqs <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adqs"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-231"><a href="#cb24-231"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(ABLFL <span class="sc">!=</span> <span class="st">"Y"</span> <span class="sc">&amp;</span> ABLFL2 <span class="sc">!=</span> <span class="st">"Y"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-232"><a href="#cb24-232"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(AVISIT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"WEEK 1 DAY 8"</span>, <span class="st">"WEEK 2 DAY 15"</span>, <span class="st">"WEEK 3 DAY 22"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-233"><a href="#cb24-233"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb24-234"><a href="#cb24-234"></a>    <span class="at">AVISIT =</span> <span class="fu">as.factor</span>(AVISIT),</span>
+<span id="cb24-235"><a href="#cb24-235"></a>    <span class="at">AVISITN =</span> <span class="fu">rank</span>(AVISITN) <span class="sc">%&gt;%</span></span>
+<span id="cb24-236"><a href="#cb24-236"></a>      <span class="fu">as.factor</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb24-237"><a href="#cb24-237"></a>      <span class="fu">as.numeric</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb24-238"><a href="#cb24-238"></a>      <span class="fu">as.factor</span>() <span class="co"># making consecutive numeric factor</span></span>
+<span id="cb24-239"><a href="#cb24-239"></a>  )</span>
+<span id="cb24-240"><a href="#cb24-240"></a></span>
+<span id="cb24-241"><a href="#cb24-241"></a>arm_ref_comp <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb24-242"><a href="#cb24-242"></a>  <span class="at">ARMCD =</span> <span class="fu">list</span>(</span>
+<span id="cb24-243"><a href="#cb24-243"></a>    <span class="at">ref =</span> <span class="st">"ARM A"</span>,</span>
+<span id="cb24-244"><a href="#cb24-244"></a>    <span class="at">comp =</span> <span class="fu">c</span>(<span class="st">"ARM B"</span>, <span class="st">"ARM C"</span>)</span>
+<span id="cb24-245"><a href="#cb24-245"></a>  )</span>
+<span id="cb24-246"><a href="#cb24-246"></a>)</span>
+<span id="cb24-247"><a href="#cb24-247"></a></span>
+<span id="cb24-248"><a href="#cb24-248"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb24-249"><a href="#cb24-249"></a>  <span class="at">data =</span> <span class="fu">cdisc_data</span>(</span>
+<span id="cb24-250"><a href="#cb24-250"></a>    <span class="fu">cdisc_dataset</span>(<span class="st">"ADSL"</span>, adsl, <span class="at">code =</span> <span class="st">'ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")'</span>),</span>
+<span id="cb24-251"><a href="#cb24-251"></a>    <span class="fu">cdisc_dataset</span>(<span class="st">"ADQS"</span>, adqs,</span>
+<span id="cb24-252"><a href="#cb24-252"></a>      <span class="at">code =</span> <span class="st">'ADQS &lt;- synthetic_cdisc_dataset("latest", "adqs") %&gt;%</span></span>
+<span id="cb24-253"><a href="#cb24-253"></a><span class="st">              dplyr::filter(ABLFL != "Y" &amp; ABLFL2 != "Y") %&gt;%</span></span>
+<span id="cb24-254"><a href="#cb24-254"></a><span class="st">              dplyr::filter(AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22")) %&gt;%</span></span>
+<span id="cb24-255"><a href="#cb24-255"></a><span class="st">              dplyr::mutate(</span></span>
+<span id="cb24-256"><a href="#cb24-256"></a><span class="st">                AVISIT = as.factor(AVISIT),</span></span>
+<span id="cb24-257"><a href="#cb24-257"></a><span class="st">                AVISITN = rank(AVISITN) %&gt;%</span></span>
+<span id="cb24-258"><a href="#cb24-258"></a><span class="st">                  as.factor() %&gt;%</span></span>
+<span id="cb24-259"><a href="#cb24-259"></a><span class="st">                  as.numeric() %&gt;%</span></span>
+<span id="cb24-260"><a href="#cb24-260"></a><span class="st">                  as.factor() # making consecutive numeric factor</span></span>
+<span id="cb24-261"><a href="#cb24-261"></a><span class="st">              )'</span></span>
+<span id="cb24-262"><a href="#cb24-262"></a>    ),</span>
+<span id="cb24-263"><a href="#cb24-263"></a>    <span class="at">check =</span> <span class="cn">TRUE</span></span>
+<span id="cb24-264"><a href="#cb24-264"></a>  ),</span>
+<span id="cb24-265"><a href="#cb24-265"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb24-266"><a href="#cb24-266"></a>    <span class="fu">tm_a_mmrm</span>(</span>
+<span id="cb24-267"><a href="#cb24-267"></a>      <span class="at">label =</span> <span class="st">"MMRM"</span>,</span>
+<span id="cb24-268"><a href="#cb24-268"></a>      <span class="at">dataname =</span> <span class="st">"ADQS"</span>,</span>
+<span id="cb24-269"><a href="#cb24-269"></a>      <span class="at">aval_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"AVAL"</span>, <span class="st">"CHG"</span>), <span class="st">"CHG"</span>),</span>
+<span id="cb24-270"><a href="#cb24-270"></a>      <span class="at">id_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"USUBJID"</span>, <span class="st">"SUBJID"</span>), <span class="st">"USUBJID"</span>),</span>
+<span id="cb24-271"><a href="#cb24-271"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>), <span class="st">"ARMCD"</span>),</span>
+<span id="cb24-272"><a href="#cb24-272"></a>      <span class="at">visit_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"AVISIT"</span>, <span class="st">"AVISITN"</span>), <span class="st">"AVISIT"</span>),</span>
+<span id="cb24-273"><a href="#cb24-273"></a>      <span class="at">arm_ref_comp =</span> arm_ref_comp,</span>
+<span id="cb24-274"><a href="#cb24-274"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb24-275"><a href="#cb24-275"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(adqs, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>),</span>
+<span id="cb24-276"><a href="#cb24-276"></a>        <span class="at">selected =</span> <span class="st">"FKSI-FWB"</span></span>
+<span id="cb24-277"><a href="#cb24-277"></a>      ),</span>
+<span id="cb24-278"><a href="#cb24-278"></a>      <span class="at">cov_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"BASE"</span>, <span class="st">"AGE"</span>, <span class="st">"SEX"</span>, <span class="st">"BASE:AVISIT"</span>), <span class="cn">NULL</span>),</span>
+<span id="cb24-279"><a href="#cb24-279"></a>      <span class="at">conf_level =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="fl">0.95</span>, <span class="fl">0.9</span>, <span class="fl">0.8</span>), <span class="fl">0.95</span>)</span>
+<span id="cb24-280"><a href="#cb24-280"></a>    )</span>
+<span id="cb24-281"><a href="#cb24-281"></a>  )</span>
+<span id="cb24-282"><a href="#cb24-282"></a>)</span>
+<span id="cb24-283"><a href="#cb24-283"></a></span>
+<span id="cb24-284"><a href="#cb24-284"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span>
+<span id="cb24-285"><a href="#cb24-285"></a><span class="in">```</span></span>
+<span id="cb24-286"><a href="#cb24-286"></a></span>
+<span id="cb24-287"><a href="#cb24-287"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb24-288"><a href="#cb24-288"></a>:::</span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
