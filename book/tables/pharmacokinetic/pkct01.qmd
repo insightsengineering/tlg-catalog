@@ -17,7 +17,10 @@ library(scda)
 library(dplyr)
 library(tern)
 
-adpc <- synthetic_cdisc_dataset("latest", "adpc")
+adsl <- synthetic_cdisc_dataset("latest", "adsl") %>%
+  filter(ACTARM == "A: Drug X")
+adpc <- synthetic_cdisc_dataset("latest", "adpc") %>%
+  filter(ACTARM == "A: Drug X", PARAM == "Plasma Drug X")
 
 # Setting up the data
 adpc_1 <- adpc %>%
@@ -25,79 +28,120 @@ adpc_1 <- adpc %>%
     NFRLT = as.factor(NFRLT),
     AVALCAT1 = as.factor(AVALCAT1)
   ) %>%
-  filter(ACTARM == "A: Drug X", PARAM == "Plasma Drug X") %>%
-  mutate(ACTARM = factor(ACTARM, levels = c("A: Drug X"))) %>%
-  select(NFRLT, ACTARM, VISIT, AVAL, PARAM, AVALCAT1)
+  select(NFRLT, ACTARM, VISIT, AVAL, PARAM, AVALCAT1) %>%
+  var_relabel(NFRLT = "Nominal Time from First Dose (hr)")
 
-# Helper function
-threesigfmt <- function(x, ...) {
-  as.character(signif(x, 3))
-}
-```
-
-## Standard Table (Stats in Columns)
-
-```{r variant1, test = list(result_v1 = "result")}
 # Row structure
-l_rows <- basic_table() %>%
+lyt_rows <- basic_table() %>%
   split_rows_by(
     var = "ACTARM",
-    split_label = "Cohort/Treatment",
+    split_fun = drop_split_levels,
+    split_label = "Treatment Group",
     label_pos = "topleft"
   ) %>%
+  add_rowcounts(alt_counts = TRUE) %>%
   split_rows_by(
     var = "VISIT",
+    split_fun = drop_split_levels,
     split_label = "Visit",
     label_pos = "topleft"
   ) %>%
   split_rows_by(
     var = "NFRLT",
-    split_label = "Norminal Time from First Dose",
+    split_fun = drop_split_levels,
+    split_label = obj_label(adpc_1$NFRLT),
     label_pos = "topleft",
     child_labels = "hidden"
   )
+```
 
-# Column results for numeric values
-lyt <- l_rows %>%
+## Standard Table (Stats in Columns)
+
+```{r variant1, test = list(result_v1 = "result")}
+lyt <- lyt_rows %>%
   analyze_vars_in_cols(
     vars = c("AVAL", "AVALCAT1", rep("AVAL", 8)),
-    .stats = c(
-      "n", "n_blq", "mean", "sd", "cv",
-      "geom_mean", "geom_cv", # "geom_mean_ci",
-      "median", "min", "max"
-    ),
+    .stats = c("n", "n_blq", "mean", "sd", "cv", "geom_mean", "geom_cv", "median", "min", "max"),
     .formats = c(
-      n = "xx.",
-      n_blq = "xx.",
-      mean = threesigfmt,
-      sd = threesigfmt,
-      cv = "xx.x",
-      median = threesigfmt,
-      geom_mean = threesigfmt,
-      geom_cv = "xx.x",
-      min = threesigfmt,
-      max = threesigfmt
+      n = "xx.", n_blq = "xx.", mean = format_sigfig(3), sd = format_sigfig(3), cv = "xx.x", median = format_sigfig(3),
+      geom_mean = format_sigfig(3), geom_cv = "xx.x", min = format_sigfig(3), max = format_sigfig(3)
     ),
     .labels = c(
-      n = "n",
-      n_blq = "Number\nof\nLTRs/BLQs",
-      mean = "Mean",
-      sd = "SD",
-      cv = "CV (%) Mean",
-      geom_mean = "Geometric Mean",
-      geom_cv = "CV % Geometric Mean",
-      median = "Median",
-      min = "Minimum",
-      max = "Maximum"
+      n = "n", n_blq = "Number\nof\nLTRs/BLQs", mean = "Mean", sd = "SD", cv = "CV (%) Mean",
+      geom_mean = "Geometric Mean", geom_cv = "CV % Geometric Mean", median = "Median", min = "Minimum", max = "Maximum"
     ),
-    na_level = "NE"
+    cache = TRUE,
+    na_level = "NE",
+    .aligns = "decimal"
   )
-result <- build_table(lyt, df = adpc_1) %>% prune_table()
+
+result <- build_table(lyt, df = adpc_1, alt_counts_df = adsl) %>% prune_table()
 
 # Decorating
 main_title(result) <- "Summary of PK Concentrations by Nominal Time and Treatment: PK Evaluable"
 subtitles(result) <- c("Protocol: xxxxx", paste("Analyte: ", unique(adpc_1$PARAM)), paste("Treatment:", unique(adpc_1$ACTARM)))
 main_footer(result) <- "NE: Not Estimable"
+
+result
+```
+
+## Table Implementing 1/3 Imputation Rule
+
+```{r variant2, test = list(result_v2 = "result")}
+lyt <- lyt_rows %>%
+  analyze_vars_in_cols(
+    vars = c("AVAL", "AVALCAT1", rep("AVAL", 8)),
+    .stats = c("n", "n_blq", "mean", "sd", "cv", "geom_mean", "geom_cv", "median", "min", "max"),
+    .formats = c(
+      n = "xx.", n_blq = "xx.", mean = format_sigfig(3), sd = format_sigfig(3), cv = "xx.x", median = format_sigfig(3),
+      geom_mean = format_sigfig(3), geom_cv = "xx.x", min = format_sigfig(3), max = format_sigfig(3)
+    ),
+    .labels = c(
+      n = "n", n_blq = "Number\nof\nLTRs/BLQs", mean = "Mean", sd = "SD", cv = "CV (%) Mean",
+      geom_mean = "Geometric Mean", geom_cv = "CV % Geometric Mean", median = "Median", min = "Minimum", max = "Maximum"
+    ),
+    cache = TRUE,
+    imp_rule = "1/3",
+    .aligns = "decimal"
+  )
+
+result <- build_table(lyt, df = adpc_1, alt_counts_df = adsl) %>% prune_table()
+
+# Decorating
+main_title(result) <- "Summary of PK Concentrations by Nominal Time and Treatment: PK Evaluable"
+subtitles(result) <- c("Protocol: xxxxx", paste("Analyte: ", unique(adpc_1$PARAM)), paste("Treatment:", unique(adpc_1$ACTARM)))
+main_footer(result) <- c("NE: Not Estimable", "ND: Not Derived")
+
+result
+```
+
+## Table Implementing 1/2 Imputation Rule
+
+```{r variant3, test = list(result_v3 = "result")}
+lyt <- lyt_rows %>%
+  analyze_vars_in_cols(
+    vars = c("AVAL", "AVALCAT1", rep("AVAL", 8)),
+    .stats = c("n", "n_blq", "mean", "sd", "cv", "geom_mean", "geom_cv", "median", "min", "max"),
+    .formats = c(
+      n = "xx.", n_blq = "xx.", mean = format_sigfig(3), sd = format_sigfig(3), cv = "xx.x", median = format_sigfig(3),
+      geom_mean = format_sigfig(3), geom_cv = "xx.x", min = format_sigfig(3), max = format_sigfig(3)
+    ),
+    .labels = c(
+      n = "n", n_blq = "Number\nof\nLTRs/BLQs", mean = "Mean", sd = "SD", cv = "CV (%) Mean",
+      geom_mean = "Geometric Mean", geom_cv = "CV % Geometric Mean", median = "Median", min = "Minimum", max = "Maximum"
+    ),
+    cache = TRUE,
+    imp_rule = "1/2",
+    .aligns = "decimal"
+  )
+
+result <- build_table(lyt, df = adpc_1, alt_counts_df = adsl) %>% prune_table()
+
+# Decorate table
+main_title(result) <- "Summary of PK Concentrations by Nominal Time and Treatment: PK Evaluable"
+subtitles(result) <- c("Protocol: xxxxx", paste("Analyte: ", unique(adpc_1$PARAM)), paste("Treatment:", unique(adpc_1$ACTARM)))
+main_footer(result) <- "ND: Not Derived"
+
 result
 ```
 
