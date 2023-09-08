@@ -55,8 +55,16 @@ create_subsection("./tables/vital-signs", "Vital Signs")
 # Listings
 
 section_header("Listings")
+create_subsection("./listings/adverse-events", "Adverse Events")
+create_subsection("./listings/con-med", "Concomitant Medications")
+create_subsection("./listings/disposition", "Disposition")
+create_subsection("./listings/ecg", "ECG")
+create_subsection("./listings/exposure", "Exposure")
+create_subsection("./listings/lab-results", "Lab Results")
+create_subsection("./listings/medical-history", "Medical History")
 create_subsection("./listings/pharmacokinetic", "Pharmacokinetic")
 create_subsection("./listings/other", "Other")
+create_subsection("./listings/vital-signs", "Vital Signs")
 
 # Graphs
 
