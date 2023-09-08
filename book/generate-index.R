@@ -38,11 +38,19 @@ cat(
 
 section_header("Tables")
 create_subsection("./tables/adverse-events", "Adverse Events")
+create_subsection("./tables/con-med", "Concomitant Medications")
+create_subsection("./tables/deaths", "Deaths")
+create_subsection("./tables/demography", "Demography")
+create_subsection("./tables/disposition", "Disposition")
+create_subsection("./tables/ecg", "ECG")
 create_subsection("./tables/efficacy", "Efficacy")
+create_subsection("./tables/exposure", "Exposure")
 create_subsection("./tables/lab-results", "Lab Results")
+create_subsection("./tables/medical-history", "Medical History")
 create_subsection("./tables/pharmacokinetic", "Pharmacokinetic")
 create_subsection("./tables/safety", "Safety")
 create_subsection("./tables/other", "Other")
+create_subsection("./tables/vital-signs", "Vital Signs")
 
 # Listings
 
