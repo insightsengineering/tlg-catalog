@@ -69,5 +69,7 @@ create_subsection("./listings/vital-signs", "Vital Signs")
 # Graphs
 
 section_header("Graphs")
+create_subsection("./graphs/efficacy", "Efficacy")
 create_subsection("./graphs/pharmacokinetic", "Pharmacokinetic")
 create_subsection("./graphs/other", "Other")
+create_subsection("./graphs/vital-signs", "Vital Signs")
