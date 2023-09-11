@@ -20,8 +20,9 @@ library(tern)
 adpp <- synthetic_cdisc_dataset("latest", "adpp")
 
 # Comparator Dose - A: Drug X
+arm_var <- "TRT01A"
 comp_dose <- "A: Drug X"
-other_doses <- as.character(unique(adpp$TRT01A)[unique(adpp$TRT01A) != comp_dose])
+other_doses <- as.character(unique(adpp[[arm_var]])[unique(adpp[[arm_var]]) != comp_dose])
 
 adpp <- adpp %>%
   filter(AVISIT == "CYCLE 1 DAY 1") %>%
@@ -31,37 +32,31 @@ adpp <- adpp %>%
   )
 
 for (dose in other_doses) {
-  temp_df <- adpp[adpp$TRT01A == comp_dose, ]
+  temp_df <- adpp[adpp[[arm_var]] == comp_dose, ]
   temp_df$COMP <- paste0(dose, "/", comp_dose)
   adpp <- rbind(adpp, temp_df)
 }
 
-formats <- c(
-  n = "xx.",
-  geom_mean_ratio = sprintf_format("%.3e"),
-  gmr_ci_lwr = sprintf_format("%.3e"),
-  gmr_ci_upr = sprintf_format("%.3e")
-)
-```
+# Plasma Drug X
+adpp0 <- adpp %>%
+  filter(PPCAT == "Plasma Drug X") %>%
+  h_pkparam_sort() %>%
+  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %>%
+  var_relabel(COMP = "Comparison")
 
-## Standard Table -- Plasma
+# statistics function
+s_gmr <- function(df,
+                  compare_dose = comp_dose, # comparator, defaults to comp_dose defined above (string)
+                  denom = TRUE, # whether to use comparator as denominator, defaults to TRUE (logical)
+                  arm_var = arm_var) { # arm variable, defaults to arm_var defined above (string)
+  which_num <- !grepl(compare_dose, df[[arm_var]])
 
-```{r variant1, test = list(result_v1 = "result")}
-# summary function
-# compare_dose - comparator, defaults to comp_dose defined above (string)
-# denom - use comparator as denominator, defaults to TRUE (logical)
-s_gmr <- function(x,
-                  labelstr = "",
-                  compare_dose = comp_dose,
-                  denom = TRUE) {
-  row_label <- labelstr
-
-  x_num <- as.numeric(x[!grepl(compare_dose, x)])
+  x_num <- as.numeric(df[which_num, ][["AVAL"]])
   x_num <- x_num[!is.na(x_num)]
   x_num_no_negative_vals <- x_num
   x_num_no_negative_vals[x_num_no_negative_vals <= 0] <- NA
 
-  x_denom <- as.numeric(gsub(compare_dose, "", x[grepl(compare_dose, x)]))
+  x_denom <- as.numeric(gsub(compare_dose, "", df[!which_num, ][["AVAL"]]))
   x_denom <- x_denom[!is.na(x_denom)]
   x_denom_no_negative_vals <- x_denom
   x_denom_no_negative_vals[x_denom_no_negative_vals <= 0] <- NA
@@ -73,33 +68,50 @@ s_gmr <- function(x,
     geom_mean_ratio <- exp(mean(x_num_log, na.rm = FALSE)) / exp(mean(x_denom_log, na.rm = FALSE))
     geom_mean_ci <- t.test(x_num_log, x_denom_log, conf.level = 0.90)$conf.int
   } else {
-    row_label <- paste0(unlist(strsplit(labelstr, "/"))[c(2, 1)], collapse = "/")
     geom_mean_ratio <- exp(mean(x_denom_log, na.rm = FALSE)) / exp(mean(x_num_log, na.rm = FALSE))
     geom_mean_ci <- t.test(x_denom_log, x_num_log, conf.level = 0.90)$conf.int
   }
 
-  results <- list(
-    n = length(x),
+  list(
+    n = nrow(df),
     geom_mean_ratio = geom_mean_ratio,
     gmr_ci_lwr = exp(geom_mean_ci[1]),
     gmr_ci_upr = exp(geom_mean_ci[2])
   )
-
-  lapply(results, formatters::with_label, row_label)
 }
 
-# tabulation function
-afun_list <- Map(
-  function(stat) {
-    make_afun(
-      s_gmr,
-      .stats = stat,
-      .formats = formats[names(formats) %in% stat]
-    )
-  },
-  stat = c("n", "geom_mean_ratio", "gmr_ci_lwr", "gmr_ci_upr")
-)
+afun_pk_gmr <- function(.formats = list(
+                          n = "xx.",
+                          geom_mean_ratio = sprintf_format("%.3e"),
+                          gmr_ci_lwr = sprintf_format("%.3e"),
+                          gmr_ci_upr = sprintf_format("%.3e")
+                        ),
+                        compare_dose = comp_dose,
+                        denom = TRUE) {
+  checkmate::assert_list(.formats)
+  checkmate::assert_subset(names(.formats), c("n", "geom_mean_ratio", "gmr_ci_lwr", "gmr_ci_upr"))
 
+  afun_lst <- Map(
+    function(stat, fmt, compare_dose, denom, arm_var) {
+      function(df, .spl_context) {
+        x_stat <- s_gmr(df, compare_dose = compare_dose, denom = denom, arm_var = arm_var)[[stat]]
+        rcell(x_stat, format = fmt, label = tail(.spl_context$value, 1))
+      }
+    },
+    stat = names(.formats),
+    fmt = .formats,
+    compare_dose = compare_dose,
+    denom = denom,
+    arm_var = arm_var
+  )
+
+  afun_lst
+}
+```
+
+## Standard Table -- Plasma
+
+```{r variant1, test = list(result_v1 = "result")}
 # create layout
 lyt <- basic_table() %>%
   split_rows_by(
@@ -110,9 +122,9 @@ lyt <- basic_table() %>%
   ) %>%
   split_rows_by(
     var = "COMP",
-    label_pos = "topleft",
-    split_label = "Comparison",
-    split_fun = remove_split_levels(paste0(comp_dose, "/", comp_dose))
+    split_fun = remove_split_levels(paste0(comp_dose, "/", comp_dose)),
+    indent_mod = 11L,
+    child_labels = "hidden"
   ) %>%
   split_cols_by_multivar(
     vars = rep("AVAL", 4),
@@ -123,21 +135,18 @@ lyt <- basic_table() %>%
       "90% CI Upper Bound"
     )
   ) %>%
-  summarize_row_groups(
-    var = "COMP_AVAL",
-    cfun = afun_list,
+  analyze_colvars(
+    afun = afun_pk_gmr(),
     extra_args = list(
       compare_dose = comp_dose,
-      denom = TRUE
+      denom = TRUE,
+      arm_var = arm_var
     )
-  )
+  ) %>%
+  append_varlabels(adpp0, "COMP", 12L)
 
-# Plasma Drug X
-adpp0 <- adpp %>%
-  filter(PPCAT == "Plasma Drug X") %>%
-  h_pkparam_sort() %>%
-  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")")))
 result <- build_table(lyt, df = adpp0)
+
 main_title(result) <- paste0(
   "Estimated Ratios of Geometric Means and 90% Confidence Intervals for AUC and CMAX Following ",
   unique(adpp0$REGIMEN), "\nof ", comp_dose, " in Comparison with ",
@@ -145,7 +154,7 @@ main_title(result) <- paste0(
 )
 subtitles(result) <- paste("Analyte:", unique(adpp0$PPCAT))
 
-cat(rtables::toString(result, indent_size = 24))
+result
 ```
 
 {{< include ../../test-utils/save_results.qmd >}}
@@ -159,5 +168,4 @@ cat(rtables::toString(result, indent_size = 24))
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::

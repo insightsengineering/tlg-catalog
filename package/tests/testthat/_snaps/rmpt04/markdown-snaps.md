@@ -9,9 +9,9 @@
                                 Patients     Person time
       Ethnicity                  (N=400)       (N=400)  
       ——————————————————————————————————————————————————
-      NOT REPORTED              18 (4.5%)       2085    
       HISPANIC OR LATINO        28 (7.0%)       2423    
       NOT HISPANIC OR LATINO   165 (41.2%)      15570   
+      NOT REPORTED              18 (4.5%)       2085    
       UNKNOWN                   6 (1.5%)         563    
       Total                    217 (54.2%)      20641   
       ——————————————————————————————————————————————————
