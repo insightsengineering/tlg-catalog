@@ -37,10 +37,12 @@ cat(
 # Tables
 
 section_header("Tables")
+create_subsection("./tables/ada", "ADA")
 create_subsection("./tables/adverse-events", "Adverse Events")
 create_subsection("./tables/con-med", "Concomitant Medications")
 create_subsection("./tables/deaths", "Deaths")
 create_subsection("./tables/demography", "Demography")
+create_subsection("./tables/disclosures", "Disclosures")
 create_subsection("./tables/disposition", "Disposition")
 create_subsection("./tables/ecg", "ECG")
 create_subsection("./tables/efficacy", "Efficacy")
@@ -48,22 +50,23 @@ create_subsection("./tables/exposure", "Exposure")
 create_subsection("./tables/lab-results", "Lab Results")
 create_subsection("./tables/medical-history", "Medical History")
 create_subsection("./tables/pharmacokinetic", "Pharmacokinetic")
+create_subsection("./tables/rmp", "Risk Management Plan")
 create_subsection("./tables/safety", "Safety")
-create_subsection("./tables/other", "Other")
 create_subsection("./tables/vital-signs", "Vital Signs")
 
 # Listings
 
 section_header("Listings")
+create_subsection("./listings/ada", "ADA")
 create_subsection("./listings/adverse-events", "Adverse Events")
 create_subsection("./listings/con-med", "Concomitant Medications")
 create_subsection("./listings/disposition", "Disposition")
+create_subsection("./listings/dsur", "Development Safety Update Report")
 create_subsection("./listings/ecg", "ECG")
 create_subsection("./listings/exposure", "Exposure")
 create_subsection("./listings/lab-results", "Lab Results")
 create_subsection("./listings/medical-history", "Medical History")
 create_subsection("./listings/pharmacokinetic", "Pharmacokinetic")
-create_subsection("./listings/other", "Other")
 create_subsection("./listings/vital-signs", "Vital Signs")
 
 # Graphs
@@ -72,4 +75,3 @@ section_header("Graphs")
 create_subsection("./graphs/efficacy", "Efficacy")
 create_subsection("./graphs/pharmacokinetic", "Pharmacokinetic")
 create_subsection("./graphs/other", "Other")
-create_subsection("./graphs/vital-signs", "Vital Signs")
