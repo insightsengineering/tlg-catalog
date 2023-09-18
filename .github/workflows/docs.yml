@@ -9,12 +9,13 @@ on:
       - "v*"
     branches:
       - main
+      - stable-tlg-catalog
   schedule:
     - cron: "17 17 * * 3,6"
 
 jobs:
-  publish:
-    name: Build & Deploy TLGC 📖
+  publish-latest:
+    name: Build & Deploy TLGC (latest) 📖
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/insightsengineering/rstudio_4.3.1_bioc_3.17:latest
@@ -30,7 +31,7 @@ jobs:
           path: |
             ~/package/.staged.dependencies
             book/_freeze
-          key: ${{ runner.os }}-tlg-catalog
+          key: ${{ runner.os }}-tlg-catalog-latest
 
       - name: Run Staged dependencies 🎦
         uses: insightsengineering/staged-dependencies-action@v1
@@ -62,11 +63,69 @@ jobs:
           name: site.zip
           path: site.zip
 
-      - name: Publish docs
-        uses: peaceiris/actions-gh-pages@v3
+      # - name: Publish docs
+      #   uses: peaceiris/actions-gh-pages@v3
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     publish_dir: ./book/_site
+
+  publish-stable:
+    name: Build & Deploy TLGC (stable) 📖
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/insightsengineering/rstudio_4.3.1_bioc_3.17:latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo 🛎
+        uses: actions/checkout@v3
+
+      - name: Cache artifacts 📀
+        uses: actions/cache@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./book/_site
+          path: |
+            ~/package/.staged.dependencies
+            book/_freeze
+          key: ${{ runner.os }}-tlg-catalog-stable
+
+      - name: Install packages 🎦
+        # env:
+        #   GITHUB_PAT: ${{ secrets.REPO_GITHUB_TOKEN }}
+        run: |
+          install.packages('formatters', repos='https://insightsengineering.r-universe.dev/')
+          install.packages('nestcolor', repos='https://insightsengineering.r-universe.dev/')
+          install.packages('rlistings', repos='https://insightsengineering.r-universe.dev/')
+          install.packages('rtables', repos='https://insightsengineering.r-universe.dev/')
+          install.packages('scda', repos='https://insightsengineering.r-universe.dev/')
+          install.packages('scda.2022', repos='https://insightsengineering.r-universe.dev/')
+          install.packages('teal', repos='https://insightsengineering.r-universe.dev/')
+          install.packages('teal.modules.clinical', repos='https://insightsengineering.r-universe.dev/')
+          install.packages('teal.modules.general', repos='https://insightsengineering.r-universe.dev/')
+          install.packages('tern', repos='https://insightsengineering.r-universe.dev/')
+          install.packages('tern.mmrm', repos='https://insightsengineering.r-universe.dev/')
+          install.packages('tern.rbmi', repos='https://insightsengineering.r-universe.dev/')
+        shell: Rscript {0}
+
+      - name: Render catalog 🖨
+        run: |
+          cd book
+          quarto render
+        shell: bash
+
+      - name: Create artifact 📂
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          pushd book/_site
+          zip -r9 $OLDPWD/site.zip *
+          popd
+        shell: bash
+
+      - name: Upload docs ⬆
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v3
+        with:
+          name: site-stable.zip
+          path: site.zip
 
   upload-release-assets:
     name: Upload assets 🔼
