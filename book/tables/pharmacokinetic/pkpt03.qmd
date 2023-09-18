@@ -17,8 +17,58 @@ library(scda)
 library(dplyr)
 library(tern)
 
+# Preprocess analysis data ----
 adpp <- synthetic_cdisc_dataset("latest", "adpp")
-adpp <- adpp %>% filter(PPSPEC == "Plasma", AVISIT == "CYCLE 1 DAY 1")
+adpp <- adpp %>% 
+  filter(PPSPEC == "Plasma") %>%
+  filter(AVISIT %in% c("CYCLE 1 DAY 1", "CYCLE 1 DAY 2")) %>%
+  h_pkparam_sort() %>%
+  mutate(PARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %>%
+  mutate(PARAM = reorder(PARAM, TLG_ORDER))
+
+# Preprocess subject-level data ----
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+
+# Workaround needed to include (N=xx) population counts
+# Repeat ADSL by the number of levels in AVISIT
+# Include AVISIT and dummy PARAM as it's needed for trim_levels_in_group
+adsl_tmp <- adsl %>%
+  select(STUDYID, USUBJID, ARMCD) %>%
+  unique() %>%
+  mutate(PARAM = factor(NA_character_, levels = levels(adpp$PARAM)))
+
+# Data for Plasma Drug X example ----
+adpp_x <- adpp %>%
+  filter(PPCAT == "Plasma Drug X") %>%
+  # Please do not replicate mutate statement below!
+  # It is used to make the random data more realistic
+  # as not all parameters are always available across all visits.
+  mutate(
+    AVAL = if_else(
+      ARMCD == "A" & AVISIT == "CYCLE 1 DAY 1" & PARAM == "Cmax (ug/mL)",
+      NA_real_, AVAL)
+  )
+
+adpp_x_tmp <- adpp_x %>%
+  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%
+  unique()
+
+adsl_x_splitvars <- adsl_tmp %>%
+  left_join(adpp_x_tmp, by = c("STUDYID", "USUBJID", "ARMCD")) %>%
+  filter(!is.na(AVISIT))
+
+# Data for Plasma Drug Y example ----
+adpp_y <- adpp %>%
+  filter(PPCAT == "Plasma Drug Y") 
+
+adpp_y_tmp <- adpp_y %>%
+  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%
+  unique()
+
+adsl_y_splitvars <- adsl_tmp %>%
+  left_join(adpp_y_tmp, by = c("STUDYID", "USUBJID", "ARMCD")) %>%
+  filter(!is.na(AVISIT))
+
 ```
 
 ## Standard Table
@@ -27,13 +77,20 @@ adpp <- adpp %>% filter(PPSPEC == "Plasma", AVISIT == "CYCLE 1 DAY 1")
 # lyt creation
 lyt <- basic_table() %>%
   split_rows_by(
+    var = "AVISIT",
+    split_fun = drop_split_levels,
+    split_label = "Visit",
+    page_by = TRUE
+  ) %>%
+  split_rows_by(
     var = "ARMCD",
-    split_fun = trim_levels_in_group("ARMCD"),
+    split_fun = trim_levels_in_group("PARAM"),
     label_pos = "topleft",
     split_label = "Treatment Arm"
   ) %>%
+  add_rowcounts(alt_counts = TRUE) %>%
   split_rows_by(
-    var = "PKPARAM",
+    var = "PARAM",
     label_pos = "topleft",
     split_label = "PK Parameter",
     child_labels = "hidden"
@@ -58,46 +115,36 @@ lyt <- basic_table() %>%
     ),
     .formats = c(
       n = "xx.",
-      mean = sprintf_format("%.3e"),
-      sd = sprintf_format("%.3e"),
+      mean = format_sigfig(3),
+      sd = format_sigfig(3),
       cv = "xx.x",
-      median = sprintf_format("%.3e"),
-      geom_mean = sprintf_format("%.3e"),
+      median = format_sigfig(3),
+      geom_mean = format_sigfig(3),
       geom_cv = "xx.x",
-      min = sprintf_format("%.3e"),
-      max = sprintf_format("%.3e")
-    )
+      min = format_sigfig(3),
+      max = format_sigfig(3)
+    ),
+    na_level = "NE"
   )
 ```
 
 #### Plasma Drug X
 
 ```{r variant1, test = list(result_v1 = "result")}
-adpp0 <- adpp %>%
-  filter(PPCAT == "Plasma Drug X") %>%
-  h_pkparam_sort() %>%
-  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %>%
-  mutate(PKPARAM = reorder(PKPARAM, TLG_ORDER))
+result <- build_table(lyt, df = adpp_x, alt_counts_df = adsl_x_splitvars)
+main_title(result) <- paste("Summary of", unique(adpp_x$PPSPEC), "PK Parameter by Treatment Arm, PK Population")
+subtitles(result) <- paste("Analyte:", unique(adpp_x$PPCAT))
+paginate_table(result, landscape = TRUE)
 
-result <- build_table(lyt, df = adpp0)
-main_title(result) <- paste("Summary of", unique(adpp0$PPSPEC), "PK Parameter by Treatment Arm, PK Population")
-subtitles(result) <- paste("Analyte:", unique(adpp0$PPCAT), "\nVisit:", unique(adpp0$AVISIT))
-result
 ```
 
 #### Plasma Drug Y
 
 ```{r variant2, test = list(result_v2 = "result")}
-adpp1 <- adpp %>%
-  filter(PPCAT == "Plasma Drug Y") %>%
-  h_pkparam_sort() %>%
-  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %>%
-  mutate(PKPARAM = reorder(PKPARAM, TLG_ORDER))
-
-result <- build_table(lyt, df = adpp1)
-main_title(result) <- paste("Summary of", unique(adpp1$PPSPEC), "PK Parameter by Treatment Arm, PK Population")
-subtitles(result) <- paste("Analyte:", unique(adpp1$PPCAT), "\nVisit:", unique(adpp1$AVISIT))
-result
+result <- build_table(lyt, df = adpp_y, alt_counts_df = adsl_y_splitvars)
+main_title(result) <- paste("Summary of", unique(adpp_y$PPSPEC), "PK Parameter by Treatment Arm, PK Population")
+subtitles(result) <- paste("Analyte:", unique(adpp_y$PPCAT))
+paginate_table(result, landscape = TRUE)
 ```
 
 {{< include ../../test-utils/save_results.qmd >}}
