@@ -3,13 +3,15 @@ name: Publish Catalog 📰
 
 on:
   workflow_call:
+    secrets:
+      REPO_GITHUB_TOKEN:
+        description: |
+          Github token with write access to the repository
+        required: false
   workflow_dispatch:
   push:
-    tags:
-      - "v*"
     branches:
       - main
-      - stable-tlg-catalog
   schedule:
     - cron: "17 17 * * 3,6"
 
@@ -60,7 +62,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v3
         with:
-          name: site-development.zip
+          name: site-development
           path: site.zip
 
       - name: Publish docs
@@ -126,7 +128,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v3
         with:
-          name: site-stable.zip
+          name: site-stable
           path: site.zip
 
       - name: Publish docs
@@ -150,18 +152,20 @@ jobs:
       - name: Download artifact ⏬
         uses: actions/download-artifact@v3
         with:
-          name: site-development.zip
+          name: site-development
+          path: site-development
 
       - name: Download artifact ⏬
         uses: actions/download-artifact@v3
         with:
-          name: site-stable.zip
+          name: site-stable
+          path: site-stable
 
       - name: Upload binaries to release ⤴
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: site-development.zip
+          file: site-development/site.zip
           asset_name: catalog-development.zip
           tag: ${{ github.ref }}
           overwrite: true
@@ -170,7 +174,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: site-stable.zip
+          file: site-stable/site.zip
           asset_name: catalog-stable.zip
           tag: ${{ github.ref }}
           overwrite: true
