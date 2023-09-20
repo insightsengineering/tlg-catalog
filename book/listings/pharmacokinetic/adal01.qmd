@@ -51,8 +51,10 @@ adab_f <- adab_f %>%
   ) %>%
   rename(
     RES_ADA = `ADA interpreted per sample result`,
+    # TES_ADA = `Treatment Emergent - Positive`,
     TU_ADA = `Antibody titer units`,
     RES_NAB = `NAB interpreted per sample result`,
+    # TES_NAB = `Treatment Emergent - Positive, Neutralizing Antibody`,
     TU_NAB = `Neutralizing Antibody titer units`
   )
 
@@ -64,13 +66,16 @@ out <- adab_f %>%
   mutate(NFRLT = as.numeric(NFRLT)) %>%
   mutate(
     RES_ADA = ifelse(RES_ADA == 1, "Positive", "Negative"),
+    # TES_ADA = ifelse(TES_ADA == 1, "Positive", "Negative"),
     RES_NAB = ifelse(RES_NAB == 1, "Positive", "Negative"),
+    # TES_NAB = ifelse(TES_NAB == 1, "Positive", "Negative"),
     TU_ADA = ifelse(TU_ADA <= min_titer_ada, "BLQ", TU_ADA),
     TU_NAB = ifelse(TU_NAB <= min_titer_nab, "BLQ", TU_NAB),
     AVAL_pk = ifelse(AVAL_pk <= min_conc, "BLQ", AVAL_pk)
   ) %>%
   select(
-    USUBJID, VISIT, ISTPT, NFRLT, RES_ADA, TU_ADA, RES_NAB, TU_NAB,
+    USUBJID, VISIT, ISTPT, NFRLT, RES_ADA, TU_ADA, #TES_ADA,
+    RES_NAB, TU_NAB, # TES_NAB,
     AVAL_pk
   )
 
@@ -84,8 +89,10 @@ out <- out %>%
     NFRLT = "Nominal\nTime\n(hr)",
     RES_ADA = "Sample\nADA\nResult",
     TU_ADA = "ADA\nTiter\nUnits\n(1)",
+    # TES_ADA = "Patient\nTreatment\nEmergent ADA\nStatus",
     RES_NAB = "Sample\nNeutralizing\nAntibody\n(NAb) Result",
     TU_NAB = "NAb\nTiter\nUnits\n(2)",
+    # TES_NAB = "Patient\nTreatment\nEmergent NAb\nStatus",
     AVAL_pk = paste0("Drug\nConcentration\n(", conc_u, ") (3)")
   ) %>%
   arrange(USUBJID, VISIT, desc(ISTPT), NFRLT)
