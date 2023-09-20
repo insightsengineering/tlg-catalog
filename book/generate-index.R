@@ -75,4 +75,3 @@ section_header("Graphs")
 create_subsection("./graphs/efficacy", "Efficacy")
 create_subsection("./graphs/pharmacokinetic", "Pharmacokinetic")
 create_subsection("./graphs/other", "Other")
-
