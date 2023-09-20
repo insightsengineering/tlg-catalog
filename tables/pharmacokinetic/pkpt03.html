@@ -1425,134 +1425,262 @@ cookieconsent.run({
 </ul>
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<div class="cell" data-hash="pkpt03_cache/html/setup_eb3b02e32d0735cb967d6ca7a338a7f2">
+<div class="cell" data-hash="pkpt03_cache/html/setup_09c3ab9d9844b2d0974c44713d8c20ce">
 <details open=""><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(scda)</span>
 <span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(tern)</span>
 <span id="cb1-4"><a href="#cb1-4"></a></span>
-<span id="cb1-5"><a href="#cb1-5"></a>adpp <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adpp"</span>)</span>
-<span id="cb1-6"><a href="#cb1-6"></a>adpp <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span> <span class="fu">filter</span>(PPSPEC <span class="sc">==</span> <span class="st">"Plasma"</span>, AVISIT <span class="sc">==</span> <span class="st">"CYCLE 1 DAY 1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="co"># Preprocess analysis data ----</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>adpp <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adpp"</span>)</span>
+<span id="cb1-7"><a href="#cb1-7"></a>adpp <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>  <span class="fu">filter</span>(PPSPEC <span class="sc">==</span> <span class="st">"Plasma"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a>  <span class="fu">filter</span>(AVISIT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"CYCLE 1 DAY 1"</span>, <span class="st">"CYCLE 1 DAY 2"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a>  <span class="fu">h_pkparam_sort</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>  <span class="fu">mutate</span>(<span class="at">PARAM =</span> <span class="fu">factor</span>(<span class="fu">paste0</span>(TLG_DISPLAY, <span class="st">" ("</span>, AVALU, <span class="st">")"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a>  <span class="fu">mutate</span>(<span class="at">PARAM =</span> <span class="fu">reorder</span>(PARAM, TLG_ORDER))</span>
+<span id="cb1-13"><a href="#cb1-13"></a></span>
+<span id="cb1-14"><a href="#cb1-14"></a><span class="co"># Preprocess subject-level data ----</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
+<span id="cb1-16"><a href="#cb1-16"></a></span>
+<span id="cb1-17"><a href="#cb1-17"></a><span class="co"># Workaround needed to include (N=xx) population counts</span></span>
+<span id="cb1-18"><a href="#cb1-18"></a><span class="co"># Repeat ADSL by the number of levels in AVISIT</span></span>
+<span id="cb1-19"><a href="#cb1-19"></a><span class="co"># Include AVISIT and dummy PARAM as it's needed for trim_levels_in_group</span></span>
+<span id="cb1-20"><a href="#cb1-20"></a>adsl_tmp <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span></span>
+<span id="cb1-21"><a href="#cb1-21"></a>  <span class="fu">select</span>(STUDYID, USUBJID, ARMCD) <span class="sc">%&gt;%</span></span>
+<span id="cb1-22"><a href="#cb1-22"></a>  <span class="fu">unique</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-23"><a href="#cb1-23"></a>  <span class="fu">mutate</span>(<span class="at">PARAM =</span> <span class="fu">factor</span>(<span class="cn">NA_character_</span>, <span class="at">levels =</span> <span class="fu">levels</span>(adpp<span class="sc">$</span>PARAM)))</span>
+<span id="cb1-24"><a href="#cb1-24"></a></span>
+<span id="cb1-25"><a href="#cb1-25"></a><span class="co"># Data for Plasma Drug X example ----</span></span>
+<span id="cb1-26"><a href="#cb1-26"></a>adpp_x <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
+<span id="cb1-27"><a href="#cb1-27"></a>  <span class="fu">filter</span>(PPCAT <span class="sc">==</span> <span class="st">"Plasma Drug X"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-28"><a href="#cb1-28"></a>  <span class="co"># Please do not replicate mutate statement below!</span></span>
+<span id="cb1-29"><a href="#cb1-29"></a>  <span class="co"># It is used to make the random data in this example more realistic</span></span>
+<span id="cb1-30"><a href="#cb1-30"></a>  <span class="co"># as not all parameters are always available across all visits.</span></span>
+<span id="cb1-31"><a href="#cb1-31"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-32"><a href="#cb1-32"></a>    <span class="at">AVAL =</span> <span class="fu">if_else</span>(</span>
+<span id="cb1-33"><a href="#cb1-33"></a>      ARMCD <span class="sc">==</span> <span class="st">"ARM A"</span> <span class="sc">&amp;</span> AVISIT <span class="sc">==</span> <span class="st">"CYCLE 1 DAY 1"</span> <span class="sc">&amp;</span> PARAM <span class="sc">==</span> <span class="st">"Cmax (ug/mL)"</span>,</span>
+<span id="cb1-34"><a href="#cb1-34"></a>      <span class="cn">NA_real_</span>, AVAL</span>
+<span id="cb1-35"><a href="#cb1-35"></a>    )</span>
+<span id="cb1-36"><a href="#cb1-36"></a>  )</span>
+<span id="cb1-37"><a href="#cb1-37"></a></span>
+<span id="cb1-38"><a href="#cb1-38"></a>adpp_x_tmp <span class="ot">&lt;-</span> adpp_x <span class="sc">%&gt;%</span></span>
+<span id="cb1-39"><a href="#cb1-39"></a>  <span class="fu">select</span>(STUDYID, USUBJID, ARMCD, AVISIT) <span class="sc">%&gt;%</span></span>
+<span id="cb1-40"><a href="#cb1-40"></a>  <span class="fu">unique</span>()</span>
+<span id="cb1-41"><a href="#cb1-41"></a></span>
+<span id="cb1-42"><a href="#cb1-42"></a>adsl_x_splitvars <span class="ot">&lt;-</span> adsl_tmp <span class="sc">%&gt;%</span></span>
+<span id="cb1-43"><a href="#cb1-43"></a>  <span class="fu">left_join</span>(adpp_x_tmp, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"STUDYID"</span>, <span class="st">"USUBJID"</span>, <span class="st">"ARMCD"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-44"><a href="#cb1-44"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(AVISIT))</span>
+<span id="cb1-45"><a href="#cb1-45"></a></span>
+<span id="cb1-46"><a href="#cb1-46"></a><span class="co"># Data for Plasma Drug Y example ----</span></span>
+<span id="cb1-47"><a href="#cb1-47"></a>adpp_y <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
+<span id="cb1-48"><a href="#cb1-48"></a>  <span class="fu">filter</span>(PPCAT <span class="sc">==</span> <span class="st">"Plasma Drug Y"</span>)</span>
+<span id="cb1-49"><a href="#cb1-49"></a></span>
+<span id="cb1-50"><a href="#cb1-50"></a>adpp_y_tmp <span class="ot">&lt;-</span> adpp_y <span class="sc">%&gt;%</span></span>
+<span id="cb1-51"><a href="#cb1-51"></a>  <span class="fu">select</span>(STUDYID, USUBJID, ARMCD, AVISIT) <span class="sc">%&gt;%</span></span>
+<span id="cb1-52"><a href="#cb1-52"></a>  <span class="fu">unique</span>()</span>
+<span id="cb1-53"><a href="#cb1-53"></a></span>
+<span id="cb1-54"><a href="#cb1-54"></a>adsl_y_splitvars <span class="ot">&lt;-</span> adsl_tmp <span class="sc">%&gt;%</span></span>
+<span id="cb1-55"><a href="#cb1-55"></a>  <span class="fu">left_join</span>(adpp_y_tmp, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"STUDYID"</span>, <span class="st">"USUBJID"</span>, <span class="st">"ARMCD"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-56"><a href="#cb1-56"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(AVISIT))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
-<div class="cell" data-hash="pkpt03_cache/html/unnamed-chunk-1_9d6a630b6192066b583110fe7a02809e">
+<div class="cell" data-hash="pkpt03_cache/html/unnamed-chunk-1_911b3dbec971c1ef05c19a0017abee0f">
 <details><summary>Code</summary><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># lyt creation</span></span>
 <span id="cb2-2"><a href="#cb2-2"></a>lyt <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb2-3"><a href="#cb2-3"></a>  <span class="fu">split_rows_by</span>(</span>
-<span id="cb2-4"><a href="#cb2-4"></a>    <span class="at">var =</span> <span class="st">"ARMCD"</span>,</span>
-<span id="cb2-5"><a href="#cb2-5"></a>    <span class="at">split_fun =</span> <span class="fu">trim_levels_in_group</span>(<span class="st">"ARMCD"</span>),</span>
-<span id="cb2-6"><a href="#cb2-6"></a>    <span class="at">label_pos =</span> <span class="st">"topleft"</span>,</span>
-<span id="cb2-7"><a href="#cb2-7"></a>    <span class="at">split_label =</span> <span class="st">"Treatment Arm"</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>    <span class="at">var =</span> <span class="st">"AVISIT"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    <span class="at">split_fun =</span> drop_split_levels,</span>
+<span id="cb2-6"><a href="#cb2-6"></a>    <span class="at">split_label =</span> <span class="st">"Visit"</span>,</span>
+<span id="cb2-7"><a href="#cb2-7"></a>    <span class="at">page_by =</span> <span class="cn">TRUE</span></span>
 <span id="cb2-8"><a href="#cb2-8"></a>  ) <span class="sc">%&gt;%</span></span>
 <span id="cb2-9"><a href="#cb2-9"></a>  <span class="fu">split_rows_by</span>(</span>
-<span id="cb2-10"><a href="#cb2-10"></a>    <span class="at">var =</span> <span class="st">"PKPARAM"</span>,</span>
-<span id="cb2-11"><a href="#cb2-11"></a>    <span class="at">label_pos =</span> <span class="st">"topleft"</span>,</span>
-<span id="cb2-12"><a href="#cb2-12"></a>    <span class="at">split_label =</span> <span class="st">"PK Parameter"</span>,</span>
-<span id="cb2-13"><a href="#cb2-13"></a>    <span class="at">child_labels =</span> <span class="st">"hidden"</span></span>
+<span id="cb2-10"><a href="#cb2-10"></a>    <span class="at">var =</span> <span class="st">"ARMCD"</span>,</span>
+<span id="cb2-11"><a href="#cb2-11"></a>    <span class="at">split_fun =</span> <span class="fu">trim_levels_in_group</span>(<span class="st">"PARAM"</span>),</span>
+<span id="cb2-12"><a href="#cb2-12"></a>    <span class="at">label_pos =</span> <span class="st">"topleft"</span>,</span>
+<span id="cb2-13"><a href="#cb2-13"></a>    <span class="at">split_label =</span> <span class="st">"Treatment Arm"</span></span>
 <span id="cb2-14"><a href="#cb2-14"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb2-15"><a href="#cb2-15"></a>  <span class="fu">analyze_vars_in_cols</span>(</span>
-<span id="cb2-16"><a href="#cb2-16"></a>    <span class="at">vars =</span> <span class="st">"AVAL"</span>,</span>
-<span id="cb2-17"><a href="#cb2-17"></a>    <span class="at">.stats =</span> <span class="fu">c</span>(</span>
-<span id="cb2-18"><a href="#cb2-18"></a>      <span class="st">"n"</span>, <span class="st">"mean"</span>, <span class="st">"sd"</span>, <span class="st">"cv"</span>,</span>
-<span id="cb2-19"><a href="#cb2-19"></a>      <span class="st">"geom_mean"</span>, <span class="st">"geom_cv"</span>, <span class="st">"median"</span>,</span>
-<span id="cb2-20"><a href="#cb2-20"></a>      <span class="st">"min"</span>, <span class="st">"max"</span></span>
-<span id="cb2-21"><a href="#cb2-21"></a>    ),</span>
-<span id="cb2-22"><a href="#cb2-22"></a>    <span class="at">.labels =</span> <span class="fu">c</span>(</span>
-<span id="cb2-23"><a href="#cb2-23"></a>      <span class="at">n =</span> <span class="st">"n"</span>,</span>
-<span id="cb2-24"><a href="#cb2-24"></a>      <span class="at">mean =</span> <span class="st">"Mean"</span>,</span>
-<span id="cb2-25"><a href="#cb2-25"></a>      <span class="at">sd =</span> <span class="st">"SD"</span>,</span>
-<span id="cb2-26"><a href="#cb2-26"></a>      <span class="at">cv =</span> <span class="st">"CV (%)"</span>,</span>
-<span id="cb2-27"><a href="#cb2-27"></a>      <span class="at">geom_mean =</span> <span class="st">"Geometric Mean"</span>,</span>
-<span id="cb2-28"><a href="#cb2-28"></a>      <span class="at">geom_cv =</span> <span class="st">"CV % Geometric Mean"</span>,</span>
-<span id="cb2-29"><a href="#cb2-29"></a>      <span class="at">median =</span> <span class="st">"Median"</span>,</span>
-<span id="cb2-30"><a href="#cb2-30"></a>      <span class="at">min =</span> <span class="st">"Minimum"</span>,</span>
-<span id="cb2-31"><a href="#cb2-31"></a>      <span class="at">max =</span> <span class="st">"Maximum"</span></span>
-<span id="cb2-32"><a href="#cb2-32"></a>    ),</span>
-<span id="cb2-33"><a href="#cb2-33"></a>    <span class="at">.formats =</span> <span class="fu">c</span>(</span>
-<span id="cb2-34"><a href="#cb2-34"></a>      <span class="at">n =</span> <span class="st">"xx."</span>,</span>
-<span id="cb2-35"><a href="#cb2-35"></a>      <span class="at">mean =</span> <span class="fu">sprintf_format</span>(<span class="st">"%.3e"</span>),</span>
-<span id="cb2-36"><a href="#cb2-36"></a>      <span class="at">sd =</span> <span class="fu">sprintf_format</span>(<span class="st">"%.3e"</span>),</span>
-<span id="cb2-37"><a href="#cb2-37"></a>      <span class="at">cv =</span> <span class="st">"xx.x"</span>,</span>
-<span id="cb2-38"><a href="#cb2-38"></a>      <span class="at">median =</span> <span class="fu">sprintf_format</span>(<span class="st">"%.3e"</span>),</span>
-<span id="cb2-39"><a href="#cb2-39"></a>      <span class="at">geom_mean =</span> <span class="fu">sprintf_format</span>(<span class="st">"%.3e"</span>),</span>
-<span id="cb2-40"><a href="#cb2-40"></a>      <span class="at">geom_cv =</span> <span class="st">"xx.x"</span>,</span>
-<span id="cb2-41"><a href="#cb2-41"></a>      <span class="at">min =</span> <span class="fu">sprintf_format</span>(<span class="st">"%.3e"</span>),</span>
-<span id="cb2-42"><a href="#cb2-42"></a>      <span class="at">max =</span> <span class="fu">sprintf_format</span>(<span class="st">"%.3e"</span>)</span>
-<span id="cb2-43"><a href="#cb2-43"></a>    )</span>
-<span id="cb2-44"><a href="#cb2-44"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-15"><a href="#cb2-15"></a>  <span class="fu">add_rowcounts</span>(<span class="at">alt_counts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-16"><a href="#cb2-16"></a>  <span class="fu">split_rows_by</span>(</span>
+<span id="cb2-17"><a href="#cb2-17"></a>    <span class="at">var =</span> <span class="st">"PARAM"</span>,</span>
+<span id="cb2-18"><a href="#cb2-18"></a>    <span class="at">label_pos =</span> <span class="st">"topleft"</span>,</span>
+<span id="cb2-19"><a href="#cb2-19"></a>    <span class="at">split_label =</span> <span class="st">"PK Parameter"</span>,</span>
+<span id="cb2-20"><a href="#cb2-20"></a>    <span class="at">child_labels =</span> <span class="st">"hidden"</span></span>
+<span id="cb2-21"><a href="#cb2-21"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb2-22"><a href="#cb2-22"></a>  <span class="fu">analyze_vars_in_cols</span>(</span>
+<span id="cb2-23"><a href="#cb2-23"></a>    <span class="at">vars =</span> <span class="st">"AVAL"</span>,</span>
+<span id="cb2-24"><a href="#cb2-24"></a>    <span class="at">.stats =</span> <span class="fu">c</span>(</span>
+<span id="cb2-25"><a href="#cb2-25"></a>      <span class="st">"n"</span>, <span class="st">"mean"</span>, <span class="st">"sd"</span>, <span class="st">"cv"</span>,</span>
+<span id="cb2-26"><a href="#cb2-26"></a>      <span class="st">"geom_mean"</span>, <span class="st">"geom_cv"</span>, <span class="st">"median"</span>,</span>
+<span id="cb2-27"><a href="#cb2-27"></a>      <span class="st">"min"</span>, <span class="st">"max"</span></span>
+<span id="cb2-28"><a href="#cb2-28"></a>    ),</span>
+<span id="cb2-29"><a href="#cb2-29"></a>    <span class="at">.labels =</span> <span class="fu">c</span>(</span>
+<span id="cb2-30"><a href="#cb2-30"></a>      <span class="at">n =</span> <span class="st">"n"</span>,</span>
+<span id="cb2-31"><a href="#cb2-31"></a>      <span class="at">mean =</span> <span class="st">"Mean"</span>,</span>
+<span id="cb2-32"><a href="#cb2-32"></a>      <span class="at">sd =</span> <span class="st">"SD"</span>,</span>
+<span id="cb2-33"><a href="#cb2-33"></a>      <span class="at">cv =</span> <span class="st">"CV (%)"</span>,</span>
+<span id="cb2-34"><a href="#cb2-34"></a>      <span class="at">geom_mean =</span> <span class="st">"Geometric Mean"</span>,</span>
+<span id="cb2-35"><a href="#cb2-35"></a>      <span class="at">geom_cv =</span> <span class="st">"CV % Geometric Mean"</span>,</span>
+<span id="cb2-36"><a href="#cb2-36"></a>      <span class="at">median =</span> <span class="st">"Median"</span>,</span>
+<span id="cb2-37"><a href="#cb2-37"></a>      <span class="at">min =</span> <span class="st">"Minimum"</span>,</span>
+<span id="cb2-38"><a href="#cb2-38"></a>      <span class="at">max =</span> <span class="st">"Maximum"</span></span>
+<span id="cb2-39"><a href="#cb2-39"></a>    ),</span>
+<span id="cb2-40"><a href="#cb2-40"></a>    <span class="at">.formats =</span> <span class="fu">c</span>(</span>
+<span id="cb2-41"><a href="#cb2-41"></a>      <span class="at">n =</span> <span class="st">"xx."</span>,</span>
+<span id="cb2-42"><a href="#cb2-42"></a>      <span class="at">mean =</span> <span class="fu">format_sigfig</span>(<span class="dv">3</span>),</span>
+<span id="cb2-43"><a href="#cb2-43"></a>      <span class="at">sd =</span> <span class="fu">format_sigfig</span>(<span class="dv">3</span>),</span>
+<span id="cb2-44"><a href="#cb2-44"></a>      <span class="at">cv =</span> <span class="st">"xx.x"</span>,</span>
+<span id="cb2-45"><a href="#cb2-45"></a>      <span class="at">median =</span> <span class="fu">format_sigfig</span>(<span class="dv">3</span>),</span>
+<span id="cb2-46"><a href="#cb2-46"></a>      <span class="at">geom_mean =</span> <span class="fu">format_sigfig</span>(<span class="dv">3</span>),</span>
+<span id="cb2-47"><a href="#cb2-47"></a>      <span class="at">geom_cv =</span> <span class="st">"xx.x"</span>,</span>
+<span id="cb2-48"><a href="#cb2-48"></a>      <span class="at">min =</span> <span class="fu">format_sigfig</span>(<span class="dv">3</span>),</span>
+<span id="cb2-49"><a href="#cb2-49"></a>      <span class="at">max =</span> <span class="fu">format_sigfig</span>(<span class="dv">3</span>)</span>
+<span id="cb2-50"><a href="#cb2-50"></a>    ),</span>
+<span id="cb2-51"><a href="#cb2-51"></a>    <span class="at">na_level =</span> <span class="st">"NE"</span></span>
+<span id="cb2-52"><a href="#cb2-52"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <section id="plasma-drug-x" class="level4"><h4 class="anchored" data-anchor-id="plasma-drug-x">Plasma Drug X</h4>
-<div class="cell" data-test="{&quot;result_v1&quot;:&quot;result&quot;}" data-hash="pkpt03_cache/html/variant1_a63f2652b823d5df77944e2beba7cc88">
-<details><summary>Code</summary><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>adpp0 <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a>  <span class="fu">filter</span>(PPCAT <span class="sc">==</span> <span class="st">"Plasma Drug X"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a>  <span class="fu">h_pkparam_sort</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb3-4"><a href="#cb3-4"></a>  <span class="fu">mutate</span>(<span class="at">PKPARAM =</span> <span class="fu">factor</span>(<span class="fu">paste0</span>(TLG_DISPLAY, <span class="st">" ("</span>, AVALU, <span class="st">")"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb3-5"><a href="#cb3-5"></a>  <span class="fu">mutate</span>(<span class="at">PKPARAM =</span> <span class="fu">reorder</span>(PKPARAM, TLG_ORDER))</span>
-<span id="cb3-6"><a href="#cb3-6"></a></span>
-<span id="cb3-7"><a href="#cb3-7"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp0)</span>
-<span id="cb3-8"><a href="#cb3-8"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp0<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
-<span id="cb3-9"><a href="#cb3-9"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp0<span class="sc">$</span>PPCAT), <span class="st">"</span><span class="sc">\n</span><span class="st">Visit:"</span>, <span class="fu">unique</span>(adpp0<span class="sc">$</span>AVISIT))</span>
-<span id="cb3-10"><a href="#cb3-10"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-test="{&quot;result_v1&quot;:&quot;result&quot;}" data-hash="pkpt03_cache/html/variant1_14257c9eab2415f71e0e7fee5ce35fb0">
+<details><summary>Code</summary><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp_x, <span class="at">alt_counts_df =</span> adsl_x_splitvars)</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp_x<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp_x<span class="sc">$</span>PPCAT))</span>
+<span id="cb3-4"><a href="#cb3-4"></a>result <span class="ot">&lt;-</span> <span class="fu">paginate_table</span>(result, <span class="at">landscape =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-5"><a href="#cb3-5"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>Summary of Plasma PK Parameter by Treatment Arm, PK Population
-Analyte: Plasma Drug X 
+<pre><code>$`CYCLE 1 DAY 1`
+Summary of Plasma PK Parameter by Treatment Arm, PK Population
+Analyte: Plasma Drug X
 Visit: CYCLE 1 DAY 1
 
-——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-Treatment Arm                                                                                                                             
-  PK Parameter              n      Mean         SD       CV (%)   Geometric Mean   CV % Geometric Mean    Median      Minimum     Maximum 
-——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-ARM A                                                                                                                                     
-  Cmax (ug/mL)             134   3.025e+01   6.239e+00    20.6      2.961e+01             21.0           2.986e+01   1.753e+01   4.871e+01
-  AUCinf obs (day*ug/mL)   134   2.028e+02   3.766e+01    18.6      1.994e+02             18.7           1.971e+02   1.253e+02   3.110e+02
-  CL obs (ml/day/kg)       134   5.043e+00   1.041e+00    20.6      4.929e+00             22.4           5.078e+00   2.255e+00   7.395e+00
-ARM C                                                                                                                                     
-  Cmax (ug/mL)             132   3.004e+01   5.457e+00    18.2      2.954e+01             18.9           2.977e+01   1.585e+01   4.757e+01
-  AUCinf obs (day*ug/mL)   132   1.955e+02   3.785e+01    19.4      1.917e+02             20.1           1.962e+02   1.030e+02   3.145e+02
-  CL obs (ml/day/kg)       132   5.009e+00   9.846e-01    19.7      4.907e+00             21.1           4.969e+00   2.102e+00   7.489e+00</code></pre>
+——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+Treatment Arm                                                                                                             
+  PK Parameter              n    Mean    SD     CV (%)   Geometric Mean   CV % Geometric Mean   Median   Minimum   Maximum
+——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+ARM A (N=134)                                                                                                             
+  Cmax (ug/mL)              0     NE     NE       NE           NE                 NE              NE       NE        NE   
+  AUCinf obs (day*ug/mL)   134   203.   37.7     18.6         199.               18.7            197.     125.      311.  
+  CL obs (ml/day/kg)       134   5.04   1.04     20.6         4.93               22.4            5.08     2.25      7.39  
+ARM C (N=132)                                                                                                             
+  Cmax (ug/mL)             132   30.0   5.46     18.2         29.5               18.9            29.8     15.9      47.6  
+  AUCinf obs (day*ug/mL)   132   195.   37.8     19.4         192.               20.1            196.     103.      315.  
+  CL obs (ml/day/kg)       132   5.01   0.985    19.7         4.91               21.1            4.97     2.10      7.49  
+
+$`CYCLE 1 DAY 2`
+Summary of Plasma PK Parameter by Treatment Arm, PK Population
+Analyte: Plasma Drug X
+Visit: CYCLE 1 DAY 2
+
+—————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+Treatment Arm                                                                                                            
+  PK Parameter              n    Mean    SD    CV (%)   Geometric Mean   CV % Geometric Mean   Median   Minimum   Maximum
+—————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+ARM A (N=134)                                                                                                            
+  Cmax (ug/mL)             134   29.4   6.22    21.2         28.6               24.4            29.8     10.1      43.5  
+  AUCinf obs (day*ug/mL)   134   202.   41.2    20.4         197.               21.4            200.     105.      294.  
+  CL obs (ml/day/kg)       134   5.04   1.04    20.7         4.92               22.6            5.01     2.39      7.18  
+ARM C (N=132)                                                                                                            
+  Cmax (ug/mL)             132   30.4   6.03    19.9         29.7               21.7            30.5     12.4      45.5  
+  AUCinf obs (day*ug/mL)   132   191.   43.0    22.5         186.               24.7            189.     74.8      296.  
+  CL obs (ml/day/kg)       132   5.07   1.07    21.1         4.96               22.4            5.01     2.48      7.50  </code></pre>
+</div>
+</div>
+</section><section id="plasma-drug-x-remove-rows-with-0s" class="level4"><h4 class="anchored" data-anchor-id="plasma-drug-x-remove-rows-with-0s">Plasma Drug X: Remove Rows with 0s</h4>
+<div class="cell" data-test="{&quot;result_v2&quot;:&quot;result&quot;}" data-hash="pkpt03_cache/html/variant2_4832d699da4a8376192786af91ae03ad">
+<details><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp_x, <span class="at">alt_counts_df =</span> adsl_x_splitvars) <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a>  <span class="fu">prune_table</span>()</span>
+<span id="cb5-3"><a href="#cb5-3"></a></span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp_x<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp_x<span class="sc">$</span>PPCAT))</span>
+<span id="cb5-6"><a href="#cb5-6"></a>result <span class="ot">&lt;-</span> <span class="fu">paginate_table</span>(result, <span class="at">landscape =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-7"><a href="#cb5-7"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>$`CYCLE 1 DAY 1`
+Summary of Plasma PK Parameter by Treatment Arm, PK Population
+Analyte: Plasma Drug X
+Visit: CYCLE 1 DAY 1
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+Treatment Arm                                                                                                             
+  PK Parameter              n    Mean    SD     CV (%)   Geometric Mean   CV % Geometric Mean   Median   Minimum   Maximum
+——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+ARM A (N=134)                                                                                                             
+  AUCinf obs (day*ug/mL)   134   203.   37.7     18.6         199.               18.7            197.     125.      311.  
+  CL obs (ml/day/kg)       134   5.04   1.04     20.6         4.93               22.4            5.08     2.25      7.39  
+ARM C (N=132)                                                                                                             
+  Cmax (ug/mL)             132   30.0   5.46     18.2         29.5               18.9            29.8     15.9      47.6  
+  AUCinf obs (day*ug/mL)   132   195.   37.8     19.4         192.               20.1            196.     103.      315.  
+  CL obs (ml/day/kg)       132   5.01   0.985    19.7         4.91               21.1            4.97     2.10      7.49  
+
+$`CYCLE 1 DAY 2`
+Summary of Plasma PK Parameter by Treatment Arm, PK Population
+Analyte: Plasma Drug X
+Visit: CYCLE 1 DAY 2
+
+—————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+Treatment Arm                                                                                                            
+  PK Parameter              n    Mean    SD    CV (%)   Geometric Mean   CV % Geometric Mean   Median   Minimum   Maximum
+—————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+ARM A (N=134)                                                                                                            
+  Cmax (ug/mL)             134   29.4   6.22    21.2         28.6               24.4            29.8     10.1      43.5  
+  AUCinf obs (day*ug/mL)   134   202.   41.2    20.4         197.               21.4            200.     105.      294.  
+  CL obs (ml/day/kg)       134   5.04   1.04    20.7         4.92               22.6            5.01     2.39      7.18  
+ARM C (N=132)                                                                                                            
+  Cmax (ug/mL)             132   30.4   6.03    19.9         29.7               21.7            30.5     12.4      45.5  
+  AUCinf obs (day*ug/mL)   132   191.   43.0    22.5         186.               24.7            189.     74.8      296.  
+  CL obs (ml/day/kg)       132   5.07   1.07    21.1         4.96               22.4            5.01     2.48      7.50  </code></pre>
 </div>
 </div>
 </section><section id="plasma-drug-y" class="level4"><h4 class="anchored" data-anchor-id="plasma-drug-y">Plasma Drug Y</h4>
-<div class="cell" data-test="{&quot;result_v2&quot;:&quot;result&quot;}" data-hash="pkpt03_cache/html/variant2_2a9340a783b6065c46543685e59e2619">
-<details><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>adpp1 <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="#cb5-2"></a>  <span class="fu">filter</span>(PPCAT <span class="sc">==</span> <span class="st">"Plasma Drug Y"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="#cb5-3"></a>  <span class="fu">h_pkparam_sort</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb5-4"><a href="#cb5-4"></a>  <span class="fu">mutate</span>(<span class="at">PKPARAM =</span> <span class="fu">factor</span>(<span class="fu">paste0</span>(TLG_DISPLAY, <span class="st">" ("</span>, AVALU, <span class="st">")"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb5-5"><a href="#cb5-5"></a>  <span class="fu">mutate</span>(<span class="at">PKPARAM =</span> <span class="fu">reorder</span>(PKPARAM, TLG_ORDER))</span>
-<span id="cb5-6"><a href="#cb5-6"></a></span>
-<span id="cb5-7"><a href="#cb5-7"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp1)</span>
-<span id="cb5-8"><a href="#cb5-8"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp1<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
-<span id="cb5-9"><a href="#cb5-9"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp1<span class="sc">$</span>PPCAT), <span class="st">"</span><span class="sc">\n</span><span class="st">Visit:"</span>, <span class="fu">unique</span>(adpp1<span class="sc">$</span>AVISIT))</span>
-<span id="cb5-10"><a href="#cb5-10"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-test="{&quot;result_v3&quot;:&quot;result&quot;}" data-hash="pkpt03_cache/html/variant3_8aed1ebef52008c534b5abf7c58cd12e">
+<details><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp_y, <span class="at">alt_counts_df =</span> adsl_y_splitvars)</span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp_y<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp_y<span class="sc">$</span>PPCAT))</span>
+<span id="cb7-4"><a href="#cb7-4"></a>result <span class="ot">&lt;-</span> <span class="fu">paginate_table</span>(result, <span class="at">landscape =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-5"><a href="#cb7-5"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>Summary of Plasma PK Parameter by Treatment Arm, PK Population
-Analyte: Plasma Drug Y 
+<pre><code>$`CYCLE 1 DAY 1`
+Summary of Plasma PK Parameter by Treatment Arm, PK Population
+Analyte: Plasma Drug Y
 Visit: CYCLE 1 DAY 1
 
-——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-Treatment Arm                                                                                                                             
-  PK Parameter              n      Mean         SD       CV (%)   Geometric Mean   CV % Geometric Mean    Median      Minimum     Maximum 
-——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-ARM C                                                                                                                                     
-  Cmax (ug/mL)             132   2.990e+01   5.550e+00    18.6      2.935e+01             20.1           2.969e+01   1.406e+01   4.345e+01
-  AUCinf obs (day*ug/mL)   132   1.986e+02   3.792e+01    19.1      1.952e+02             18.9           1.953e+02   1.264e+02   3.183e+02
-  CL obs (ml/day/kg)       132   4.955e+00   8.951e-01    18.1      4.873e+00             18.7           4.936e+00   2.987e+00   7.211e+00</code></pre>
+——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+Treatment Arm                                                                                                             
+  PK Parameter              n    Mean    SD     CV (%)   Geometric Mean   CV % Geometric Mean   Median   Minimum   Maximum
+——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+ARM C (N=132)                                                                                                             
+  Cmax (ug/mL)             132   29.9   5.55     18.6         29.4               20.1            29.7     14.1      43.4  
+  AUCinf obs (day*ug/mL)   132   199.   37.9     19.1         195.               18.9            195.     126.      318.  
+  CL obs (ml/day/kg)       132   4.96   0.895    18.1         4.87               18.7            4.94     2.99      7.21  
+
+$`CYCLE 1 DAY 2`
+Summary of Plasma PK Parameter by Treatment Arm, PK Population
+Analyte: Plasma Drug Y
+Visit: CYCLE 1 DAY 2
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+Treatment Arm                                                                                                             
+  PK Parameter              n    Mean    SD     CV (%)   Geometric Mean   CV % Geometric Mean   Median   Minimum   Maximum
+——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+ARM C (N=132)                                                                                                             
+  Cmax (ug/mL)             132   30.7   6.12     19.9         30.1               21.9            31.4     12.9      48.3  
+  AUCinf obs (day*ug/mL)   132   199.   40.0     20.1         194.               22.2            197.     79.2      295.  
+  CL obs (ml/day/kg)       132   4.99   0.984    19.7         4.89               20.9            4.96     2.58      8.39  </code></pre>
 </div>
 </div>
 </section>
 </div>
 <div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
 <div class="cell" data-opts.label="skip_if_testing" data-hash="pkpt03_cache/html/teal_dea32e238a4a82c304efe08a6855041d">
-<details open=""><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="co"># In progress</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open=""><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="co"># In progress</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
 <div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
 <section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true" data-hash="pkpt03_cache/html/sessioninfo_113e7606fcb19ee4be3114fe71a3f16e">
-<details open=""><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open=""><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>R version 4.3.1 (2023-06-16)
 Platform: x86_64-pc-linux-gnu (64-bit)
@@ -1588,28 +1716,28 @@ loaded via a namespace (and not attached):
 [17] rbibutils_2.2.14  htmlwidgets_1.6.2 backports_1.4.1   checkmate_2.2.0  
 [21] tibble_3.2.1      munsell_0.5.0     pillar_1.9.0      rlang_1.1.1      
 [25] utf8_1.2.3        testthat_3.1.10   broom_1.0.5       xfun_0.40        
-[29] cli_3.6.1         Rdpack_2.4        digest_0.6.33     grid_4.3.1       
-[33] rstudioapi_0.15.0 lifecycle_1.0.3   vctrs_0.6.3       evaluate_0.21    
-[37] glue_1.6.2        codetools_0.2-19  survival_3.5-7    fansi_1.0.4      
-[41] colorspace_2.1-0  purrr_1.0.2       rmarkdown_2.24    tools_4.3.1      
-[45] pkgconfig_2.0.3   htmltools_0.5.6  </code></pre>
+[29] cli_3.6.1         withr_2.5.0       Rdpack_2.4        digest_0.6.33    
+[33] grid_4.3.1        rstudioapi_0.15.0 lifecycle_1.0.3   vctrs_0.6.3      
+[37] evaluate_0.21     glue_1.6.2        codetools_0.2-19  survival_3.5-7   
+[41] fansi_1.0.4       colorspace_2.1-0  purrr_1.0.2       rmarkdown_2.24   
+[45] tools_4.3.1       pkgconfig_2.0.3   htmltools_0.5.6  </code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
 <code>.lock</code> file</h3>
 <p>Download the <code>.lock</code> file and use <a href="https://rstudio.github.io/renv/reference/restore.html"><code>renv::restore()</code></a> on it to recreate environment used to generate this website.</p>
 <div class="cell" data-opts.label="skip_if_testing" data-renv.ignore="true" data-hash="pkpt03_cache/html/snapshot_f77cc3badcd842c4bc224080a2200a09">
-<details><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb10-2"><a href="#cb10-2"></a></span>
-<span id="cb10-3"><a href="#cb10-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
-<span id="cb10-4"><a href="#cb10-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
-<span id="cb10-5"><a href="#cb10-5"></a></span>
-<span id="cb10-6"><a href="#cb10-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="st">"../../assets/www/lock"</span>, <span class="fu">paste0</span>(<span class="fu">gsub</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>), <span class="st">""</span>, <span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>, <span class="st">""</span>, knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>))), <span class="st">".lock"</span>))</span>
-<span id="cb10-7"><a href="#cb10-7"></a></span>
-<span id="cb10-8"><a href="#cb10-8"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
-<span id="cb10-9"><a href="#cb10-9"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb10-10"><a href="#cb10-10"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb10-11"><a href="#cb10-11"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details><summary>Code</summary><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-2"><a href="#cb12-2"></a></span>
+<span id="cb12-3"><a href="#cb12-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
+<span id="cb12-5"><a href="#cb12-5"></a></span>
+<span id="cb12-6"><a href="#cb12-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="st">"../../assets/www/lock"</span>, <span class="fu">paste0</span>(<span class="fu">gsub</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>), <span class="st">""</span>, <span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>, <span class="st">""</span>, knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>))), <span class="st">".lock"</span>))</span>
+<span id="cb12-7"><a href="#cb12-7"></a></span>
+<span id="cb12-8"><a href="#cb12-8"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
+<span id="cb12-9"><a href="#cb12-9"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb12-10"><a href="#cb12-10"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-11"><a href="#cb12-11"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p><a href="../../assets/www/lock/tables/pharmacokinetic/pkpt03.lock">Download</a></p>
@@ -2032,120 +2160,180 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb11" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">---</span></span>
-<span id="cb11-2"><a href="#cb11-2"></a><span class="an">title:</span><span class="co"> PKPT03</span></span>
-<span id="cb11-3"><a href="#cb11-3"></a><span class="an">subtitle:</span><span class="co"> Pharmacokinetic Parameter Summary of Plasma by Treatment (Stats in Columns)</span></span>
-<span id="cb11-4"><a href="#cb11-4"></a><span class="co">---</span></span>
-<span id="cb11-5"><a href="#cb11-5"></a></span>
-<span id="cb11-6"><a href="#cb11-6"></a>------------------------------------------------------------------------</span>
-<span id="cb11-7"><a href="#cb11-7"></a></span>
-<span id="cb11-8"><a href="#cb11-8"></a>{{&lt; include ../../test-utils/envir_hook.qmd &gt;}}</span>
-<span id="cb11-9"><a href="#cb11-9"></a></span>
-<span id="cb11-10"><a href="#cb11-10"></a>::: panel-tabset</span>
-<span id="cb11-11"><a href="#cb11-11"></a><span class="fu">## Data Setup</span></span>
-<span id="cb11-12"><a href="#cb11-12"></a></span>
-<span id="cb11-13"><a href="#cb11-13"></a><span class="in">```{r setup, message=FALSE}</span></span>
-<span id="cb11-14"><a href="#cb11-14"></a><span class="co">#| code-fold: show</span></span>
-<span id="cb11-15"><a href="#cb11-15"></a></span>
-<span id="cb11-16"><a href="#cb11-16"></a><span class="fu">library</span>(scda)</span>
-<span id="cb11-17"><a href="#cb11-17"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb11-18"><a href="#cb11-18"></a><span class="fu">library</span>(tern)</span>
-<span id="cb11-19"><a href="#cb11-19"></a></span>
-<span id="cb11-20"><a href="#cb11-20"></a>adpp <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adpp"</span>)</span>
-<span id="cb11-21"><a href="#cb11-21"></a>adpp <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span> <span class="fu">filter</span>(PPSPEC <span class="sc">==</span> <span class="st">"Plasma"</span>, AVISIT <span class="sc">==</span> <span class="st">"CYCLE 1 DAY 1"</span>)</span>
-<span id="cb11-22"><a href="#cb11-22"></a><span class="in">```</span></span>
-<span id="cb11-23"><a href="#cb11-23"></a></span>
-<span id="cb11-24"><a href="#cb11-24"></a><span class="fu">## Standard Table</span></span>
-<span id="cb11-25"><a href="#cb11-25"></a></span>
-<span id="cb11-28"><a href="#cb11-28"></a><span class="in">```{r}</span></span>
-<span id="cb11-29"><a href="#cb11-29"></a><span class="co"># lyt creation</span></span>
-<span id="cb11-30"><a href="#cb11-30"></a>lyt <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb11-31"><a href="#cb11-31"></a>  <span class="fu">split_rows_by</span>(</span>
-<span id="cb11-32"><a href="#cb11-32"></a>    <span class="at">var =</span> <span class="st">"ARMCD"</span>,</span>
-<span id="cb11-33"><a href="#cb11-33"></a>    <span class="at">split_fun =</span> <span class="fu">trim_levels_in_group</span>(<span class="st">"ARMCD"</span>),</span>
-<span id="cb11-34"><a href="#cb11-34"></a>    <span class="at">label_pos =</span> <span class="st">"topleft"</span>,</span>
-<span id="cb11-35"><a href="#cb11-35"></a>    <span class="at">split_label =</span> <span class="st">"Treatment Arm"</span></span>
-<span id="cb11-36"><a href="#cb11-36"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb11-37"><a href="#cb11-37"></a>  <span class="fu">split_rows_by</span>(</span>
-<span id="cb11-38"><a href="#cb11-38"></a>    <span class="at">var =</span> <span class="st">"PKPARAM"</span>,</span>
-<span id="cb11-39"><a href="#cb11-39"></a>    <span class="at">label_pos =</span> <span class="st">"topleft"</span>,</span>
-<span id="cb11-40"><a href="#cb11-40"></a>    <span class="at">split_label =</span> <span class="st">"PK Parameter"</span>,</span>
-<span id="cb11-41"><a href="#cb11-41"></a>    <span class="at">child_labels =</span> <span class="st">"hidden"</span></span>
-<span id="cb11-42"><a href="#cb11-42"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb11-43"><a href="#cb11-43"></a>  <span class="fu">analyze_vars_in_cols</span>(</span>
-<span id="cb11-44"><a href="#cb11-44"></a>    <span class="at">vars =</span> <span class="st">"AVAL"</span>,</span>
-<span id="cb11-45"><a href="#cb11-45"></a>    <span class="at">.stats =</span> <span class="fu">c</span>(</span>
-<span id="cb11-46"><a href="#cb11-46"></a>      <span class="st">"n"</span>, <span class="st">"mean"</span>, <span class="st">"sd"</span>, <span class="st">"cv"</span>,</span>
-<span id="cb11-47"><a href="#cb11-47"></a>      <span class="st">"geom_mean"</span>, <span class="st">"geom_cv"</span>, <span class="st">"median"</span>,</span>
-<span id="cb11-48"><a href="#cb11-48"></a>      <span class="st">"min"</span>, <span class="st">"max"</span></span>
-<span id="cb11-49"><a href="#cb11-49"></a>    ),</span>
-<span id="cb11-50"><a href="#cb11-50"></a>    <span class="at">.labels =</span> <span class="fu">c</span>(</span>
-<span id="cb11-51"><a href="#cb11-51"></a>      <span class="at">n =</span> <span class="st">"n"</span>,</span>
-<span id="cb11-52"><a href="#cb11-52"></a>      <span class="at">mean =</span> <span class="st">"Mean"</span>,</span>
-<span id="cb11-53"><a href="#cb11-53"></a>      <span class="at">sd =</span> <span class="st">"SD"</span>,</span>
-<span id="cb11-54"><a href="#cb11-54"></a>      <span class="at">cv =</span> <span class="st">"CV (%)"</span>,</span>
-<span id="cb11-55"><a href="#cb11-55"></a>      <span class="at">geom_mean =</span> <span class="st">"Geometric Mean"</span>,</span>
-<span id="cb11-56"><a href="#cb11-56"></a>      <span class="at">geom_cv =</span> <span class="st">"CV % Geometric Mean"</span>,</span>
-<span id="cb11-57"><a href="#cb11-57"></a>      <span class="at">median =</span> <span class="st">"Median"</span>,</span>
-<span id="cb11-58"><a href="#cb11-58"></a>      <span class="at">min =</span> <span class="st">"Minimum"</span>,</span>
-<span id="cb11-59"><a href="#cb11-59"></a>      <span class="at">max =</span> <span class="st">"Maximum"</span></span>
-<span id="cb11-60"><a href="#cb11-60"></a>    ),</span>
-<span id="cb11-61"><a href="#cb11-61"></a>    <span class="at">.formats =</span> <span class="fu">c</span>(</span>
-<span id="cb11-62"><a href="#cb11-62"></a>      <span class="at">n =</span> <span class="st">"xx."</span>,</span>
-<span id="cb11-63"><a href="#cb11-63"></a>      <span class="at">mean =</span> <span class="fu">sprintf_format</span>(<span class="st">"%.3e"</span>),</span>
-<span id="cb11-64"><a href="#cb11-64"></a>      <span class="at">sd =</span> <span class="fu">sprintf_format</span>(<span class="st">"%.3e"</span>),</span>
-<span id="cb11-65"><a href="#cb11-65"></a>      <span class="at">cv =</span> <span class="st">"xx.x"</span>,</span>
-<span id="cb11-66"><a href="#cb11-66"></a>      <span class="at">median =</span> <span class="fu">sprintf_format</span>(<span class="st">"%.3e"</span>),</span>
-<span id="cb11-67"><a href="#cb11-67"></a>      <span class="at">geom_mean =</span> <span class="fu">sprintf_format</span>(<span class="st">"%.3e"</span>),</span>
-<span id="cb11-68"><a href="#cb11-68"></a>      <span class="at">geom_cv =</span> <span class="st">"xx.x"</span>,</span>
-<span id="cb11-69"><a href="#cb11-69"></a>      <span class="at">min =</span> <span class="fu">sprintf_format</span>(<span class="st">"%.3e"</span>),</span>
-<span id="cb11-70"><a href="#cb11-70"></a>      <span class="at">max =</span> <span class="fu">sprintf_format</span>(<span class="st">"%.3e"</span>)</span>
-<span id="cb11-71"><a href="#cb11-71"></a>    )</span>
-<span id="cb11-72"><a href="#cb11-72"></a>  )</span>
-<span id="cb11-73"><a href="#cb11-73"></a><span class="in">```</span></span>
-<span id="cb11-74"><a href="#cb11-74"></a></span>
-<span id="cb11-75"><a href="#cb11-75"></a><span class="fu">#### Plasma Drug X</span></span>
-<span id="cb11-76"><a href="#cb11-76"></a></span>
-<span id="cb11-77"><a href="#cb11-77"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb11-78"><a href="#cb11-78"></a>adpp0 <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
-<span id="cb11-79"><a href="#cb11-79"></a>  <span class="fu">filter</span>(PPCAT <span class="sc">==</span> <span class="st">"Plasma Drug X"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-80"><a href="#cb11-80"></a>  <span class="fu">h_pkparam_sort</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb11-81"><a href="#cb11-81"></a>  <span class="fu">mutate</span>(<span class="at">PKPARAM =</span> <span class="fu">factor</span>(<span class="fu">paste0</span>(TLG_DISPLAY, <span class="st">" ("</span>, AVALU, <span class="st">")"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb11-82"><a href="#cb11-82"></a>  <span class="fu">mutate</span>(<span class="at">PKPARAM =</span> <span class="fu">reorder</span>(PKPARAM, TLG_ORDER))</span>
-<span id="cb11-83"><a href="#cb11-83"></a></span>
-<span id="cb11-84"><a href="#cb11-84"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp0)</span>
-<span id="cb11-85"><a href="#cb11-85"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp0<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
-<span id="cb11-86"><a href="#cb11-86"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp0<span class="sc">$</span>PPCAT), <span class="st">"</span><span class="sc">\n</span><span class="st">Visit:"</span>, <span class="fu">unique</span>(adpp0<span class="sc">$</span>AVISIT))</span>
-<span id="cb11-87"><a href="#cb11-87"></a>result</span>
-<span id="cb11-88"><a href="#cb11-88"></a><span class="in">```</span></span>
-<span id="cb11-89"><a href="#cb11-89"></a></span>
-<span id="cb11-90"><a href="#cb11-90"></a><span class="fu">#### Plasma Drug Y</span></span>
-<span id="cb11-91"><a href="#cb11-91"></a></span>
-<span id="cb11-92"><a href="#cb11-92"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb11-93"><a href="#cb11-93"></a>adpp1 <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
-<span id="cb11-94"><a href="#cb11-94"></a>  <span class="fu">filter</span>(PPCAT <span class="sc">==</span> <span class="st">"Plasma Drug Y"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-95"><a href="#cb11-95"></a>  <span class="fu">h_pkparam_sort</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb11-96"><a href="#cb11-96"></a>  <span class="fu">mutate</span>(<span class="at">PKPARAM =</span> <span class="fu">factor</span>(<span class="fu">paste0</span>(TLG_DISPLAY, <span class="st">" ("</span>, AVALU, <span class="st">")"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb11-97"><a href="#cb11-97"></a>  <span class="fu">mutate</span>(<span class="at">PKPARAM =</span> <span class="fu">reorder</span>(PKPARAM, TLG_ORDER))</span>
-<span id="cb11-98"><a href="#cb11-98"></a></span>
-<span id="cb11-99"><a href="#cb11-99"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp1)</span>
-<span id="cb11-100"><a href="#cb11-100"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp1<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
-<span id="cb11-101"><a href="#cb11-101"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp1<span class="sc">$</span>PPCAT), <span class="st">"</span><span class="sc">\n</span><span class="st">Visit:"</span>, <span class="fu">unique</span>(adpp1<span class="sc">$</span>AVISIT))</span>
-<span id="cb11-102"><a href="#cb11-102"></a>result</span>
-<span id="cb11-103"><a href="#cb11-103"></a><span class="in">```</span></span>
-<span id="cb11-104"><a href="#cb11-104"></a></span>
-<span id="cb11-105"><a href="#cb11-105"></a>{{&lt; include ../../test-utils/save_results.qmd &gt;}}</span>
-<span id="cb11-106"><a href="#cb11-106"></a></span>
-<span id="cb11-107"><a href="#cb11-107"></a><span class="fu">## `teal` App</span></span>
-<span id="cb11-108"><a href="#cb11-108"></a></span>
-<span id="cb11-109"><a href="#cb11-109"></a><span class="in">```{r teal, message=FALSE, opts.label='skip_if_testing'}</span></span>
-<span id="cb11-110"><a href="#cb11-110"></a><span class="co">#| code-fold: show</span></span>
-<span id="cb11-111"><a href="#cb11-111"></a></span>
-<span id="cb11-112"><a href="#cb11-112"></a><span class="co"># In progress</span></span>
-<span id="cb11-113"><a href="#cb11-113"></a><span class="in">```</span></span>
-<span id="cb11-114"><a href="#cb11-114"></a></span>
-<span id="cb11-115"><a href="#cb11-115"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb11-116"><a href="#cb11-116"></a>:::</span>
+<div class="sourceCode" id="cb13" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb13-1"><a href="#cb13-1"></a><span class="co">---</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="an">title:</span><span class="co"> PKPT03</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="an">subtitle:</span><span class="co"> Pharmacokinetic Parameter Summary of Plasma by Treatment (Stats in Columns)</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a><span class="co">---</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a></span>
+<span id="cb13-6"><a href="#cb13-6"></a>------------------------------------------------------------------------</span>
+<span id="cb13-7"><a href="#cb13-7"></a></span>
+<span id="cb13-8"><a href="#cb13-8"></a>{{&lt; include ../../test-utils/envir_hook.qmd &gt;}}</span>
+<span id="cb13-9"><a href="#cb13-9"></a></span>
+<span id="cb13-10"><a href="#cb13-10"></a>::: panel-tabset</span>
+<span id="cb13-11"><a href="#cb13-11"></a><span class="fu">## Data Setup</span></span>
+<span id="cb13-12"><a href="#cb13-12"></a></span>
+<span id="cb13-13"><a href="#cb13-13"></a><span class="in">```{r setup, message=FALSE}</span></span>
+<span id="cb13-14"><a href="#cb13-14"></a><span class="co">#| code-fold: show</span></span>
+<span id="cb13-15"><a href="#cb13-15"></a></span>
+<span id="cb13-16"><a href="#cb13-16"></a><span class="fu">library</span>(scda)</span>
+<span id="cb13-17"><a href="#cb13-17"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb13-18"><a href="#cb13-18"></a><span class="fu">library</span>(tern)</span>
+<span id="cb13-19"><a href="#cb13-19"></a></span>
+<span id="cb13-20"><a href="#cb13-20"></a><span class="co"># Preprocess analysis data ----</span></span>
+<span id="cb13-21"><a href="#cb13-21"></a>adpp <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adpp"</span>)</span>
+<span id="cb13-22"><a href="#cb13-22"></a>adpp <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
+<span id="cb13-23"><a href="#cb13-23"></a>  <span class="fu">filter</span>(PPSPEC <span class="sc">==</span> <span class="st">"Plasma"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-24"><a href="#cb13-24"></a>  <span class="fu">filter</span>(AVISIT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"CYCLE 1 DAY 1"</span>, <span class="st">"CYCLE 1 DAY 2"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb13-25"><a href="#cb13-25"></a>  <span class="fu">h_pkparam_sort</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb13-26"><a href="#cb13-26"></a>  <span class="fu">mutate</span>(<span class="at">PARAM =</span> <span class="fu">factor</span>(<span class="fu">paste0</span>(TLG_DISPLAY, <span class="st">" ("</span>, AVALU, <span class="st">")"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb13-27"><a href="#cb13-27"></a>  <span class="fu">mutate</span>(<span class="at">PARAM =</span> <span class="fu">reorder</span>(PARAM, TLG_ORDER))</span>
+<span id="cb13-28"><a href="#cb13-28"></a></span>
+<span id="cb13-29"><a href="#cb13-29"></a><span class="co"># Preprocess subject-level data ----</span></span>
+<span id="cb13-30"><a href="#cb13-30"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
+<span id="cb13-31"><a href="#cb13-31"></a></span>
+<span id="cb13-32"><a href="#cb13-32"></a><span class="co"># Workaround needed to include (N=xx) population counts</span></span>
+<span id="cb13-33"><a href="#cb13-33"></a><span class="co"># Repeat ADSL by the number of levels in AVISIT</span></span>
+<span id="cb13-34"><a href="#cb13-34"></a><span class="co"># Include AVISIT and dummy PARAM as it's needed for trim_levels_in_group</span></span>
+<span id="cb13-35"><a href="#cb13-35"></a>adsl_tmp <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span></span>
+<span id="cb13-36"><a href="#cb13-36"></a>  <span class="fu">select</span>(STUDYID, USUBJID, ARMCD) <span class="sc">%&gt;%</span></span>
+<span id="cb13-37"><a href="#cb13-37"></a>  <span class="fu">unique</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb13-38"><a href="#cb13-38"></a>  <span class="fu">mutate</span>(<span class="at">PARAM =</span> <span class="fu">factor</span>(<span class="cn">NA_character_</span>, <span class="at">levels =</span> <span class="fu">levels</span>(adpp<span class="sc">$</span>PARAM)))</span>
+<span id="cb13-39"><a href="#cb13-39"></a></span>
+<span id="cb13-40"><a href="#cb13-40"></a><span class="co"># Data for Plasma Drug X example ----</span></span>
+<span id="cb13-41"><a href="#cb13-41"></a>adpp_x <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
+<span id="cb13-42"><a href="#cb13-42"></a>  <span class="fu">filter</span>(PPCAT <span class="sc">==</span> <span class="st">"Plasma Drug X"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-43"><a href="#cb13-43"></a>  <span class="co"># Please do not replicate mutate statement below!</span></span>
+<span id="cb13-44"><a href="#cb13-44"></a>  <span class="co"># It is used to make the random data in this example more realistic</span></span>
+<span id="cb13-45"><a href="#cb13-45"></a>  <span class="co"># as not all parameters are always available across all visits.</span></span>
+<span id="cb13-46"><a href="#cb13-46"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb13-47"><a href="#cb13-47"></a>    <span class="at">AVAL =</span> <span class="fu">if_else</span>(</span>
+<span id="cb13-48"><a href="#cb13-48"></a>      ARMCD <span class="sc">==</span> <span class="st">"ARM A"</span> <span class="sc">&amp;</span> AVISIT <span class="sc">==</span> <span class="st">"CYCLE 1 DAY 1"</span> <span class="sc">&amp;</span> PARAM <span class="sc">==</span> <span class="st">"Cmax (ug/mL)"</span>,</span>
+<span id="cb13-49"><a href="#cb13-49"></a>      <span class="cn">NA_real_</span>, AVAL</span>
+<span id="cb13-50"><a href="#cb13-50"></a>    )</span>
+<span id="cb13-51"><a href="#cb13-51"></a>  )</span>
+<span id="cb13-52"><a href="#cb13-52"></a></span>
+<span id="cb13-53"><a href="#cb13-53"></a>adpp_x_tmp <span class="ot">&lt;-</span> adpp_x <span class="sc">%&gt;%</span></span>
+<span id="cb13-54"><a href="#cb13-54"></a>  <span class="fu">select</span>(STUDYID, USUBJID, ARMCD, AVISIT) <span class="sc">%&gt;%</span></span>
+<span id="cb13-55"><a href="#cb13-55"></a>  <span class="fu">unique</span>()</span>
+<span id="cb13-56"><a href="#cb13-56"></a></span>
+<span id="cb13-57"><a href="#cb13-57"></a>adsl_x_splitvars <span class="ot">&lt;-</span> adsl_tmp <span class="sc">%&gt;%</span></span>
+<span id="cb13-58"><a href="#cb13-58"></a>  <span class="fu">left_join</span>(adpp_x_tmp, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"STUDYID"</span>, <span class="st">"USUBJID"</span>, <span class="st">"ARMCD"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb13-59"><a href="#cb13-59"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(AVISIT))</span>
+<span id="cb13-60"><a href="#cb13-60"></a></span>
+<span id="cb13-61"><a href="#cb13-61"></a><span class="co"># Data for Plasma Drug Y example ----</span></span>
+<span id="cb13-62"><a href="#cb13-62"></a>adpp_y <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
+<span id="cb13-63"><a href="#cb13-63"></a>  <span class="fu">filter</span>(PPCAT <span class="sc">==</span> <span class="st">"Plasma Drug Y"</span>)</span>
+<span id="cb13-64"><a href="#cb13-64"></a></span>
+<span id="cb13-65"><a href="#cb13-65"></a>adpp_y_tmp <span class="ot">&lt;-</span> adpp_y <span class="sc">%&gt;%</span></span>
+<span id="cb13-66"><a href="#cb13-66"></a>  <span class="fu">select</span>(STUDYID, USUBJID, ARMCD, AVISIT) <span class="sc">%&gt;%</span></span>
+<span id="cb13-67"><a href="#cb13-67"></a>  <span class="fu">unique</span>()</span>
+<span id="cb13-68"><a href="#cb13-68"></a></span>
+<span id="cb13-69"><a href="#cb13-69"></a>adsl_y_splitvars <span class="ot">&lt;-</span> adsl_tmp <span class="sc">%&gt;%</span></span>
+<span id="cb13-70"><a href="#cb13-70"></a>  <span class="fu">left_join</span>(adpp_y_tmp, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"STUDYID"</span>, <span class="st">"USUBJID"</span>, <span class="st">"ARMCD"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb13-71"><a href="#cb13-71"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(AVISIT))</span>
+<span id="cb13-72"><a href="#cb13-72"></a><span class="in">```</span></span>
+<span id="cb13-73"><a href="#cb13-73"></a></span>
+<span id="cb13-74"><a href="#cb13-74"></a><span class="fu">## Standard Table</span></span>
+<span id="cb13-75"><a href="#cb13-75"></a></span>
+<span id="cb13-78"><a href="#cb13-78"></a><span class="in">```{r}</span></span>
+<span id="cb13-79"><a href="#cb13-79"></a><span class="co"># lyt creation</span></span>
+<span id="cb13-80"><a href="#cb13-80"></a>lyt <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb13-81"><a href="#cb13-81"></a>  <span class="fu">split_rows_by</span>(</span>
+<span id="cb13-82"><a href="#cb13-82"></a>    <span class="at">var =</span> <span class="st">"AVISIT"</span>,</span>
+<span id="cb13-83"><a href="#cb13-83"></a>    <span class="at">split_fun =</span> drop_split_levels,</span>
+<span id="cb13-84"><a href="#cb13-84"></a>    <span class="at">split_label =</span> <span class="st">"Visit"</span>,</span>
+<span id="cb13-85"><a href="#cb13-85"></a>    <span class="at">page_by =</span> <span class="cn">TRUE</span></span>
+<span id="cb13-86"><a href="#cb13-86"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb13-87"><a href="#cb13-87"></a>  <span class="fu">split_rows_by</span>(</span>
+<span id="cb13-88"><a href="#cb13-88"></a>    <span class="at">var =</span> <span class="st">"ARMCD"</span>,</span>
+<span id="cb13-89"><a href="#cb13-89"></a>    <span class="at">split_fun =</span> <span class="fu">trim_levels_in_group</span>(<span class="st">"PARAM"</span>),</span>
+<span id="cb13-90"><a href="#cb13-90"></a>    <span class="at">label_pos =</span> <span class="st">"topleft"</span>,</span>
+<span id="cb13-91"><a href="#cb13-91"></a>    <span class="at">split_label =</span> <span class="st">"Treatment Arm"</span></span>
+<span id="cb13-92"><a href="#cb13-92"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb13-93"><a href="#cb13-93"></a>  <span class="fu">add_rowcounts</span>(<span class="at">alt_counts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-94"><a href="#cb13-94"></a>  <span class="fu">split_rows_by</span>(</span>
+<span id="cb13-95"><a href="#cb13-95"></a>    <span class="at">var =</span> <span class="st">"PARAM"</span>,</span>
+<span id="cb13-96"><a href="#cb13-96"></a>    <span class="at">label_pos =</span> <span class="st">"topleft"</span>,</span>
+<span id="cb13-97"><a href="#cb13-97"></a>    <span class="at">split_label =</span> <span class="st">"PK Parameter"</span>,</span>
+<span id="cb13-98"><a href="#cb13-98"></a>    <span class="at">child_labels =</span> <span class="st">"hidden"</span></span>
+<span id="cb13-99"><a href="#cb13-99"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb13-100"><a href="#cb13-100"></a>  <span class="fu">analyze_vars_in_cols</span>(</span>
+<span id="cb13-101"><a href="#cb13-101"></a>    <span class="at">vars =</span> <span class="st">"AVAL"</span>,</span>
+<span id="cb13-102"><a href="#cb13-102"></a>    <span class="at">.stats =</span> <span class="fu">c</span>(</span>
+<span id="cb13-103"><a href="#cb13-103"></a>      <span class="st">"n"</span>, <span class="st">"mean"</span>, <span class="st">"sd"</span>, <span class="st">"cv"</span>,</span>
+<span id="cb13-104"><a href="#cb13-104"></a>      <span class="st">"geom_mean"</span>, <span class="st">"geom_cv"</span>, <span class="st">"median"</span>,</span>
+<span id="cb13-105"><a href="#cb13-105"></a>      <span class="st">"min"</span>, <span class="st">"max"</span></span>
+<span id="cb13-106"><a href="#cb13-106"></a>    ),</span>
+<span id="cb13-107"><a href="#cb13-107"></a>    <span class="at">.labels =</span> <span class="fu">c</span>(</span>
+<span id="cb13-108"><a href="#cb13-108"></a>      <span class="at">n =</span> <span class="st">"n"</span>,</span>
+<span id="cb13-109"><a href="#cb13-109"></a>      <span class="at">mean =</span> <span class="st">"Mean"</span>,</span>
+<span id="cb13-110"><a href="#cb13-110"></a>      <span class="at">sd =</span> <span class="st">"SD"</span>,</span>
+<span id="cb13-111"><a href="#cb13-111"></a>      <span class="at">cv =</span> <span class="st">"CV (%)"</span>,</span>
+<span id="cb13-112"><a href="#cb13-112"></a>      <span class="at">geom_mean =</span> <span class="st">"Geometric Mean"</span>,</span>
+<span id="cb13-113"><a href="#cb13-113"></a>      <span class="at">geom_cv =</span> <span class="st">"CV % Geometric Mean"</span>,</span>
+<span id="cb13-114"><a href="#cb13-114"></a>      <span class="at">median =</span> <span class="st">"Median"</span>,</span>
+<span id="cb13-115"><a href="#cb13-115"></a>      <span class="at">min =</span> <span class="st">"Minimum"</span>,</span>
+<span id="cb13-116"><a href="#cb13-116"></a>      <span class="at">max =</span> <span class="st">"Maximum"</span></span>
+<span id="cb13-117"><a href="#cb13-117"></a>    ),</span>
+<span id="cb13-118"><a href="#cb13-118"></a>    <span class="at">.formats =</span> <span class="fu">c</span>(</span>
+<span id="cb13-119"><a href="#cb13-119"></a>      <span class="at">n =</span> <span class="st">"xx."</span>,</span>
+<span id="cb13-120"><a href="#cb13-120"></a>      <span class="at">mean =</span> <span class="fu">format_sigfig</span>(<span class="dv">3</span>),</span>
+<span id="cb13-121"><a href="#cb13-121"></a>      <span class="at">sd =</span> <span class="fu">format_sigfig</span>(<span class="dv">3</span>),</span>
+<span id="cb13-122"><a href="#cb13-122"></a>      <span class="at">cv =</span> <span class="st">"xx.x"</span>,</span>
+<span id="cb13-123"><a href="#cb13-123"></a>      <span class="at">median =</span> <span class="fu">format_sigfig</span>(<span class="dv">3</span>),</span>
+<span id="cb13-124"><a href="#cb13-124"></a>      <span class="at">geom_mean =</span> <span class="fu">format_sigfig</span>(<span class="dv">3</span>),</span>
+<span id="cb13-125"><a href="#cb13-125"></a>      <span class="at">geom_cv =</span> <span class="st">"xx.x"</span>,</span>
+<span id="cb13-126"><a href="#cb13-126"></a>      <span class="at">min =</span> <span class="fu">format_sigfig</span>(<span class="dv">3</span>),</span>
+<span id="cb13-127"><a href="#cb13-127"></a>      <span class="at">max =</span> <span class="fu">format_sigfig</span>(<span class="dv">3</span>)</span>
+<span id="cb13-128"><a href="#cb13-128"></a>    ),</span>
+<span id="cb13-129"><a href="#cb13-129"></a>    <span class="at">na_level =</span> <span class="st">"NE"</span></span>
+<span id="cb13-130"><a href="#cb13-130"></a>  )</span>
+<span id="cb13-131"><a href="#cb13-131"></a><span class="in">```</span></span>
+<span id="cb13-132"><a href="#cb13-132"></a></span>
+<span id="cb13-133"><a href="#cb13-133"></a><span class="fu">#### Plasma Drug X</span></span>
+<span id="cb13-134"><a href="#cb13-134"></a></span>
+<span id="cb13-135"><a href="#cb13-135"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb13-136"><a href="#cb13-136"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp_x, <span class="at">alt_counts_df =</span> adsl_x_splitvars)</span>
+<span id="cb13-137"><a href="#cb13-137"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp_x<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
+<span id="cb13-138"><a href="#cb13-138"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp_x<span class="sc">$</span>PPCAT))</span>
+<span id="cb13-139"><a href="#cb13-139"></a>result <span class="ot">&lt;-</span> <span class="fu">paginate_table</span>(result, <span class="at">landscape =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-140"><a href="#cb13-140"></a>result</span>
+<span id="cb13-141"><a href="#cb13-141"></a><span class="in">```</span></span>
+<span id="cb13-142"><a href="#cb13-142"></a></span>
+<span id="cb13-143"><a href="#cb13-143"></a><span class="fu">#### Plasma Drug X: Remove Rows with 0s</span></span>
+<span id="cb13-144"><a href="#cb13-144"></a></span>
+<span id="cb13-145"><a href="#cb13-145"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb13-146"><a href="#cb13-146"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp_x, <span class="at">alt_counts_df =</span> adsl_x_splitvars) <span class="sc">%&gt;%</span></span>
+<span id="cb13-147"><a href="#cb13-147"></a>  <span class="fu">prune_table</span>()</span>
+<span id="cb13-148"><a href="#cb13-148"></a></span>
+<span id="cb13-149"><a href="#cb13-149"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp_x<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
+<span id="cb13-150"><a href="#cb13-150"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp_x<span class="sc">$</span>PPCAT))</span>
+<span id="cb13-151"><a href="#cb13-151"></a>result <span class="ot">&lt;-</span> <span class="fu">paginate_table</span>(result, <span class="at">landscape =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-152"><a href="#cb13-152"></a>result</span>
+<span id="cb13-153"><a href="#cb13-153"></a><span class="in">```</span></span>
+<span id="cb13-154"><a href="#cb13-154"></a></span>
+<span id="cb13-155"><a href="#cb13-155"></a><span class="fu">#### Plasma Drug Y</span></span>
+<span id="cb13-156"><a href="#cb13-156"></a></span>
+<span id="cb13-157"><a href="#cb13-157"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
+<span id="cb13-158"><a href="#cb13-158"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp_y, <span class="at">alt_counts_df =</span> adsl_y_splitvars)</span>
+<span id="cb13-159"><a href="#cb13-159"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp_y<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
+<span id="cb13-160"><a href="#cb13-160"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp_y<span class="sc">$</span>PPCAT))</span>
+<span id="cb13-161"><a href="#cb13-161"></a>result <span class="ot">&lt;-</span> <span class="fu">paginate_table</span>(result, <span class="at">landscape =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-162"><a href="#cb13-162"></a>result</span>
+<span id="cb13-163"><a href="#cb13-163"></a><span class="in">```</span></span>
+<span id="cb13-164"><a href="#cb13-164"></a></span>
+<span id="cb13-165"><a href="#cb13-165"></a>{{&lt; include ../../test-utils/save_results.qmd &gt;}}</span>
+<span id="cb13-166"><a href="#cb13-166"></a></span>
+<span id="cb13-167"><a href="#cb13-167"></a><span class="fu">## `teal` App</span></span>
+<span id="cb13-168"><a href="#cb13-168"></a></span>
+<span id="cb13-169"><a href="#cb13-169"></a><span class="in">```{r teal, message=FALSE, opts.label='skip_if_testing'}</span></span>
+<span id="cb13-170"><a href="#cb13-170"></a><span class="co">#| code-fold: show</span></span>
+<span id="cb13-171"><a href="#cb13-171"></a></span>
+<span id="cb13-172"><a href="#cb13-172"></a><span class="co"># In progress</span></span>
+<span id="cb13-173"><a href="#cb13-173"></a><span class="in">```</span></span>
+<span id="cb13-174"><a href="#cb13-174"></a></span>
+<span id="cb13-175"><a href="#cb13-175"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb13-176"><a href="#cb13-176"></a>:::</span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
