@@ -37,7 +37,7 @@ cat(
 # Tables
 
 section_header("Tables")
-create_subsection("./tables/ada", "ADA")
+create_subsection("./tables/ADA", "ADA")
 create_subsection("./tables/adverse-events", "Adverse Events")
 create_subsection("./tables/concomitant-medications", "Concomitant Medications")
 create_subsection("./tables/deaths", "Deaths")
@@ -59,9 +59,9 @@ create_subsection("./tables/vital-signs", "Vital Signs")
 section_header("Listings")
 create_subsection("./listings/ada", "ADA")
 create_subsection("./listings/adverse-events", "Adverse Events")
-create_subsection("./listings/concomitant-medications", "Concomitant Medications")
+create_subsection("./listings/concomitant-medications", "Concomitant Medications") # nolint
 create_subsection("./listings/disposition", "Disposition")
-create_subsection("./listings/development-safety-update-report", "Development Safety Update Report")
+create_subsection("./listings/development-safety-update-report", "Development Safety Update Report") # nolint
 create_subsection("./listings/ecg", "ECG")
 create_subsection("./listings/exposure", "Exposure")
 create_subsection("./listings/lab-results", "Lab Results")
