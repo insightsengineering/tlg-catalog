@@ -12,7 +12,7 @@
                               Comparison                  n    Geometric Mean Ratio   90% CI Lower Bound   90% CI Upper Bound
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       AUCinf obs (day*ug/mL)                                                                                                 
-                              C: Combination/A: Drug X   266        9.615e-01             9.247e-01            9.998e-01     
+                              C: Combination/A: Drug X   266          0.962                 0.925                 1.00       
       Cmax (ug/mL)                                                                                                           
-                              C: Combination/A: Drug X   266        9.974e-01             9.583e-01            1.038e+00     
+                              C: Combination/A: Drug X   266          0.997                 0.958                 1.04       
 

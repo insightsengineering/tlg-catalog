@@ -20,6 +20,24 @@ library(stringr)
 
 adpp <- synthetic_cdisc_dataset("latest", "adpp")
 adpp <- adpp %>% filter(AVISIT == "CYCLE 1 DAY 1", str_detect(tolower(PARAM), regex("norm by dose", ignore_case = TRUE)))
+
+fmt_sigfig_mean_sd <- function(sigfig) {
+  checkmate::assert_integerish(sigfig)
+  function(x, ...) {
+    if (!is.numeric(x)) stop("`format_sigfig` cannot be used for non-numeric values. Please choose another format.")
+    num <- gsub("\\.$", "", formatC(signif(x, digits = sigfig), digits = sigfig, format = "fg", flag = "#"))
+    paste0(num[1], " (", num[2], ")")
+  }
+}
+
+fmt_sigfig_range <- function(sigfig) {
+  checkmate::assert_integerish(sigfig)
+  function(x, ...) {
+    if (!is.numeric(x)) stop("`format_sigfig` cannot be used for non-numeric values. Please choose another format.")
+    num <- gsub("\\.$", "", formatC(signif(x, digits = sigfig), digits = sigfig, format = "fg", flag = "#"))
+    paste0(num[1], " - ", num[2])
+  }
+}
 ```
 
 ## Standard Table
@@ -43,12 +61,12 @@ lyt <- basic_table() %>%
     .stats = c("n", "mean_sd", "cv", "geom_mean", "geom_cv", "median", "range"),
     .formats = c(
       n = "xx.",
-      mean_sd = sprintf_format("%.3e (%.3e)"),
+      mean_sd = fmt_sigfig_mean_sd(3),
       cv = "xx.x",
-      geom_mean = sprintf_format("%.3e"),
+      geom_mean = format_sigfig(3),
       geom_cv = "xx.x",
-      median = sprintf_format("%.3e"),
-      range = sprintf_format("%.3e - %.3e")
+      median = format_sigfig(3),
+      range = fmt_sigfig_range(3)
     )
   )
 ```
@@ -94,5 +112,4 @@ result
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::
