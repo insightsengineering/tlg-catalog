@@ -44,7 +44,7 @@ create_subsection("./tables/deaths", "Deaths")
 create_subsection("./tables/demography", "Demography")
 create_subsection("./tables/disclosures", "Disclosures")
 create_subsection("./tables/disposition", "Disposition")
-create_subsection("./tables/ecg", "ECG")
+create_subsection("./tables/ECG", "ECG")
 create_subsection("./tables/efficacy", "Efficacy")
 create_subsection("./tables/exposure", "Exposure")
 create_subsection("./tables/lab-results", "Lab Results")
@@ -57,12 +57,12 @@ create_subsection("./tables/vital-signs", "Vital Signs")
 # Listings
 
 section_header("Listings")
-create_subsection("./listings/ada", "ADA")
+create_subsection("./listings/ADA", "ADA")
 create_subsection("./listings/adverse-events", "Adverse Events")
 create_subsection("./listings/concomitant-medications", "Concomitant Medications") # nolint
 create_subsection("./listings/disposition", "Disposition")
 create_subsection("./listings/development-safety-update-report", "Development Safety Update Report") # nolint
-create_subsection("./listings/ecg", "ECG")
+create_subsection("./listings/ECG", "ECG")
 create_subsection("./listings/exposure", "Exposure")
 create_subsection("./listings/lab-results", "Lab Results")
 create_subsection("./listings/medical-history", "Medical History")
