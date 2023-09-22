@@ -19,24 +19,6 @@ library(tern)
 
 adpp <- synthetic_cdisc_dataset("latest", "adpp")
 adpp <- adpp %>% filter(PPSPEC == "Plasma", AVISIT == "CYCLE 1 DAY 1")
-
-fmt_sigfig_mean_sd <- function(sigfig) {
-  checkmate::assert_integerish(sigfig)
-  function(x, ...) {
-    if (!is.numeric(x)) stop("`format_sigfig` cannot be used for non-numeric values. Please choose another format.")
-    num <- gsub("\\.$", "", formatC(signif(x, digits = sigfig), digits = sigfig, format = "fg", flag = "#"))
-    paste0(num[1], " (", num[2], ")")
-  }
-}
-
-fmt_sigfig_range <- function(sigfig) {
-  checkmate::assert_integerish(sigfig)
-  function(x, ...) {
-    if (!is.numeric(x)) stop("`format_sigfig` cannot be used for non-numeric values. Please choose another format.")
-    num <- gsub("\\.$", "", formatC(signif(x, digits = sigfig), digits = sigfig, format = "fg", flag = "#"))
-    paste0(num[1], " - ", num[2])
-  }
-}
 ```
 
 ## Standard Table -- Plasma
@@ -60,12 +42,12 @@ lyt <- basic_table() %>%
     .stats = c("n", "mean_sd", "cv", "geom_mean", "geom_cv", "median", "range"),
     .formats = c(
       n = "xx.",
-      mean_sd = fmt_sigfig_mean_sd(3),
+      mean_sd = format_sigfig(3, "value_paren"),
       cv = "xx.x",
       geom_mean = format_sigfig(3),
       geom_cv = "xx.x",
       median = format_sigfig(3),
-      range = fmt_sigfig_range(3)
+      range = format_sigfig(3, "range")
     )
   )
 ```
