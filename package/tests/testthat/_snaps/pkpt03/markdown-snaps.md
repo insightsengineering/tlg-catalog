@@ -3,38 +3,115 @@
     Code
       print(data_snap[[i]])
     Output
+      $`CYCLE 1 DAY 1`
       Summary of Plasma PK Parameter by Treatment Arm, PK Population
-      Analyte: Plasma Drug X 
+      Analyte: Plasma Drug X
       Visit: CYCLE 1 DAY 1
       
-      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-      Treatment Arm                                                                                                                             
-        PK Parameter              n      Mean         SD       CV (%)   Geometric Mean   CV % Geometric Mean    Median      Minimum     Maximum 
-      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-      ARM A                                                                                                                                     
-        Cmax (ug/mL)             134   3.025e+01   6.239e+00    20.6      2.961e+01             21.0           2.986e+01   1.753e+01   4.871e+01
-        AUCinf obs (day*ug/mL)   134   2.028e+02   3.766e+01    18.6      1.994e+02             18.7           1.971e+02   1.253e+02   3.110e+02
-        CL obs (ml/day/kg)       134   5.043e+00   1.041e+00    20.6      4.929e+00             22.4           5.078e+00   2.255e+00   7.395e+00
-      ARM C                                                                                                                                     
-        Cmax (ug/mL)             132   3.004e+01   5.457e+00    18.2      2.954e+01             18.9           2.977e+01   1.585e+01   4.757e+01
-        AUCinf obs (day*ug/mL)   132   1.955e+02   3.785e+01    19.4      1.917e+02             20.1           1.962e+02   1.030e+02   3.145e+02
-        CL obs (ml/day/kg)       132   5.009e+00   9.846e-01    19.7      4.907e+00             21.1           4.969e+00   2.102e+00   7.489e+00
+      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      Treatment Arm                                                                                                             
+        PK Parameter              n    Mean    SD     CV (%)   Geometric Mean   CV % Geometric Mean   Median   Minimum   Maximum
+      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      ARM A (N=134)                                                                                                             
+        Cmax (ug/mL)              0     NE     NE       NE           NE                 NE              NE       NE        NE   
+        AUCinf obs (day*ug/mL)   134   203.   37.7     18.6         199.               18.7            197.     125.      311.  
+        CL obs (ml/day/kg)       134   5.04   1.04     20.6         4.93               22.4            5.08     2.25      7.39  
+      ARM C (N=132)                                                                                                             
+        Cmax (ug/mL)             132   30.0   5.46     18.2         29.5               18.9            29.8     15.9      47.6  
+        AUCinf obs (day*ug/mL)   132   195.   37.8     19.4         192.               20.1            196.     103.      315.  
+        CL obs (ml/day/kg)       132   5.01   0.985    19.7         4.91               21.1            4.97     2.10      7.49  
+      
+      $`CYCLE 1 DAY 2`
+      Summary of Plasma PK Parameter by Treatment Arm, PK Population
+      Analyte: Plasma Drug X
+      Visit: CYCLE 1 DAY 2
+      
+      —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      Treatment Arm                                                                                                            
+        PK Parameter              n    Mean    SD    CV (%)   Geometric Mean   CV % Geometric Mean   Median   Minimum   Maximum
+      —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      ARM A (N=134)                                                                                                            
+        Cmax (ug/mL)             134   29.4   6.22    21.2         28.6               24.4            29.8     10.1      43.5  
+        AUCinf obs (day*ug/mL)   134   202.   41.2    20.4         197.               21.4            200.     105.      294.  
+        CL obs (ml/day/kg)       134   5.04   1.04    20.7         4.92               22.6            5.01     2.39      7.18  
+      ARM C (N=132)                                                                                                            
+        Cmax (ug/mL)             132   30.4   6.03    19.9         29.7               21.7            30.5     12.4      45.5  
+        AUCinf obs (day*ug/mL)   132   191.   43.0    22.5         186.               24.7            189.     74.8      296.  
+        CL obs (ml/day/kg)       132   5.07   1.07    21.1         4.96               22.4            5.01     2.48      7.50  
+      
 
 # result_v2
 
     Code
       print(data_snap[[i]])
     Output
+      $`CYCLE 1 DAY 1`
       Summary of Plasma PK Parameter by Treatment Arm, PK Population
-      Analyte: Plasma Drug Y 
+      Analyte: Plasma Drug X
       Visit: CYCLE 1 DAY 1
       
-      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-      Treatment Arm                                                                                                                             
-        PK Parameter              n      Mean         SD       CV (%)   Geometric Mean   CV % Geometric Mean    Median      Minimum     Maximum 
-      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-      ARM C                                                                                                                                     
-        Cmax (ug/mL)             132   2.990e+01   5.550e+00    18.6      2.935e+01             20.1           2.969e+01   1.406e+01   4.345e+01
-        AUCinf obs (day*ug/mL)   132   1.986e+02   3.792e+01    19.1      1.952e+02             18.9           1.953e+02   1.264e+02   3.183e+02
-        CL obs (ml/day/kg)       132   4.955e+00   8.951e-01    18.1      4.873e+00             18.7           4.936e+00   2.987e+00   7.211e+00
+      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      Treatment Arm                                                                                                             
+        PK Parameter              n    Mean    SD     CV (%)   Geometric Mean   CV % Geometric Mean   Median   Minimum   Maximum
+      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      ARM A (N=134)                                                                                                             
+        AUCinf obs (day*ug/mL)   134   203.   37.7     18.6         199.               18.7            197.     125.      311.  
+        CL obs (ml/day/kg)       134   5.04   1.04     20.6         4.93               22.4            5.08     2.25      7.39  
+      ARM C (N=132)                                                                                                             
+        Cmax (ug/mL)             132   30.0   5.46     18.2         29.5               18.9            29.8     15.9      47.6  
+        AUCinf obs (day*ug/mL)   132   195.   37.8     19.4         192.               20.1            196.     103.      315.  
+        CL obs (ml/day/kg)       132   5.01   0.985    19.7         4.91               21.1            4.97     2.10      7.49  
+      
+      $`CYCLE 1 DAY 2`
+      Summary of Plasma PK Parameter by Treatment Arm, PK Population
+      Analyte: Plasma Drug X
+      Visit: CYCLE 1 DAY 2
+      
+      —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      Treatment Arm                                                                                                            
+        PK Parameter              n    Mean    SD    CV (%)   Geometric Mean   CV % Geometric Mean   Median   Minimum   Maximum
+      —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      ARM A (N=134)                                                                                                            
+        Cmax (ug/mL)             134   29.4   6.22    21.2         28.6               24.4            29.8     10.1      43.5  
+        AUCinf obs (day*ug/mL)   134   202.   41.2    20.4         197.               21.4            200.     105.      294.  
+        CL obs (ml/day/kg)       134   5.04   1.04    20.7         4.92               22.6            5.01     2.39      7.18  
+      ARM C (N=132)                                                                                                            
+        Cmax (ug/mL)             132   30.4   6.03    19.9         29.7               21.7            30.5     12.4      45.5  
+        AUCinf obs (day*ug/mL)   132   191.   43.0    22.5         186.               24.7            189.     74.8      296.  
+        CL obs (ml/day/kg)       132   5.07   1.07    21.1         4.96               22.4            5.01     2.48      7.50  
+      
+
+# result_v3
+
+    Code
+      print(data_snap[[i]])
+    Output
+      $`CYCLE 1 DAY 1`
+      Summary of Plasma PK Parameter by Treatment Arm, PK Population
+      Analyte: Plasma Drug Y
+      Visit: CYCLE 1 DAY 1
+      
+      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      Treatment Arm                                                                                                             
+        PK Parameter              n    Mean    SD     CV (%)   Geometric Mean   CV % Geometric Mean   Median   Minimum   Maximum
+      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      ARM C (N=132)                                                                                                             
+        Cmax (ug/mL)             132   29.9   5.55     18.6         29.4               20.1            29.7     14.1      43.4  
+        AUCinf obs (day*ug/mL)   132   199.   37.9     19.1         195.               18.9            195.     126.      318.  
+        CL obs (ml/day/kg)       132   4.96   0.895    18.1         4.87               18.7            4.94     2.99      7.21  
+      
+      $`CYCLE 1 DAY 2`
+      Summary of Plasma PK Parameter by Treatment Arm, PK Population
+      Analyte: Plasma Drug Y
+      Visit: CYCLE 1 DAY 2
+      
+      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      Treatment Arm                                                                                                             
+        PK Parameter              n    Mean    SD     CV (%)   Geometric Mean   CV % Geometric Mean   Median   Minimum   Maximum
+      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      ARM C (N=132)                                                                                                             
+        Cmax (ug/mL)             132   30.7   6.12     19.9         30.1               21.9            31.4     12.9      48.3  
+        AUCinf obs (day*ug/mL)   132   199.   40.0     20.1         194.               22.2            197.     79.2      295.  
+        CL obs (ml/day/kg)       132   4.99   0.984    19.7         4.89               20.9            4.96     2.58      8.39  
+      
 
