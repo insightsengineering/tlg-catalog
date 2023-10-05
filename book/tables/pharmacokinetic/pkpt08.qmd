@@ -26,7 +26,66 @@ adpp <- adpp %>%
 
 ## Standard Table -- Plasma
 
+```{r variant1, test = list(result_v1 = "result")}
+# create layout
+lyt <- basic_table() %>%
+  add_overall_col("Accumulation Interval (hours)") %>%
+  split_cols_by(var = "PPINT") %>%
+  split_cols_by(var = "PKPARAM") %>%
+  split_rows_by(
+    var = "ARMCD",
+    split_fun = trim_levels_in_group("ACTARM"),
+    label_pos = "topleft",
+    split_label = "Treatment Arm"
+  ) %>%
+  analyze_vars(
+    vars = "AVAL",
+    .stats = c(
+      "n", "mean", "sd", "cv",
+      "median", "min", "max"
+    ),
+    .labels = c(
+      n = "n",
+      mean = "Mean",
+      sd = "SD",
+      cv = "CV (%)",
+      median = "Median",
+      min = "Minimum",
+      max = "Maximum"
+    ),
+    .formats = c(
+      n = "xx.",
+      mean = format_sigfig(3),
+      sd = format_sigfig(3),
+      cv = "xx.x",
+      median = format_sigfig(3),
+      min = format_sigfig(3),
+      max = format_sigfig(3)
+    )
+  )
 
+adpp0 <- adpp %>%
+  filter(
+    AVISIT == "CYCLE 1 DAY 1",
+    PPCAT == "Plasma Drug X"
+  ) %>%
+  h_pkparam_sort() %>%
+  mutate(
+    PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))
+  )
+
+result <- build_table(lyt, df = adpp0)
+main_title(result) <- paste(
+  "Summary of Cumulative Amount and Percentage of", unique(adpp0$PPSPEC), "Recovered from\n",
+  unique(adpp0$PPCAT), "following", unique(adpp0$REGIMEN), "Administration for",
+  unique(adpp0$PPINT)[length(unique(adpp0$PPINT))], "hours, PK Population"
+)
+subtitles(result) <- paste("Analyte:", unique(adpp0$PPCAT), "\nVisit:", unique(adpp0$AVISIT))
+
+cat(rtables::toString(result, indent_size = 10))
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
 
 ## `teal` App
 

@@ -23,6 +23,67 @@ adpp <- adpp %>% filter(PPSPEC == "Urine", AVISIT == "CYCLE 1 DAY 1")
 
 ## Standard Table
 
+```{r}
+# lyt creation
+lyt <- basic_table() %>%
+  split_cols_by(
+    var = "ARMCD",
+    split_fun = trim_levels_in_group("ARMCD"),
+    # label_pos = "topleft",
+    split_label = "Treatment Arm"
+  ) %>%
+  split_rows_by(
+    var = "PKPARAM",
+    label_pos = "topleft",
+    split_label = "PK Parameter"
+  ) %>%
+  tern::analyze_vars(
+    vars = "AVAL",
+    .stats = c("n", "mean_sd", "cv", "geom_mean", "geom_cv", "median", "range"),
+    .formats = c(
+      n = "xx.",
+      mean_sd = format_sigfig(3, "xx (xx)"),
+      cv = "xx.x",
+      geom_mean = format_sigfig(3),
+      geom_cv = "xx.x",
+      median = format_sigfig(3),
+      range = format_sigfig(3, "xx - xx")
+    )
+  )
+```
+
+#### Plasma Drug X
+
+```{r variant1, test = list(result_v1 = "result")}
+adpp0 <- adpp %>%
+  filter(PPCAT == "Plasma Drug X") %>%
+  h_pkparam_sort() %>%
+  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %>%
+  mutate(PKPARAM = reorder(PKPARAM, TLG_ORDER))
+
+result <- build_table(lyt, df = adpp0)
+main_title(result) <- paste("Summary of", unique(adpp0$PPSPEC), "PK Parameter by Treatment Arm, PK Population")
+subtitles(result) <- paste("Analyte:", unique(adpp0$PPCAT), "\nVisit:", unique(adpp0$AVISIT))
+result
+```
+
+#### Plasma Drug Y
+
+```{r variant2, test = list(result_v2 = "result")}
+adpp1 <- adpp %>%
+  filter(PPCAT == "Plasma Drug Y") %>%
+  h_pkparam_sort() %>%
+  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %>%
+  mutate(PKPARAM = reorder(PKPARAM, TLG_ORDER))
+
+result <- build_table(lyt, df = adpp1)
+main_title(result) <- paste("Summary of", unique(adpp1$PPSPEC), "PK Parameter by Treatment Arm, PK Population")
+subtitles(result) <- paste("Analyte:", unique(adpp1$PPCAT), "\nVisit:", unique(adpp1$AVISIT))
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
 ## `teal` App
 
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}

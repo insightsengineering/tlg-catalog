@@ -10,9 +10,154 @@ subtitle: Pharmacokinetic Parameter Estimated Ratios of Geometric Means and 90% 
 ::: panel-tabset
 ## Data Setup
 
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(scda)
+library(dplyr)
+library(tern)
+
+adpp <- synthetic_cdisc_dataset("latest", "adpp")
+
+# Comparator Dose - A: Drug X
+arm_var <- "TRT01A"
+comp_dose <- "A: Drug X"
+other_doses <- as.character(unique(adpp[[arm_var]])[unique(adpp[[arm_var]]) != comp_dose])
+
+adpp <- adpp %>%
+  filter(AVISIT == "CYCLE 1 DAY 1") %>%
+  mutate(
+    COMP = paste0(TRT01A, "/", comp_dose),
+    COMP_AVAL = ifelse(TRT01A == comp_dose, paste0(AVAL, comp_dose), AVAL)
+  )
+
+for (dose in other_doses) {
+  temp_df <- adpp[adpp[[arm_var]] == comp_dose, ]
+  temp_df$COMP <- paste0(dose, "/", comp_dose)
+  adpp <- rbind(adpp, temp_df)
+}
+
+# Plasma Drug X
+adpp0 <- adpp %>%
+  filter(PPCAT == "Plasma Drug X") %>%
+  h_pkparam_sort() %>%
+  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %>%
+  var_relabel(COMP = "Comparison")
+
+# statistics function
+s_gmr <- function(df,
+                  compare_dose = comp_dose, # comparator, defaults to comp_dose defined above (string)
+                  denom = TRUE, # whether to use comparator as denominator, defaults to TRUE (logical)
+                  arm_var = arm_var) { # arm variable, defaults to arm_var defined above (string)
+  which_num <- !grepl(compare_dose, df[[arm_var]])
+
+  x_num <- as.numeric(df[which_num, ][["AVAL"]])
+  x_num <- x_num[!is.na(x_num)]
+  x_num_no_negative_vals <- x_num
+  x_num_no_negative_vals[x_num_no_negative_vals <= 0] <- NA
+
+  x_denom <- as.numeric(gsub(compare_dose, "", df[!which_num, ][["AVAL"]]))
+  x_denom <- x_denom[!is.na(x_denom)]
+  x_denom_no_negative_vals <- x_denom
+  x_denom_no_negative_vals[x_denom_no_negative_vals <= 0] <- NA
+
+  x_num_log <- log(x_num_no_negative_vals)
+  x_denom_log <- log(x_denom_no_negative_vals)
+
+  if (denom) {
+    geom_mean_ratio <- exp(mean(x_num_log, na.rm = FALSE)) / exp(mean(x_denom_log, na.rm = FALSE))
+    geom_mean_ci <- t.test(x_num_log, x_denom_log, conf.level = 0.90)$conf.int
+  } else {
+    geom_mean_ratio <- exp(mean(x_denom_log, na.rm = FALSE)) / exp(mean(x_num_log, na.rm = FALSE))
+    geom_mean_ci <- t.test(x_denom_log, x_num_log, conf.level = 0.90)$conf.int
+  }
+
+  list(
+    n = nrow(df),
+    geom_mean_ratio = geom_mean_ratio,
+    gmr_ci_lwr = exp(geom_mean_ci[1]),
+    gmr_ci_upr = exp(geom_mean_ci[2])
+  )
+}
+
+afun_pk_gmr <- function(.formats = list(
+                          n = "xx.",
+                          geom_mean_ratio = format_sigfig(3),
+                          gmr_ci_lwr = format_sigfig(3),
+                          gmr_ci_upr = format_sigfig(3)
+                        ),
+                        compare_dose = comp_dose,
+                        denom = TRUE) {
+  checkmate::assert_list(.formats)
+  checkmate::assert_subset(names(.formats), c("n", "geom_mean_ratio", "gmr_ci_lwr", "gmr_ci_upr"))
+
+  afun_lst <- Map(
+    function(stat, fmt, compare_dose, denom, arm_var) {
+      function(df, .spl_context) {
+        x_stat <- s_gmr(df, compare_dose = compare_dose, denom = denom, arm_var = arm_var)[[stat]]
+        rcell(x_stat, format = fmt, label = tail(.spl_context$value, 1))
+      }
+    },
+    stat = names(.formats),
+    fmt = .formats,
+    compare_dose = compare_dose,
+    denom = denom,
+    arm_var = arm_var
+  )
+
+  afun_lst
+}
+```
 
 ## Standard Table -- Plasma
 
+```{r variant1, test = list(result_v1 = "result")}
+# create layout
+lyt <- basic_table() %>%
+  split_rows_by(
+    var = "PKPARAM",
+    label_pos = "topleft",
+    split_fun = keep_split_levels(c("AUCinf obs (day*ug/mL)", "Cmax (ug/mL)")),
+    split_label = "PK Parameter"
+  ) %>%
+  split_rows_by(
+    var = "COMP",
+    split_fun = remove_split_levels(paste0(comp_dose, "/", comp_dose)),
+    indent_mod = 11L,
+    child_labels = "hidden"
+  ) %>%
+  split_cols_by_multivar(
+    vars = rep("AVAL", 4),
+    varlabels = c(
+      "n",
+      "Geometric Mean Ratio",
+      "90% CI Lower Bound",
+      "90% CI Upper Bound"
+    )
+  ) %>%
+  analyze_colvars(
+    afun = afun_pk_gmr(),
+    extra_args = list(
+      compare_dose = comp_dose,
+      denom = TRUE,
+      arm_var = arm_var
+    )
+  ) %>%
+  append_varlabels(adpp0, "COMP", 12L)
+
+result <- build_table(lyt, df = adpp0)
+
+main_title(result) <- paste0(
+  "Estimated Ratios of Geometric Means and 90% Confidence Intervals for AUC and CMAX Following ",
+  unique(adpp0$REGIMEN), "\nof ", comp_dose, " in Comparison with ",
+  paste(other_doses, collapse = " & "), ", PK Population"
+)
+subtitles(result) <- paste("Analyte:", unique(adpp0$PPCAT))
+
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
 
 ## `teal` App
 
