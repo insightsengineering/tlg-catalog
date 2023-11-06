@@ -9,19 +9,18 @@
       Analyte: R1800000
       
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-      Treatment Group                                                                                                            
-        Visit                  Total Number                                                                         Samples with 
-                               of Measurable                                                                        Concentration
-                                Samples {1}    Mean    SD    Median   Minimum   Maximum   CV (%)   Geometric Mean   ≤ 15μg/mL {2}
+                               Total Number                                                                         Samples with 
+      Treatment Group          of Measurable                                                                        Concentration
+        Visit                   Samples {1}    Mean    SD    Median   Minimum   Maximum   CV (%)   Geometric Mean   ≤ 15μg/mL {2}
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       A: Drug X (N=536)                                                                                                          
         Day 1                       402         0      0       0         0         0        NA           NA          402 (100%)  
         Day 2                       134        16.2   1.63    16.2     12.6      19.9      10.0         16.1         39 (29.1%)  
-        
+      
       C: Combination (N=792)                                                                                                     
         Day 1                       528         0      0       0         0         0        NA           NA          528 (100%)  
         Day 2                       264        24.7   8.65    22.5     12.6      39.5      35.0         23.2         28 (10.6%)  
-        
+      
       Overall                      1328        6.54   11.0     0         0       39.5     167.5          NA          997 (75.1%) 
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       

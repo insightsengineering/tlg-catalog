@@ -3,8 +3,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Status                      A: Drug X      B: Placebo     C: Combination   All Patients 
-                                   (N=134)         (N=134)         (N=132)          (N=400)   
+                                  A: Drug X      B: Placebo     C: Combination   All Patients 
+      Status                       (N=134)         (N=134)         (N=132)          (N=400)   
       ————————————————————————————————————————————————————————————————————————————————————————
       Started Study             134 (100.00%)   134 (100.00%)   132 (100.00%)    400 (100.00%)
       Completed Study            65 (48.51%)     67 (50.00%)     69 (52.27%)     201 (50.25%) 
@@ -49,9 +49,9 @@
         UNKNOWN                                          0             0              0               0      
       Ethnicity                                                                                              
         n                                               134           134            132             400     
-        NOT REPORTED                                 6 (4.5%)      10 (7.5%)      11 (8.3%)       27 (6.8%)  
         HISPANIC OR LATINO                          15 (11.2%)    18 (13.4%)      15 (11.4%)       48 (12%)  
         NOT HISPANIC OR LATINO                      104 (77.6%)   103 (76.9%)    101 (76.5%)      308 (77%)  
+        NOT REPORTED                                 6 (4.5%)      10 (7.5%)      11 (8.3%)       27 (6.8%)  
         UNKNOWN                                      9 (6.7%)      3 (2.2%)        5 (3.8%)       17 (4.2%)  
 
 # result_v3
@@ -59,8 +59,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Country   A: Drug X    B: Placebo   C: Combination   All Patients
-                 (N=134)      (N=134)        (N=132)         (N=400)   
+                A: Drug X    B: Placebo   C: Combination   All Patients
+      Country    (N=134)      (N=134)        (N=132)         (N=400)   
       —————————————————————————————————————————————————————————————————
       n            134          134            132             400     
       CHN       74 (55.2%)   81 (60.4%)     64 (48.5%)     219 (54.8%) 
