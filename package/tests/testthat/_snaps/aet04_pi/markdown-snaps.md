@@ -3,9 +3,9 @@
     Code
       print(data_snap[[i]])
     Output
-      MedDRA System Organ Class                    A: Drug X                                    B: Placebo                                  C: Combination               
-        MedDRA Preferred Term     Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)
-                                     (N=134)         (N=134)        (N=134)        (N=134)         (N=134)        (N=134)        (N=132)         (N=132)        (N=132)  
+                                                   A: Drug X                                    B: Placebo                                  C: Combination               
+      MedDRA System Organ Class   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)
+        MedDRA Preferred Term        (N=134)         (N=134)        (N=134)        (N=134)         (N=134)        (N=134)        (N=132)         (N=132)        (N=132)  
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       cl A.1                                                                                                                                                             
       dcd A.1.1.1.1                    37               0              0             34               0              0             48               0              0     
@@ -30,9 +30,9 @@
     Code
       print(data_snap[[i]])
     Output
-      MedDRA System Organ Class                    A: Drug X                                    B: Placebo                                  C: Combination               
-        MedDRA Preferred Term     Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)
-                                     (N=134)         (N=134)        (N=134)        (N=134)         (N=134)        (N=134)        (N=132)         (N=132)        (N=132)  
+                                                   A: Drug X                                    B: Placebo                                  C: Combination               
+      MedDRA System Organ Class   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)
+        MedDRA Preferred Term        (N=134)         (N=134)        (N=134)        (N=134)         (N=134)        (N=134)        (N=132)         (N=132)        (N=132)  
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       cl A.1                                                                                                                                                             
       dcd A.1.1.1.1                    37               0              0             34               0              0             48               0              0     
@@ -44,9 +44,9 @@
     Code
       print(data_snap[[i]])
     Output
-      MedDRA System Organ Class                    A: Drug X                                    B: Placebo                                  C: Combination               
-        MedDRA Preferred Term     Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)
-                                     (N=134)         (N=134)        (N=134)        (N=134)         (N=134)        (N=134)        (N=132)         (N=132)        (N=132)  
+                                                   A: Drug X                                    B: Placebo                                  C: Combination               
+      MedDRA System Organ Class   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)
+        MedDRA Preferred Term        (N=134)         (N=134)        (N=134)        (N=134)         (N=134)        (N=134)        (N=132)         (N=132)        (N=132)  
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       cl A.1                                                                                                                                                             
       dcd A.1.1.1.1                    37               0              0             34               0              0             48               0              0     
@@ -62,9 +62,9 @@
     Code
       print(data_snap[[i]])
     Output
-      MedDRA System Organ Class                    A: Drug X                                    B: Placebo                                  C: Combination               
-        MedDRA Preferred Term     Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)
-                                     (N=134)         (N=134)        (N=134)        (N=134)         (N=134)        (N=134)        (N=132)         (N=132)        (N=132)  
+                                                   A: Drug X                                    B: Placebo                                  C: Combination               
+      MedDRA System Organ Class   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)
+        MedDRA Preferred Term        (N=134)         (N=134)        (N=134)        (N=134)         (N=134)        (N=134)        (N=132)         (N=132)        (N=132)  
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       cl C.2                                                                                                                                                             
       dcd C.2.1.2.1                    26               0              0             36               0              0             42               0              0     
@@ -74,9 +74,9 @@
     Code
       print(data_snap[[i]])
     Output
-      MedDRA System Organ Class                    A: Drug X                                    B: Placebo                                  C: Combination               
-        MedDRA Preferred Term     Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)
-                                     (N=134)         (N=134)        (N=134)        (N=134)         (N=134)        (N=134)        (N=132)         (N=132)        (N=132)  
+                                                   A: Drug X                                    B: Placebo                                  C: Combination               
+      MedDRA System Organ Class   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)
+        MedDRA Preferred Term        (N=134)         (N=134)        (N=134)        (N=134)         (N=134)        (N=134)        (N=132)         (N=132)        (N=132)  
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       cl A.1                                                                                                                                                             
       dcd A.1.1.1.1                    37               0              0             34               0              0             48               0              0     
@@ -97,9 +97,9 @@
     Code
       print(data_snap[[i]])
     Output
-      MedDRA System Organ Class                            A: Drug X                                                    B: Placebo                                                  C: Combination                       
-        MedDRA Preferred Term     Any Grade (%)   Grade 1-2 (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 1-2 (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 1-2 (%)   Grade 3-4 (%)   Grade 5 (%)
-                                     (N=134)         (N=134)         (N=134)        (N=134)        (N=134)         (N=134)         (N=134)        (N=134)        (N=132)         (N=132)         (N=132)        (N=132)  
+                                                           A: Drug X                                                    B: Placebo                                                  C: Combination                       
+      MedDRA System Organ Class   Any Grade (%)   Grade 1-2 (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 1-2 (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 1-2 (%)   Grade 3-4 (%)   Grade 5 (%)
+        MedDRA Preferred Term        (N=134)         (N=134)         (N=134)        (N=134)        (N=134)         (N=134)         (N=134)        (N=134)        (N=132)         (N=132)         (N=132)        (N=132)  
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       cl A.1                                                                                                                                                                                                             
       dcd A.1.1.1.1                    37              37               0              0             34              34               0              0             48              48               0              0     
@@ -115,9 +115,9 @@
     Code
       print(data_snap[[i]])
     Output
-      MedDRA System Organ Class                            A: Drug X                                                    B: Placebo                                                  C: Combination                       
-        MedDRA Preferred Term     Any Grade (%)   Grade 3-4 (%)   Grade 3-5 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 3-5 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 3-5 (%)   Grade 5 (%)
-                                     (N=134)         (N=134)         (N=134)        (N=134)        (N=134)         (N=134)         (N=134)        (N=134)        (N=132)         (N=132)         (N=132)        (N=132)  
+                                                           A: Drug X                                                    B: Placebo                                                  C: Combination                       
+      MedDRA System Organ Class   Any Grade (%)   Grade 3-4 (%)   Grade 3-5 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 3-5 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 3-5 (%)   Grade 5 (%)
+        MedDRA Preferred Term        (N=134)         (N=134)         (N=134)        (N=134)        (N=134)         (N=134)         (N=134)        (N=134)        (N=132)         (N=132)         (N=132)        (N=132)  
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       cl A.1                                                                                                                                                                                                             
       dcd A.1.1.1.1                    37               0               0              0             34               0               0              0             48               0               0              0     
@@ -133,9 +133,9 @@
     Code
       print(data_snap[[i]])
     Output
-      MedDRA Preferred Term                    A: Drug X                                    B: Placebo                                  C: Combination               
+                                               A: Drug X                                    B: Placebo                                  C: Combination               
                               Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)   Any Grade (%)   Grade 3-4 (%)   Grade 5 (%)
-                                 (N=134)         (N=134)        (N=134)        (N=134)         (N=134)        (N=134)        (N=132)         (N=132)        (N=132)  
+      MedDRA Preferred Term      (N=134)         (N=134)        (N=134)        (N=134)         (N=134)        (N=134)        (N=132)         (N=132)        (N=132)  
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       dcd D.2.1.5.3                35               0              0             43               0              0             43               0              0     
       dcd A.1.1.1.1                37               0              0             34               0              0             48               0              0     

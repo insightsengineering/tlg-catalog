@@ -11,14 +11,14 @@
       —————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       Baseline Prevalence of ADAs                                                                                      
         Baseline evaluable patients                     134            132             0           0            266    
-      Patient with a positive sample at baseline     63 (47.0%)     64 (48.5%)        NA           NA       127 (47.7%)
+      Patient with a positive sample at baseline     63 (47.0%)     64 (48.5%)         0           0        127 (47.7%)
       Patient with no positive samples at baseline       71             68             0           0            139    
       Incidence of Treatment Emergent ADAs                                                                             
         Post-baseline evaluable patients                134            132             0           0            266    
-      Patient positive for Treatment Emergent ADA        0              0             NA           NA            0     
+      Patient positive for Treatment Emergent ADA        0              0              0           0             0     
       Treatment-induced ADA                              0              0              0           0             0     
       Treatment-enhanced ADA                             0              0              0           0             0     
-      Patient negative for Treatment Emergent ADA        0              0             NA           NA            0     
+      Patient negative for Treatment Emergent ADA        0              0              0           0             0     
       Treatment unaffected                               0              0              0           0             0     
       —————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       

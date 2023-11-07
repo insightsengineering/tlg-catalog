@@ -3,8 +3,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Analysis Visit    A: Drug X      B: Placebo    C: Combination
-                         (N=134)        (N=134)         (N=132)    
+                        A: Drug X      B: Placebo    C: Combination
+      Analysis Visit     (N=134)        (N=134)         (N=132)    
       —————————————————————————————————————————————————————————————
       BASELINE                                                     
         n                  134            134             132      
@@ -42,8 +42,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Analysis Visit                        A: Drug X      B: Placebo    C: Combination
-                                             (N=134)        (N=134)         (N=132)    
+                                            A: Drug X      B: Placebo    C: Combination
+      Analysis Visit                         (N=134)        (N=134)         (N=132)    
       —————————————————————————————————————————————————————————————————————————————————
       BASELINE                                                                         
         n                                      134            134             132      

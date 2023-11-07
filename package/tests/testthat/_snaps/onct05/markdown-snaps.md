@@ -3,8 +3,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Baseline Risk Factors                         B: Placebo                         A: Drug X                                       
-                                Total n    n    Responders   Response (%)    n    Responders   Response (%)   Odds Ratio      95% CI   
+                                                    B: Placebo                         A: Drug X                                       
+      Baseline Risk Factors     Total n    n    Responders   Response (%)    n    Responders   Response (%)   Odds Ratio      95% CI   
       —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       All Patients                268     134       84          62.7%       134      100          74.6%          1.75      (1.04, 2.95)
       Sex                                                                                                                              
@@ -19,8 +19,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Baseline Risk Factors                         B: Placebo                         A: Drug X                                       
-                                Total n    n    Responders   Response (%)    n    Responders   Response (%)   Odds Ratio      95% CI   
+                                                    B: Placebo                         A: Drug X                                       
+      Baseline Risk Factors     Total n    n    Responders   Response (%)    n    Responders   Response (%)   Odds Ratio      95% CI   
       —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       All Patients                268     134       84          62.7%       134      100          74.6%          1.75      (1.04, 2.95)
       Sex                                                                                                                              
@@ -36,8 +36,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Baseline Risk Factors                         B: Placebo                         A: Drug X                                                                    
-                                Total n    n    Responders   Response (%)    n    Responders   Response (%)   Odds Ratio      90% CI      p-value (Chi-Squared Test)
+                                                    B: Placebo                         A: Drug X                                                                    
+      Baseline Risk Factors     Total n    n    Responders   Response (%)    n    Responders   Response (%)   Odds Ratio      90% CI      p-value (Chi-Squared Test)
       ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       All Patients                268     134       84          62.7%       134      100          74.6%          1.75      (1.13, 2.72)             0.0351          
       Sex                                                                                                                                                           
@@ -52,8 +52,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Baseline Risk Factors                         B: Placebo                         A: Drug X                                       
-                                Total n    n    Responders   Response (%)    n    Responders   Response (%)   Odds Ratio      95% CI   
+                                                    B: Placebo                         A: Drug X                                       
+      Baseline Risk Factors     Total n    n    Responders   Response (%)    n    Responders   Response (%)   Odds Ratio      95% CI   
       —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       All Patients                268     134       47          35.1%       134       60          44.8%          1.50      (0.92, 2.45)
       Sex                                                                                                                              

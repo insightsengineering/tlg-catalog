@@ -3,8 +3,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Effect/Covariate Included in the Model       Treatment Effect Adjusted for Covariate     
-                                                 n     Hazard Ratio       95% CI       p-value 
+                                                   Treatment Effect Adjusted for Covariate     
+      Effect/Covariate Included in the Model     n     Hazard Ratio       95% CI       p-value 
       —————————————————————————————————————————————————————————————————————————————————————————
       Treatment:                                                                               
         A: Drug X vs control (B: Placebo)       247        0.97        (0.66, 1.43)     0.8934 
@@ -18,8 +18,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Effect/Covariate Included in the Model                Treatment Effect Adjusted for Covariate             
-                                                n    Hazard Ratio      95% CI      p-value   Interaction p-value
+                                                            Treatment Effect Adjusted for Covariate             
+      Effect/Covariate Included in the Model    n    Hazard Ratio      95% CI      p-value   Interaction p-value
       ——————————————————————————————————————————————————————————————————————————————————————————————————————————
       Treatment:                                                                                                
         A: Drug X vs control (B: Placebo)      247       0.97       (0.66, 1.43)   0.8934                       
@@ -36,8 +36,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Effect/Covariate Included in the Model                Treatment Effect Adjusted for Covariate             
-                                                n    Hazard Ratio      95% CI      p-value   Interaction p-value
+                                                            Treatment Effect Adjusted for Covariate             
+      Effect/Covariate Included in the Model    n    Hazard Ratio      95% CI      p-value   Interaction p-value
       ——————————————————————————————————————————————————————————————————————————————————————————————————————————
       Treatment:                                                                                                
         A: Drug X vs control (B: Placebo)      247       0.97       (0.66, 1.43)   0.8934                       
@@ -55,8 +55,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Effect/Covariate Included in the Model                Treatment Effect Adjusted for Covariate             
-                                                n    Hazard Ratio      90% CI      p-value   Interaction p-value
+                                                            Treatment Effect Adjusted for Covariate             
+      Effect/Covariate Included in the Model    n    Hazard Ratio      90% CI      p-value   Interaction p-value
       ——————————————————————————————————————————————————————————————————————————————————————————————————————————
       Treatment:                                                                                                
         A: Drug X vs control (B: Placebo)      247       0.98       (0.71, 1.35)   0.9063                       

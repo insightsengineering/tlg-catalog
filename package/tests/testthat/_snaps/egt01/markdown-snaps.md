@@ -3,10 +3,10 @@
     Code
       print(data_snap[[i]])
     Output
-      Parameter                        A: Drug X                              B: Placebo                            C: Combination            
-        Analysis Visit                         Change from                             Change from                             Change from    
-                          Value at Visit         Baseline         Value at Visit         Baseline         Value at Visit         Baseline     
-                             (N=134)             (N=134)             (N=134)             (N=134)             (N=132)             (N=132)      
+                                       A: Drug X                              B: Placebo                            C: Combination            
+                                               Change from                             Change from                             Change from    
+      Parameter           Value at Visit         Baseline         Value at Visit         Baseline         Value at Visit         Baseline     
+        Analysis Visit       (N=134)             (N=134)             (N=134)             (N=134)             (N=132)             (N=132)      
       ————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       Heart Rate                                                                                                                              
         BASELINE                                                                                                                              

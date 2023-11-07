@@ -3,8 +3,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Parameter                                            ARM A        ARM B           ARM C    
-                                                          (N=134)      (N=134)         (N=132)   
+                                                           ARM A        ARM B           ARM C    
+      Parameter                                           (N=134)      (N=134)         (N=132)   
       ———————————————————————————————————————————————————————————————————————————————————————————
       Unadjusted comparison                                                                      
         n                                                   68           73              62      

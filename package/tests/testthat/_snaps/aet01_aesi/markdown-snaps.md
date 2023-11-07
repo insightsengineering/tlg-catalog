@@ -118,8 +118,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Standardized MedDRA Query                                                         A: Drug X    B: Placebo   C: Combination
-                                                                                         (N=134)      (N=134)        (N=132)    
+                                                                                        A: Drug X    B: Placebo   C: Combination
+      Standardized MedDRA Query                                                          (N=134)      (N=134)        (N=132)    
       ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       C.1.1.1.3/B.2.2.3.1 AESI (BROAD)                                                                                          
         Total number of patients with at least one AE                                   58 (43.3%)   60 (44.8%)     66 (50.0%)  

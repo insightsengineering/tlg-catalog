@@ -3,9 +3,9 @@
     Code
       print(data_snap[[i]])
     Output
-      Body System or Organ Class                                          A: Drug X                B: Placebo              C: Combination     
-        Dictionary-Derived Term                                        F            M            F            M            F            M     
-                                                                     (N=79)       (N=55)       (N=82)       (N=52)       (N=70)       (N=62)  
+                                                                          A: Drug X                B: Placebo              C: Combination     
+      Body System or Organ Class                                       F            M            F            M            F            M     
+        Dictionary-Derived Term                                      (N=79)       (N=55)       (N=82)       (N=52)       (N=70)       (N=62)  
       ————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       Total number of patients with at least one adverse event     72 (91.1%)   50 (90.9%)   77 (93.9%)   46 (88.5%)   65 (92.9%)   55 (88.7%)
       Overall total number of events                                  377          232          419          203          378          325    
@@ -46,9 +46,9 @@
     Code
       print(data_snap[[i]])
     Output
-      Body System or Organ Class                                                A: Drug X                              B: Placebo                           C: Combination           
-        Dictionary-Derived Term                                       LOW         MEDIUM        HIGH         LOW         MEDIUM        HIGH         LOW         MEDIUM        HIGH   
-                                                                     (N=50)       (N=37)       (N=47)       (N=45)       (N=56)       (N=33)       (N=40)       (N=42)       (N=50)  
+                                                                                A: Drug X                              B: Placebo                           C: Combination           
+      Body System or Organ Class                                      LOW         MEDIUM        HIGH         LOW         MEDIUM        HIGH         LOW         MEDIUM        HIGH   
+        Dictionary-Derived Term                                      (N=50)       (N=37)       (N=47)       (N=45)       (N=56)       (N=33)       (N=40)       (N=42)       (N=50)  
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       Total number of patients with at least one adverse event     46 (92.0%)   34 (91.9%)   42 (89.4%)   40 (88.9%)   53 (94.6%)   30 (90.9%)   36 (90.0%)   39 (92.9%)   45 (90.0%)
       Overall total number of events                                  248          166          195          196          261          165          220          258          225    
@@ -89,9 +89,9 @@
     Code
       print(data_snap[[i]])
     Output
-      Body System or Organ Class                                                       A: Drug X                                          B: Placebo                                         C: Combination                  
-        Dictionary-Derived Term                                      <18.5      18.5 - 24.9   25 - 29.9      >30         <18.5      18.5 - 24.9   25 - 29.9      >30         <18.5      18.5 - 24.9   25 - 29.9       >30    
-                                                                     (N=44)       (N=17)       (N=11)       (N=62)       (N=37)       (N=18)       (N=10)       (N=69)       (N=28)       (N=20)        (N=18)       (N=66)  
+                                                                                       A: Drug X                                          B: Placebo                                         C: Combination                  
+      Body System or Organ Class                                     <18.5      18.5 - 24.9   25 - 29.9      >30         <18.5      18.5 - 24.9   25 - 29.9      >30         <18.5      18.5 - 24.9   25 - 29.9       >30    
+        Dictionary-Derived Term                                      (N=44)       (N=17)       (N=11)       (N=62)       (N=37)       (N=18)       (N=10)       (N=69)       (N=28)       (N=20)        (N=18)       (N=66)  
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       Total number of patients with at least one adverse event     41 (93.2%)   14 (82.4%)    11 (100%)   56 (90.3%)   35 (94.6%)   16 (88.9%)    9 (90.0%)   63 (91.3%)   25 (89.3%)   19 (95.0%)    15 (83.3%)   61 (92.4%)
       Overall total number of events                                  186           80           66          277          174           89           47          312          137           129          100          337    
@@ -132,9 +132,9 @@
     Code
       print(data_snap[[i]])
     Output
-      Body System or Organ Class                                          A: Drug X                B: Placebo              C: Combination     
-        Dictionary-Derived Term                                      WHITE      NON-WHITE      WHITE      NON-WHITE      WHITE      NON-WHITE 
-                                                                     (N=27)      (N=107)       (N=26)      (N=108)       (N=21)      (N=111)  
+                                                                          A: Drug X                B: Placebo              C: Combination     
+      Body System or Organ Class                                     WHITE      NON-WHITE      WHITE      NON-WHITE      WHITE      NON-WHITE 
+        Dictionary-Derived Term                                      (N=27)      (N=107)       (N=26)      (N=108)       (N=21)      (N=111)  
       ————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       Total number of patients with at least one adverse event     26 (96.3%)   96 (89.7%)   25 (96.2%)   98 (90.7%)   21 (100%)    99 (89.2%)
       Overall total number of events                                  109          500          144          478          114          589    

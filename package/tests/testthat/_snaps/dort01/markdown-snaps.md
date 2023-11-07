@@ -16,8 +16,7 @@
         Median                                       5.3          6.2            5.3      
           95% CI                                  (4.6, 5.8)   (5.4, 6.3)     (4.6, 5.8)  
         25% and 75%-ile                            3.8, 6.3     4.6, 6.4       4.0, 6.1   
-        Range (censored)                          3.6 to 6.3   3.3 to 6.5     3.3 to 6.4  
-        Range (event)                             0.5 to 6.4   0.9 to 6.5     0.6 to 6.6  
+        Range                                     0.5 to 6.4   0.9 to 6.5     0.6 to 6.6  
       12 Months duration                                                                  
         Patients remaining at risk                    NA           NA             NA      
         Event Free Rate (%)                           NA           NA             NA      
@@ -41,8 +40,7 @@
         Median                                       5.3           6.2             5.3      
           95% CI                                  (4.6, 5.8)    (5.4, 6.3)      (4.6, 5.8)  
         25% and 75%-ile                            3.8, 6.3      4.6, 6.4        4.0, 6.1   
-        Range (censored)                          3.6 to 6.3    3.3 to 6.5      3.3 to 6.4  
-        Range (event)                             0.5 to 6.4    0.9 to 6.5      0.6 to 6.6  
+        Range                                     0.5 to 6.4    0.9 to 6.5      0.6 to 6.6  
       Unstratified Analysis                                                                 
         p-value (log-rank)                                        0.0223          0.6659    
         Hazard Ratio                                               0.60            0.90     
@@ -66,8 +64,7 @@
         Median                                       5.3          6.2            5.3      
           90% CI                                  (4.6, 5.8)   (5.5, 6.3)     (4.6, 5.7)  
         25% and 75%-ile                            3.8, 6.3     4.6, 6.4       4.0, 6.1   
-        Range (censored)                          3.6 to 6.3   3.3 to 6.5     3.3 to 6.4  
-        Range (event)                             0.5 to 6.4   0.9 to 6.5     0.6 to 6.6  
+        Range                                     0.5 to 6.4   0.9 to 6.5     0.6 to 6.6  
       12 Months duration                                                                  
         Patients remaining at risk                    NA           NA             NA      
         Event Free Rate (%)                           NA           NA             NA      
@@ -91,8 +88,7 @@
         Median                                         5.3              6.2              5.3      
           95% CI                                    (4.6, 5.8)       (5.4, 6.3)       (4.6, 5.8)  
         25% and 75%-ile                              3.8, 6.3         4.6, 6.4         4.0, 6.1   
-        Range (censored)                            3.6 to 6.3       3.3 to 6.5       3.3 to 6.4  
-        Range (event)                               0.5 to 6.4       0.9 to 6.5       0.6 to 6.6  
+        Range                                       0.5 to 6.4       0.9 to 6.5       0.6 to 6.6  
       6 Months duration                                                                           
         Patients remaining at risk                      10               18               7       
         Event Free Rate (%)                           33.46            50.23            30.56     

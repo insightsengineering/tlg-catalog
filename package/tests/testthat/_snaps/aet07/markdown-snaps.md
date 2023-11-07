@@ -3,8 +3,8 @@
     Code
       print(data_snap[[i]])
     Output
-      MedDRA SOC and Preferred Term   B: Placebo   C: Combination
-                                       (N=134)        (N=132)    
+                                      B: Placebo   C: Combination
+      MedDRA SOC and Preferred Term    (N=134)        (N=132)    
       ———————————————————————————————————————————————————————————
       Total number of deaths          70 (52.2%)     75 (56.8%)  
       cl D.1 / dcd D.1.1.1.1          42 (31.3%)     51 (38.6%)  
@@ -15,8 +15,8 @@
     Code
       print(data_snap[[i]])
     Output
-      MedDRA SOC and Preferred Term   A: Drug X   B: Placebo   C: Combination
-                                       (N=134)     (N=134)        (N=132)    
+                                      A: Drug X   B: Placebo   C: Combination
+      MedDRA SOC and Preferred Term    (N=134)     (N=134)        (N=132)    
       ———————————————————————————————————————————————————————————————————————
       Total number of deaths              0       70 (52.2%)     75 (56.8%)  
       cl D.1 / dcd D.1.1.1.1              0       42 (31.3%)     51 (38.6%)  

@@ -13,8 +13,8 @@
       Post-baseline evaluable patients         134           132            266    
       Treatment-induced ADA patients            0             0          64 (24.1%)
       Treatment-induced ADA patients with                                          
-        Transient ADA                          NA             NA             0     
-        Persistent ADA                         NA             NA             0     
+        Transient ADA                           0             0              0     
+        Persistent ADA                          0             0              0     
       Median time to onset of ADA (weeks)      NA             NA            0.1    
       ADA titer range (min - max)              NA             NA             NA    
       —————————————————————————————————————————————————————————————————————————————
