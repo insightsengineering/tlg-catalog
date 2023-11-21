@@ -133,66 +133,76 @@ adex <- adex %>%
     PARAMCD = "TDURD",
     PARAM = "Overall duration (days)",
     AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
-    AVALU = "Days"
+    AVALU = "Days",
+    SEX = factor(case_when(
+      SEX == "F" ~ "Female",
+      SEX == "M" ~ "Male"
+    ))
   ) %>%
   bind_rows(adex)
 
+var_labels(adex) <- labels
+
 adex <- adex %>%
   mutate(
-    AGEGR1 = factor(ifelse(AGE < 65, "<65", ">=65")),
+    AGEGR1 = factor(ifelse(AGE < 65, "<65", ">=65")) %>% with_label("Age group (years)"),
     AGEGR2 = factor(case_when(
       AGE < 18 ~ "< 18",
       AGE >= 18 & AGE <= 40 ~ "18 - 40",
       AGE > 40 & AGE <= 64 ~ "41 - 64",
       TRUE ~ ">=65"
-    ), levels = c("< 18", "18 - 40", "41 - 64", ">=65")),
-    SEX = factor(case_when(
-      SEX == "F" ~ "Female",
-      SEX == "M" ~ "Male"
-    ))
+    ), levels = c("< 18", "18 - 40", "41 - 64", ">=65")
+    ) %>% with_label("Age group (years)")
   )
-
-var_labels(adex) <- c(labels, "Age group (years)", "Age group (years)")
 
 adsl <- adsl %>%
   mutate(SEX = factor(case_when(
     SEX == "F" ~ "Female",
     SEX == "M" ~ "Male"
-  )))
+  )) %>% with_label("Sex"))
 
 app <- init(
   data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-  ADSL <- ADSL %>% filter(ADSL$SAFFL == "Y") %>%
-  mutate(SEX = factor(case_when(
-    SEX == "F" ~ "Female",
-    SEX == "M" ~ "Male"
-  )))'),
-    cdisc_dataset("ADEX", adex, code = 'ADEX <- synthetic_cdisc_dataset("latest", "adex")
-  set.seed(1, kind = "Mersenne-Twister")
-  labels <- var_labels(ADEX)
-  ADEX <- ADEX %>%
-    distinct(USUBJID, .keep_all = TRUE) %>%
-    mutate(PARAMCD = "TDURD",
-           PARAM = "Overall duration (days)",
-           AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
-           AVALU = "Days") %>%
-    bind_rows(ADEX)
-
-  ADEX <- ADEX %>%
-    mutate(
-      AGEGR1 = factor(ifelse(AGE < 65, "<65", ">=65")),
-      AGEGR2 = factor(case_when(
-        AGE < 18 ~ "< 18",
-        AGE >= 18 & AGE <= 40 ~ "18 - 40",
-        AGE > 40 & AGE <= 64 ~ "41 - 64",
-        TRUE ~ ">=65"
-      ), levels = c("< 18", "18 - 40", "41 - 64", ">=65")),
-      SEX = factor(case_when(
+    cdisc_dataset("ADSL", adsl, code = '
+    ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+    ADSL <- ADSL %>% filter(ADSL$SAFFL == "Y") %>%
+      mutate(SEX = factor(case_when(
         SEX == "F" ~ "Female",
         SEX == "M" ~ "Male"
-    )))
-  var_labels(ADEX) <- c(labels, "Age group (years)", "Age group (years)")'),
+      )) %>% with_label("Sex"))
+    '),
+    cdisc_dataset("ADEX", adex, code = '
+    ADEX <- synthetic_cdisc_dataset("latest", "adex")
+    set.seed(1, kind = "Mersenne-Twister")
+    labels <- var_labels(ADEX)
+    ADEX <- ADEX %>%
+      distinct(USUBJID, .keep_all = TRUE) %>%
+      mutate(
+        PARAMCD = "TDURD",
+        PARAM = "Overall duration (days)",
+        AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
+        AVALU = "Days",
+        SEX = factor(case_when(
+          SEX == "F" ~ "Female",
+          SEX == "M" ~ "Male"
+        ))
+      ) %>%
+      bind_rows(ADEX)
+      
+    var_labels(ADEX) <- labels
+
+    ADEX <- ADEX %>%
+      mutate(
+        AGEGR1 = factor(ifelse(AGE < 65, "<65", ">=65")) %>% with_label("Age group (years)"),
+        AGEGR2 = factor(case_when(
+          AGE < 18 ~ "< 18",
+          AGE >= 18 & AGE <= 40 ~ "18 - 40",
+          AGE > 40 & AGE <= 64 ~ "41 - 64",
+          TRUE ~ ">=65"
+        ), levels = c("< 18", "18 - 40", "41 - 64", ">=65")
+        ) %>% with_label("Age group (years)")
+      )
+    '),
     check = TRUE
   ),
   modules = modules(
@@ -218,9 +228,7 @@ app <- init(
       add_total = FALSE
     )
   ),
-  filter = list(
-    ADSL = list(SAFFL = "Y")
-  )
+  filter = teal_slices(teal_slice("ADSL", "SAFFL", selected = "Y"))
 )
 
 shinyApp(app$ui, app$server)
