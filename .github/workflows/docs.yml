@@ -91,11 +91,11 @@ jobs:
 
   r-cmd-stable:
    name: R CMD Check (stable) 🧬
-   uses: insightsengineering/r.pkg.template/.github/workflows/build-check-install.yaml@override-repos
+   uses: insightsengineering/r.pkg.template/.github/workflows/build-check-install.yaml@install-deps-from-cran
    secrets:
      REPO_GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
    with:
-     r-repository-overrides: "R-universe=https://insightsengineering.r-universe.dev/,CRAN=https://cloud.r-project.org/"
+     install-deps-from-cran: "R-universe=https://insightsengineering.r-universe.dev/,CRAN=https://cloud.r-project.org/"
      package-subdirectory: package
      additional-env-vars: |
        _R_CHECK_CRAN_INCOMING_REMOTE_=false
@@ -108,6 +108,7 @@ jobs:
        checking Rd line widths ... NOTE
 
   r-cmd-stable-notification:
+    name: R CMD check (stable) notification 🔔
     runs-on: ubuntu-latest
     needs: r-cmd-stable
     if: needs.r-cmd-stable.result == 'failure' || needs.r-cmd-stable.result == 'skipped'
@@ -121,7 +122,7 @@ jobs:
         if: env.gchat_webhook != ''
         uses: insightsengineering/google-chat-notification@master
         with:
-          name: ${{ github.event.repository.name }} - development
+          name: ${{ github.event.repository.name }} - R CMD check (stable)
           url: ${{ secrets.GCHAT_WEBHOOK }}
           status: ${{ needs.r-cmd-stable.result }}
 
