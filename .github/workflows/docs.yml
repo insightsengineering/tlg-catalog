@@ -111,7 +111,7 @@ jobs:
     name: R CMD check (stable) notification 🔔
     runs-on: ubuntu-latest
     needs: r-cmd-stable
-    if: needs.r-cmd-stable.result == 'failure' || needs.r-cmd-stable.result == 'skipped'
+    if: always()
     steps:
       - name: Normalize variables 📏
         run: |
@@ -119,7 +119,7 @@ jobs:
         shell: bash
 
       - name: GChat notification 🔔
-        if: env.gchat_webhook != ''
+        if: (needs.r-cmd-stable.result == 'failure' || needs.r-cmd-stable.result == 'skipped') && env.gchat_webhook != ''
         uses: insightsengineering/google-chat-notification@master
         with:
           name: ${{ github.event.repository.name }} - R CMD check (stable)
