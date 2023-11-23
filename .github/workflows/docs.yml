@@ -13,6 +13,7 @@ on:
           Google Chat webhook to send failure notifications
         required: false
   workflow_dispatch:
+  # TODO should we still run it on main?
   push:
     branches:
       - main
@@ -88,6 +89,42 @@ jobs:
           url: ${{ secrets.GCHAT_WEBHOOK }}
           status: ${{ job.status }}
 
+  r-cmd-stable:
+   name: R CMD Check (stable) 🧬
+   uses: insightsengineering/r.pkg.template/.github/workflows/build-check-install.yaml@override-repos
+   secrets:
+     REPO_GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
+   with:
+     r-repository-overrides: "R-universe=https://insightsengineering.r-universe.dev/,CRAN=https://cloud.r-project.org/"
+     package-subdirectory: package
+     additional-env-vars: |
+       _R_CHECK_CRAN_INCOMING_REMOTE_=false
+     additional-r-cmd-check-params: --as-cran
+     enforce-note-blocklist: true
+     note-blocklist: |
+       checking dependencies in R code ... NOTE
+       checking R code for possible problems ... NOTE
+       checking examples ... NOTE
+       checking Rd line widths ... NOTE
+
+  r-cmd-stable-notification:
+    runs-on: ubuntu-latest
+    needs: r-cmd-stable
+    if: needs.r-cmd-stable.result == 'failure' || needs.r-cmd-stable.result == 'skipped'
+    steps:
+      - name: Normalize variables 📏
+        run: |
+          echo "gchat_webhook=${{ secrets.GCHAT_WEBHOOK }}" >> $GITHUB_ENV
+        shell: bash
+
+      - name: GChat notification 🔔
+        if: env.gchat_webhook != ''
+        uses: insightsengineering/google-chat-notification@master
+        with:
+          name: ${{ github.event.repository.name }} - development
+          url: ${{ secrets.GCHAT_WEBHOOK }}
+          status: ${{ needs.r-cmd-stable.result }}
+
   publish-stable:
     name: Build & Deploy TLGC (stable) 📖
     runs-on: ubuntu-latest
@@ -95,6 +132,7 @@ jobs:
       image: ghcr.io/insightsengineering/rstudio_4.3.1_bioc_3.17:latest
     permissions:
       contents: write
+    needs: r-cmd-stable
     steps:
       - name: Checkout repo 🛎
         uses: actions/checkout@v3
