@@ -82,6 +82,7 @@ adsl <- synthetic_cdisc_dataset("latest", "adsl")
 adex <- synthetic_cdisc_dataset("latest", "adex")
 
 set.seed(1, kind = "Mersenne-Twister")
+labels <- var_labels(adex)
 adex <- adex %>%
   distinct(USUBJID, .keep_all = TRUE) %>%
   mutate(
@@ -92,18 +93,27 @@ adex <- adex %>%
   ) %>%
   bind_rows(adex)
 
+var_labels(adex) <- labels
+
 app <- init(
   data = cdisc_data(
     cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
-    cdisc_dataset("ADEX", adex, code = 'ADEX <- synthetic_cdisc_dataset("latest", "adex")
-  set.seed(1, kind = "Mersenne-Twister")
-  ADEX <- ADEX %>%
-  distinct(USUBJID, .keep_all = TRUE) %>%
-  mutate(PARAMCD = "TDURD",
-         PARAM = "Overall duration (days)",
-         AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
-         AVALU = "Days") %>%
-  bind_rows(ADEX)'),
+    cdisc_dataset("ADEX", adex, code = '
+    ADEX <- synthetic_cdisc_dataset("latest", "adex")
+    set.seed(1, kind = "Mersenne-Twister")
+    labels <- var_labels(ADEX)
+    ADEX <- ADEX %>%
+      distinct(USUBJID, .keep_all = TRUE) %>%
+      mutate(
+        PARAMCD = "TDURD",
+        PARAM = "Overall duration (days)",
+        AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
+        AVALU = "Days"
+      ) %>%
+      bind_rows(ADEX)
+
+    var_labels(ADEX) <- labels
+    '),
     check = TRUE
   ),
   modules = modules(
@@ -129,9 +139,7 @@ app <- init(
       add_total = FALSE
     )
   ),
-  filter = list(
-    ADSL = list(SAFFL = "Y")
-  )
+  filter = teal_slices(teal_slice("ADSL", "SAFFL", selected = "Y"))
 )
 
 shinyApp(app$ui, app$server)
