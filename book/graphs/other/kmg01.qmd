@@ -128,9 +128,6 @@ plot
 library(teal.modules.clinical)
 library(scda)
 
-ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
-
 arm_ref_comp <- list(
   ACTARMCD = list(
     ref = "ARM B",
@@ -142,32 +139,37 @@ arm_ref_comp <- list(
   )
 )
 
+data <- teal_data()
+data <- within(data, {
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
+})
+datanames <- c("ADSL", "ADTTE")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", ADSL, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
-    cdisc_dataset("ADTTE", ADTTE, code = 'ADTTE <- synthetic_cdisc_dataset("latest", "adtte")'),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_g_km(
       label = "KM PLOT",
       plot_height = c(600, 100, 2000),
       dataname = "ADTTE",
       arm_var = choices_selected(
-        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),
+        variable_choices(data[["ADSL"]], c("ARM", "ARMCD", "ACTARMCD")),
         "ARM"
       ),
       paramcd = choices_selected(
-        value_choices(ADTTE, "PARAMCD", "PARAM"),
+        value_choices(data[["ADTTE"]], "PARAMCD", "PARAM"),
         "OS"
       ),
       arm_ref_comp = arm_ref_comp,
       strata_var = choices_selected(
-        variable_choices(ADSL, c("SEX", "BMRKR2")),
+        variable_choices(data[["ADSL"]], c("SEX", "BMRKR2")),
         "SEX"
       ),
       facet_var = choices_selected(
-        variable_choices(ADSL, c("SEX", "BMRKR2")),
+        variable_choices(data[["ADSL"]], c("SEX", "BMRKR2")),
         NULL
       )
     )
@@ -178,5 +180,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::
