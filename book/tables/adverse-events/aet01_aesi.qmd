@@ -500,103 +500,65 @@ library(teal.modules.clinical)
 library(scda)
 library(dplyr)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adae <- synthetic_cdisc_dataset("latest", "adae")
-adae <- filter(adae, ANL01FL == "Y" & SAFFL == "Y")
-
-not_resolved <- adae %>%
-  filter(!(AEOUT %in% c("RECOVERED/RESOLVED", "FATAL", "RECOVERED/RESOLVED WITH SEQUELAE"))) %>%
-  distinct(USUBJID) %>%
-  mutate(NOT_RESOLVED = "Y")
-
-adae <- adae %>%
-  left_join(not_resolved, by = c("USUBJID")) %>%
-  mutate(
-    ALL_RESOLVED = with_label(is.na(NOT_RESOLVED), "All non-fatal AEs resolved"),
-    NOT_RESOLVED = with_label(!is.na(NOT_RESOLVED), "At least one non-fatal unresolved or ongoing AE")
-  )
-
-adae <- adae %>%
-  mutate(
-    AEDECOD = as.character(AEDECOD),
-    WD = with_label(AEACN == "DRUG WITHDRAWN", "AE that led to study drug withdrawal"),
-    DSM = with_label(AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"), "AE that led to study drug dose modified/interrupted"),
-    CONTRT = with_label(AECONTRT == "Y", "AE that required treatment"),
-    SER = with_label(AESER == "Y", "Serious AE"),
-    REL = with_label(AEREL == "Y", "Related AE"),
-    ALL_RESOLVED_WD = with_label(WD == TRUE & ALL_RESOLVED == TRUE, "Resolved AE that led to study drug withdrawal"),
-    ALL_RESOLVED_DSM = with_label(DSM == TRUE & ALL_RESOLVED == TRUE, "Resolved AE that led to study drug dose modified/interrupted"),
-    ALL_RESOLVED_CONTRT = with_label(CONTRT == TRUE & ALL_RESOLVED == TRUE, "Resolved AE that required treatment"),
-    NOT_RESOLVED_WD = with_label(WD == TRUE & NOT_RESOLVED == TRUE, "Unresolved AE that led to study drug withdrawal"),
-    NOT_RESOLVED_DSM = with_label(DSM == TRUE & NOT_RESOLVED == TRUE, "Unresolved AE that led to study drug dose modified/interrupted"),
-    NOT_RESOLVED_CONTRT = with_label(CONTRT == TRUE & NOT_RESOLVED == TRUE, "Unresolved AE that required treatment"),
-    SERWD = with_label(AESER == "Y" & AEACN == "DRUG WITHDRAWN", "Serious AE that led to study drug withdrawal"),
-    SERCONTRT = with_label(AECONTRT == "Y" & AESER == "Y", "Serious AE that required treatment"),
-    SERDSM = with_label(
-      AESER == "Y" & AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"), "Serious AE that led to study drug dose modified/interrupted"
-    ),
-    RELWD = with_label(
-      AEREL == "Y" & AEACN == "DRUG WITHDRAWN", "Related AE that led to study drug withdrawal"
-    ),
-    RELDSM = with_label(
-      AEREL == "Y" & AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"), "Related AE that led to study drug dose modified/interrupted"
-    ),
-    RELCONTRT = with_label(AECONTRT == "Y" & AEREL == "Y", "Related AE that required treatment"),
-    RELSER = with_label(AESER == "Y" & AEREL == "Y", "Serious related AE")
-  )
-
 aesi_vars <- c(
   "WD", "DSM", "CONTRT", "ALL_RESOLVED_WD", "ALL_RESOLVED_DSM", "ALL_RESOLVED_CONTRT",
   "NOT_RESOLVED_WD", "NOT_RESOLVED_DSM", "NOT_RESOLVED_CONTRT", "SER", "SERWD", "SERDSM",
   "SERCONTRT", "REL", "RELWD", "RELDSM", "RELCONTRT", "RELSER"
 )
 
+data <- teal_data()
+data <- within(data, {
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADAE <- synthetic_cdisc_dataset("latest", "adae")
+  ADAE <- filter(ADAE, ANL01FL == "Y" & SAFFL == "Y")
+
+  not_resolved <- ADAE %>%
+    filter(!(AEOUT %in% c("RECOVERED/RESOLVED", "FATAL", "RECOVERED/RESOLVED WITH SEQUELAE"))) %>%
+    distinct(USUBJID) %>%
+    mutate(NOT_RESOLVED = "Y")
+
+  ADAE <- ADAE %>%
+    left_join(not_resolved, by = c("USUBJID")) %>%
+    mutate(
+      ALL_RESOLVED = with_label(is.na(NOT_RESOLVED), "All non-fatal AEs resolved"),
+      NOT_RESOLVED = with_label(!is.na(NOT_RESOLVED), "At least one non-fatal unresolved or ongoing AE")
+    )
+
+  ADAE <- ADAE %>%
+    mutate(
+      AEDECOD = as.character(AEDECOD),
+      WD = with_label(AEACN == "DRUG WITHDRAWN", "AE that led to study drug withdrawal"),
+      DSM = with_label(AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"), "AE that led to study drug dose modified/interrupted"),
+      CONTRT = with_label(AECONTRT == "Y", "AE that required treatment"),
+      SER = with_label(AESER == "Y", "Serious AE"),
+      REL = with_label(AEREL == "Y", "Related AE"),
+      ALL_RESOLVED_WD = with_label(WD == TRUE & ALL_RESOLVED == TRUE, "Resolved AE that led to study drug withdrawal"),
+      ALL_RESOLVED_DSM = with_label(DSM == TRUE & ALL_RESOLVED == TRUE, "Resolved AE that led to study drug dose modified/interrupted"),
+      ALL_RESOLVED_CONTRT = with_label(CONTRT == TRUE & ALL_RESOLVED == TRUE, "Resolved AE that required treatment"),
+      NOT_RESOLVED_WD = with_label(WD == TRUE & NOT_RESOLVED == TRUE, "Unresolved AE that led to study drug withdrawal"),
+      NOT_RESOLVED_DSM = with_label(DSM == TRUE & NOT_RESOLVED == TRUE, "Unresolved AE that led to study drug dose modified/interrupted"),
+      NOT_RESOLVED_CONTRT = with_label(CONTRT == TRUE & NOT_RESOLVED == TRUE, "Unresolved AE that required treatment"),
+      SERWD = with_label(AESER == "Y" & AEACN == "DRUG WITHDRAWN", "Serious AE that led to study drug withdrawal"),
+      SERCONTRT = with_label(AECONTRT == "Y" & AESER == "Y", "Serious AE that required treatment"),
+      SERDSM = with_label(
+        AESER == "Y" & AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"), "Serious AE that led to study drug dose modified/interrupted"
+      ),
+      RELWD = with_label(
+        AEREL == "Y" & AEACN == "DRUG WITHDRAWN", "Related AE that led to study drug withdrawal"
+      ),
+      RELDSM = with_label(
+        AEREL == "Y" & AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"), "Related AE that led to study drug dose modified/interrupted"
+      ),
+      RELCONTRT = with_label(AECONTRT == "Y" & AEREL == "Y", "Related AE that required treatment"),
+      RELSER = with_label(AESER == "Y" & AEREL == "Y", "Serious related AE")
+    )
+})
+datanames <- c("ADSL", "ADAE")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
-    cdisc_dataset("ADAE", adae, code = 'ADAE <- synthetic_cdisc_dataset("latest", "adae")
-      ADAE <- filter(ADAE, ANL01FL == "Y" & SAFFL == "Y")
-      not_resolved <- ADAE %>%
-      filter(!(AEOUT %in% c("RECOVERED/RESOLVED", "FATAL", "RECOVERED/RESOLVED WITH SEQUELAE"))) %>%
-      distinct(USUBJID) %>% mutate(NOT_RESOLVED = "Y")
-
-    ADAE <- ADAE %>%
-      left_join(not_resolved, by = c("USUBJID")) %>%
-      mutate(
-        ALL_RESOLVED = with_label(is.na(NOT_RESOLVED), "All non-fatal AEs resolved"),
-        NOT_RESOLVED = with_label(!is.na(NOT_RESOLVED), "At least one non-fatal unresolved or ongoing AE")
-      )
-
-    ADAE <- ADAE %>%
-      mutate(
-        AEDECOD = as.character(AEDECOD),
-        WD = with_label(AEACN == "DRUG WITHDRAWN", "AE that led to study drug withdrawal"),
-        DSM = with_label(AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"), "AE that led to study drug dose modified/interrupted"),
-        CONTRT = with_label(AECONTRT == "Y", "AE that required treatment"),
-        SER = with_label(AESER == "Y", "Serious AE"),
-        REL = with_label(AEREL == "Y", "Related AE"),
-        ALL_RESOLVED_WD = with_label(WD == TRUE & ALL_RESOLVED == TRUE, "Resolved AE that led to study drug withdrawal"),
-        ALL_RESOLVED_DSM = with_label(DSM == TRUE & ALL_RESOLVED == TRUE, "Resolved AE that led to study drug dose modified/interrupted"),
-        ALL_RESOLVED_CONTRT = with_label(CONTRT == TRUE & ALL_RESOLVED == TRUE, "Resolved AE that required treatment"),
-        NOT_RESOLVED_WD = with_label(WD == TRUE & NOT_RESOLVED == TRUE, "Unresolved AE that led to study drug withdrawal"),
-        NOT_RESOLVED_DSM = with_label(DSM == TRUE & NOT_RESOLVED == TRUE, "Unresolved AE that led to study drug dose modified/interrupted"),
-        NOT_RESOLVED_CONTRT = with_label(CONTRT == TRUE & NOT_RESOLVED == TRUE, "Unresolved AE that required treatment"),
-        SERWD = with_label(AESER == "Y" & AEACN == "DRUG WITHDRAWN", "Serious AE that led to study drug withdrawal"),
-        SERCONTRT = with_label(AECONTRT == "Y" & AESER == "Y", "Serious AE that required treatment"),
-        SERDSM = with_label(
-          AESER == "Y" & AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"), "Serious AE that led to study drug dose modified/interrupted"
-        ),
-        RELWD = with_label(
-          AEREL == "Y" & AEACN == "DRUG WITHDRAWN", "Related AE that led to study drug withdrawal"
-        ),
-        RELDSM = with_label(
-          AEREL == "Y" & AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"), "Related AE that led to study drug dose modified/interrupted"
-        ),
-        RELCONTRT = with_label(AECONTRT == "Y" & AEREL == "Y", "Related AE that required treatment"),
-        RELSER = with_label(AESER == "Y" & AEREL == "Y", "Serious related AE")
-      )'),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_events_summary(
       label = "Adverse Events Summary",
