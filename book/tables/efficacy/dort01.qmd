@@ -268,13 +268,6 @@ library(scda)
 library(teal.modules.clinical)
 library(tern)
 
-ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
-
-# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-ADSL <- df_explicit_na(ADSL)
-ADTTE <- df_explicit_na(ADTTE)
-
 arm_ref_comp <- list(
   ACTARMCD = list(
     ref = "ARM B",
@@ -286,32 +279,41 @@ arm_ref_comp <- list(
   )
 )
 
+data <- teal_data()
+data <- within(data, {
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
+
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADTTE <- df_explicit_na(ADTTE)
+})
+datanames <- c("ADSL", "ADTTE")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", ADSL, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl") %>% df_explicit_na()'),
-    cdisc_dataset("ADTTE", ADTTE, code = 'ADTTE <- synthetic_cdisc_dataset("latest", "adtte") %>% df_explicit_na()'),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_tte(
       label = "Time To Event Table",
       dataname = "ADTTE",
       arm_var = choices_selected(
-        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),
+        variable_choices(data[["ADSL"]], c("ARM", "ARMCD", "ACTARMCD")),
         "ARM"
       ),
       arm_ref_comp = arm_ref_comp,
       paramcd = choices_selected(
-        value_choices(ADTTE, "PARAMCD", "PARAM"),
+        value_choices(data[["ADTTE"]], "PARAMCD", "PARAM"),
         "CRSD"
       ),
       strata_var = choices_selected(
-        variable_choices(ADSL, c("SEX", "BMRKR2")),
+        variable_choices(data[["ADSL"]], c("SEX", "BMRKR2")),
         "SEX"
       ),
       time_points = choices_selected(c(6, 8), 6),
       event_desc_var = choices_selected(
-        variable_choices(ADTTE, "EVNTDESC"),
+        variable_choices(data[["ADTTE"]], "EVNTDESC"),
         "EVNTDESC",
         fixed = TRUE
       )
