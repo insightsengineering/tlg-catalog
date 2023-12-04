@@ -152,31 +152,32 @@ library(scda)
 library(dplyr)
 library(teal.modules.clinical)
 
-ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-ADLB <- synthetic_cdisc_dataset("latest", "adlb") %>%
-  mutate(AVISIT = forcats::fct_reorder(AVISIT, AVISITN, min))
+data <- teal_data()
+data <- within(data, {
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADLB <- synthetic_cdisc_dataset("latest", "adlb") %>%
+    mutate(AVISIT = forcats::fct_reorder(AVISIT, AVISITN, min))
+})
+datanames <- c("ADSL", "ADLB")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", ADSL, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
-    cdisc_dataset("ADLB", ADLB, code = 'ADLB <- synthetic_cdisc_dataset("latest", "adlb") %>%
-                    mutate(AVISIT = forcats::fct_reorder(AVISIT, AVISITN, min))'),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_g_lineplot(
       label = "LINE PLOT",
       dataname = "ADLB",
       strata = choices_selected(
-        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),
+        variable_choices(data[["ADSL"]], c("ARM", "ARMCD", "ACTARMCD")),
         "ARM"
       ),
       y = choices_selected(
-        variable_choices(ADLB, c("AVAL", "BASE", "CHG", "PCHG")),
+        variable_choices(data[["ADLB"]], c("AVAL", "BASE", "CHG", "PCHG")),
         "AVAL"
       ),
       param = choices_selected(
-        value_choices(ADLB, "PARAMCD", "PARAM"),
+        value_choices(data[["ADLB"]], "PARAMCD", "PARAM"),
         "ALT"
       )
     )
@@ -187,5 +188,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::
