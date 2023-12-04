@@ -179,37 +179,37 @@ library(scda)
 data <- teal_data()
 data <- within(data, {
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-ADSL <- ADSL %>%
-  dplyr::filter(ARM %in% c("B: Placebo", "A: Drug X")) %>%
-  dplyr::mutate(ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo"))) %>%
-  dplyr::mutate(ARMCD = droplevels(forcats::fct_relevel(ARMCD, "ARM B")))
-ADSL$RACE <- droplevels(ADSL$RACE)
+  ADSL <- ADSL %>%
+    dplyr::filter(ARM %in% c("B: Placebo", "A: Drug X")) %>%
+    dplyr::mutate(ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo"))) %>%
+    dplyr::mutate(ARMCD = droplevels(forcats::fct_relevel(ARMCD, "ARM B")))
+  ADSL$RACE <- droplevels(ADSL$RACE)
 
-ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
-adtte_labels <- var_labels(ADTTE)
+  ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
+  adtte_labels <- var_labels(ADTTE)
 
-ADTTE <- ADTTE %>%
-  dplyr::filter(
-    PARAMCD == "OS",
-    ARM %in% c("B: Placebo", "A: Drug X"),
-    SEX %in% c("M", "F")
-  ) %>%
-  dplyr::mutate(
-    # Reorder levels of ARM to display reference arm before treatment arm.
-    ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo")),
-    SEX = droplevels(SEX),
-    is_event = CNSR == 0,
-    # Convert time to MONTH
-    AVAL = day2month(AVAL),
-    AVALU = "Months"
-  ) %>%
-  var_relabel(
-    ARM = adtte_labels["ARM"],
-    SEX = adtte_labels["SEX"],
-    is_event = "Event Flag",
-    AVAL = adtte_labels["AVAL"],
-    AVALU = adtte_labels["AVALU"]
-  )
+  ADTTE <- ADTTE %>%
+    dplyr::filter(
+      PARAMCD == "OS",
+      ARM %in% c("B: Placebo", "A: Drug X"),
+      SEX %in% c("M", "F")
+    ) %>%
+    dplyr::mutate(
+      # Reorder levels of ARM to display reference arm before treatment arm.
+      ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo")),
+      SEX = droplevels(SEX),
+      is_event = CNSR == 0,
+      # Convert time to MONTH
+      AVAL = day2month(AVAL),
+      AVALU = "Months"
+    ) %>%
+    var_relabel(
+      ARM = adtte_labels["ARM"],
+      SEX = adtte_labels["SEX"],
+      is_event = "Event Flag",
+      AVAL = adtte_labels["AVAL"],
+      AVALU = adtte_labels["AVALU"]
+    )
 })
 datanames <- c("ADSL", "ADTTE")
 datanames(data) <- datanames
