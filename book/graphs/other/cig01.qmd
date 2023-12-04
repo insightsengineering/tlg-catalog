@@ -169,16 +169,17 @@ table
 library(teal.modules.clinical)
 library(scda)
 
-ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-ADLB <- synthetic_cdisc_dataset("latest", "adlb")
+data <- teal_data()
+data <- within(data, {
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADLB <- synthetic_cdisc_dataset("latest", "adlb")
+})
+datanames <- c("ADSL", "ADLB")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", ADSL),
-    cdisc_dataset("ADLB", ADLB),
-    code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-    ADLB <- synthetic_cdisc_dataset("latest", "adlb")'
-  ),
+  data = data,
   modules = modules(
     tm_g_ci(
       label = "Confidence Interval Plot",
@@ -196,15 +197,15 @@ app <- init(
         filter = list(
           filter_spec(
             vars = "PARAMCD",
-            choices = levels(ADLB$PARAMCD),
-            selected = levels(ADLB$PARAMCD)[1],
+            choices = levels(data[["ADLB"]]$PARAMCD),
+            selected = levels(data[["ADLB"]]$PARAMCD)[1],
             multiple = FALSE,
             label = "Select lab:"
           ),
           filter_spec(
             vars = "AVISIT",
-            choices = levels(ADLB$AVISIT),
-            selected = levels(ADLB$AVISIT)[1],
+            choices = levels(data[["ADLB"]]$AVISIT),
+            selected = levels(data[["ADLB"]]$AVISIT)[1],
             multiple = FALSE,
             label = "Select visit:"
           )
@@ -239,5 +240,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::
