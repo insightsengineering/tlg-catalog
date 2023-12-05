@@ -265,35 +265,27 @@ library(tern)
 library(scda)
 library(teal.modules.clinical)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adcm <- synthetic_cdisc_dataset("latest", "adcm")
-
-adcm$CMSEQ <- as.integer(adcm$CMSEQ)
-
-# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-# If you want your missing levels to show as "No Coding Available", please use
-# adsl <- df_explicit_na(adsl, na_level = "No Coding Available")
-# adcm <- df_explicit_na(adcm, na_level = "No Coding Available")
-adsl <- df_explicit_na(adsl)
-adcm <- df_explicit_na(adcm)
-
 adcm_keys <- c("STUDYID", "USUBJID", "ASTDTM", "CMSEQ", "ATC1", "ATC2", "ATC3", "ATC4")
 
+data <- teal_data()
+data <- within(data, {
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADCM <- synthetic_cdisc_dataset("latest", "adcm")
+  ADCM$CMSEQ <- as.integer(ADCM$CMSEQ)
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  # If you want your missing levels to show as "No Coding Available", please use
+  # adsl <- df_explicit_na(adsl, na_level = "No Coding Available")
+  # adcm <- df_explicit_na(adcm, na_level = "No Coding Available")
+  ADSL <- df_explicit_na(ADSL)
+  ADCM <- df_explicit_na(ADCM)
+})
+datanames <- c("ADSL", "ADCM")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+join_keys(data)["ADCM", "ADCM"] <- adcm_keys
+
 app <- teal::init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = '
-                  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-                  ADSL <- df_explicit_na(ADSL)
-                  '),
-    cdisc_dataset("ADCM", adcm,
-      code = '
-      ADCM <- synthetic_cdisc_dataset("latest", "adcm")
-      ADCM$CMSEQ <- as.factor(ADCM$CMSEQ)
-      ADCM <- df_explicit_na(ADCM)
-      ',
-      keys = adcm_keys
-    )
-  ),
+  data = data,
   modules = modules(
     tm_t_mult_events(
       label = "Concomitant Medications by Medication Class and Preferred Name",
@@ -301,11 +293,11 @@ app <- teal::init(
       arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
       seq_var = choices_selected("CMSEQ", selected = "CMSEQ", fixed = TRUE),
       hlt = choices_selected(
-        choices = variable_choices(adcm, c("ATC1", "ATC2", "ATC3", "ATC4")),
+        choices = variable_choices(data[["ADCM"]], c("ATC1", "ATC2", "ATC3", "ATC4")),
         selected = c("ATC1", "ATC2", "ATC3", "ATC4")
       ),
       llt = choices_selected(
-        choices = variable_choices(adcm, c("CMDECOD")),
+        choices = variable_choices(data[["ADCM"]], c("CMDECOD")),
         selected = c("CMDECOD")
       ),
       add_total = FALSE,
@@ -321,5 +313,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::
