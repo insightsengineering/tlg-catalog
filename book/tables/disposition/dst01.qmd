@@ -125,61 +125,44 @@ library(teal.modules.clinical)
 library(scda)
 library(dplyr)
 
-set.seed(1, kind = "Mersenne-Twister")
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adsl <- df_explicit_na(adsl)
-adsl <- adsl %>%
-  mutate(
-    DCSREASGP = case_when(
-      DCSREAS %in% c("ADVERSE EVENT", "DEATH") ~ "Safety",
-      (DCSREAS != "<Missing>" & !DCSREAS %in% c("ADVERSE EVENT", "DEATH")) ~ "Non-Safety",
-      DCSREAS == "<Missing>" ~ "<Missing>"
-    ) %>% as.factor(),
-    EOTSTT = sample(
-      c("ONGOING", "COMPLETED", "DISCONTINUED"),
-      size = nrow(adsl),
-      replace = TRUE
-    ) %>% as.factor()
-  ) %>%
-  var_relabel(
-    EOTSTT = "End Of Treatment Status"
-  )
+data <- teal_data()
+data <- within(data, {
+  set.seed(1, kind = "Mersenne-Twister")
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADSL <- df_explicit_na(ADSL)
+  ADSL <- ADSL %>%
+    mutate(
+      DCSREASGP = case_when(
+        DCSREAS %in% c("ADVERSE EVENT", "DEATH") ~ "Safety",
+        (DCSREAS != "<Missing>" & !DCSREAS %in% c("ADVERSE EVENT", "DEATH")) ~ "Non-Safety",
+        DCSREAS == "<Missing>" ~ "<Missing>"
+      ) %>% as.factor(),
+      EOTSTT = sample(
+        c("ONGOING", "COMPLETED", "DISCONTINUED"),
+        size = nrow(ADSL),
+        replace = TRUE
+      ) %>% as.factor()
+    ) %>%
+    var_relabel(
+      EOTSTT = "End Of Treatment Status"
+    )
 
-date_vars_asl <- names(adsl)[vapply(adsl, function(x) inherits(x, c("Date", "POSIXct", "POSIXlt")), logical(1))]
-demog_vars_asl <- names(adsl)[!(names(adsl) %in% c("USUBJID", "STUDYID", date_vars_asl))]
+  date_vars_asl <- names(ADSL)[vapply(ADSL, function(x) inherits(x, c("Date", "POSIXct", "POSIXlt")), logical(1))]
+  demog_vars_asl <- names(ADSL)[!(names(ADSL) %in% c("USUBJID", "STUDYID", date_vars_asl))]
+})
+datanames <- "ADSL"
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl),
-    code = '
-     set.seed(1, kind = "Mersenne-Twister")
-     ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-     ADSL <- df_explicit_na(ADSL)
-     ADSL <- ADSL %>%
-        mutate(
-            DCSREASGP = case_when(
-                DCSREAS %in% c("ADVERSE EVENT", "DEATH") ~ "Safety",
-                (DCSREAS != "<Missing>" & !DCSREAS %in% c("ADVERSE EVENT", "DEATH")) ~ "Non-Safety",
-                DCSREAS == "<Missing>" ~ "<Missing>"
-    )  %>% as.factor(),
-    EOTSTT = sample(
-      c("ONGOING", "COMPLETED", "DISCONTINUED"),
-      size = nrow(ADSL),
-      replace = TRUE
-    ) %>% as.factor()
-  ) %>% var_relabel(
-    EOTSTT = "End Of Treatment Status"
-  )
-     ',
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_summary(
       label = "Disposition Table",
       dataname = "ADSL",
       arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
       summarize_vars = choices_selected(
-        variable_choices(adsl, demog_vars_asl),
+        variable_choices(data[["ADSL"]], data[["demog_vars_asl"]]),
         c("EOSSTT", "DCSREAS", "EOTSTT")
       ),
       useNA = "ifany"
