@@ -202,12 +202,13 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 8)
 
-library(scda)
 library(teal.modules.clinical)
-library(dplyr)
 
 data <- teal_data()
 data <- within(data, {
+  library(dplyr)
+  library(scda)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADEX <- synthetic_cdisc_dataset("latest", "adex")
   adex_labels <- unname(var_labels(ADEX))
@@ -226,6 +227,7 @@ data <- within(data, {
 datanames <- c("ADSL", "ADEX")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADEX <- data[["ADEX"]]
 
 app <- teal::init(
   data = data,
@@ -234,19 +236,19 @@ app <- teal::init(
       label = "Exposure Table",
       dataname = "ADEX",
       arm_var = choices_selected(
-        choices = variable_choices(data[["ADEX"]], c("ARM", "ARMCD")),
+        choices = variable_choices(ADEX, c("ARM", "ARMCD")),
         selected = "ARM"
       ),
       by_vars = choices_selected(
-        choices = variable_choices(data[["ADEX"]], c("PARCAT2", "PARAM")),
+        choices = variable_choices(ADEX, c("PARCAT2", "PARAM")),
         selected = c("PARCAT2", "PARAM")
       ),
       summarize_vars = choices_selected(
-        choices = variable_choices(data[["ADEX"]], c("AVAL", "AVALCAT1")),
+        choices = variable_choices(ADEX, c("AVAL", "AVALCAT1")),
         selected = c("AVAL", "AVALCAT1")
       ),
       paramcd = choices_selected(
-        choices = value_choices(data[["ADEX"]], "PARAMCD", "PARAM"),
+        choices = value_choices(ADEX, "PARAMCD", "PARAM"),
         selected = c("TDOSE", "TNDOSE")
       ),
       denominator = choices_selected(
