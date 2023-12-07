@@ -250,8 +250,6 @@ result
 #| screenshot.opts = list(delay = 20)
 
 library(teal.modules.clinical)
-library(scda)
-library(dplyr)
 
 arm_ref_comp <- list(
   ACTARMCD = list(
@@ -266,6 +264,9 @@ arm_ref_comp <- list(
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(dplyr)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADRS <- synthetic_cdisc_dataset("latest", "adrs")
 
@@ -281,6 +282,7 @@ data <- within(data, {
 datanames <- c("ADSL", "ADRS")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADRS <- data[["ADRS"]]
 
 app <- init(
   data = data,
@@ -289,16 +291,16 @@ app <- init(
       label = "Responders",
       dataname = "ADRS",
       paramcd = choices_selected(
-        choices = value_choices(data[["ADRS"]], "PARAMCD", "PARAM"),
+        choices = value_choices(ADRS, "PARAMCD", "PARAM"),
         selected = "BESRSPI"
       ),
       arm_var = choices_selected(
-        choices = variable_choices(data[["ADRS"]], c("ARM", "ARMCD", "ACTARMCD", "Dum_ARM")),
+        choices = variable_choices(ADRS, c("ARM", "ARMCD", "ACTARMCD", "Dum_ARM")),
         selected = "ARM"
       ),
       arm_ref_comp = arm_ref_comp,
       strata_var = choices_selected(
-        choices = variable_choices(data[["ADRS"]], c("SEX", "BMRKR2")),
+        choices = variable_choices(ADRS, c("SEX", "BMRKR2")),
         select = NULL
       ),
       rsp_table = TRUE

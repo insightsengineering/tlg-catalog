@@ -264,9 +264,7 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 36)
 
-library(scda)
 library(teal.modules.clinical)
-library(tern)
 
 arm_ref_comp <- list(
   ACTARMCD = list(
@@ -281,6 +279,9 @@ arm_ref_comp <- list(
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(tern)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
 
@@ -291,6 +292,8 @@ data <- within(data, {
 datanames <- c("ADSL", "ADTTE")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADSL <- data[["ADSL"]]
+ADTTE <- data[["ADTTE"]]
 
 app <- init(
   data = data,
@@ -299,21 +302,21 @@ app <- init(
       label = "Time To Event Table",
       dataname = "ADTTE",
       arm_var = choices_selected(
-        variable_choices(data[["ADSL"]], c("ARM", "ARMCD", "ACTARMCD")),
+        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),
         "ARM"
       ),
       arm_ref_comp = arm_ref_comp,
       paramcd = choices_selected(
-        value_choices(data[["ADTTE"]], "PARAMCD", "PARAM"),
+        value_choices(ADTTE, "PARAMCD", "PARAM"),
         "CRSD"
       ),
       strata_var = choices_selected(
-        variable_choices(data[["ADSL"]], c("SEX", "BMRKR2")),
+        variable_choices(ADSL, c("SEX", "BMRKR2")),
         "SEX"
       ),
       time_points = choices_selected(c(6, 8), 6),
       event_desc_var = choices_selected(
-        variable_choices(data[["ADTTE"]], "EVNTDESC"),
+        variable_choices(ADTTE, "EVNTDESC"),
         "EVNTDESC",
         fixed = TRUE
       )

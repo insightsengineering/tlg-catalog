@@ -95,11 +95,11 @@ result
 #| screenshot.opts = list(delay = 18)
 
 library(teal.modules.clinical)
-library(scda)
-library(dplyr)
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADQS <- synthetic_cdisc_dataset("latest", "adqs")
 
@@ -110,6 +110,8 @@ data <- within(data, {
 datanames <- c("ADSL", "ADQS")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADSL <- data[["ADSL"]]
+ADQS <- data[["ADQS"]]
 
 app <- init(
   data = data,
@@ -118,20 +120,20 @@ app <- init(
       label = "Efficacy Data and Change from Baseline by Visit",
       dataname = "ADQS",
       arm_var = choices_selected(
-        choices = variable_choices(data[["ADSL"]], c("ARM", "ARMCD")),
+        choices = variable_choices(ADSL, c("ARM", "ARMCD")),
         selected = "ARM"
       ),
       by_vars = choices_selected(
-        choices = variable_choices(data[["ADQS"]], c("PARAM", "AVISIT")),
+        choices = variable_choices(ADQS, c("PARAM", "AVISIT")),
         selected = c("AVISIT")
       ),
       summarize_vars = choices_selected(
-        choices = variable_choices(data[["ADQS"]], c("AVAL", "CHG")),
+        choices = variable_choices(ADQS, c("AVAL", "CHG")),
         selected = c("AVAL", "CHG")
       ),
       useNA = "ifany",
       paramcd = choices_selected(
-        choices = value_choices(data[["ADQS"]], "PARAMCD", "PARAM"),
+        choices = value_choices(ADQS, "PARAMCD", "PARAM"),
         selected = "BFIALL"
       ),
       add_total = FALSE,

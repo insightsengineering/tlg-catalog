@@ -67,7 +67,6 @@ result
 #| screenshot.opts = list(delay = 20)
 
 library(teal.modules.clinical)
-library(scda)
 
 arm_ref_comp <- list(
   ARM = list(
@@ -82,6 +81,9 @@ arm_ref_comp <- list(
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(tern)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADQS <- synthetic_cdisc_dataset("latest", "adqs")
 
@@ -92,6 +94,8 @@ data <- within(data, {
 datanames <- c("ADSL", "ADQS")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADSL <- data[["ADSL"]]
+ADQS <- data[["ADQS"]]
 
 app <- init(
   data = data,
@@ -100,24 +104,24 @@ app <- init(
       label = "ANCOVA table",
       dataname = "ADQS",
       avisit = choices_selected(
-        choices = value_choices(data[["ADQS"]], "AVISIT"),
+        choices = value_choices(ADQS, "AVISIT"),
         selected = "WEEK 1 DAY 8"
       ),
       arm_var = choices_selected(
-        choices = variable_choices(data[["ADSL"]], c("ARM", "ACTARMCD")),
+        choices = variable_choices(ADSL, c("ARM", "ACTARMCD")),
         selected = "ARM"
       ),
       arm_ref_comp = arm_ref_comp,
       aval_var = choices_selected(
-        choices = variable_choices(data[["ADQS"]], c("CHG", "AVAL")),
+        choices = variable_choices(ADQS, c("CHG", "AVAL")),
         selected = "CHG"
       ),
       cov_var = choices_selected(
-        choices = variable_choices(data[["ADQS"]], c("BASE", "STRATA1", "SEX")),
+        choices = variable_choices(ADQS, c("BASE", "STRATA1", "SEX")),
         selected = "STRATA1"
       ),
       paramcd = choices_selected(
-        choices = value_choices(data[["ADQS"]], "PARAMCD", "PARAM"),
+        choices = value_choices(ADQS, "PARAMCD", "PARAM"),
         selected = c("FKSI-FWB", "BFIALL")
       )
     )

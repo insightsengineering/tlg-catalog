@@ -140,7 +140,6 @@ See the *Multivariable Cox Regression with Interaction Term* tab.
 #| screenshot.opts = list(delay = 30)
 
 library(teal.modules.clinical)
-library(scda)
 
 arm_ref_comp <- list(
   ACTARMCD = list(
@@ -155,12 +154,14 @@ arm_ref_comp <- list(
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
 })
 datanames <- c("ADSL", "ADTTE")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADTTE <- data[["ADTTE"]]
 
 app <- init(
   data = data,
@@ -171,7 +172,7 @@ app <- init(
       arm_var = choices_selected(c("ARM", "ARMCD", "ACTARMCD"), "ARM"),
       arm_ref_comp = arm_ref_comp,
       paramcd = choices_selected(
-        value_choices(data[["ADTTE"]], "PARAMCD", "PARAM"), "OS"
+        value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"
       ),
       strata_var = choices_selected(
         c("SEX", "STRATA1", "STRATA2"), NULL
