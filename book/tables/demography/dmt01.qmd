@@ -201,22 +201,24 @@ result
 #| screenshot.opts = list(delay = 20)
 
 library(teal.modules.clinical)
-library(scda)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
 
-# Include `EOSDY` and `DCSREAS` variables below because they contain missing data.
-stopifnot(
-  any(is.na(adsl$EOSDY)),
-  any(is.na(adsl$DCSREAS))
-)
+  # Include `EOSDY` and `DCSREAS` variables below because they contain missing data.
+  stopifnot(
+    any(is.na(ADSL$EOSDY)),
+    any(is.na(ADSL$DCSREAS))
+  )
+})
+datanames <- "ADSL"
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl),
-    code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")',
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_summary(
       label = "Demographic Table",
