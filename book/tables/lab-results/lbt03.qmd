@@ -116,91 +116,69 @@ Here, we pre-process and manually define the variable "Baseline or Absolute Chan
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 8)
 
-library(scda)
 library(teal.modules.clinical)
-library(dplyr)
 
-adsl <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))
-adlb <- df_explicit_na(synthetic_cdisc_dataset("latest", "adlb")) %>%
-  filter(
-    !(ARM == "B: Placebo" & AVISIT == "WEEK 1 DAY 8"),
-    AVISIT != "SCREENING"
-  ) %>%
-  dplyr::mutate(
-    AVISIT = droplevels(AVISIT),
-    ABLFLL = ABLFL == "Y",
-    AVISIT_header = recode(AVISIT,
-      "BASELINE" = "BASELINE",
-      "WEEK 1 DAY 8" = "WEEK 1 DAY 8 value minus baseline",
-      "WEEK 2 DAY 15" = "WEEK 2 DAY 15 value minus baseline",
-      "WEEK 3 DAY 22" = "WEEK 3 DAY 22 value minus baseline",
-      "WEEK 4 DAY 29" = "WEEK 4 DAY 29 value minus baseline",
-      "WEEK 5 DAY 36" = "WEEK 5 DAY 36 value minus baseline"
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
+
+  ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))
+  ADLB <- df_explicit_na(synthetic_cdisc_dataset("latest", "adlb")) %>%
+    filter(
+      !(ARM == "B: Placebo" & AVISIT == "WEEK 1 DAY 8"),
+      AVISIT != "SCREENING"
+    ) %>%
+    mutate(
+      AVISIT = droplevels(AVISIT),
+      ABLFLL = ABLFL == "Y",
+      AVISIT_header = recode(AVISIT,
+        "BASELINE" = "BASELINE",
+        "WEEK 1 DAY 8" = "WEEK 1 DAY 8 value minus baseline",
+        "WEEK 2 DAY 15" = "WEEK 2 DAY 15 value minus baseline",
+        "WEEK 3 DAY 22" = "WEEK 3 DAY 22 value minus baseline",
+        "WEEK 4 DAY 29" = "WEEK 4 DAY 29 value minus baseline",
+        "WEEK 5 DAY 36" = "WEEK 5 DAY 36 value minus baseline"
+      )
+    ) %>%
+    group_by(USUBJID, PARAM) %>%
+    mutate(
+      AVAL_CHG = AVAL - (!ABLFLL) * sum(AVAL * ABLFLL)
+    ) %>%
+    ungroup() %>%
+    var_relabel(
+      AVAL_CHG = "Baseline or Absolute Change from Baseline",
+      ABLFLL = "Baseline Flag (TRUE/FALSE)",
+      AVISIT_header = "Analysis Visit"
     )
-  ) %>%
-  dplyr::group_by(USUBJID, PARAM) %>%
-  dplyr::mutate(
-    AVAL_CHG = AVAL - (!ABLFLL) * sum(AVAL * ABLFLL)
-  ) %>%
-  dplyr::ungroup() %>%
-  var_relabel(
-    AVAL_CHG = "Baseline or Absolute Change from Baseline",
-    ABLFLL = "Baseline Flag (TRUE/FALSE)",
-    AVISIT_header = "Analysis Visit"
-  )
+})
+datanames <- c("ADSL", "ADLB")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+ADSL <- data[["ADSL"]]
+ADLB <- data[["ADLB"]]
 
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))'),
-    cdisc_dataset("ADLB", adlb, code = '
-                  ADLB <- df_explicit_na(synthetic_cdisc_dataset("latest", "adlb")) %>%
-                  filter(
-                    !(ARM == "B: Placebo" & AVISIT == "WEEK 1 DAY 8"),
-                    AVISIT != "SCREENING"
-                  ) %>%
-                  dplyr::mutate(
-                    AVISIT = droplevels(AVISIT),
-                    ABLFLL = ABLFL == "Y",
-                    AVISIT_header = recode(AVISIT,
-                           "BASELINE" = "BASELINE",
-                           "WEEK 1 DAY 8" = "WEEK 1 DAY 8 value minus baseline",
-                           "WEEK 2 DAY 15" = "WEEK 2 DAY 15 value minus baseline",
-                           "WEEK 3 DAY 22" = "WEEK 3 DAY 22 value minus baseline",
-                           "WEEK 4 DAY 29" = "WEEK 4 DAY 29 value minus baseline",
-                           "WEEK 5 DAY 36" = "WEEK 5 DAY 36 value minus baseline"
-                           )
-                  ) %>%
-                  dplyr::group_by(USUBJID, PARAM) %>%
-                  dplyr::mutate(
-                    AVAL_CHG = AVAL - (!ABLFLL) * sum(AVAL * ABLFLL)
-                  ) %>%
-                  dplyr::ungroup()  %>%
-                  var_relabel(
-                    AVAL_CHG = "Baseline or Absolute Change from Baseline",
-                    ABLFLL = "Baseline Flag (TRUE/FALSE)",
-                    AVISIT_header = "Analysis Visit"
-                  )'),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_summary_by(
       label = "Laboratory Test Results Change from Baseline by Visit",
       dataname = "ADLB",
       arm_var = choices_selected(
-        choices = variable_choices(adsl, c("ARM", "ARMCD")),
+        choices = variable_choices(ADSL, c("ARM", "ARMCD")),
         selected = "ARM"
       ),
       by_vars = choices_selected(
-        choices = variable_choices(adlb, c("PARAM", "AVISIT_header")), # note: order matters here. If `PARAM` is first, the split will be first by `PARAM`and then by `AVISIT`
+        choices = variable_choices(ADLB, c("PARAM", "AVISIT_header")), # note: order matters here. If `PARAM` is first, the split will be first by `PARAM`and then by `AVISIT`
         selected = c("PARAM", "AVISIT_header")
       ),
       summarize_vars = choices_selected(
-        choices = variable_choices(adlb, c("AVAL", "CHG", "AVAL_CHG")),
+        choices = variable_choices(ADLB, c("AVAL", "CHG", "AVAL_CHG")),
         selected = c("AVAL_CHG")
       ),
       useNA = "ifany",
       paramcd = choices_selected(
-        choices = value_choices(adlb, "PARAMCD", "PARAM"),
+        choices = value_choices(ADLB, "PARAMCD", "PARAM"),
         selected = "CRP"
       )
     )
