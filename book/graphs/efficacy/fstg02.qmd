@@ -174,29 +174,31 @@ grid::grid.draw(p)
 #| screenshot.opts = list(delay = 24)
 
 library(teal.modules.clinical)
-library(scda)
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(dplyr)
+  library(forcats)
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADSL <- ADSL %>%
-    dplyr::filter(ARM %in% c("B: Placebo", "A: Drug X")) %>%
-    dplyr::mutate(ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo"))) %>%
-    dplyr::mutate(ARMCD = droplevels(forcats::fct_relevel(ARMCD, "ARM B")))
+    filter(ARM %in% c("B: Placebo", "A: Drug X")) %>%
+    mutate(ARM = droplevels(fct_relevel(ARM, "B: Placebo"))) %>%
+    mutate(ARMCD = droplevels(fct_relevel(ARMCD, "ARM B")))
   ADSL$RACE <- droplevels(ADSL$RACE)
 
   ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
   adtte_labels <- var_labels(ADTTE)
 
   ADTTE <- ADTTE %>%
-    dplyr::filter(
+    filter(
       PARAMCD == "OS",
       ARM %in% c("B: Placebo", "A: Drug X"),
       SEX %in% c("M", "F")
     ) %>%
-    dplyr::mutate(
+    mutate(
       # Reorder levels of ARM to display reference arm before treatment arm.
-      ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo")),
+      ARM = droplevels(fct_relevel(ARM, "B: Placebo")),
       SEX = droplevels(SEX),
       is_event = CNSR == 0,
       # Convert time to MONTH
@@ -215,6 +217,10 @@ datanames <- c("ADSL", "ADTTE")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
 
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADTTE <- data[["ADTTE"]]
+
 app <- init(
   data = data,
   modules = modules(
@@ -222,8 +228,8 @@ app <- init(
       label = "Forest Survival",
       dataname = "ADTTE",
       arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
-      subgroup_var = choices_selected(names(data[["ADSL"]]), c("SEX", "BMRKR2")),
-      paramcd = choices_selected(value_choices(data[["ADTTE"]], "PARAMCD", "PARAM"), "OS"),
+      subgroup_var = choices_selected(names(ADSL), c("SEX", "BMRKR2")),
+      paramcd = choices_selected(value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"),
       strata_var = choices_selected(c("STRATA1", "STRATA2"), "STRATA2"),
       plot_height = c(600, 200, 2000),
       plot_width = c(1500, 200, 5000)
