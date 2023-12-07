@@ -112,86 +112,64 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 8)
 
-library(dplyr)
-library(scda)
 library(teal.modules.clinical)
-library(tern)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adae <- synthetic_cdisc_dataset("latest", "adae")
+data <- teal_data()
+data <- within(data, {
+  library(dplyr)
+  library(scda)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADAE <- synthetic_cdisc_dataset("latest", "adae")
 
-# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-adsl <- df_explicit_na(adsl)
-adae <- df_explicit_na(adae)
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADAE <- df_explicit_na(ADAE)
 
-adsl <- adsl %>%
-  mutate(
-    DTHFL = case_when(
-      !is.na(DTHDT) ~ "Y",
-      TRUE ~ ""
+  ADSL <- ADSL %>%
+    mutate(
+      DTHFL = case_when(
+        !is.na(DTHDT) ~ "Y",
+        TRUE ~ ""
+      )
+    ) %>%
+    var_relabel(
+      DTHFL = "Subject Death Flag"
     )
-  ) %>%
-  var_relabel(
-    DTHFL = "Subject Death Flag"
-  )
 
-adae <- adae %>%
-  mutate(
-    AESDTH = as.character(AESDTH), # characterizing AESDTH for next step
-    AESDTH = case_when(
-      ARM == "A: Drug X" ~ NA_character_, # For demonstration purpose only,
-      TRUE ~ AESDTH
-    ), # make "A: Drug X" as the arm without AE leading to death
-    AESDTH = as.factor(AESDTH),
-    SOC_PT = factor(paste(AEBODSYS, "/", AEDECOD))
-  ) %>%
-  filter(AESDTH == "Y") %>%
-  mutate(ARM = droplevels(ARM)) %>%
-  var_relabel(SOC_PT = "MedDRA SOC and Preferred Term")
+  ADAE <- ADAE %>%
+    mutate(
+      AESDTH = as.character(AESDTH), # characterizing AESDTH for next step
+      AESDTH = case_when(
+        ARM == "A: Drug X" ~ NA_character_, # For demonstration purpose only,
+        TRUE ~ AESDTH
+      ), # make "A: Drug X" as the arm without AE leading to death
+      AESDTH = as.factor(AESDTH),
+      SOC_PT = factor(paste(AEBODSYS, "/", AEDECOD))
+    ) %>%
+    filter(AESDTH == "Y") %>%
+    mutate(ARM = droplevels(ARM)) %>%
+    var_relabel(SOC_PT = "MedDRA SOC and Preferred Term")
+})
+datanames <- c("ADSL", "ADAE")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
-app <- teal::init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = '
-                  ADSL <- synthetic_cdisc_dataset("latest", "adsl") %>%
-                    df_explicit_na() %>%
-                    mutate(
-                      DTHFL = case_when(
-                        !is.na(DTHDT) ~ "Y",
-                        TRUE ~ ""
-                      )
-                    ) %>%
-                    var_relabel(
-                      DTHFL = "Subject Death Flag"
-                    )
-                  '),
-    cdisc_dataset("ADAE", adae, code = '
-                  ADAE <- synthetic_cdisc_dataset("latest", "adae") %>%
-                    df_explicit_na() %>%
-                    mutate(
-                      AESDTH = as.character(AESDTH),
-                      AESDTH = case_when(
-                        ARM == "A: Drug X" ~ NA_character_,
-                        TRUE ~ AESDTH),
-                      AESDTH = as.factor(AESDTH),
-                      SOC_PT = factor(paste(AEBODSYS, "/", AEDECOD))
-                    ) %>%
-                    filter(AESDTH == "Y") %>%
-                    mutate(ARM = droplevels(ARM)) %>%
-                    var_relabel(SOC_PT = "MedDRA SOC and Preferred Term")
-                  '),
-    check = TRUE
-  ),
+## Reusable Configuration For Modules
+ADAE <- data[["ADAE"]]
+
+app <- init(
+  data = data,
   modules = modules(
     tm_t_events(
       label = "Adverse Event Table",
       dataname = "ADAE",
       arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
       llt = choices_selected(
-        choices = variable_choices(adae, c("AETERM", "AEDECOD", "SOC_PT")),
+        choices = variable_choices(ADAE, c("AETERM", "AEDECOD", "SOC_PT")),
         selected = c("SOC_PT")
       ),
       hlt = choices_selected(
-        choices = variable_choices(adae, c("AETERM", "AEDECOD", "SOC_PT")),
+        choices = variable_choices(ADAE, c("AETERM", "AEDECOD", "SOC_PT")),
         selected = NULL
       ),
       add_total = FALSE,

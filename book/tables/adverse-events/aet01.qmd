@@ -341,64 +341,49 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 12)
 library(teal.modules.clinical)
-library(scda)
-library(dplyr)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adae <- synthetic_cdisc_dataset("latest", "adae")
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADAE <- synthetic_cdisc_dataset("latest", "adae")
 
-add_event_flags <- function(dat) {
-  dat %>%
-    dplyr::mutate(
-      TMPFL_SER = AESER == "Y",
-      TMPFL_REL = AEREL == "Y",
-      TMPFL_GR5 = AETOXGR == "5",
-      TMP_SMQ01 = !is.na(SMQ01NAM),
-      TMP_SMQ02 = !is.na(SMQ02NAM),
-      TMP_CQ01 = !is.na(CQ01NAM)
-    ) %>%
-    var_relabel(
-      TMPFL_SER = "Serious AE",
-      TMPFL_REL = "Related AE",
-      TMPFL_GR5 = "Grade 5 AE",
-      TMP_SMQ01 = aesi_label(dat[["SMQ01NAM"]], dat[["SMQ01SC"]]),
-      TMP_SMQ02 = aesi_label(dat[["SMQ02NAM"]], dat[["SMQ02SC"]]),
-      TMP_CQ01 = aesi_label(dat[["CQ01NAM"]])
-    )
-}
+  add_event_flags <- function(dat) {
+    dat %>%
+      mutate(
+        TMPFL_SER = AESER == "Y",
+        TMPFL_REL = AEREL == "Y",
+        TMPFL_GR5 = AETOXGR == "5",
+        TMP_SMQ01 = !is.na(SMQ01NAM),
+        TMP_SMQ02 = !is.na(SMQ02NAM),
+        TMP_CQ01 = !is.na(CQ01NAM)
+      ) %>%
+      var_relabel(
+        TMPFL_SER = "Serious AE",
+        TMPFL_REL = "Related AE",
+        TMPFL_GR5 = "Grade 5 AE",
+        TMP_SMQ01 = aesi_label(dat[["SMQ01NAM"]], dat[["SMQ01SC"]]),
+        TMP_SMQ02 = aesi_label(dat[["SMQ02NAM"]], dat[["SMQ02SC"]]),
+        TMP_CQ01 = aesi_label(dat[["CQ01NAM"]])
+      )
+  }
 
-# Generating user-defined event flags.
-adae <- adae %>% add_event_flags()
+  # Generating user-defined event flags.
+  ADAE <- ADAE %>% add_event_flags()
+})
+datanames <- c("ADSL", "ADAE")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
-ae_anl_vars <- names(adae)[startsWith(names(adae), "TMPFL_")]
-aesi_vars <- names(adae)[startsWith(names(adae), "TMP_")]
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADAE <- data[["ADAE"]]
+ae_anl_vars <- names(ADAE)[startsWith(names(ADAE), "TMPFL_")]
+aesi_vars <- names(ADAE)[startsWith(names(ADAE), "TMP_")]
 
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
-    cdisc_dataset("ADAE", adae, code = 'ADAE <- synthetic_cdisc_dataset("latest", "adae")
-      add_event_flags <- function(dat) {
-        dat %>%
-          dplyr::mutate(
-            TMPFL_SER = AESER == "Y",
-            TMPFL_REL = AEREL == "Y",
-            TMPFL_GR5 = AETOXGR == "5",
-            TMP_SMQ01 = !is.na(SMQ01NAM),
-            TMP_SMQ02 = !is.na(SMQ02NAM),
-            TMP_CQ01 = !is.na(CQ01NAM)
-          ) %>%
-          var_relabel(
-            TMPFL_SER = "Serious AE",
-            TMPFL_REL = "Related AE",
-            TMPFL_GR5 = "Grade 5 AE",
-            TMP_SMQ01 = aesi_label(dat[["SMQ01NAM"]], dat[["SMQ01SC"]]),
-            TMP_SMQ02 = aesi_label(dat[["SMQ02NAM"]], dat[["SMQ02SC"]]),
-            TMP_CQ01 = aesi_label(dat[["CQ01NAM"]])
-          )
-      }
-      ADAE <- ADAE %>% add_event_flags()'),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_events_summary(
       label = "Adverse Events Summary",
