@@ -419,18 +419,21 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 30)
 
-library(scda)
-library(dplyr)
 library(teal.modules.clinical)
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(dplyr)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADLB <- synthetic_cdisc_dataset("latest", "adlb")
 })
 datanames <- c("ADSL", "ADLB")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADSL <- data[["ADSL"]]
+ADLB <- data[["ADLB"]]
 
 app <- init(
   data = data,
@@ -439,28 +442,28 @@ app <- init(
       label = "Grade Laboratory Abnormality Table",
       dataname = "ADLB",
       arm_var = choices_selected(
-        choices = variable_choices(data[["ADSL"]], subset = c("ARM", "ARMCD")),
+        choices = variable_choices(ADSL, subset = c("ARM", "ARMCD")),
         selected = "ARM"
       ),
       paramcd = choices_selected(
-        choices = value_choices(data[["ADLB"]], "PARAMCD", "PARAM"),
+        choices = value_choices(ADLB, "PARAMCD", "PARAM"),
         selected = "ALT"
       ),
       worst_flag_var = choices_selected(
-        choices = variable_choices(data[["ADLB"]], subset = c("WGRLOVFL", "WGRLOFL", "WGRHIVFL", "WGRHIFL")),
+        choices = variable_choices(ADLB, subset = c("WGRLOVFL", "WGRLOFL", "WGRHIVFL", "WGRHIFL")),
         selected = c("WGRLOVFL")
       ),
       worst_flag_indicator = choices_selected(
-        value_choices(data[["ADLB"]], "WGRLOVFL"),
+        value_choices(ADLB, "WGRLOVFL"),
         selected = "Y", fixed = TRUE
       ),
       anl_toxgrade_var = choices_selected(
-        choices = variable_choices(data[["ADLB"]], subset = c("ATOXGR")),
+        choices = variable_choices(ADLB, subset = c("ATOXGR")),
         selected = c("ATOXGR"),
         fixed = TRUE
       ),
       base_toxgrade_var = choices_selected(
-        choices = variable_choices(data[["ADLB"]], subset = c("BTOXGR")),
+        choices = variable_choices(ADLB, subset = c("BTOXGR")),
         selected = c("BTOXGR"),
         fixed = TRUE
       ),

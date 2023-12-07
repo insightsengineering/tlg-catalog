@@ -138,7 +138,6 @@ result
 #| screenshot.opts = list(delay = 20)
 
 library(teal.modules.clinical)
-library(scda)
 
 arm_ref_comp <- list(
   ACTARMCD = list(
@@ -153,6 +152,9 @@ arm_ref_comp <- list(
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(dplyr)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADAETTE <- synthetic_cdisc_dataset("latest", "adaette")
 
@@ -160,12 +162,14 @@ data <- within(data, {
   ADSL <- df_explicit_na(ADSL)
   ADAETTE <- df_explicit_na(ADAETTE)
 
-  ADSL <- dplyr::filter(ADSL, .data$SAFFL == "Y")
-  ADAETTE <- dplyr::filter(ADAETTE, .data$SAFFL == "Y")
+  ADSL <- filter(ADSL, .data$SAFFL == "Y")
+  ADAETTE <- filter(ADAETTE, .data$SAFFL == "Y")
 })
 datanames <- c("ADSL", "ADAETTE")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADSL <- data[["ADSL"]]
+ADAETTE <- data[["ADAETTE"]]
 
 app <- init(
   data = data,
@@ -174,16 +178,16 @@ app <- init(
       label = "Time To LLT Event Table",
       dataname = "ADAETTE",
       arm_var = choices_selected(
-        variable_choices(data[["ADSL"]], c("ARM", "ARMCD", "ACTARMCD")),
+        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),
         "ARM"
       ),
       arm_ref_comp = arm_ref_comp,
       paramcd = choices_selected(
-        value_choices(data[["ADAETTE"]], "PARAMCD", "PARAM"),
+        value_choices(ADAETTE, "PARAMCD", "PARAM"),
         "HYSTTEBL"
       ),
       strata_var = choices_selected(
-        variable_choices(data[["ADSL"]], c("RACE", "SEX")),
+        variable_choices(ADSL, c("RACE", "SEX")),
         c("RACE", "SEX")
       ),
       time_points = choices_selected(0, NULL),

@@ -62,11 +62,12 @@ result
 #| screenshot.opts = list(delay = 20)
 
 library(teal.modules.clinical)
-library(scda)
-library(dplyr)
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(dplyr)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADLB <- synthetic_cdisc_dataset("latest", "adlb") %>%
     var_relabel(PARAM = "Laboratory Test", ANRIND = "Direction of Abnormality")
@@ -74,6 +75,8 @@ data <- within(data, {
 datanames <- c("ADSL", "ADLB")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADSL <- data[["ADSL"]]
+ADLB <- data[["ADLB"]]
 
 app <- init(
   data = data,
@@ -82,16 +85,16 @@ app <- init(
       label = "Abnormality Table",
       dataname = "ADLB",
       arm_var = choices_selected(
-        choices = variable_choices(data[["ADSL"]], subset = c("ARM", "ARMCD")),
+        choices = variable_choices(ADSL, subset = c("ARM", "ARMCD")),
         selected = "ARM"
       ),
       by_vars = choices_selected(
-        choices = variable_choices(data[["ADLB"]], subset = c("LBCAT", "PARAM", "AVISIT")),
+        choices = variable_choices(ADLB, subset = c("LBCAT", "PARAM", "AVISIT")),
         selected = c("LBCAT", "PARAM"),
         keep_order = TRUE
       ),
       grade = choices_selected(
-        choices = variable_choices(data[["ADLB"]], subset = "ANRIND"),
+        choices = variable_choices(ADLB, subset = "ANRIND"),
         selected = "ANRIND",
         fixed = TRUE
       ),

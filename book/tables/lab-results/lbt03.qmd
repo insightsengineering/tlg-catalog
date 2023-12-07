@@ -116,19 +116,20 @@ Here, we pre-process and manually define the variable "Baseline or Absolute Chan
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 8)
 
-library(scda)
 library(teal.modules.clinical)
-library(dplyr)
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(dplyr)
+
   ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))
   ADLB <- df_explicit_na(synthetic_cdisc_dataset("latest", "adlb")) %>%
     filter(
       !(ARM == "B: Placebo" & AVISIT == "WEEK 1 DAY 8"),
       AVISIT != "SCREENING"
     ) %>%
-    dplyr::mutate(
+    mutate(
       AVISIT = droplevels(AVISIT),
       ABLFLL = ABLFL == "Y",
       AVISIT_header = recode(AVISIT,
@@ -140,11 +141,11 @@ data <- within(data, {
         "WEEK 5 DAY 36" = "WEEK 5 DAY 36 value minus baseline"
       )
     ) %>%
-    dplyr::group_by(USUBJID, PARAM) %>%
-    dplyr::mutate(
+    group_by(USUBJID, PARAM) %>%
+    mutate(
       AVAL_CHG = AVAL - (!ABLFLL) * sum(AVAL * ABLFLL)
     ) %>%
-    dplyr::ungroup() %>%
+    ungroup() %>%
     var_relabel(
       AVAL_CHG = "Baseline or Absolute Change from Baseline",
       ABLFLL = "Baseline Flag (TRUE/FALSE)",
@@ -154,6 +155,8 @@ data <- within(data, {
 datanames <- c("ADSL", "ADLB")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADSL <- data[["ADSL"]]
+ADLB <- data[["ADLB"]]
 
 app <- init(
   data = data,
@@ -162,20 +165,20 @@ app <- init(
       label = "Laboratory Test Results Change from Baseline by Visit",
       dataname = "ADLB",
       arm_var = choices_selected(
-        choices = variable_choices(data[["ADSL"]], c("ARM", "ARMCD")),
+        choices = variable_choices(ADSL, c("ARM", "ARMCD")),
         selected = "ARM"
       ),
       by_vars = choices_selected(
-        choices = variable_choices(data[["ADLB"]], c("PARAM", "AVISIT_header")), # note: order matters here. If `PARAM` is first, the split will be first by `PARAM`and then by `AVISIT`
+        choices = variable_choices(ADLB, c("PARAM", "AVISIT_header")), # note: order matters here. If `PARAM` is first, the split will be first by `PARAM`and then by `AVISIT`
         selected = c("PARAM", "AVISIT_header")
       ),
       summarize_vars = choices_selected(
-        choices = variable_choices(data[["ADLB"]], c("AVAL", "CHG", "AVAL_CHG")),
+        choices = variable_choices(ADLB, c("AVAL", "CHG", "AVAL_CHG")),
         selected = c("AVAL_CHG")
       ),
       useNA = "ifany",
       paramcd = choices_selected(
-        choices = value_choices(data[["ADLB"]], "PARAMCD", "PARAM"),
+        choices = value_choices(ADLB, "PARAMCD", "PARAM"),
         selected = "CRP"
       )
     )

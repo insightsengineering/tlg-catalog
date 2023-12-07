@@ -138,7 +138,6 @@ result
 #| screenshot.opts = list(delay = 20)
 
 library(teal.modules.clinical)
-library(scda)
 
 arm_ref_comp <- list(
   ACTARMCD = list(
@@ -153,6 +152,8 @@ arm_ref_comp <- list(
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(dplyr)
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADAETTE <- synthetic_cdisc_dataset("latest", "adaette")
 
@@ -160,12 +161,14 @@ data <- within(data, {
   ADSL <- df_explicit_na(ADSL)
   ADAETTE <- df_explicit_na(ADAETTE)
 
-  ADSL <- dplyr::filter(ADSL, .data$SAFFL == "Y")
-  ADAETTE <- dplyr::filter(ADAETTE, .data$SAFFL == "Y")
+  ADSL <- filter(ADSL, .data$SAFFL == "Y")
+  ADAETTE <- filter(ADAETTE, .data$SAFFL == "Y")
 })
 datanames <- c("ADSL", "ADAETTE")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADSL <- data[["ADSL"]]
+ADAETTE <- data[["ADAETTE"]]
 
 app <- init(
   data = data,
