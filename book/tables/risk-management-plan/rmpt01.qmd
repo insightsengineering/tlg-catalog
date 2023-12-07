@@ -85,12 +85,13 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 10)
 
-library(scda)
-library(dplyr)
 library(teal.modules.clinical)
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(dplyr)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADEX <- synthetic_cdisc_dataset("latest", "adex")
 
@@ -121,6 +122,7 @@ data <- within(data, {
 datanames <- c("ADSL", "ADEX")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADEX <- data[["ADEX"]]
 
 app <- init(
   data = data,
@@ -129,19 +131,19 @@ app <- init(
       label = "Duration of Exposure Table",
       dataname = "ADEX",
       paramcd = choices_selected(
-        choices = value_choices(data[["ADEX"]], "PARAMCD", "PARAM"),
+        choices = value_choices(ADEX, "PARAMCD", "PARAM"),
         selected = "TDURD"
       ),
       col_by_var = choices_selected(
-        choices = variable_choices(data[["ADEX"]], subset = c("SEX", "ARM")),
+        choices = variable_choices(ADEX, subset = c("SEX", "ARM")),
         selected = NULL
       ),
       row_by_var = choices_selected(
-        choices = variable_choices(data[["ADEX"]], subset = c("aval_months_cat", "RACE", "STRATA1", "SEX")),
+        choices = variable_choices(ADEX, subset = c("aval_months_cat", "RACE", "STRATA1", "SEX")),
         selected = "aval_months_cat"
       ),
       parcat = choices_selected(
-        choices = value_choices(data[["ADEX"]], "PARCAT2"),
+        choices = value_choices(ADEX, "PARCAT2"),
         selected = "Drug A"
       ),
       add_total = FALSE
