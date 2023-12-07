@@ -129,13 +129,13 @@ Variables passed into `analyze_vars` are additionally used when `row_groups` is 
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 8)
 
-library(dplyr)
-library(forcats)
-library(scda)
 library(teal.modules.clinical)
 
 data <- teal_data()
 data <- within(data, {
+  library(dplyr)
+  library(forcats)
+  library(scda)
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
 
   # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
@@ -163,6 +163,9 @@ datanames <- "ADSL"
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
 
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+
 app <- init(
   data = data,
   modules = modules(
@@ -170,15 +173,15 @@ app <- init(
       label = "Enrollment Table",
       dataname = "ADSL",
       arm_var = choices_selected(
-        choices = variable_choices(data[["ADSL"]], c("ARM", "ARMCD")),
+        choices = variable_choices(ADSL, c("ARM", "ARMCD")),
         selected = "ARM"
       ),
       by_vars = choices_selected(
-        choices = variable_choices(data[["ADSL"]], c("REGION1", "COUNTRY", "SITEID", "INVID", "INVNAM", "INVID_INVNAM")),
+        choices = variable_choices(ADSL, c("REGION1", "COUNTRY", "SITEID", "INVID", "INVNAM", "INVID_INVNAM")),
         selected = c("REGION1")
       ),
       summarize_vars = choices_selected(
-        choices = variable_choices(data[["ADSL"]], c("REGION1", "COUNTRY", "SITEID", "INVID", "INVNAM", "INVID_INVNAM")),
+        choices = variable_choices(ADSL, c("REGION1", "COUNTRY", "SITEID", "INVID", "INVNAM", "INVID_INVNAM")),
         selected = c("SITEID")
       ),
       denominator = choices_selected(
