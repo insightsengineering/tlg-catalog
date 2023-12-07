@@ -148,12 +148,13 @@ plot
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 8)
 
-library(scda)
-library(dplyr)
 library(teal.modules.clinical)
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(dplyr)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADLB <- synthetic_cdisc_dataset("latest", "adlb") %>%
     mutate(AVISIT = forcats::fct_reorder(AVISIT, AVISITN, min))
@@ -161,6 +162,8 @@ data <- within(data, {
 datanames <- c("ADSL", "ADLB")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADSL <- data[["ADSL"]]
+ADLB <- data[["ADLB"]]
 
 app <- init(
   data = data,
@@ -169,15 +172,15 @@ app <- init(
       label = "LINE PLOT",
       dataname = "ADLB",
       strata = choices_selected(
-        variable_choices(data[["ADSL"]], c("ARM", "ARMCD", "ACTARMCD")),
+        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),
         "ARM"
       ),
       y = choices_selected(
-        variable_choices(data[["ADLB"]], c("AVAL", "BASE", "CHG", "PCHG")),
+        variable_choices(ADLB, c("AVAL", "BASE", "CHG", "PCHG")),
         "AVAL"
       ),
       param = choices_selected(
-        value_choices(data[["ADLB"]], "PARAMCD", "PARAM"),
+        value_choices(ADLB, "PARAMCD", "PARAM"),
         "ALT"
       )
     )
