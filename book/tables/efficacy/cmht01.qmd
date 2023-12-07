@@ -141,25 +141,26 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 18)
 
-library(dplyr)
-library(scda)
 library(teal.modules.clinical)
-
-ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-ADRS <- synthetic_cdisc_dataset("latest", "adrs")
 
 arm_ref_comp <- list(
   ARMCD = list(ref = "ARM B", comp = c("ARM A", "ARM C")),
   ARM = list(ref = "B: Placebo", comp = c("A: Drug X", "C: Combination"))
 )
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADRS <- synthetic_cdisc_dataset("latest", "adrs")
+})
+datanames <- c("ADSL", "ADRS")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+ADRS <- data[["ADRS"]]
+
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", ADSL),
-    cdisc_dataset("ADRS", ADRS),
-    code =
-      'ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-    ADRS <- synthetic_cdisc_dataset("latest", "adrs")'
-  ),
+  data = data,
   modules = modules(
     tm_t_binary_outcome(
       label = "Responders",
@@ -185,5 +186,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::

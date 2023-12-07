@@ -169,14 +169,6 @@ result
 #| screenshot.opts = list(delay = 20)
 
 library(teal.modules.clinical)
-library(scda)
-
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adtte <- synthetic_cdisc_dataset("latest", "adtte")
-
-# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-adsl <- df_explicit_na(adsl)
-adtte <- df_explicit_na(adtte)
 
 arm_ref_comp <- list(
   ACTARMCD = list(
@@ -189,12 +181,24 @@ arm_ref_comp <- list(
   )
 )
 
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
+
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADTTE <- df_explicit_na(ADTTE)
+})
+datanames <- c("ADSL", "ADTTE")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+ADTTE <- data[["ADTTE"]]
+
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = 'adsl <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))'),
-    cdisc_dataset("ADTTE", adtte, code = 'adtte <- df_explicit_na(synthetic_cdisc_dataset("latest", "adtte"))'),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_coxreg(
       label = "Cox Reg.",
@@ -202,7 +206,7 @@ app <- init(
       arm_var = choices_selected(c("ARM", "ARMCD", "ACTARMCD"), "ARM"),
       arm_ref_comp = arm_ref_comp,
       paramcd = choices_selected(
-        value_choices(adtte, "PARAMCD", "PARAM"), "OS"
+        value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"
       ),
       strata_var = choices_selected(
         c("SEX", "STRATA1", "STRATA2"), NULL
