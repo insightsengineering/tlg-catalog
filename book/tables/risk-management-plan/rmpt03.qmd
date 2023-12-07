@@ -118,110 +118,78 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 10)
 
-library(scda)
-library(dplyr)
 library(teal.modules.clinical)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adex <- synthetic_cdisc_dataset("latest", "adex")
-set.seed(1, kind = "Mersenne-Twister")
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
 
-labels <- var_labels(adex)
-adex <- adex %>%
-  distinct(USUBJID, .keep_all = TRUE) %>%
-  mutate(
-    PARAMCD = "TDURD",
-    PARAM = "Overall duration (days)",
-    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
-    AVALU = "Days",
-    SEX = factor(case_when(
-      SEX == "F" ~ "Female",
-      SEX == "M" ~ "Male"
-    ))
-  ) %>%
-  bind_rows(adex)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADEX <- synthetic_cdisc_dataset("latest", "adex")
 
-var_labels(adex) <- labels
+  labels <- var_labels(ADEX)
+  set.seed(1, kind = "Mersenne-Twister")
 
-adex <- adex %>%
-  mutate(
-    AGEGR1 = factor(ifelse(AGE < 65, "<65", ">=65")) %>% with_label("Age group (years)"),
-    AGEGR2 = factor(case_when(
-      AGE < 18 ~ "< 18",
-      AGE >= 18 & AGE <= 40 ~ "18 - 40",
-      AGE > 40 & AGE <= 64 ~ "41 - 64",
-      TRUE ~ ">=65"
-    ), levels = c("< 18", "18 - 40", "41 - 64", ">=65")) %>% with_label("Age group (years)")
-  )
-
-adsl <- adsl %>%
-  mutate(SEX = factor(case_when(
-    SEX == "F" ~ "Female",
-    SEX == "M" ~ "Male"
-  )) %>% with_label("Sex"))
-
-app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = '
-    ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-    ADSL <- ADSL %>% filter(ADSL$SAFFL == "Y") %>%
-      mutate(SEX = factor(case_when(
+  labels <- var_labels(ADEX)
+  ADEX <- ADEX %>%
+    distinct(USUBJID, .keep_all = TRUE) %>%
+    mutate(
+      PARAMCD = "TDURD",
+      PARAM = "Overall duration (days)",
+      AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
+      AVALU = "Days",
+      SEX = factor(case_when(
         SEX == "F" ~ "Female",
         SEX == "M" ~ "Male"
-      )) %>% with_label("Sex"))
-    '),
-    cdisc_dataset("ADEX", adex, code = '
-    ADEX <- synthetic_cdisc_dataset("latest", "adex")
-    set.seed(1, kind = "Mersenne-Twister")
-    labels <- var_labels(ADEX)
-    ADEX <- ADEX %>%
-      distinct(USUBJID, .keep_all = TRUE) %>%
-      mutate(
-        PARAMCD = "TDURD",
-        PARAM = "Overall duration (days)",
-        AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
-        AVALU = "Days",
-        SEX = factor(case_when(
-          SEX == "F" ~ "Female",
-          SEX == "M" ~ "Male"
-        ))
-      ) %>%
-      bind_rows(ADEX)
+      ))
+    ) %>%
+    bind_rows(ADEX)
 
-    var_labels(ADEX) <- labels
+  var_labels(ADEX) <- labels
 
-    ADEX <- ADEX %>%
-      mutate(
-        AGEGR1 = factor(ifelse(AGE < 65, "<65", ">=65")) %>% with_label("Age group (years)"),
-        AGEGR2 = factor(case_when(
-          AGE < 18 ~ "< 18",
-          AGE >= 18 & AGE <= 40 ~ "18 - 40",
-          AGE > 40 & AGE <= 64 ~ "41 - 64",
-          TRUE ~ ">=65"
-        ), levels = c("< 18", "18 - 40", "41 - 64", ">=65")
-        ) %>% with_label("Age group (years)")
-      )
-    '),
-    check = TRUE
-  ),
+  ADEX <- ADEX %>%
+    mutate(
+      AGEGR1 = factor(ifelse(AGE < 65, "<65", ">=65")) %>% with_label("Age group (years)"),
+      AGEGR2 = factor(case_when(
+        AGE < 18 ~ "< 18",
+        AGE >= 18 & AGE <= 40 ~ "18 - 40",
+        AGE > 40 & AGE <= 64 ~ "41 - 64",
+        TRUE ~ ">=65"
+      ), levels = c("< 18", "18 - 40", "41 - 64", ">=65")) %>% with_label("Age group (years)")
+    )
+
+  ADSL <- ADSL %>%
+    mutate(SEX = factor(case_when(
+      SEX == "F" ~ "Female",
+      SEX == "M" ~ "Male"
+    )) %>% with_label("Sex"))
+})
+datanames <- c("ADSL", "ADEX")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+ADEX <- data[["ADEX"]]
+
+app <- init(
+  data = data,
   modules = modules(
     tm_t_exposure(
       label = "Duration of Exposure Table",
       dataname = "ADEX",
       paramcd = choices_selected(
-        choices = value_choices(adex, "PARAMCD", "PARAM"),
+        choices = value_choices(ADEX, "PARAMCD", "PARAM"),
         selected = "TDURD"
       ),
       col_by_var = choices_selected(
-        choices = variable_choices(adex, subset = c("SEX", "ARM")),
+        choices = variable_choices(ADEX, subset = c("SEX", "ARM")),
         selected = "SEX"
       ),
       row_by_var = choices_selected(
-        choices = variable_choices(adex, subset = c("AGEGR1", "AGEGR2")),
+        choices = variable_choices(ADEX, subset = c("AGEGR1", "AGEGR2")),
         selected = "AGEGR1"
       ),
       parcat = choices_selected(
-        choices = value_choices(adex, "PARCAT2"),
+        choices = value_choices(ADEX, "PARCAT2"),
         selected = "Drug A"
       ),
       add_total = FALSE

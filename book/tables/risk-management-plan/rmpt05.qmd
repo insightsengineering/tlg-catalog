@@ -76,63 +76,57 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 10)
 
-library(scda)
-library(dplyr)
 library(teal.modules.clinical)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adex <- synthetic_cdisc_dataset("latest", "adex")
-labels <- var_labels(adex)
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
 
-set.seed(1, kind = "Mersenne-Twister")
-adex <- adex %>%
-  distinct(USUBJID, .keep_all = TRUE) %>%
-  mutate(
-    PARAMCD = "TDURD",
-    PARAM = "Overall duration (days)",
-    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
-    AVALU = "Days"
-  ) %>%
-  bind_rows(adex)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADEX <- synthetic_cdisc_dataset("latest", "adex")
 
-var_labels(adex) <- labels
-
-app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
-    cdisc_dataset("ADEX", adex,
-      code = 'ADEX <- synthetic_cdisc_dataset("latest", "adex")
   labels <- var_labels(ADEX)
   set.seed(1, kind = "Mersenne-Twister")
+
+  labels <- var_labels(ADEX)
   ADEX <- ADEX %>%
     distinct(USUBJID, .keep_all = TRUE) %>%
-    mutate(PARAMCD = "TDURD",
-           PARAM = "Overall duration (days)",
-           AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
-           AVALU = "Days") %>%
+    mutate(
+      PARAMCD = "TDURD",
+      PARAM = "Overall duration (days)",
+      AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
+      AVALU = "Days"
+    ) %>%
     bind_rows(ADEX)
-  var_labels(ADEX) <- labels'
-    ),
-    check = TRUE
-  ),
+
+  var_labels(ADEX) <- labels
+})
+datanames <- c("ADSL", "ADEX")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+ADEX <- data[["ADEX"]]
+
+app <- init(
+  data = data,
   modules = modules(
     tm_t_exposure(
       label = "Duration of Exposure Table",
       dataname = "ADEX",
       paramcd = choices_selected(
-        choices = value_choices(adex, "PARAMCD", "PARAM"),
+        choices = value_choices(ADEX, "PARAMCD", "PARAM"),
         selected = "TDURD"
       ),
       col_by_var = choices_selected(
-        choices = variable_choices(adex, subset = c("SEX", "ARM")),
+        choices = variable_choices(ADEX, subset = c("SEX", "ARM")),
         selected = NULL
       ),
       row_by_var = choices_selected(
-        choices = variable_choices(adex, subset = c("RACE", "STRATA1", "SEX")),
+        choices = variable_choices(ADEX, subset = c("RACE", "STRATA1", "SEX")),
         selected = "RACE"
       ),
       parcat = choices_selected(
-        choices = value_choices(adex, "PARCAT2"),
+        choices = value_choices(ADEX, "PARCAT2"),
         selected = "Drug A"
       ),
       add_total = FALSE
