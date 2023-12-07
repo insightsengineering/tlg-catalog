@@ -69,12 +69,13 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 12)
 
-library(dplyr)
-library(scda)
 library(teal.modules.clinical)
 
 data <- teal_data()
 data <- within(data, {
+  library(dplyr)
+  library(scda)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADDV <- synthetic_cdisc_dataset("latest", "addv")
 
@@ -85,6 +86,7 @@ data <- within(data, {
 datanames <- c("ADSL", "ADDV")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADDV <- data[["ADDV"]]
 
 app <- teal::init(
   data = data,
@@ -94,11 +96,11 @@ app <- teal::init(
       dataname = "ADDV",
       arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
       llt = choices_selected(
-        choices = variable_choices(data[["ADDV"]], c("DVTERM")),
+        choices = variable_choices(ADDV, c("DVTERM")),
         selected = c("DVTERM")
       ),
       hlt = choices_selected(
-        choices = variable_choices(data[["ADDV"]], c("DVDECOD")),
+        choices = variable_choices(ADDV, c("DVDECOD")),
         selected = "DVDECOD"
       ),
       add_total = TRUE,

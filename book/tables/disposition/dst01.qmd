@@ -122,11 +122,12 @@ result3
 #| screenshot.opts = list(delay = 20)
 
 library(teal.modules.clinical)
-library(scda)
-library(dplyr)
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(dplyr)
+
   set.seed(1, kind = "Mersenne-Twister")
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADSL <- df_explicit_na(ADSL)
@@ -153,6 +154,7 @@ data <- within(data, {
 datanames <- "ADSL"
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADSL <- data[["ADSL"]]
 
 app <- init(
   data = data,
@@ -162,7 +164,7 @@ app <- init(
       dataname = "ADSL",
       arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
       summarize_vars = choices_selected(
-        variable_choices(data[["ADSL"]], data[["demog_vars_asl"]]),
+        variable_choices(ADSL, data[["demog_vars_asl"]]),
         c("EOSSTT", "DCSREAS", "EOTSTT")
       ),
       useNA = "ifany"
