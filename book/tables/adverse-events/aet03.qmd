@@ -110,17 +110,19 @@ result
 #| screenshot.opts = list(delay = 20)
 
 library(teal.modules.clinical)
-library(scda)
-library(dplyr)
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADAE <- synthetic_cdisc_dataset("latest", "adae")
 })
 datanames <- c("ADSL", "ADAE")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+
+## Reusable Configuration For Modules
+ADAE <- data[["ADAE"]]
 
 app <- init(
   data = data,
@@ -130,15 +132,15 @@ app <- init(
       dataname = "ADAE",
       arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
       llt = choices_selected(
-        choices = variable_choices(data[["ADAE"]], c("AETERM", "AEDECOD")),
+        choices = variable_choices(ADAE, c("AETERM", "AEDECOD")),
         selected = c("AEDECOD")
       ),
       hlt = choices_selected(
-        choices = variable_choices(data[["ADAE"]], c("AEBODSYS", "AESOC")),
+        choices = variable_choices(ADAE, c("AEBODSYS", "AESOC")),
         selected = "AEBODSYS"
       ),
       grade = choices_selected(
-        choices = variable_choices(data[["ADAE"]], c("AETOXGR", "AESEV")),
+        choices = variable_choices(ADAE, c("AETOXGR", "AESEV")),
         selected = "AESEV"
       )
     )

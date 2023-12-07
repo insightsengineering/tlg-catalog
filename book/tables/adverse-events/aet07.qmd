@@ -112,13 +112,13 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 8)
 
-library(dplyr)
-library(scda)
 library(teal.modules.clinical)
-library(tern)
 
 data <- teal_data()
 data <- within(data, {
+  library(dplyr)
+  library(scda)
+  library(tern)
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADAE <- synthetic_cdisc_dataset("latest", "adae")
 
@@ -155,6 +155,9 @@ datanames <- c("ADSL", "ADAE")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
 
+## Reusable Configuration For Modules
+ADAE <- data[["ADAE"]]
+
 app <- teal::init(
   data = data,
   modules = modules(
@@ -163,11 +166,11 @@ app <- teal::init(
       dataname = "ADAE",
       arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
       llt = choices_selected(
-        choices = variable_choices(data[["ADAE"]], c("AETERM", "AEDECOD", "SOC_PT")),
+        choices = variable_choices(ADAE, c("AETERM", "AEDECOD", "SOC_PT")),
         selected = c("SOC_PT")
       ),
       hlt = choices_selected(
-        choices = variable_choices(data[["ADAE"]], c("AETERM", "AEDECOD", "SOC_PT")),
+        choices = variable_choices(ADAE, c("AETERM", "AEDECOD", "SOC_PT")),
         selected = NULL
       ),
       add_total = FALSE,
