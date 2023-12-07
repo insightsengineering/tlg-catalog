@@ -128,12 +128,13 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 30)
 
-library(scda)
 library(teal.modules.clinical)
-library(dplyr)
 
 data <- teal_data()
 data <- within(data, {
+  library(scda)
+  library(dplyr)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADVS <- synthetic_cdisc_dataset("latest", "advs")
   advs_label <- var_labels(ADVS)
@@ -179,6 +180,8 @@ data <- within(data, {
 datanames <- c("ADSL", "ADVS")
 datanames(data) <- datanames
 join_keys(data) <- default_cdisc_join_keys[datanames]
+ADSL <- data[["ADSL"]]
+ADVS <- data[["ADVS"]]
 
 app <- init(
   data = data,
@@ -187,20 +190,20 @@ app <- init(
       label = "Vital Sign Results and Change from Baseline by Visit",
       dataname = "ADVS",
       arm_var = choices_selected(
-        choices = variable_choices(data[["ADSL"]], c("ARM", "ARMCD")),
+        choices = variable_choices(ADSL, c("ARM", "ARMCD")),
         selected = "ARM"
       ),
       by_vars = choices_selected(
-        choices = variable_choices(data[["ADVS"]], c("PARAM", "AVISIT")),
+        choices = variable_choices(ADVS, c("PARAM", "AVISIT")),
         selected = c("AVISIT", "PARAM")
       ),
       summarize_vars = choices_selected(
-        choices = variable_choices(data[["ADVS"]], c("AVAL", "CHG")),
+        choices = variable_choices(ADVS, c("AVAL", "CHG")),
         selected = c("AVAL", "CHG")
       ),
       useNA = "ifany",
       paramcd = choices_selected(
-        choices = value_choices(data[["ADVS"]], "PARAMCD", "PARAM"),
+        choices = value_choices(ADVS, "PARAMCD", "PARAM"),
         selected = "DIABP"
       ),
       parallel_vars = TRUE
