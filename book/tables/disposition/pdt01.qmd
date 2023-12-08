@@ -69,34 +69,42 @@ result
 ```{r teal, message=FALSE, opts.label='skip_if_testing'}
 #| screenshot.opts = list(delay = 12)
 
-library(dplyr)
-library(scda)
 library(teal.modules.clinical)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-addv <- synthetic_cdisc_dataset("latest", "addv")
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(dplyr)
+  library(scda)
 
-# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-adsl <- df_explicit_na(adsl)
-addv <- df_explicit_na(addv)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADDV <- synthetic_cdisc_dataset("latest", "addv")
 
-app <- teal::init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))'),
-    cdisc_dataset("ADDV", addv, code = 'ADDV <- df_explicit_na(synthetic_cdisc_dataset("latest", "addv"))'),
-    check = TRUE
-  ),
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADDV <- df_explicit_na(ADDV)
+})
+datanames <- c("ADSL", "ADDV")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
+## Reusable Configuration For Modules
+ADDV <- data[["ADDV"]]
+
+## Setup App
+app <- init(
+  data = data,
   modules = modules(
     tm_t_events(
       label = "Major Protocol Deviations Table",
       dataname = "ADDV",
       arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
       llt = choices_selected(
-        choices = variable_choices(addv, c("DVTERM")),
+        choices = variable_choices(ADDV, c("DVTERM")),
         selected = c("DVTERM")
       ),
       hlt = choices_selected(
-        choices = variable_choices(addv, c("DVDECOD")),
+        choices = variable_choices(ADDV, c("DVDECOD")),
         selected = "DVDECOD"
       ),
       add_total = TRUE,

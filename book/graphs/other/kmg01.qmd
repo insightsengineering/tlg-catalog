@@ -126,10 +126,17 @@ plot
 #| screenshot.opts = list(delay = 36)
 
 library(teal.modules.clinical)
-library(scda)
 
-ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
+})
+datanames <- c("ADSL", "ADTTE")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
 arm_ref_comp <- list(
   ACTARMCD = list(
@@ -142,12 +149,13 @@ arm_ref_comp <- list(
   )
 )
 
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADTTE <- data[["ADTTE"]]
+
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", ADSL, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
-    cdisc_dataset("ADTTE", ADTTE, code = 'ADTTE <- synthetic_cdisc_dataset("latest", "adtte")'),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_g_km(
       label = "KM PLOT",
@@ -178,5 +186,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::

@@ -174,80 +174,57 @@ grid::grid.draw(p)
 #| screenshot.opts = list(delay = 24)
 
 library(teal.modules.clinical)
-library(scda)
 
-ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-ADSL <- ADSL %>%
-  dplyr::filter(ARM %in% c("B: Placebo", "A: Drug X")) %>%
-  dplyr::mutate(ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo"))) %>%
-  dplyr::mutate(ARMCD = droplevels(forcats::fct_relevel(ARMCD, "ARM B")))
-ADSL$RACE <- droplevels(ADSL$RACE)
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
+  library(forcats)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADSL <- ADSL %>%
+    filter(ARM %in% c("B: Placebo", "A: Drug X")) %>%
+    mutate(ARM = droplevels(fct_relevel(ARM, "B: Placebo"))) %>%
+    mutate(ARMCD = droplevels(fct_relevel(ARMCD, "ARM B")))
+  ADSL$RACE <- droplevels(ADSL$RACE)
 
-ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
-adtte_labels <- var_labels(ADTTE)
+  ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
+  adtte_labels <- var_labels(ADTTE)
 
-ADTTE <- ADTTE %>%
-  dplyr::filter(
-    PARAMCD == "OS",
-    ARM %in% c("B: Placebo", "A: Drug X"),
-    SEX %in% c("M", "F")
-  ) %>%
-  dplyr::mutate(
-    # Reorder levels of ARM to display reference arm before treatment arm.
-    ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo")),
-    SEX = droplevels(SEX),
-    is_event = CNSR == 0,
-    # Convert time to MONTH
-    AVAL = day2month(AVAL),
-    AVALU = "Months"
-  ) %>%
-  var_relabel(
-    ARM = adtte_labels["ARM"],
-    SEX = adtte_labels["SEX"],
-    is_event = "Event Flag",
-    AVAL = adtte_labels["AVAL"],
-    AVALU = adtte_labels["AVALU"]
-  )
+  ADTTE <- ADTTE %>%
+    filter(
+      PARAMCD == "OS",
+      ARM %in% c("B: Placebo", "A: Drug X"),
+      SEX %in% c("M", "F")
+    ) %>%
+    mutate(
+      # Reorder levels of ARM to display reference arm before treatment arm.
+      ARM = droplevels(fct_relevel(ARM, "B: Placebo")),
+      SEX = droplevels(SEX),
+      is_event = CNSR == 0,
+      # Convert time to MONTH
+      AVAL = day2month(AVAL),
+      AVALU = "Months"
+    ) %>%
+    var_relabel(
+      ARM = adtte_labels["ARM"],
+      SEX = adtte_labels["SEX"],
+      is_event = "Event Flag",
+      AVAL = adtte_labels["AVAL"],
+      AVALU = adtte_labels["AVALU"]
+    )
+})
+datanames <- c("ADSL", "ADTTE")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADTTE <- data[["ADTTE"]]
+
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", ADSL,
-      code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-      ADSL <- ADSL %>%
-        dplyr::filter(ARM %in% c("B: Placebo", "A: Drug X")) %>%
-        dplyr::mutate(ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo"))) %>%
-        dplyr::mutate(ARMCD = droplevels(forcats::fct_relevel(ARMCD, "ARM B")))
-      ADSL$RACE <- droplevels(ADSL$RACE)
-      '
-    ),
-    cdisc_dataset("ADTTE", ADTTE, code = '
-                  ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
-                  adtte_labels <- var_labels(ADTTE)
-                  ADTTE <- ADTTE %>%
-                    dplyr::filter(
-                      PARAMCD == "OS",
-                      ARM %in% c("B: Placebo", "A: Drug X"),
-                      SEX %in% c("M", "F")
-                    ) %>%
-                    dplyr::mutate(
-                      # Reorder levels of ARM to display reference arm before treatment arm.
-                      ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo")),
-                      SEX = droplevels(SEX),
-                      is_event = CNSR == 0,
-                      # Convert time to MONTH
-                      AVAL = day2month(AVAL),
-                      AVALU = "Months"
-                    ) %>%
-                    var_relabel(
-                      ARM = adtte_labels["ARM"],
-                      SEX = adtte_labels["SEX"],
-                      is_event = "Event Flag",
-                      AVAL = adtte_labels["AVAL"],
-                      AVALU = adtte_labels["AVALU"]
-                    )
-                  '),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_g_forest_tte(
       label = "Forest Survival",
@@ -266,5 +243,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::
