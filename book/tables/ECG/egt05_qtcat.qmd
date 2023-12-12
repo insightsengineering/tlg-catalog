@@ -111,137 +111,97 @@ result
 #| screenshot.opts = list(delay = 24)
 
 library(teal.modules.clinical)
-library(scda)
-library(dplyr)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adeg <- synthetic_cdisc_dataset("latest", "adeg")
-adsl <- df_explicit_na(adsl)
-adeg <- df_explicit_na(adeg)
-adeg_labels <- var_labels(adeg)
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
 
-adeg_f <- adeg %>%
-  filter(
-    ANL01FL == "Y" # no need to filter for PARAMCD here
-  ) %>%
-  mutate(
-    AVALCAT1 = case_when(
-      AVAL <= 450 ~ "<=450 msec",
-      AVAL <= 480 ~ ">450 to <=480 msec",
-      AVAL <= 500 ~ ">480 to <= 500 msec",
-      AVAL > 500 ~ ">500 msec",
-      is.na(AVAL) ~ "<Missing>"
-    ),
-    CHGCAT1 = case_when(
-      CHG <= 30 ~ "<=30 msec",
-      CHG <= 60 ~ ">30 to <=60 msec",
-      CHG > 60 ~ ">60 msec",
-      is.na(CHG) ~ "<Missing>"
-    )
-  ) %>%
-  mutate(
-    AVALCAT1 = factor(
-      AVALCAT1,
-      levels = c(
-        "<=450 msec",
-        ">450 to <=480 msec",
-        ">480 to <= 500 msec",
-        ">500 msec",
-        "<Missing>"
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADEG <- synthetic_cdisc_dataset("latest", "adeg")
+
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADEG <- df_explicit_na(ADEG)
+  adeg_labels <- var_labels(ADEG)
+
+  ADEG <- ADEG %>%
+    filter(
+      ANL01FL == "Y" # no need to filter for PARAMCD here
+    ) %>%
+    mutate(
+      AVALCAT1 = case_when(
+        AVAL <= 450 ~ "<=450 msec",
+        AVAL <= 480 ~ ">450 to <=480 msec",
+        AVAL <= 500 ~ ">480 to <= 500 msec",
+        AVAL > 500 ~ ">500 msec",
+        is.na(AVAL) ~ "<Missing>"
+      ),
+      CHGCAT1 = case_when(
+        CHG <= 30 ~ "<=30 msec",
+        CHG <= 60 ~ ">30 to <=60 msec",
+        CHG > 60 ~ ">60 msec",
+        is.na(CHG) ~ "<Missing>"
       )
-    ),
-    CHGCAT1 = factor(
-      CHGCAT1,
-      levels = c(
-        "<=30 msec",
-        ">30 to <=60 msec",
-        ">60 msec",
-        "<Missing>"
+    ) %>%
+    mutate(
+      AVALCAT1 = factor(
+        AVALCAT1,
+        levels = c(
+          "<=450 msec",
+          ">450 to <=480 msec",
+          ">480 to <= 500 msec",
+          ">500 msec",
+          "<Missing>"
+        )
+      ),
+      CHGCAT1 = factor(
+        CHGCAT1,
+        levels = c(
+          "<=30 msec",
+          ">30 to <=60 msec",
+          ">60 msec",
+          "<Missing>"
+        )
       )
     )
+  var_labels(ADEG) <- c(
+    adeg_labels,
+    "AVALCAT1" = "Value at Visit",
+    "CHGCAT1" = "Change from Baseline"
   )
-var_labels(adeg_f) <- c(
-  adeg_labels,
-  "AVALCAT1" = "Value at Visit",
-  "CHGCAT1" = "Change from Baseline"
-)
-app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL",
-      adsl,
-      code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-                  ADSL <- df_explicit_na(ADSL)'
-    ),
-    cdisc_dataset("ADEG",
-      adeg_f,
-      code = 'ADEG <- synthetic_cdisc_dataset("latest", "adeg")
-                  ADEG <- df_explicit_na(ADEG)
-                  ADEG_labels <- var_labels(ADEG)
+})
+datanames <- c("ADSL", "ADEG")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
-                  ADEG <- ADEG %>%
-                    filter(
-                      ANL01FL == "Y"
-                    ) %>%
-                     mutate(
-                      AVALCAT1 = case_when(
-                        AVAL <= 450 ~ "<=450 msec",
-                        AVAL <= 480 ~ ">450 to <=480 msec",
-                        AVAL <= 500 ~ ">480 to <= 500 msec",
-                        AVAL > 500 ~ ">500 msec",
-                        is.na(AVAL) ~ "<Missing>"),
-                      CHGCAT1 = case_when(
-                        CHG <= 30 ~ "<=30 msec",
-                        CHG <= 60 ~ ">30 to <=60 msec",
-                        CHG > 60 ~ ">60 msec",
-                        is.na(CHG) ~ "<Missing>")
-                    ) %>% mutate(
-                      AVALCAT1 = factor(
-                        AVALCAT1,
-                        levels = c(
-                          "<=450 msec",
-                          ">450 to <=480 msec",
-                          ">480 to <= 500 msec",
-                          ">500 msec",
-                          "<Missing>"
-                        )
-                      ),
-                      CHGCAT1 = factor(
-                        CHGCAT1,
-                        levels = c(
-                          "<=30 msec",
-                          ">30 to <=60 msec",
-                          ">60 msec",
-                          "<Missing>"
-                        )
-                      )
-                    )
-                  var_labels(ADEG) <- c(
-                    ADEG_labels,
-                    "AVALCAT1" = "Value at Visit",
-                    "CHGCAT1" = "Change from Baseline"
-                  )'
-    ),
-    check = TRUE
-  ),
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADEG <- data[["ADEG"]]
+
+## Setup App
+app <- init(
+  data = data,
   modules = modules(
     tm_t_summary_by(
       label = "ECG Actual Values and Changes from Baseline by Visit",
       dataname = "ADEG",
       arm_var = choices_selected(
-        choices = variable_choices(adsl, c("ARM", "ARMCD")),
+        choices = variable_choices(ADSL, c("ARM", "ARMCD")),
         selected = "ARM"
       ),
       by_vars = choices_selected(
-        choices = variable_choices(adeg_f, c("PARAM", "AVISIT")),
+        choices = variable_choices(ADEG, c("PARAM", "AVISIT")),
         selected = c("AVISIT")
       ),
       summarize_vars = choices_selected(
-        choices = variable_choices(adeg_f, c("AVALCAT1", "CHGCAT1")),
+        choices = variable_choices(ADEG, c("AVALCAT1", "CHGCAT1")),
         selected = c("AVALCAT1", "CHGCAT1")
       ),
       useNA = "ifany",
       paramcd = choices_selected(
-        choices = value_choices(adeg_f, "PARAMCD", "PARAM"),
+        choices = value_choices(ADEG, "PARAMCD", "PARAM"),
         selected = "QT"
       )
     )

@@ -18,15 +18,15 @@ library(scda)
 library(dplyr)
 
 adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adsaftte <- synthetic_cdisc_dataset("latest", "adaette")
+adaette <- synthetic_cdisc_dataset("latest", "adaette")
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
-adsaftte <- df_explicit_na(adsaftte)
+adaette <- df_explicit_na(adaette)
 
 adsl_safl <- dplyr::filter(adsl, .data$SAFFL == "Y")
 
-anl <- adsaftte %>%
+anl <- adaette %>%
   dplyr::filter(
     SAFFL == "Y",
     PARAMCD == "HYSTTEUL"
@@ -138,18 +138,29 @@ result
 #| screenshot.opts = list(delay = 20)
 
 library(teal.modules.clinical)
-library(scda)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adsaftte <- synthetic_cdisc_dataset("latest", "adaette")
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADAETTE <- synthetic_cdisc_dataset("latest", "adaette")
 
-# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-adsl <- df_explicit_na(adsl)
-adsaftte <- df_explicit_na(adsaftte)
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADAETTE <- df_explicit_na(ADAETTE)
 
-adsl <- dplyr::filter(adsl, .data$SAFFL == "Y")
-adsaftte <- dplyr::filter(adsaftte, .data$SAFFL == "Y")
+  ADSL <- filter(ADSL, .data$SAFFL == "Y")
+  ADAETTE <- filter(ADAETTE, .data$SAFFL == "Y")
+})
+datanames <- c("ADSL", "ADAETTE")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADAETTE <- data[["ADAETTE"]]
 arm_ref_comp <- list(
   ACTARMCD = list(
     ref = "ARM B",
@@ -161,36 +172,24 @@ arm_ref_comp <- list(
   )
 )
 
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset(
-      "ADSL",
-      adsl,
-      code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl") %>% df_explicit_na() %>% dplyr::filter(.data$SAFFL == "Y")'
-    ),
-    cdisc_dataset(
-      "ADSAFTTE",
-      adsaftte,
-      keys = c("STUDYID", "USUBJID", "PARAMCD"),
-      code = 'ADSAFTTE <- synthetic_cdisc_dataset("latest", "adaette") %>% df_explicit_na() %>% dplyr::filter(.data$SAFFL == "Y")'
-    ),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_tte(
       label = "Time To LLT Event Table",
-      dataname = "ADSAFTTE",
+      dataname = "ADAETTE",
       arm_var = choices_selected(
-        variable_choices(adsl, c("ARM", "ARMCD", "ACTARMCD")),
+        variable_choices(data[["ADSL"]], c("ARM", "ARMCD", "ACTARMCD")),
         "ARM"
       ),
       arm_ref_comp = arm_ref_comp,
       paramcd = choices_selected(
-        value_choices(adsaftte, "PARAMCD", "PARAM"),
+        value_choices(data[["ADAETTE"]], "PARAMCD", "PARAM"),
         "HYSTTEUL"
       ),
       strata_var = choices_selected(
-        variable_choices(adsl, c("RACE", "SEX")),
+        variable_choices(data[["ADSL"]], c("RACE", "SEX")),
         c("RACE", "SEX")
       ),
       time_points = choices_selected(0, NULL),
@@ -203,5 +202,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::
