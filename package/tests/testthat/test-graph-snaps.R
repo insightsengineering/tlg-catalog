@@ -50,12 +50,14 @@ for (snapshot_variant in intersect(snapshot_variants, rds_variants)) {
         variant = snapshot_variant
       )
     } else {
-      plot_dims <- sapply(c("width", "height"), function(x) if (paste0(i, ".", x) %in% names(data_snap)) {
-        data_snap[[paste0(i, ".", x)]]
-      } else if (x %in% names(data_snap)) {
-        data_snap[[x]]
-      } else {
-        if (x == "width") 7 else 5
+      plot_dims <- sapply(c("width", "height"), function(x) {
+        if (paste0(i, ".", x) %in% names(data_snap)) {
+          data_snap[[paste0(i, ".", x)]]
+        } else if (x %in% names(data_snap)) {
+          data_snap[[x]]
+        } else {
+          if (x == "width") 7 else 5
+        }
       })
       # Some plot objects have multiple plots in them and stored as unnamed list of plots
       if (inherits(data_snap[[i]], "list")) {
