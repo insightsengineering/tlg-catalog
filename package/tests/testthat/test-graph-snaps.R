@@ -20,37 +20,67 @@ if (length(skip_tests)) {
   )
 }
 
+# expect_snapshot_ggplot - set custom plot dimensions
+expect_snapshot_ggplot <- function(title, fig, width = NA, height = NA) {
+  skip_if_not_installed("svglite")
+
+  name <- paste0(title, ".svg")
+  path <- tempdir()
+  suppressMessages(ggplot2::ggsave(name, fig, path = path, width = width, height = height))
+  path <- file.path(path, name)
+
+  testthat::announce_snapshot_file(name = name)
+  testthat::expect_snapshot_file(path, name)
+}
+
 for (snapshot_variant in intersect(snapshot_variants, rds_variants)) {
   path <- file.path(test_data_path, paste0(snapshot_variant, ".rds"))
   if (isFALSE(file.exists(path))) {
     testthat::skip(paste(
-      "Data snapshot file", path,
-      "not found. Skipping tests for the article:",
-      paste0(snapshot_variant, ".qmd"),
+      "Data snapshot file", path, "not found. Skipping tests for the article:", paste0(snapshot_variant, ".qmd"),
       sep = " "
     ))
   }
   data_snap <- readRDS(path)
-  for (i in names(data_snap)) {
-    # Some plot objects have multiple plots in them and stored as unnamed list of plots
-    if (inherits(data_snap[[i]], "list")) {
-      for (plot_index in seq_len(length(data_snap[[i]]))) {
-        # Random seed to get consistent graphs
-        set.seed(123)
-        vdiffr::expect_doppelganger(
-          title = paste(snapshot_variant, i, plot_index, sep = "-"),
-          fig = data_snap[[i]][[plot_index]]
-        )
-      }
+  plot_nms <- grep("width|height", names(data_snap), value = TRUE, invert = TRUE)
+  for (i in plot_nms) {
+    if (grepl("table", i)) {
+      testthat::expect_snapshot(
+        print(data_snap[[i]]),
+        variant = snapshot_variant
+      )
     } else {
-      testthat::test_that(i, {
-        # Random seed to get consistent graphs
-        set.seed(123)
-        vdiffr::expect_doppelganger(
-          title = paste(snapshot_variant, i, sep = "-"),
-          fig = data_snap[[i]]
-        )
+      plot_dims <- sapply(c("width", "height"), function(x) if (paste0(i, ".", x) %in% names(data_snap)) {
+        data_snap[[paste0(i, ".", x)]]
+      } else if (x %in% names(data_snap)) {
+        data_snap[[x]]
+      } else {
+        if (x == "width") 7 else 5
       })
+      # Some plot objects have multiple plots in them and stored as unnamed list of plots
+      if (inherits(data_snap[[i]], "list")) {
+        for (plot_index in seq_len(length(data_snap[[i]]))) {
+          # Random seed to get consistent graphs
+          set.seed(123)
+          expect_snapshot_ggplot(
+            title = paste(snapshot_variant, i, plot_index, sep = "-"),
+            fig = data_snap[[i]][[plot_index]],
+            width = plot_dims[["width"]],
+            height = plot_dims[["height"]]
+          )
+        }
+      } else {
+        testthat::test_that(i, {
+          # Random seed to get consistent graphs
+          set.seed(123)
+          expect_snapshot_ggplot(
+            title = paste(snapshot_variant, i, sep = "-"),
+            fig = data_snap[[i]],
+            width = plot_dims[["width"]],
+            height = plot_dims[["height"]]
+          )
+        })
+      }
     }
   }
 }
