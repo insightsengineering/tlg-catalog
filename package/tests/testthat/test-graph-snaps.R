@@ -44,19 +44,19 @@ for (snapshot_variant in intersect(snapshot_variants, rds_variants)) {
   data_snap <- readRDS(path)
   plot_nms <- grep("width|height", names(data_snap), value = TRUE, invert = TRUE)
   for (i in plot_nms) {
-    if (grepl("table", i)) {
+    if (grepl("table", i)) { # process tables within graph templates
       testthat::expect_snapshot(
         print(data_snap[[i]]),
         variant = snapshot_variant
       )
     } else {
-      plot_dims <- sapply(c("width", "height"), function(x) {
+      plot_dims <- sapply(c("width", "height"), function(x) { # check for plotting area dimensions
         if (paste0(i, ".", x) %in% names(data_snap)) {
-          data_snap[[paste0(i, ".", x)]]
+          data_snap[[paste0(i, ".", x)]] # variant-specific dimensions
         } else if (x %in% names(data_snap)) {
-          data_snap[[x]]
+          data_snap[[x]] # template-specific default dimensions
         } else {
-          if (x == "width") 7 else 5
+          if (x == "width") 7 else 5 # ggplot2 default dimensions
         }
       })
       # Some plot objects have multiple plots in them and stored as unnamed list of plots
