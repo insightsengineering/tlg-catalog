@@ -4,18 +4,18 @@
       print(data_snap[[i]])
     Output
       # A tibble: 1,200 x 9
-         ID           TRT01A        AVAL Best Confirmed Overa~1 Investigator End Of ~2
-         <lstng_ky>   <lstng_ky>   <dbl> <fct>                  <fct>                 
-       1 BRA-1/id-105 A: Drug X        7 CR                     CR                    
-       2 BRA-1/id-105 A: Drug X        7 CR                     CR                    
-       3 BRA-1/id-105 A: Drug X        7 CR                     CR                    
-       4 BRA-1/id-134 A: Drug X        7 CR                     CR                    
-       5 BRA-1/id-134 A: Drug X        7 CR                     CR                    
-       6 BRA-1/id-134 A: Drug X        7 CR                     CR                    
-       7 BRA-1/id-141 C: Combinat~     7 CR                     PR                    
-       8 BRA-1/id-141 C: Combinat~     7 CR                     PR                    
-       9 BRA-1/id-141 C: Combinat~     7 CR                     PR                    
-      10 BRA-1/id-236 B: Placebo       7 PR                     SD                    
+         TRT01A     ID            AVAL Best Confirmed Overall~1 Investigator End Of ~2
+         <lstng_ky> <lstng_ky>   <dbl> <fct>                    <fct>                 
+       1 A: Drug X  BRA-1/id-105     7 CR                       CR                    
+       2 A: Drug X  BRA-1/id-105     7 CR                       CR                    
+       3 A: Drug X  BRA-1/id-105     7 CR                       CR                    
+       4 A: Drug X  BRA-1/id-134     7 CR                       CR                    
+       5 A: Drug X  BRA-1/id-134     7 CR                       CR                    
+       6 A: Drug X  BRA-1/id-134     7 CR                       CR                    
+       7 A: Drug X  BRA-1/id-42      7 PR                       PR                    
+       8 A: Drug X  BRA-1/id-42      7 PR                       PR                    
+       9 A: Drug X  BRA-1/id-42      7 PR                       PR                    
+      10 A: Drug X  BRA-1/id-93      7 CR                       PD                    
       # i 1,190 more rows
       # i abbreviated names: 1: `Best Confirmed Overall Response by Investigator`,
       #   2: `Investigator End Of Induction Response`
