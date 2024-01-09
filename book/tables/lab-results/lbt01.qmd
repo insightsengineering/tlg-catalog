@@ -87,57 +87,58 @@ result
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label='skip_if_testing'}
-#| screenshot.opts = list(delay = 18)
-
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
 library(teal.modules.clinical)
-library(scda)
-library(dplyr)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adlb <- synthetic_cdisc_dataset("latest", "adlb")
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
 
-# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-adsl <- df_explicit_na(adsl)
-adlb <- df_explicit_na(adlb)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADLB <- synthetic_cdisc_dataset("latest", "adlb")
 
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADLB <- df_explicit_na(ADLB)
+})
+datanames <- c("ADSL", "ADLB")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADLB <- data[["ADLB"]]
+
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL",
-      adsl,
-      code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))'
-    ),
-    cdisc_dataset("ADLB",
-      adlb,
-      code = 'ADLB <- df_explicit_na(synthetic_cdisc_dataset("latest", "adlb"))'
-    ),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_summary_by(
       label = "Laboratory Test Results and Change from Baseline by Visit",
       dataname = "ADLB",
       arm_var = choices_selected(
-        choices = variable_choices(adsl, c("ARM", "ARMCD")),
+        choices = variable_choices(ADSL, c("ARM", "ARMCD")),
         selected = "ARM"
       ),
       by_vars = choices_selected(
-        choices = variable_choices(adlb, c("PARAM", "AVISIT")),
+        choices = variable_choices(ADLB, c("PARAM", "AVISIT")),
         selected = c("AVISIT")
       ),
       summarize_vars = choices_selected(
-        choices = variable_choices(adlb, c("AVAL", "CHG")),
+        choices = variable_choices(ADLB, c("AVAL", "CHG")),
         selected = c("AVAL", "CHG")
       ),
       useNA = "ifany",
       paramcd = choices_selected(
-        choices = value_choices(adlb, "PARAMCD", "PARAM"),
+        choices = value_choices(ADLB, "PARAMCD", "PARAM"),
         selected = "ALT"
       ),
       parallel_vars = TRUE
     )
   ),
-  filter = list(ADLB = list(AVAL = list()))
+  filter = teal_slices(teal_slice("ADLB", "AVAL", selected = NULL))
 )
 
 shinyApp(app$ui, app$server)

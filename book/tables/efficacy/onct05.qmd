@@ -135,22 +135,31 @@ result
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label='skip_if_testing'}
-#| screenshot.opts = list(delay = 24)
-
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
 # Use table, embedded in response forest plot module.
 library(teal.modules.clinical)
-library(dplyr)
-library(forcats)
-library(scda)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adrs <- synthetic_cdisc_dataset("latest", "adrs")
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(dplyr)
+  library(forcats)
+  library(scda)
 
-# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-adsl <- df_explicit_na(adsl)
-adrs <- df_explicit_na(adrs)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADRS <- synthetic_cdisc_dataset("latest", "adrs")
 
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADRS <- df_explicit_na(ADRS)
+})
+datanames <- c("ADSL", "ADRS")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADRS <- data[["ADRS"]]
 arm_ref_comp <- list(
   ARM = list(
     ref = "B: Placebo",
@@ -162,31 +171,28 @@ arm_ref_comp <- list(
   )
 )
 
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))'),
-    cdisc_dataset("ADRS", adrs, code = 'ADRS <- df_explicit_na(synthetic_cdisc_dataset("latest", "adrs"))'),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_g_forest_rsp(
       label = "Forest Response",
       dataname = "ADRS",
       arm_var = choices_selected(
-        variable_choices(adsl, c("ARM", "ARMCD")),
+        variable_choices(ADSL, c("ARM", "ARMCD")),
         "ARMCD"
       ),
       arm_ref_comp = arm_ref_comp,
       paramcd = choices_selected(
-        value_choices(adrs, "PARAMCD", "PARAM"),
+        value_choices(ADRS, "PARAMCD", "PARAM"),
         "BESRSPI"
       ),
       subgroup_var = choices_selected(
-        variable_choices(adsl, names(adsl)),
+        variable_choices(ADSL, names(ADSL)),
         c("SEX")
       ),
       strata_var = choices_selected(
-        variable_choices(adsl, c("STRATA1", "STRATA2")),
+        variable_choices(ADSL, c("STRATA1", "STRATA2")),
         "STRATA2"
       ),
       plot_height = c(600L, 200L, 2000L)
@@ -198,5 +204,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::

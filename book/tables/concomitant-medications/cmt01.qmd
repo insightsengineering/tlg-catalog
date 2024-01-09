@@ -1,0 +1,288 @@
+---
+title: CMT01
+subtitle: Concomitant Medications (GNEDrug Legacy Coding)
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(tern)
+library(scda)
+
+# The following tables require ADCM data structure that follows the legacy concomitant medication coding. WHO coding is not used.
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adcm <- synthetic_cdisc_dataset("latest", "adcm")
+
+# Below step is to set up example data based on legacy standard.
+adcm <- adcm %>%
+  select(-starts_with("ATC")) %>%
+  unique()
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adcm <- df_explicit_na(adcm)
+
+adcm_con <- adcm %>%
+  filter(ATIREL == "CONCOMITANT")
+
+adcm_prior <- adcm %>%
+  filter(ATIREL == "PRIOR")
+```
+
+## Standard Table
+
+```{r variant1, test = list(result_v1 = "result")}
+# Define the split function
+split_fun <- drop_split_levels
+
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment",
+      nonunique = "Total number of treatments"
+    )
+  ) %>%
+  split_rows_by("CMCLAS",
+    split_fun = split_fun,
+    child_labels = "visible",
+    nested = FALSE,
+    indent_mod = 1L,
+    label_pos = "topleft",
+    split_label = obj_label(adcm_con$CMCLAS)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment",
+      nonunique = "Total number of treatments"
+    )
+  ) %>%
+  count_occurrences(vars = "CMDECOD", .indent_mods = -1L) %>%
+  append_varlabels(adcm_con, "CMDECOD", indent = 1L)
+
+result <- build_table(
+  lyt = lyt,
+  df = adcm_con,
+  alt_counts_df = adsl
+) %>%
+  prune_table() %>%
+  sort_at_path(
+    path = c("CMCLAS", "*", "CMDECOD"),
+    scorefun = score_occurrences
+  )
+
+result
+```
+
+## Table Showing Medications Prior <br/> to the Start of the Study
+
+```{r variant2, test = list(result_v2 = "result")}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment",
+      nonunique = "Total number of treatments"
+    )
+  ) %>%
+  split_rows_by("CMCLAS",
+    split_fun = split_fun,
+    child_labels = "visible",
+    nested = FALSE,
+    label_pos = "topleft",
+    split_label = obj_label(adcm_con$CMCLAS)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment",
+      nonunique = "Total number of treatments"
+    )
+  ) %>%
+  count_occurrences(vars = "CMDECOD", .indent_mods = -1L) %>%
+  append_varlabels(adcm_prior, "CMDECOD", indent = 1L)
+
+result <- build_table(
+  lyt = lyt,
+  df = adcm_prior,
+  alt_counts_df = adsl
+) %>%
+  prune_table() %>%
+  sort_at_path(
+    path = c("CMCLAS", "*", "CMDECOD"),
+    scorefun = score_occurrences
+  )
+
+result
+```
+
+Table with Subtotal Per <br/> Medication Class Suppressed
+
+```{r variant3, test = list(result_v3 = "result")}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM") %>%
+  analyze_num_patients(
+    var = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      unique = "Total number of patients with at least one treatment",
+      nonunique = "Total number of treatments"
+    )
+  ) %>%
+  split_rows_by("CMCLAS",
+    split_fun = split_fun, child_labels = "visible",
+    nested = FALSE,
+    label_pos = "topleft",
+    split_label = obj_label(adcm_con$CMCLAS)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .labels = c(unique = "Total number of patients with at least one treatment"),
+    .stats = "unique"
+  ) %>%
+  count_occurrences(vars = "CMDECOD", .indent_mods = -1L) %>%
+  append_varlabels(adcm_con, "CMDECOD", indent = 1L)
+
+result <- build_table(
+  lyt = lyt,
+  df = adcm_con,
+  alt_counts_df = adsl
+) %>%
+  prune_table() %>%
+  sort_at_path(
+    path = c("CMCLAS", "*", "CMDECOD"),
+    scorefun = score_occurrences
+  )
+
+result
+```
+
+## Table Sorted by Total Column Showing <br/> Additional "All Patients" Column
+
+```{r variant4, test = list(result_v4 = "result")}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by(var = "ARM") %>%
+  add_overall_col("All Patients") %>%
+  analyze_num_patients(
+    vars = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      "Total number of patients with at least one treatment (%)",
+      "Total number of treatments"
+    )
+  ) %>%
+  split_rows_by(
+    "CMCLAS",
+    split_fun = split_fun,
+    child_labels = "visible",
+    nested = FALSE,
+    label_pos = "topleft",
+    split_label = obj_label(adcm_con$CMCLAS)
+  ) %>%
+  summarize_num_patients(
+    var = "USUBJID",
+    .stats = c("unique", "nonunique"),
+    .labels = c(
+      "Total number of patients with at least one treatment (%)",
+      "Total number of treatments"
+    )
+  ) %>%
+  count_occurrences(vars = "CMDECOD", .indent_mods = -1L) %>%
+  append_varlabels(adcm_con, "CMDECOD", indent = 1L)
+
+result <- build_table(
+  lyt = lyt,
+  df = adcm_con,
+  alt_counts_df = adsl
+) %>%
+  prune_table() %>%
+  sort_at_path(
+    path = c("CMCLAS", "*", "CMDECOD"),
+    scorefun = score_occurrences,
+    decreasing = TRUE
+  ) %>%
+  sort_at_path(
+    path = c("CMCLAS"),
+    scorefun = cont_n_allcols,
+    decreasing = TRUE
+  )
+
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## `teal` App
+
+Here, `adcm` is processed to keep only one path per treatment.
+
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+library(teal.modules.clinical)
+
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
+
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADCM <- synthetic_cdisc_dataset("latest", "adcm")
+
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADCM <- df_explicit_na(ADCM)
+
+  ADCM <- ADCM %>%
+    group_by(STUDYID, USUBJID, CMDECOD) %>%
+    slice(1) %>%
+    ungroup()
+})
+datanames <- c("ADSL", "ADCM")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
+## Reusable Configuration For Modules
+ADCM <- data[["ADCM"]]
+
+## Setup App
+app <- init(
+  data = data,
+  modules = modules(
+    tm_t_events(
+      label = "Concomitant Medication Table",
+      dataname = "ADCM",
+      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
+      llt = choices_selected(
+        choices = variable_choices(ADCM, "CMDECOD"),
+        selected = "CMDECOD"
+      ),
+      hlt = choices_selected(
+        choices = variable_choices(ADCM, "CMCLAS"),
+        selected = c("CMCLAS")
+      ),
+      add_total = TRUE,
+      event_type = "treatment"
+    )
+  )
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../repro.qmd >}}
+:::

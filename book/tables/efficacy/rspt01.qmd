@@ -246,25 +246,33 @@ result
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label='skip_if_testing'}
-#| screenshot.opts = list(delay = 20)
-
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
 library(teal.modules.clinical)
-library(scda)
-library(dplyr)
 
-ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-ADRS <- synthetic_cdisc_dataset("latest", "adrs")
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
 
-# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-ADSL <- df_explicit_na(ADSL)
-ADRS <- df_explicit_na(ADRS)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADRS <- synthetic_cdisc_dataset("latest", "adrs")
 
-ADSL <- ADSL %>%
-  mutate(Dum_ARM = factor(rep("Single ARM", nrow(.))))
-ADRS <- ADRS %>%
-  mutate(Dum_ARM = factor(rep("Single ARM", nrow(.))))
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADRS <- df_explicit_na(ADRS)
 
+  ADSL <- ADSL %>%
+    mutate(Dum_ARM = factor(rep("Single ARM", nrow(.))))
+  ADRS <- ADRS %>%
+    mutate(Dum_ARM = factor(rep("Single ARM", nrow(.))))
+})
+datanames <- c("ADSL", "ADRS")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
+## Reusable Configuration For Modules
+ADRS <- data[["ADRS"]]
 arm_ref_comp <- list(
   ACTARMCD = list(
     ref = "ARM B",
@@ -276,24 +284,9 @@ arm_ref_comp <- list(
   )
 )
 
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset(
-      dataname = "ADSL",
-      x = ADSL,
-      code =
-        'ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl")) %>%
-           mutate(Dum_ARM = factor(rep("Single ARM", nrow(.))))'
-    ),
-    cdisc_dataset(
-      dataname = "ADRS",
-      x = ADRS,
-      code =
-        'ADRS <- df_explicit_na(synthetic_cdisc_dataset("latest", "adrs")) %>%
-          mutate(Dum_ARM = factor(rep("Single ARM", nrow(.))))'
-    ),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_binary_outcome(
       label = "Responders",
@@ -320,5 +313,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::

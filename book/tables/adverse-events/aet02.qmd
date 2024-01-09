@@ -190,7 +190,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
       nonunique = "Total number of events"
     )
   ) %>%
-  count_occurrences(vars = "AEDECOD", .indent_mods = c(count_fraction = -1L)) %>%
+  count_occurrences(vars = "AEDECOD", .indent_mods = -1L) %>%
   append_varlabels(adae, c("AEDECOD"), indent = 2L)
 
 result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
@@ -268,7 +268,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
       nonunique = "Total number of events"
     )
   ) %>%
-  count_occurrences(vars = "AEDECOD", .indent_mods = c(count_fraction = -1L)) %>%
+  count_occurrences(vars = "AEDECOD", .indent_mods = -1L) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
 result <- build_table(lyt, df = adae_5, alt_counts_df = adsl) %>%
@@ -306,7 +306,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_occurrences(
     vars = "AEDECOD",
-    .indent_mods = c(count_fraction = 1L)
+    .indent_mods = 1L
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
@@ -418,7 +418,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_occurrences(
     vars = "AEDECOD",
-    .indent_mods = c(count_fraction = 1L)
+    .indent_mods = 1L
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
@@ -466,7 +466,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_occurrences(
     vars = "AEDECOD",
-    .indent_mods = c(count_fraction = 1L)
+    .indent_mods = 1L
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
@@ -514,7 +514,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_occurrences(
     vars = "AEDECOD",
-    .indent_mods = c(count_fraction = 1L)
+    .indent_mods = 1L
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
@@ -562,7 +562,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_occurrences(
     vars = "AEDECOD",
-    .indent_mods = c(count_fraction = 1L)
+    .indent_mods = 1L
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
@@ -610,7 +610,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   ) %>%
   count_occurrences(
     vars = "AEDECOD",
-    .indent_mods = c(count_fraction = 1L)
+    .indent_mods = 1L
   ) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
@@ -640,37 +640,41 @@ result
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label='skip_if_testing'}
-#| screenshot.opts = list(delay = 12)
-
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
 library(teal.modules.clinical)
-library(dplyr)
-library(scda)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adae <- synthetic_cdisc_dataset("latest", "adae")
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADAE <- synthetic_cdisc_dataset("latest", "adae")
 
-# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-adsl <- df_explicit_na(adsl)
-adae <- df_explicit_na(adae)
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADAE <- df_explicit_na(ADAE)
+})
+datanames <- c("ADSL", "ADAE")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
-app <- teal::init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = 'ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))'),
-    cdisc_dataset("ADAE", adae, code = 'ADAE <- df_explicit_na(synthetic_cdisc_dataset("latest", "adae"))'),
-    check = TRUE
-  ),
+## Reusable Configuration For Modules
+ADAE <- data[["ADAE"]]
+
+## Setup App
+app <- init(
+  data = data,
   modules = modules(
     tm_t_events(
       label = "Adverse Event Table",
       dataname = "ADAE",
       arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),
       llt = choices_selected(
-        choices = variable_choices(adae, c("AETERM", "AEDECOD")),
+        choices = variable_choices(ADAE, c("AETERM", "AEDECOD")),
         selected = c("AEDECOD")
       ),
       hlt = choices_selected(
-        choices = variable_choices(adae, c("AEBODSYS", "AESOC")),
+        choices = variable_choices(ADAE, c("AEBODSYS", "AESOC")),
         selected = "AEBODSYS"
       ),
       add_total = TRUE,

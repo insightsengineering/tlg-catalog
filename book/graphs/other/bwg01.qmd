@@ -61,25 +61,25 @@ bp_annos <- function(bp, color, annos = 1) {
       geom_segment(data = bp_mdat, aes(
         x = xmin + (xmax - xmin) / 4, xend = xmax - (xmax - xmin) / 4,
         y = ymax, yend = ymax
-      ), size = .5, color = color) +
+      ), linewidth = .5, color = color) +
       geom_segment(data = bp_mdat, aes(
         x = xmin + (xmax - xmin) / 4, xend = xmax - (xmax - xmin) / 4,
         y = ymin, yend = ymin
-      ), size = .5, color = color)
+      ), linewidth = .5, color = color)
   } else {
     bp <- bp +
       geom_segment(data = bp_mdat, aes(
         x = xmin + (xmax - xmin) / 4, xend = xmax - (xmax - xmin) / 4,
         y = ymax, yend = ymax
-      ), size = .5, color = color) +
+      ), linewidth = .5, color = color) +
       geom_segment(data = bp_mdat, aes(
         x = xmin + (xmax - xmin) / 4, xend = xmax - (xmax - xmin) / 4,
         y = ymin, yend = ymin
-      ), size = .5, color = color) +
+      ), linewidth = .5, color = color) +
       geom_segment(data = bp_mdat, aes(
         x = xmin, xend = xmax,
         y = middle, yend = middle
-      ), colour = color, size = .5)
+      ), colour = color, linewidth = .5)
   }
   return(bp)
 }
@@ -336,38 +336,40 @@ plot
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label='skip_if_testing'}
-#| screenshot.opts = list(delay = 10)
-
-library(scda)
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
 library(teal.modules.general)
 
-ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-ADLB <- synthetic_cdisc_dataset("latest", "adlb")
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(tern)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADLB <- synthetic_cdisc_dataset("latest", "adlb")
 
-# If PARAMCD and AVISIT are not factors, convert to factors
-# Also fill in missing values with "<Missing>"
-ADLB <- ADLB %>%
-  tern::df_explicit_na(
-    omit_columns = setdiff(names(ADLB), c("PARAMCD", "AVISIT")),
-    char_as_factor = TRUE
-  )
+  # If PARAMCD and AVISIT are not factors, convert to factors
+  # Also fill in missing values with "<Missing>"
+  ADLB <- ADLB %>%
+    df_explicit_na(
+      omit_columns = setdiff(names(ADLB), c("PARAMCD", "AVISIT")),
+      char_as_factor = TRUE
+    )
 
-# If statment below fails, pre-process ADLB to be one record per
-# study, subject, param and visit eg. filter with ANLFL = 'Y'
-stopifnot(nrow(ADLB) == nrow(unique(ADLB[, c("STUDYID", "USUBJID", "PARAMCD", "AVISIT")])))
+  # If statment below fails, pre-process ADLB to be one record per
+  # study, subject, param and visit eg. filter with ANLFL = 'Y'
+  stopifnot(nrow(ADLB) == nrow(unique(ADLB[, c("STUDYID", "USUBJID", "PARAMCD", "AVISIT")])))
+})
+datanames <- c("ADSL", "ADLB")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADLB <- data[["ADLB"]]
+
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", ADSL),
-    cdisc_dataset("ADLB", ADLB, keys = c("STUDYID", "USUBJID", "PARAMCD", "AVISIT")), # do not modify
-    code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-    ADLB <- synthetic_cdisc_dataset("latest", "adlb")
-    ADLB <- ADLB %>%
-      tern::df_explicit_na(
-        omit_columns = setdiff(names(ADLB), c("PARAMCD", "AVISIT")),
-        char_as_factor = TRUE)'
-  ),
+  data = data,
   modules = modules(
     tm_g_bivariate(
       x = data_extract_spec(
@@ -433,5 +435,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::

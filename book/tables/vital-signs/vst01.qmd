@@ -125,134 +125,93 @@ result
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label='skip_if_testing'}
-#| screenshot.opts = list(delay = 30)
-
-library(scda)
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
 library(teal.modules.clinical)
-library(dplyr)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-advs <- synthetic_cdisc_dataset("latest", "advs")
-advs_label <- var_labels(advs)
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
 
-# post-baseline
-advs_pb <- advs %>%
-  filter(
-    ABLFL != "Y",
-    ABLFL2 != "Y"
-  )
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADVS <- synthetic_cdisc_dataset("latest", "advs")
+  advs_label <- var_labels(ADVS)
 
-advs_pb_max <- advs_pb %>%
-  group_by(PARAM, USUBJID) %>%
-  arrange(desc(AVAL)) %>%
-  slice(1) %>%
-  ungroup() %>%
-  mutate(AVISIT = "Post-Baseline Maximum")
+  # post-baseline
+  advs_pb <- ADVS %>%
+    filter(
+      ABLFL != "Y",
+      ABLFL2 != "Y"
+    )
 
-advs_pb_min <- advs_pb %>%
-  group_by(PARAM, USUBJID) %>%
-  arrange(AVAL) %>%
-  slice(1) %>%
-  ungroup() %>%
-  mutate(AVISIT = "Post-Baseline Minimum")
+  advs_pb_max <- advs_pb %>%
+    group_by(PARAM, USUBJID) %>%
+    arrange(desc(AVAL)) %>%
+    slice(1) %>%
+    ungroup() %>%
+    mutate(AVISIT = "Post-Baseline Maximum")
 
-advs_pb_last <- advs_pb %>%
-  group_by(PARAM, USUBJID) %>%
-  arrange(desc(AVISITN)) %>%
-  slice(1) %>%
-  ungroup() %>%
-  mutate(AVISIT = "Post-Baseline Last")
+  advs_pb_min <- advs_pb %>%
+    group_by(PARAM, USUBJID) %>%
+    arrange(AVAL) %>%
+    slice(1) %>%
+    ungroup() %>%
+    mutate(AVISIT = "Post-Baseline Minimum")
 
-advs_f <- rbind(
-  advs,
-  advs_pb_last,
-  advs_pb_min,
-  advs_pb_max
-)
+  advs_pb_last <- advs_pb %>%
+    group_by(PARAM, USUBJID) %>%
+    arrange(desc(AVISITN)) %>%
+    slice(1) %>%
+    ungroup() %>%
+    mutate(AVISIT = "Post-Baseline Last")
 
-advs_f <- advs_f %>%
-  mutate(AVISIT = droplevels(AVISIT))
+  ADVS <- rbind(
+    ADVS,
+    advs_pb_last,
+    advs_pb_min,
+    advs_pb_max
+  ) %>%
+    mutate(AVISIT = droplevels(AVISIT))
 
-var_labels(advs_f) <- advs_label
+  var_labels(ADVS) <- advs_label
+})
+datanames <- c("ADSL", "ADVS")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADVS <- data[["ADVS"]]
+
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL",
-      adsl,
-      code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'
-    ),
-    cdisc_dataset("ADVS",
-      advs_f,
-      code = 'ADVS <- synthetic_cdisc_dataset("latest", "advs")
-                  ADVS_label <- var_labels(ADVS)
-
-                  # post-baseline
-                  ADVS_pb <- ADVS %>%
-                    filter(
-                      ABLFL != "Y",
-                      ABLFL2 != "Y"
-                    )
-
-                  ADVS_pb_max <- ADVS_pb %>%
-                    group_by(PARAM, USUBJID) %>%
-                    arrange(desc(AVAL)) %>%
-                    slice(1) %>%
-                    ungroup() %>%
-                    mutate(AVISIT = "Post-Baseline Maximum")
-
-                  ADVS_pb_min <- ADVS_pb %>%
-                    group_by(PARAM, USUBJID) %>%
-                    arrange(AVAL) %>%
-                    slice(1) %>%
-                    ungroup() %>%
-                    mutate(AVISIT = "Post-Baseline Minimum")
-
-                  ADVS_pb_last <- ADVS_pb %>%
-                    group_by(PARAM, USUBJID) %>%
-                    arrange(desc(AVISITN)) %>%
-                    slice(1) %>%
-                    ungroup() %>%
-                    mutate(AVISIT = "Post-Baseline Last")
-
-                  ADVS_f <- rbind(
-                    ADVS,
-                    ADVS_pb_last,
-                    ADVS_pb_min,
-                    ADVS_pb_max
-                  )
-
-                  ADVS <- ADVS_f %>%
-                    mutate(AVISIT = droplevels(AVISIT))
-                  var_labels(ADVS) <- ADVS_label'
-    ),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_summary_by(
       label = "Vital Sign Results and Change from Baseline by Visit",
       dataname = "ADVS",
       arm_var = choices_selected(
-        choices = variable_choices(adsl, c("ARM", "ARMCD")),
+        choices = variable_choices(ADSL, c("ARM", "ARMCD")),
         selected = "ARM"
       ),
       by_vars = choices_selected(
-        choices = variable_choices(advs, c("PARAM", "AVISIT")),
+        choices = variable_choices(ADVS, c("PARAM", "AVISIT")),
         selected = c("AVISIT", "PARAM")
       ),
       summarize_vars = choices_selected(
-        choices = variable_choices(advs, c("AVAL", "CHG")),
+        choices = variable_choices(ADVS, c("AVAL", "CHG")),
         selected = c("AVAL", "CHG")
       ),
       useNA = "ifany",
       paramcd = choices_selected(
-        choices = value_choices(advs, "PARAMCD", "PARAM"),
+        choices = value_choices(ADVS, "PARAMCD", "PARAM"),
         selected = "DIABP"
       ),
       parallel_vars = TRUE
     )
   ),
-  filter = list(ADVS = list(AVAL = list()))
+  filter = teal_slices(teal_slice("ADVS", "AVAL", selected = NULL))
 )
 
 shinyApp(app$ui, app$server)

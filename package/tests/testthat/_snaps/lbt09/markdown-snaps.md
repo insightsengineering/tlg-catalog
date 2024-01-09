@@ -3,8 +3,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Liver Laboratory Test Criterion                                        A: Drug X                        B: Placebo                      C: Combination         
-                                                                     BASELINE      POST-BASELINE       BASELINE      POST-BASELINE       BASELINE      POST-BASELINE 
+                                                                             A: Drug X                        B: Placebo                      C: Combination         
+      Liver Laboratory Test Criterion                                BASELINE      POST-BASELINE       BASELINE      POST-BASELINE       BASELINE      POST-BASELINE 
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       Total Bilirubin <= 2xULN                                                                                                                                       
         ALT >3 - <= 5xULN                                         23/134 (17.2%)   15/134 (11.2%)   25/134 (18.7%)   27/134 (20.1%)   27/132 (20.5%)   30/132 (22.7%)
@@ -48,8 +48,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Liver Laboratory Test Criterion                                        A: Drug X                        B: Placebo                      C: Combination         
-                                                                     BASELINE      POST-BASELINE       BASELINE      POST-BASELINE       BASELINE      POST-BASELINE 
+                                                                             A: Drug X                        B: Placebo                      C: Combination         
+      Liver Laboratory Test Criterion                                BASELINE      POST-BASELINE       BASELINE      POST-BASELINE       BASELINE      POST-BASELINE 
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       Total Bilirubin <= 2xULN                                                                                                                                       
         ALT >3 - <= 5xULN                                         23/134 (17.2%)   15/134 (11.2%)   25/134 (18.7%)   27/134 (20.1%)   27/132 (20.5%)   30/132 (22.7%)

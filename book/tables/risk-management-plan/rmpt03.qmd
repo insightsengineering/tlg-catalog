@@ -1,0 +1,207 @@
+---
+title: RMPT03
+subtitle: Extent of Exposure by Age Group and Gender for Risk Management Plan
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adex <- synthetic_cdisc_dataset("latest", "adex")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adex <- df_explicit_na(adex)
+
+# Simulate ADEX records with PARAMCD == "TDURD" as they are not in sample scda dataset.
+set.seed(1, kind = "Mersenne-Twister")
+adex2 <- adex %>%
+  distinct(USUBJID, .keep_all = TRUE) %>%
+  mutate(
+    PARAMCD = "TDURD",
+    PARAM = "Overall duration (days)",
+    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE)
+  ) %>%
+  bind_rows(adex)
+
+# Now pre-processing steps are carried out.
+anl <- adex2 %>%
+  filter(
+    PARAMCD == "TDURD",
+    PARCAT2 == "Drug A",
+    SAFFL == "Y"
+  ) %>%
+  mutate(
+    AGEGR1 = factor(ifelse(AGE < 65, "<65", ">=65")),
+    AGEGR2 = factor(case_when(
+      AGE < 18 ~ "< 18",
+      AGE >= 18 & AGE <= 40 ~ "18 - 40",
+      AGE > 40 & AGE <= 64 ~ "41 - 64",
+      TRUE ~ ">=65"
+    ), levels = c("< 18", "18 - 40", "41 - 64", ">=65")),
+    SEX = factor(case_when(
+      SEX == "F" ~ "Female",
+      SEX == "M" ~ "Male"
+    ))
+  )
+
+adsl_f <- adsl %>%
+  filter(adsl$SAFFL == "Y") %>%
+  mutate(SEX = factor(case_when(
+    SEX == "F" ~ "Female",
+    SEX == "M" ~ "Male"
+  )))
+```
+
+## Standard Table
+
+```{r variant1, test = list(result_v1 = "result")}
+lyt <- basic_table(
+  title = "Extent of Exposure by Age Group and Gender: Safety-Evaluable Patients",
+  main_footer = "* Patient Time is the sum of exposure across all patients in days."
+) %>%
+  split_cols_by("SEX", split_fun = add_overall_level("Total", first = FALSE)) %>%
+  summarize_patients_exposure_in_cols(
+    var = "AVAL", col_split = TRUE,
+    .labels = c(n_patients = "Number of Patients", sum_exposure = "Patient Time*"),
+    custom_label = "Total Number of Patients and Patient Time"
+  ) %>%
+  analyze_patients_exposure_in_cols(
+    var = "AGEGR1",
+    col_split = FALSE
+  ) %>%
+  append_topleft(c("", "Age group (years)"))
+
+result <- build_table(lyt, df = anl, alt_counts_df = adsl_f)
+result
+```
+
+## Table Excluding Empty Age Groups
+
+```{r variant2, test = list(result_v2 = "result")}
+lyt <- basic_table(
+  title = "Duration of Exposure: Safety-Evaluable Patients",
+  main_footer = "* Patient Time is the sum of exposure across all patients in days."
+) %>%
+  split_cols_by("SEX", split_fun = add_overall_level("Total", first = FALSE)) %>%
+  summarize_patients_exposure_in_cols(
+    var = "AVAL", col_split = TRUE,
+    .labels = c(n_patients = "Number of Patients", sum_exposure = "Patient Time*"),
+    custom_label = "Total Number of Patients and Patient Time"
+  ) %>%
+  analyze_patients_exposure_in_cols(
+    var = "AGEGR2",
+    col_split = FALSE
+  ) %>%
+  append_topleft(c("", "Age group (years)"))
+
+result <- build_table(lyt, df = anl, alt_counts_df = adsl_f) %>%
+  prune_table()
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## `teal` App
+
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+library(teal.modules.clinical)
+
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
+
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADEX <- synthetic_cdisc_dataset("latest", "adex")
+
+  labels <- var_labels(ADEX)
+  set.seed(1, kind = "Mersenne-Twister")
+
+  labels <- var_labels(ADEX)
+  ADEX <- ADEX %>%
+    distinct(USUBJID, .keep_all = TRUE) %>%
+    mutate(
+      PARAMCD = "TDURD",
+      PARAM = "Overall duration (days)",
+      AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
+      AVALU = "Days",
+      SEX = factor(case_when(
+        SEX == "F" ~ "Female",
+        SEX == "M" ~ "Male"
+      ))
+    ) %>%
+    bind_rows(ADEX)
+
+  var_labels(ADEX) <- labels
+
+  ADEX <- ADEX %>%
+    mutate(
+      AGEGR1 = factor(ifelse(AGE < 65, "<65", ">=65")) %>% with_label("Age group (years)"),
+      AGEGR2 = factor(case_when(
+        AGE < 18 ~ "< 18",
+        AGE >= 18 & AGE <= 40 ~ "18 - 40",
+        AGE > 40 & AGE <= 64 ~ "41 - 64",
+        TRUE ~ ">=65"
+      ), levels = c("< 18", "18 - 40", "41 - 64", ">=65")) %>% with_label("Age group (years)")
+    )
+
+  ADSL <- ADSL %>%
+    mutate(SEX = factor(case_when(
+      SEX == "F" ~ "Female",
+      SEX == "M" ~ "Male"
+    )) %>% with_label("Sex"))
+})
+datanames <- c("ADSL", "ADEX")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
+## Reusable Configuration For Modules
+ADEX <- data[["ADEX"]]
+
+## Setup App
+app <- init(
+  data = data,
+  modules = modules(
+    tm_t_exposure(
+      label = "Duration of Exposure Table",
+      dataname = "ADEX",
+      paramcd = choices_selected(
+        choices = value_choices(ADEX, "PARAMCD", "PARAM"),
+        selected = "TDURD"
+      ),
+      col_by_var = choices_selected(
+        choices = variable_choices(ADEX, subset = c("SEX", "ARM")),
+        selected = "SEX"
+      ),
+      row_by_var = choices_selected(
+        choices = variable_choices(ADEX, subset = c("AGEGR1", "AGEGR2")),
+        selected = "AGEGR1"
+      ),
+      parcat = choices_selected(
+        choices = value_choices(ADEX, "PARCAT2"),
+        selected = "Drug A"
+      ),
+      add_total = FALSE
+    )
+  ),
+  filter = teal_slices(teal_slice("ADSL", "SAFFL", selected = "Y"))
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../repro.qmd >}}
+:::

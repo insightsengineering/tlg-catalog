@@ -13,15 +13,15 @@
       Baseline Prevalence of NAbs                                                                                         
         Baseline evaluable patients for ADA                  134           132             0           0           266    
         Patients with a positive ADA sample at baseline      63             64             0           0           127    
-      Patients with a positive NAb sample at baseline         0             0             NA           NA           0     
+      Patients with a positive NAb sample at baseline         0             0              0           0            0     
       Patient with no positive NAb samples at baseline        0             0              0           0            0     
       Incidence of Treatment Emergent NAbs                                                                                
         Post-baseline evaluable patients for ADA             134           132             0           0           266    
         Patients positive for ADA                            66             59             0           0           125    
-      Patients positive for Treatment Emergent NAb            0             0             NA           NA           0     
+      Patients positive for Treatment Emergent NAb            0             0              0           0            0     
       Treatment-induced NAb                                   0             0              0           0            0     
       Treatment-enhanced NAb                                  0             0              0           0            0     
-      Patients negative for NAb                               0             0             NA           NA           0     
+      Patients negative for NAb                               0             0              0           0            0     
       Treatment unaffected                                    0             0              0           0            0     
       ————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       

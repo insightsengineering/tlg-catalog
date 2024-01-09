@@ -416,65 +416,67 @@ result
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label='skip_if_testing'}
-#| screenshot.opts = list(delay = 30)
-
-library(scda)
-library(dplyr)
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
 library(teal.modules.clinical)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adlb <- synthetic_cdisc_dataset("latest", "adlb")
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
 
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADLB <- synthetic_cdisc_dataset("latest", "adlb")
+})
+datanames <- c("ADSL", "ADLB")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADLB <- data[["ADLB"]]
+
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
-    cdisc_dataset("ADLB", adlb,
-      code = 'ADLB <- synthetic_cdisc_dataset("latest", "adlb")'
-    ),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_shift_by_grade(
       label = "Grade Laboratory Abnormality Table",
       dataname = "ADLB",
       arm_var = choices_selected(
-        choices = variable_choices(adsl, subset = c("ARM", "ARMCD")),
+        choices = variable_choices(ADSL, subset = c("ARM", "ARMCD")),
         selected = "ARM"
       ),
       paramcd = choices_selected(
-        choices = value_choices(adlb, "PARAMCD", "PARAM"),
+        choices = value_choices(ADLB, "PARAMCD", "PARAM"),
         selected = "ALT"
       ),
       worst_flag_var = choices_selected(
-        choices = variable_choices(adlb, subset = c("WGRLOVFL", "WGRLOFL", "WGRHIVFL", "WGRHIFL")),
+        choices = variable_choices(ADLB, subset = c("WGRLOVFL", "WGRLOFL", "WGRHIVFL", "WGRHIFL")),
         selected = c("WGRLOVFL")
       ),
       worst_flag_indicator = choices_selected(
-        value_choices(adlb, "WGRLOVFL"),
+        value_choices(ADLB, "WGRLOVFL"),
         selected = "Y", fixed = TRUE
       ),
       anl_toxgrade_var = choices_selected(
-        choices = variable_choices(adlb, subset = c("ATOXGR")),
+        choices = variable_choices(ADLB, subset = c("ATOXGR")),
         selected = c("ATOXGR"),
         fixed = TRUE
       ),
       base_toxgrade_var = choices_selected(
-        choices = variable_choices(adlb, subset = c("BTOXGR")),
+        choices = variable_choices(ADLB, subset = c("BTOXGR")),
         selected = c("BTOXGR"),
         fixed = TRUE
       ),
       add_total = FALSE
     )
   ),
-  filter = list(
-    ADSL = list(SAFFL = "Y")
-  )
+  filter = teal_slices(teal_slice("ADSL", "SAFFL", selected = "Y"))
 )
 
 shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::

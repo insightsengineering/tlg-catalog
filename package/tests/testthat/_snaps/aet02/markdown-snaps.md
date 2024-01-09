@@ -199,8 +199,8 @@
     Code
       print(data_snap[[i]])
     Output
-      MedDRA Preferred Term                                       A: Drug X    B: Placebo   C: Combination
-                                                                   (N=134)      (N=134)        (N=132)    
+                                                                  A: Drug X    B: Placebo   C: Combination
+      MedDRA Preferred Term                                        (N=134)      (N=134)        (N=132)    
       ————————————————————————————————————————————————————————————————————————————————————————————————————
       Total number of patients with at least one adverse event   100 (74.6%)   98 (73.1%)    103 (78.0%)  
       Total number of events                                         502          480            604      

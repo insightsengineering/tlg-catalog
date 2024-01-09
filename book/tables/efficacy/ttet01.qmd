@@ -394,19 +394,28 @@ result
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label='skip_if_testing'}
-#| screenshot.opts = list(delay = 20)
-
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
 library(teal.modules.clinical)
-library(scda)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adtte <- synthetic_cdisc_dataset("latest", "adtte")
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
 
-# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-adsl <- df_explicit_na(adsl)
-adtte <- df_explicit_na(adtte)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
 
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADTTE <- df_explicit_na(ADTTE)
+})
+datanames <- c("ADSL", "ADTTE")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADTTE <- data[["ADTTE"]]
 arm_ref_comp <- list(
   ACTARMCD = list(
     ref = "ARM B",
@@ -418,32 +427,29 @@ arm_ref_comp <- list(
   )
 )
 
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl") %>% df_explicit_na()'),
-    cdisc_dataset("ADTTE", adtte, code = 'ADTTE <- synthetic_cdisc_dataset("latest", "adtte") %>% df_explicit_na()'),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_tte(
       label = "Time To Event Table",
       dataname = "ADTTE",
       arm_var = choices_selected(
-        variable_choices(adsl, c("ARM", "ARMCD", "ACTARMCD")),
+        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),
         "ARM"
       ),
       arm_ref_comp = arm_ref_comp,
       paramcd = choices_selected(
-        value_choices(adtte, "PARAMCD", "PARAM"),
+        value_choices(ADTTE, "PARAMCD", "PARAM"),
         "OS"
       ),
       strata_var = choices_selected(
-        variable_choices(adsl, c("SEX", "BMRKR2")),
+        variable_choices(ADSL, c("SEX", "BMRKR2")),
         "SEX"
       ),
       time_points = choices_selected(c(6, 8), 6),
       event_desc_var = choices_selected(
-        variable_choices(adtte, "EVNTDESC"),
+        variable_choices(ADTTE, "EVNTDESC"),
         "EVNTDESC",
         fixed = TRUE
       )

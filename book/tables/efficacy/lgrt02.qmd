@@ -154,17 +154,25 @@ result
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label='skip_if_testing'}
-#| screenshot.opts = list(delay = 16)
-
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
 library(teal.modules.clinical)
-library(scda)
-library(dplyr)
 
-ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-ADRS <- synthetic_cdisc_dataset("latest", "adrs") %>%
-  filter(PARAMCD %in% c("BESRSPI", "INVET"))
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
 
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADRS <- synthetic_cdisc_dataset("latest", "adrs") %>%
+    filter(PARAMCD %in% c("BESRSPI", "INVET"))
+})
+datanames <- c("ADSL", "ADRS")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
+## Reusable Configuration For Modules
+ADRS <- data[["ADRS"]]
 arm_ref_comp <- list(
   ACTARMCD = list(
     ref = "ARM B",
@@ -176,15 +184,9 @@ arm_ref_comp <- list(
   )
 )
 
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", ADSL, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
-    cdisc_dataset(
-      "ADRS", ADRS,
-      code = 'ADRS <- synthetic_cdisc_dataset("latest", "adrs") %>% filter(PARAMCD %in% c("BESRSPI", "INVET"))'
-    ),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_logistic(
       label = "Logistic Regression",
@@ -210,5 +212,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::

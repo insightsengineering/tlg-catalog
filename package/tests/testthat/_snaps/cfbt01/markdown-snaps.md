@@ -3,9 +3,9 @@
     Code
       print(data_snap[[i]])
     Output
-      Parameter                      A: Drug X                        B: Placebo                      C: Combination         
-        Analysis Visit                      Change from                       Change from                       Change from  
-                          Value at Visit      Baseline      Value at Visit      Baseline      Value at Visit      Baseline   
+                                     A: Drug X                        B: Placebo                      C: Combination         
+      Parameter                             Change from                       Change from                       Change from  
+        Analysis Visit    Value at Visit      Baseline      Value at Visit      Baseline      Value at Visit      Baseline   
       ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       BFI All Questions                                                                                                      
         BASELINE                                                                                                             

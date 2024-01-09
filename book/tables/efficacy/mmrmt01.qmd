@@ -46,7 +46,7 @@ var_labels(adqs_f) <- var_labels(adqs)
 
 ### Considering the treatment variable in the model
 
-```{r variant1, test = list(result_v1 = "result")}
+```{r variant1, test = list(result_v1 = "result"), message=FALSE}
 mmrm_results <- fit_mmrm(
   vars = list(
     response = "CHG",
@@ -123,6 +123,7 @@ a <- basic_table(show_colcounts = TRUE) %>%
 # Second prepare the baseline values summary table.
 baseline_dat <- adqs %>%
   filter(AVISIT == "BASELINE") %>%
+  distinct(USUBJID, .keep_all = TRUE) %>%
   droplevels()
 
 b <- basic_table(show_colcounts = TRUE) %>%
@@ -210,24 +211,33 @@ as.rtable(mmrm_results, type = "diagnostic")
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label='skip_if_testing'}
-#| screenshot.opts = list(delay = 24)
-
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
 library(teal.modules.clinical)
-library(scda)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adqs <- synthetic_cdisc_dataset("latest", "adqs") %>%
-  dplyr::filter(ABLFL != "Y" & ABLFL2 != "Y") %>%
-  dplyr::filter(AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22")) %>%
-  dplyr::mutate(
-    AVISIT = as.factor(AVISIT),
-    AVISITN = rank(AVISITN) %>%
-      as.factor() %>%
-      as.numeric() %>%
-      as.factor() # making consecutive numeric factor
-  )
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
 
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADQS <- synthetic_cdisc_dataset("latest", "adqs") %>%
+    filter(ABLFL != "Y" & ABLFL2 != "Y") %>%
+    filter(AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22")) %>%
+    mutate(
+      AVISIT = as.factor(AVISIT),
+      AVISITN = rank(AVISITN) %>%
+        as.factor() %>%
+        as.numeric() %>%
+        as.factor() # making consecutive numeric factor
+    )
+})
+datanames <- c("ADSL", "ADQS")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
+## Reusable Configuration For Modules
+ADQS <- data[["ADQS"]]
 arm_ref_comp <- list(
   ARMCD = list(
     ref = "ARM A",
@@ -235,23 +245,9 @@ arm_ref_comp <- list(
   )
 )
 
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl, code = 'ADSL <- synthetic_cdisc_dataset("latest", "adsl")'),
-    cdisc_dataset("ADQS", adqs,
-      code = 'ADQS <- synthetic_cdisc_dataset("latest", "adqs") %>%
-              dplyr::filter(ABLFL != "Y" & ABLFL2 != "Y") %>%
-              dplyr::filter(AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22")) %>%
-              dplyr::mutate(
-                AVISIT = as.factor(AVISIT),
-                AVISITN = rank(AVISITN) %>%
-                  as.factor() %>%
-                  as.numeric() %>%
-                  as.factor() # making consecutive numeric factor
-              )'
-    ),
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_a_mmrm(
       label = "MMRM",
@@ -262,7 +258,7 @@ app <- init(
       visit_var = choices_selected(c("AVISIT", "AVISITN"), "AVISIT"),
       arm_ref_comp = arm_ref_comp,
       paramcd = choices_selected(
-        choices = value_choices(adqs, "PARAMCD", "PARAM"),
+        choices = value_choices(ADQS, "PARAMCD", "PARAM"),
         selected = "FKSI-FWB"
       ),
       cov_var = choices_selected(c("BASE", "AGE", "SEX", "BASE:AVISIT"), NULL),

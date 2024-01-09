@@ -1,0 +1,142 @@
+---
+title: RMPT04
+subtitle: Extent of Exposure by Ethnic Origin for Risk Management Plan
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../test-utils/envir_hook.qmd >}}
+
+::: panel-tabset
+## Data Setup
+
+```{r setup, message=FALSE}
+#| code-fold: show
+
+library(tern)
+library(scda)
+library(dplyr)
+
+adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adex <- synthetic_cdisc_dataset("latest", "adex")
+
+# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+adsl <- df_explicit_na(adsl)
+adex <- df_explicit_na(adex)
+
+# Simulate ADEX records with PARAMCD == "TDURD" as they are not in sample scda dataset.
+set.seed(1, kind = "Mersenne-Twister")
+adex2 <- adex %>%
+  distinct(USUBJID, .keep_all = TRUE) %>%
+  mutate(
+    PARAMCD = "TDURD",
+    PARAM = "Overall duration (days)",
+    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE)
+  ) %>%
+  bind_rows(adex)
+
+
+# Now pre-processing steps are carried out.
+anl <- adex2 %>%
+  filter(
+    PARAMCD == "TDURD",
+    PARCAT2 == "Drug A",
+    SAFFL == "Y"
+  )
+
+adsl_f <- adsl %>% filter(adsl$SAFFL == "Y")
+```
+
+## Standard Table
+
+```{r variant1, test = list(result_v1 = "result")}
+lyt <- basic_table(
+  title = "Extent of Exposure by Ethnic Origin: Safety-Evaluable Patients",
+  main_footer = "* Patient Time is the sum of exposure across all patients in days.",
+  show_colcounts = TRUE
+) %>%
+  analyze_patients_exposure_in_cols(
+    var = "ETHNIC",
+    col_split = TRUE,
+    add_total_level = TRUE,
+    custom_label = "Total"
+  ) %>%
+  append_topleft(c("", "Ethnicity"))
+
+result <- build_table(lyt, df = anl, alt_counts_df = adsl_f)
+result
+```
+
+{{< include ../../test-utils/save_results.qmd >}}
+
+## `teal` App
+
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+library(teal.modules.clinical)
+
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
+
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADEX <- synthetic_cdisc_dataset("latest", "adex")
+
+  labels <- var_labels(ADEX)
+  set.seed(1, kind = "Mersenne-Twister")
+
+  labels <- var_labels(ADEX)
+  ADEX <- ADEX %>%
+    distinct(USUBJID, .keep_all = TRUE) %>%
+    mutate(
+      PARAMCD = "TDURD",
+      PARAM = "Overall duration (days)",
+      AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),
+      AVALU = "Days"
+    ) %>%
+    bind_rows(ADEX)
+
+  var_labels(ADEX) <- labels
+})
+datanames <- c("ADSL", "ADEX")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
+
+## Reusable Configuration For Modules
+ADEX <- data[["ADEX"]]
+
+## Setup App
+app <- init(
+  data = data,
+  modules = modules(
+    tm_t_exposure(
+      label = "Duration of Exposure Table",
+      dataname = "ADEX",
+      paramcd = choices_selected(
+        choices = value_choices(ADEX, "PARAMCD", "PARAM"),
+        selected = "TDURD"
+      ),
+      col_by_var = choices_selected(
+        choices = variable_choices(ADEX, subset = c("ARM")),
+        selected = NULL
+      ),
+      row_by_var = choices_selected(
+        choices = variable_choices(ADEX, subset = c("ETHNIC", "SEX")),
+        selected = "ETHNIC"
+      ),
+      parcat = choices_selected(
+        choices = value_choices(ADEX, "PARCAT2"),
+        selected = "Drug A"
+      ),
+      add_total = FALSE
+    )
+  ),
+  filter = teal_slices(teal_slice("ADSL", "SAFFL", selected = "Y"))
+)
+
+shinyApp(app$ui, app$server)
+```
+
+{{< include ../../repro.qmd >}}
+:::

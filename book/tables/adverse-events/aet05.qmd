@@ -72,51 +72,51 @@ result
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label='skip_if_testing'}
-#| screenshot.opts = list(delay = 8)
-
-library(scda)
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
 library(teal.modules.clinical)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adaette <- synthetic_cdisc_dataset("latest", "adaette")
+## Data reproducible code
+data <- teal_data()
+data <- within(data, {
+  library(scda)
+  library(dplyr)
+  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+  ADAETTE <- synthetic_cdisc_dataset("latest", "adaette")
 
-# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
-adsl <- df_explicit_na(adsl)
-adaette <- df_explicit_na(adaette)
+  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
+  ADSL <- df_explicit_na(ADSL)
+  ADAETTE <- df_explicit_na(ADAETTE)
 
-adaette <- adaette %>%
-  dplyr::filter(PARAMCD %in% c("AETTE1", "AETTE2", "AETTE3")) %>%
-  dplyr::mutate(is_event = CNSR == 0) %>%
-  dplyr::mutate(n_events = as.integer(is_event))
+  ADAETTE <- ADAETTE %>%
+    filter(PARAMCD %in% c("AETTE1", "AETTE2", "AETTE3")) %>%
+    mutate(is_event = CNSR == 0) %>%
+    mutate(n_events = as.integer(is_event))
+})
+datanames <- c("ADSL", "ADAETTE")
+datanames(data) <- datanames
+join_keys(data) <- default_cdisc_join_keys[datanames]
 
+## Reusable Configuration For Modules
+ADSL <- data[["ADSL"]]
+ADAETTE <- data[["ADAETTE"]]
+
+## Setup App
 app <- init(
-  data = cdisc_data(
-    cdisc_dataset("ADSL", adsl),
-    cdisc_dataset("ADAETTE", adaette),
-    code =
-      'ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))
-       ADAETTE <- df_explicit_na(synthetic_cdisc_dataset("latest", "adaette"))
-       ADAETTE <- ADAETTE %>%
-  dplyr::filter(PARAMCD %in% c("AETTE1", "AETTE2", "AETTE3")) %>%
-  dplyr::mutate(is_event = CNSR == 0) %>%
-  dplyr::mutate(n_events = as.integer(is_event))',
-    check = TRUE
-  ),
+  data = data,
   modules = modules(
     tm_t_events_patyear(
       label = "AE rate adjusted for patient-years at risk Table",
       dataname = "ADAETTE",
       arm_var = choices_selected(
-        choices = variable_choices(adsl, c("ARM", "ARMCD")),
+        choices = variable_choices(ADSL, c("ARM", "ARMCD")),
         selected = "ARMCD"
       ),
       paramcd = choices_selected(
-        choices = value_choices(adaette, "PARAMCD", "PARAM"),
+        choices = value_choices(ADAETTE, "PARAMCD", "PARAM"),
         selected = "AETTE1"
       ),
       events_var = choices_selected(
-        choices = variable_choices(adaette, "n_events"),
+        choices = variable_choices(ADAETTE, "n_events"),
         selected = "n_events",
         fixed = TRUE
       )

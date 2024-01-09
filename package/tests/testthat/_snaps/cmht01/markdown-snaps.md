@@ -24,8 +24,8 @@
     Code
       print(data_snap[[i]])
     Output
-      Parameter                                     A: Drug X         B: Placebo         C: Combination  
-                                                     (N=134)           (N=134)              (N=132)      
+                                                    A: Drug X         B: Placebo         C: Combination  
+      Parameter                                      (N=134)           (N=134)              (N=132)      
       ———————————————————————————————————————————————————————————————————————————————————————————————————
       BFI All Questions                                                                                  
         Responders                                  57 (42.5%)        65 (48.5%)           50 (37.9%)    

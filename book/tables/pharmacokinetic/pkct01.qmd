@@ -26,10 +26,12 @@ adpc <- synthetic_cdisc_dataset("latest", "adpc") %>%
 adpc_1 <- adpc %>%
   mutate(
     NFRLT = as.factor(NFRLT),
-    AVALCAT1 = as.factor(AVALCAT1)
+    AVALCAT1 = as.factor(AVALCAT1),
+    NOMTPT = as.factor(paste(NFRLT, "/", PCTPT))
   ) %>%
-  select(NFRLT, ACTARM, VISIT, AVAL, PARAM, AVALCAT1) %>%
-  var_relabel(NFRLT = "Nominal Time from First Dose (hr)")
+  select(NOMTPT, ACTARM, VISIT, AVAL, PARAM, AVALCAT1)
+
+adpc_1$NOMTPT <- factor(adpc_1$NOMTPT, levels = levels(adpc_1$NOMTPT)[order(as.numeric(gsub(".*?([0-9\\.]+).*", "\\1", levels(adpc_1$NOMTPT))))])
 
 # Row structure
 lyt_rows <- basic_table() %>%
@@ -47,9 +49,9 @@ lyt_rows <- basic_table() %>%
     label_pos = "topleft"
   ) %>%
   split_rows_by(
-    var = "NFRLT",
+    var = "NOMTPT",
     split_fun = drop_split_levels,
-    split_label = obj_label(adpc_1$NFRLT),
+    split_label = "Nominal Time (hr) / Timepoint",
     label_pos = "topleft",
     child_labels = "hidden"
   )
@@ -70,7 +72,7 @@ lyt <- lyt_rows %>%
       n = "n", n_blq = "Number\nof\nLTRs/BLQs", mean = "Mean", sd = "SD", cv = "CV (%) Mean",
       geom_mean = "Geometric Mean", geom_cv = "CV % Geometric Mean", median = "Median", min = "Minimum", max = "Maximum"
     ),
-    na_level = "NE",
+    na_str = "NE",
     .aligns = "decimal"
   )
 
@@ -146,7 +148,7 @@ result
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label='skip_if_testing'}
+```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
 #| code-fold: show
 
 # In progress
