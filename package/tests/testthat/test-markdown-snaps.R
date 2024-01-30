@@ -12,7 +12,7 @@ rds_variants <- gsub("\\.rds$", "", rds_files)
 
 skip_tests <- setdiff(snapshot_variants, rds_variants)
 if (length(skip_tests)) {
-  cat(
+  print(
     paste0(
       "Data snapshot file not found for ", length(skip_tests), " articles. Skipping tests for the articles: ",
       paste(skip_tests, collapse = ", ")
