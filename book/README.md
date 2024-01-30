@@ -42,7 +42,7 @@ x <- dependency_table(project = ".", verbose = 1)
 install_deps(x, verbose = 1, install_project = FALSE)
 ```
 
-You'll see that files under [tables](tables), [listings](listings), and [graphs](graphs) are in a `.qmd` file format, which translates to a **q**uarto **m**ark**d**own format.
+You'll see that files under [tables](tables), [listings](listings), and [graphs](graphs) are in a `.qmd` file format, which translates to a quarto markdown format.
 
 If you are adding a new table, listing, or graph in the form a a new `qmd` file, then you will also need to update the index in the [index.qmd](index.qmd) file with the new file name.
 To do so, run the R code in the [generate-index.R](generate-index.R) file after creating your template.
