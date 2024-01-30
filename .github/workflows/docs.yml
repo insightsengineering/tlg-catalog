@@ -20,19 +20,45 @@ on:
     - cron: "17 17 * * 3,6"
 
 jobs:
+  cache-refresh:
+    name: Refresh Cache ♽
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - name: Refresh Cache ♽
+        run: |
+          gh extension install actions/gh-actions-cache
+          echo "Fetching list of cache keys..."
+          cacheKeysForPR=$(gh actions-cache list -R $REPO -B $BRANCH -L 100 | cut -f 1 )
+          ## Setting this to not fail the workflow while deleting cache keys.
+          set +e
+          echo "Deleting caches..."
+          for cacheKey in $cacheKeysForPR
+          do {
+            gh actions-cache delete $cacheKey -R $REPO -B $BRANCH --confirm
+          }
+          done
+          echo "Cache refresh completed."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.event.repository.default_branch }}
+
   publish-dev:
     name: Build & Deploy TLGC (dev) 📖
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/insightsengineering/rstudio:latest
+    needs: cache-refresh
+    if: ${{ always() }}
     permissions:
       contents: write
     steps:
       - name: Checkout repo 🛎
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Cache artifacts 📀
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/package/.staged.dependencies
@@ -132,13 +158,16 @@ jobs:
       image: ghcr.io/insightsengineering/rstudio:latest
     permissions:
       contents: write
-    needs: r-cmd-stable
+    needs:
+      - r-cmd-stable
+      - cache-refresh
+    if: ${{ always() }}
     steps:
       - name: Checkout repo 🛎
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Cache artifacts 📀
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             book/_freeze
@@ -199,7 +228,7 @@ jobs:
         && !contains(github.event.commits[0].message, '[skip docs]')
     steps:
       - name: Checkout repo 🛎
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download artifact ⏬
         uses: actions/download-artifact@v3
