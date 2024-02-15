@@ -132,6 +132,5 @@ If you have further questions regarding the contribution guidelines, please cont
 <!-- urls -->
 [proj_readme]: https://github.com/insightsengineering/tlg-catalog/tree/main#readme
 [book_readme]: https://github.com/insightsengineering/tlg-catalog/tree/main/book#readme
-[package_readme]: https://github.com/insightsengineering/tlg-catalog/tree/main/package#readme
 [license]: https://raw.githubusercontent.com/insightsengineering/tlg-catalog/main/LICENSE
 [insights]: https://github.com/insightsengineering/tlg-catalog/pulse
