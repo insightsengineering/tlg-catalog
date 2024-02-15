@@ -39,8 +39,9 @@ This will exclude a given code chunk from being executed during testing.
 
 This functionality relies on [`include` Quarto shortcode](https://quarto.org/docs/authoring/includes.html), [`knitr` chunk hooks](https://yihui.org/knitr/hooks/), [`knitr` option templates](https://yihui.org/knitr/options/#option-templates) and [`testthat2` snapshot testing](https://testthat.r-lib.org/articles/snapshotting.html).
 
-After including `envir_hook.qmd` file, a new variable `tenv` of environment type is created in the current environment.
-Each time a `test` chunk template is used, it will take the specified object from the current environment and save it in the `tenv` environment.
+After including `envir_hook.qmd` file, there are a few new `knitr` hooks registered.
+This will not produce any visible changes in the article.
+Each time a `test` chunk template is used, it will take the specified object from the current environment and save it in the newly created environment type of object `tenv`.
 At the end, `tenv` object is saved as `.Rds` file.
 
 During testing, a for loop over articles is run.
