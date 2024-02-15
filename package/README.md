@@ -2,9 +2,9 @@
 
 This is a dummy package used for testing purposes. For the actual content please navigate to the [book directory](../book).
 
-The package itself is relatively empty and most of the logic lives in the `tests/` subdirectory.
-The main goal is to reuse state of art GitHub Actions and other CI/CD tools for package development.
-This also includes `testthat2` snapshot testing.
+The majority of the logic resides in the `tests/` subdirectory, while the package itself remains minimal.
+The main purpose of it is to reuse state of art GitHub Actions and other CI/CD tools for package development on the book content.
+This also includes `testthat2` snapshot testing for regression tests.
 
 ## Regression tests
 
