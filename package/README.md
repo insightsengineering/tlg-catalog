@@ -46,7 +46,7 @@ At the end, the `tenv` object is saved in an `.Rds` file.
 
 During testing, a `for` loop is run over all articles.
 If the `.Rds` file for an article is missing, the test is skipped.
-If it's present, it's loaded and its print output is compared with the expected one.
+If it is present, it is loaded and its print output is compared with the expected one.
 
 ### How to update individual snapshots?
 
