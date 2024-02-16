@@ -24,8 +24,14 @@ As an article author, you need to (i) register the hooks, (ii) use them where ap
 * At the beggining of the article, add the following: `{{< include ../../test-utils/envir_hook.qmd >}}`. It will register the `knitr` hooks for further use.
 * For code chunks without output - do nothing.
 * For code chunks with output:
-  * Inside chunk, make sure you assign the output to a variable and print the variable at the end of the chunk to make the output visible in the article. Example: `table <- foo(...); table` instead of `foo(...)`.
-  * In the chunk header, use the `test` chunk template listing the aforementioned variable with a unique name, using following syntax: `test = list(<name> = "<variable name>")`. Example: `{r, test = list(result_v1 = "table")}` to use `table` and name it `result_v1`.
+  * Inside chunk, make sure you assign the output to a variable and print the variable at the end of the chunk to make the output visible in the article.
+
+    Example: `table <- foo(...); table` instead of `foo(...)`.
+
+  * In the chunk header, use the `test` chunk template listing the aforementioned variable with a unique name, using following syntax: `test = list(<name> = "<variable name>")`.
+
+    Example: `{r, test = list(result_v1 = "table")}` to use `table` and name it `result_v1`.
+
 * At the end of the article (after all chunks with outputs), add `{{< include ../../test-utils/save_results.qmd >}}` to save all objects as `.Rds` files.
 
 This logic has been implemented in many articles already. Please refer to the existing ones for examples.
