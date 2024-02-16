@@ -7,11 +7,11 @@ The target audience is the clinical trials community, including statisticians, d
 
 ## Usage
 
-Each output is generated in separate articicle and this usually consists of:
+Each output is generated in a separate article and this usually consists of:
 
 * Data setup using synthetic data.
 * The output itself (many variants if applicable).
-* Interactive application.
+* The output embedded in an interactive application.
 * Reproducibility information.
 
 See the full list of available TLGs in [Index page](tlg-index.qmd).
@@ -24,7 +24,7 @@ Source code of an individual output can also be copied.
 
 ![chunk code copy](assets/img/chunk-code-copy.gif)
 
-For running the code in your environment, you might want to check reproduciblity information which allows you to install the required packages and run the code.
+The Reproducibility tab contains session information and allows one to install the packages required to properly run the code.
 
 ![download lockfile](assets/img/article-lock-download.gif)
 
@@ -41,9 +41,9 @@ Use `giscus` to share your feedback, ideas, ask questions, or report issues.
 
 This website is built using [Quarto](https://quarto.org/) and hosted on [Github Pages](https://pages.github.com/). This website is rebuilt and republished every time a change is pushed to the repository as well as on a daily basis as a part of the CI/CD process.
 
-The catalog is being rendered using "Stable" and "Development" profiles.
+The catalog is rendered using "Stable" and "Development" profiles.
 The main difference between them is the package versions used when generating the outputs.
-The "Stable" profile uses the latest released versions of all packages, whereas the "Development" profile uses the latest development versions of the NEST packages.
+The "Stable" profile uses the most recently released versions of all packages, whereas the "Development" profile uses the latest development versions of the NEST packages.
 This means that the same R code (e.g. `foo::bar()`) would be run using both the latest released and development package versions (e.g. `foo@v1.2.3` and `foo@v1.2.3.9123` respectively).
 If there are significant package API changes between released and development versions, please consider [conditional content](https://quarto.org/docs/authoring/conditional.html) (checking `QUARTO_PROFILE` environment variable) and/or `if` statements on respective package version.
 
