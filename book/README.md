@@ -10,7 +10,7 @@ The target audience is the clinical trials community, including statisticians, d
 Each output is generated in separate articicle and this usually consists of:
 
 * Data setup using synthetic data.
-* The output itself (of many variants if applicable).
+* The output itself (many variants if applicable).
 * Interactive application.
 * Reproducibility information.
 
