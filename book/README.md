@@ -45,7 +45,7 @@ The catalog is rendered using "Stable" and "Development" profiles.
 The main difference between them is the package versions used when generating the outputs.
 The "Stable" profile uses the most recently released versions of all packages, whereas the "Development" profile uses the latest development versions of the NEST packages.
 This means that the same R code (e.g. `foo::bar()`) would be run using both the latest released and development package versions (e.g. `foo@v1.2.3` and `foo@v1.2.3.9123` respectively).
-If there are significant package API changes between released and development versions, please consider [conditional content](https://quarto.org/docs/authoring/conditional.html) (checking `QUARTO_PROFILE` environment variable) and/or `if` statements on respective package version.
+If your item is affected by API changes between released and development versions, please consider [conditional content](https://quarto.org/docs/authoring/conditional.html) (checking `QUARTO_PROFILE` environment variable) and/or `if` statements on respective package version to enable the article to work in both profiles.
 
 As a part of the CI/CD process, each article's code is checked for quality, coherence and readability using tools such as `lintr`, `styler`, and `spelling`.
 Additionally, regression testing is performed using `testthat2` snapshot testing (see the [package repository component](https://github.com/insightsengineering/tlg-catalog/tree/main/package) for more details).

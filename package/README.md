@@ -21,8 +21,13 @@ A _standard_ render will be unaffected. These hooks will be used only during tes
 
 As an article author, you need to (i) register the hooks, (ii) use them where appropriate and (iii) save the results.
 
-* At the beggining of the article, add the following: `{{< include ../../test-utils/envir_hook.qmd >}}`. It will register the `knitr` hooks for further use.
-* For code chunks without output - do nothing.
+(i) Register the hooks
+
+* At the beggining of the article, add the following: `{{< include ../../test-utils/envir_hook.qmd >}}`.
+It will register the `knitr` hooks for further use and would not produce any visible changes to the content.
+
+(ii) Use the hooks
+
 * For code chunks with output:
   * Inside chunk, make sure you assign the output to a variable and print the variable at the end of the chunk to make the output visible in the article.
 
@@ -31,6 +36,10 @@ As an article author, you need to (i) register the hooks, (ii) use them where ap
   * In the chunk header, use the `test` chunk template listing the aforementioned variable with a unique name, using following syntax: `test = list(<name> = "<variable name>")`.
 
     Example: `{r, test = list(result_v1 = "table")}` to use `table` and name it `result_v1`.
+
+* For code chunks without output - do nothing.
+
+(iii) Save the results
 
 * At the end of the article (after all chunks with outputs), add `{{< include ../../test-utils/save_results.qmd >}}` to save all objects as `.Rds` files.
 
@@ -45,10 +54,10 @@ This will exclude a given code chunk from being executed during testing.
 
 This functionality relies on [`include` Quarto shortcode](https://quarto.org/docs/authoring/includes.html), [`knitr` chunk hooks](https://yihui.org/knitr/hooks/), [`knitr` option templates](https://yihui.org/knitr/options/#option-templates) and [`testthat2` snapshot testing](https://testthat.r-lib.org/articles/snapshotting.html).
 
-After including `envir_hook.qmd` file, there are a few new `knitr` hooks registered.
-This will not produce any visible changes in the article.
-Each time a `test` chunk template is used, it will take the specified object from the current environment and save it in the newly created environment type of object `tenv`.
-At the end, the `tenv` object is saved in an `.Rds` file.
+Including `envir_hook.qmd` beforehand will register a few `knitr` hooks for the use throughout the article.
+This will not produce any visible changes to the content.
+However, when evaluating code chunks where a `test` template is used, the object specified will be copied to a newly created, internal environment, `tenv`.
+When `save_results.qmd` is included, the `tenv` object is saved in an `.Rds` file.
 
 During testing, a `for` loop is run over all articles.
 If the `.Rds` file for an article is missing, the test is skipped.
