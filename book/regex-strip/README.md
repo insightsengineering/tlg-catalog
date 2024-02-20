@@ -29,4 +29,3 @@ Lua patterns does not support alteration operator therefore patterns needs to be
 ## Example
 
 Here is the source code for a minimal example: [example.qmd](example.qmd).
-
