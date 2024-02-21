@@ -8,8 +8,9 @@ This extension is not limited to R code blocks only, it can be used for any code
 For R, similar functionality can be achieved using `tidy` chunk option (source). This however, is applicable for single article / code chunk only and it is not possible to specify globally in the `_quarto.yml` file. This extension aims to address these limitations and provide more general solution applicable for not only R code blocks.
 
 Related discussions:
-* https://github.com/quarto-dev/quarto-cli/discussions/8760
-* https://github.com/quarto-dev/quarto-cli/discussions/7521
+
+* <https://github.com/quarto-dev/quarto-cli/discussions/8760>
+* <https://github.com/quarto-dev/quarto-cli/discussions/7521>
 
 ## Installing
 
