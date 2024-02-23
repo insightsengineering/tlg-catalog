@@ -24,7 +24,7 @@ As an article author, you need to (i) register the hooks, (ii) use them where ap
 (i) Register the hooks
 
 * At the beggining of the article, add the following: `{{< include ../../test-utils/envir_hook.qmd >}}`.
-It will register the `knitr` hooks for further use and would not produce any visible changes to the content.
+It will register the `knitr` hooks for further use and will not produce any visible changes to the content.
 
 (ii) Use the hooks
 
