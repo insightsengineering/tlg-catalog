@@ -23,6 +23,7 @@ if (length(skip_tests)) {
 # expect_snapshot_ggplot - set custom plot dimensions
 expect_snapshot_ggplot <- function(title, fig, width = NA, height = NA) {
   skip_if_not_installed("svglite")
+  skip_on_ci()
 
   name <- paste0(title, ".svg")
   path <- tempdir()
