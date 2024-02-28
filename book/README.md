@@ -1,4 +1,4 @@
-<a href='https://insightsengineering.github.io/tlg-catalog/'><img src="assets/img/logo.png" align="right" height="139" style="max-width: 100%; max-height: 139px;"/></a>
+# <a href='https://insightsengineering.github.io/tlg-catalog/'><img src="assets/img/logo.png" align="right" height="139" style="max-width: 100%; max-height: 139px;"/></a>
 
 The TLG catalog is a catalog of **T**ables, **L**istings, and **G**raphs for clinical trials generated using NEST packages.
 
