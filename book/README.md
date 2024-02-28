@@ -25,7 +25,7 @@ The full source code of each article can be viewed by clicking on the "Source Co
 :::
 
 ::: {.column style="vertical-align: middle; width: 65%"}
-![](assets/img/article-code-copy.gif)
+<a><img src="assets/img/article-code-copy.gif" style="max-width: 100%; max-height: 100%"/></a>
 :::
 
 ::: {.column style="vertical-align: middle; width: 30%; padding-right: 5%"}
@@ -33,7 +33,7 @@ Individual code chunks from within the article can also be viewed and copied.
 :::
 
 ::: {.column style="vertical-align: middle; width: 65%"}
-![](assets/img/chunk-code-copy.gif)
+<a><img src="assets/img/chunk-code-copy.gif" style="max-width: 100%; max-height: 100%"/></a>
 :::
 
 ::: {.column style="vertical-align: middle; width: 30%; padding-right: 5%"}
@@ -41,7 +41,7 @@ The Reproducibility tab contains session information and allows one to install t
 :::
 
 ::: {.column style="vertical-align: middle; width: 65%"}
-![](assets/img/article-lock-download.gif)
+<a><img src="assets/img/article-lock-download.gif" style="max-width: 100%; max-height: 100%"/></a>
 :::
 :::
 
