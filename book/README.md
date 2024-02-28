@@ -17,7 +17,7 @@ Each TLG is represented on a separate article page, typically including the foll
 
 See the full list of available TLGs on the [Index page](tlg-index.qmd).
 
-#### Interacting with Catalog R Code
+### Interacting with Catalog R Code
 
 ::: columns
 ::: {.column style="vertical-align: middle; width: 30%; padding-right: 5%"}
