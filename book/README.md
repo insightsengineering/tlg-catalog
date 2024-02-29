@@ -19,31 +19,31 @@ See the full list of available TLGs on the [Index page](tlg-index.qmd).
 
 ### Interacting with Catalog R Code
 
-::: columns
-::: {.column style="vertical-align: middle; width: 30%; padding-right: 5%"}
+<div class="columns">
+<div class="column" style="vertical-align: middle; width: 30%; padding-right: 5%">
 The full source code of each article can be viewed by clicking on the "Source Code" button at the top of the page and copied using the "Copy to Clipboard" button.
-:::
+</div>
 
-::: {.column style="vertical-align: middle; width: 65%"}
-<a><img src="assets/img/article-code-copy.gif" style="max-width: 100%; max-height: 100%"/></a>
-:::
+<div class="column" style="vertical-align: middle; width: 65%">
+<img src="assets/img/article-code-copy.gif" style="max-width: 100%; max-height: 100%"/>
+</div>
 
-::: {.column style="vertical-align: middle; width: 30%; padding-right: 5%"}
+<div class="column" style="vertical-align: middle; width: 30%; padding-right: 5%">
 Individual code chunks from within the article can also be viewed and copied.
-:::
+</div>
 
-::: {.column style="vertical-align: middle; width: 65%"}
+<div class="column" style="vertical-align: middle; width: 65%">
 <a><img src="assets/img/chunk-code-copy.gif" style="max-width: 100%; max-height: 100%"/></a>
-:::
+</div>
 
-::: {.column style="vertical-align: middle; width: 30%; padding-right: 5%"}
+<div class="column" style="vertical-align: middle; width: 30%; padding-right: 5%">
 The Reproducibility tab contains session information and allows one to install the packages required to properly run the code.
-:::
+</div>
 
-::: {.column style="vertical-align: middle; width: 65%"}
+<div class="column" style="vertical-align: middle; width: 65%">
 <a><img src="assets/img/article-lock-download.gif" style="max-width: 100%; max-height: 100%"/></a>
-:::
-:::
+</div>
+</div>
 
 ## License
 
