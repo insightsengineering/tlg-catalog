@@ -7,7 +7,7 @@ subtitle: Time-To-Event Summary
 
 {{< include ../../test-utils/envir_hook.qmd >}}
 
-::: panel-tabset
+::::: panel-tabset
 ## Data Setup
 
 ```{r setup, message=FALSE}
@@ -209,7 +209,8 @@ result
 
 ## Table with <br/> Stratified Analysis
 
-```{r variant4, test = list(result_v4 = "result")}
+::: {.content-visible when-profile="stable"}
+```{r variant4-stable}
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ARM", ref_group = "A: Drug X") %>%
   analyze_vars(
@@ -265,6 +266,66 @@ result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%
 
 result
 ```
+:::
+
+::: {.content-visible when-profile="development"}
+```{r variant4-devel, test = list(result_v4 = "result")}
+lyt <- basic_table(show_colcounts = TRUE) %>%
+  split_cols_by("ARM", ref_group = "A: Drug X") %>%
+  analyze_vars(
+    vars = "is_event",
+    .stats = "count_fraction",
+    .labels = c(count_fraction = "Patients with event (%)")
+  ) %>%
+  split_rows_by(
+    "EVNT1",
+    split_label = "Earliest contributing event",
+    split_fun = keep_split_levels("Patients with event (%)"),
+    label_pos = "visible",
+    child_labels = "hidden",
+    indent_mod = 1L,
+  ) %>%
+  analyze("EVNTDESC") %>%
+  analyze_vars(
+    vars = "is_not_event",
+    .stats = "count_fraction",
+    .labels = c(count_fraction = "Patients without event (%)"),
+    nested = FALSE,
+    show_labels = "hidden"
+  ) %>%
+  surv_time(
+    vars = "AVAL",
+    var_labels = "Time to Event (Months)",
+    is_event = "is_event",
+    table_names = "time_to_event"
+  ) %>%
+  coxph_pairwise(
+    vars = "AVAL",
+    is_event = "is_event",
+    var_labels = "Unstratified Analysis",
+    table_names = "coxph_unstratified"
+  ) %>%
+  coxph_pairwise(
+    vars = "AVAL",
+    is_event = "is_event",
+    var_labels = "Stratified Analysis",
+    strata = "SEX",
+    table_names = "coxph_stratified"
+  ) %>%
+  surv_timepoint(
+    vars = "AVAL",
+    var_labels = "Months",
+    is_event = "is_event",
+    method = "both",
+    time_point = 12
+  )
+
+result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%
+  prune_table()
+
+result
+```
+:::
 
 ## Table Modifying Time Point for <br/> the "XX Months" Analysis
 
@@ -394,7 +455,7 @@ result
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r teal, opts.label=c('skip_if_testing', 'app')}
 library(teal.modules.clinical)
 
 ## Data reproducible code
@@ -461,4 +522,4 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-:::
+:::::
