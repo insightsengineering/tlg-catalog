@@ -13,7 +13,7 @@ print_ref_templates <- function(fpath) {
 
 section_header <- function(title) {
   cat(
-    paste("", "------------------------------------------------------------------------", "", # nolint
+    paste("", "------------------------------------------------------------------------", "",
       paste0("### ", "**", title, "**"), "",
       sep = "\n"
     ),
@@ -22,7 +22,7 @@ section_header <- function(title) {
 }
 
 create_subsection <- function(fpath, title) {
-  cat(paste("", paste("####", title), "", "", sep = "\n"), file = "./tlg-index.qmd", append = TRUE) # nolint
+  cat(paste("", paste("####", title), "", "", sep = "\n"), file = "./tlg-index.qmd", append = TRUE)
   all_files <- list.files(path = fpath, pattern = "*.qmd", full.names = TRUE)
   invisible(sapply(all_files, print_ref_templates))
 }
@@ -30,7 +30,7 @@ create_subsection <- function(fpath, title) {
 # Create Index Header
 
 cat(
-  paste("---", "title: Index", "toc: true", "toc-depth: 4", "---", "", sep = "\n"), # nolint
+  paste("---", "title: Index", "toc: true", "toc-depth: 4", "---", "", sep = "\n"),
   file = "./tlg-index.qmd"
 )
 
@@ -59,9 +59,9 @@ create_subsection("./tables/vital-signs", "Vital Signs")
 section_header("Listings")
 create_subsection("./listings/ADA", "ADA")
 create_subsection("./listings/adverse-events", "Adverse Events")
-create_subsection("./listings/concomitant-medications", "Concomitant Medications") # nolint
+create_subsection("./listings/concomitant-medications", "Concomitant Medications")
 create_subsection("./listings/disposition", "Disposition")
-create_subsection("./listings/development-safety-update-report", "Development Safety Update Report") # nolint
+create_subsection("./listings/development-safety-update-report", "Development Safety Update Report")
 create_subsection("./listings/ECG", "ECG")
 create_subsection("./listings/exposure", "Exposure")
 create_subsection("./listings/lab-results", "Lab Results")
