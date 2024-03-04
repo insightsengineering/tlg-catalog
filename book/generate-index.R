@@ -1,8 +1,9 @@
-# Run file contents within TLG-C project to update the index
+# Run file contents within TLG-C project, with working directory set
+# to tlg-catalog/book, to update the index
 
 print_ref_templates <- function(fpath) {
   title <- sub("title: ", "", readLines(fpath)[2], )
-  subtitle <- sub("subtitle: ", "", readLines(fpath)[3], )
+  subtitle <- gsub("^'|'$", "", sub("subtitle: ", "", readLines(fpath)[3], ))
   temp_name <- paste(title, subtitle, sep = " -- ")
   cat(
     paste0(strrep("&nbsp;", 8), "[", temp_name, "]", "(", fpath, ")\n\n"),
