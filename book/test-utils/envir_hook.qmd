@@ -2,15 +2,25 @@
 #| renv.ignore: TRUE
 
 knitr::knit_hooks$set(test = function(options, envir, before = FALSE) {
+  if (isFALSE(options$eval)) {
+    return(NULL)
+  }
   if (isFALSE(testthat::is_checking() || testthat::is_testing())) {
     return(NULL)
   }
   if (isFALSE(before)) {
-    if (!exists("tenv", envir = envir)) {
+    if (isFALSE(exists("tenv", envir = envir))) {
       envir$tenv <- new.env()
     }
     for (i in seq_along(options$test)) {
-      expr <- substitute(tenv$id <- var, list(id = names(options$test)[i], var = as.name(options$test[[i]])))
+      new_name <- names(options$test)[i]
+      old_name <- options$test[[i]]
+
+      if (isFALSE(exists(old_name, envir = envir))) {
+        stop(sprintf("'%s' object not found. Please check 'test' template arguments.", old_name))
+      }
+
+      expr <- substitute(tenv$id <- var, list(id = new_name, var = as.name(old_name)))
       eval(expr, envir = envir)
     }
   }
