@@ -6,10 +6,6 @@ articles <- list.files(
   pattern = "*.qmd"
 ) |> grep("tables/|listings/|graphs/", x = _, value = TRUE)
 
-basename_no_ext <- function(x) {
-  tools::file_path_sans_ext(basename(x))
-}
-
 for (article in articles) {
   for (profile in c("development", "stable")) {
     testthat::test_that(paste(c(article, profile), collapse = " "), {
