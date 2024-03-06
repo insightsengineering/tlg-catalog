@@ -1,4 +1,4 @@
-# tables/lab-results/lbt03.qmd stable
+# tables/lab-results/lbt03.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -37,7 +37,7 @@
         Median             0.01           0.15            0.05     
         Min - Max      -4.15 - 3.96   -3.50 - 3.53    -3.63 - 4.78 
 
----
+# tables/lab-results/lbt03.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])

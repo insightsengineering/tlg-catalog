@@ -8,29 +8,29 @@ articles <- list.files(
 
 for (article in articles) {
   for (profile in c("development", "stable")) {
-    testthat::test_that(paste(c(article, profile), collapse = " "), {
-      if (profile != test_profile) {
-        testthat::skip("Skipping tests for the article in the non-active profile.")
-      }
+    if (profile != test_profile) {
+      next
+    }
 
-      if (grepl("graphs", article)) {
-        testthat::skip("Skipping tests for the article in the graphs directory.")
-      }
+    if (grepl("graphs", article)) {
+      next
+    }
 
-      data_file <- file.path(test_data_path, paste0(tools::file_path_sans_ext(article), ".rds"))
+    data_file <- file.path(test_data_path, paste0(tools::file_path_sans_ext(article), ".rds"))
 
-      if (isFALSE(file.exists(data_file))) {
-        testthat::skip(paste0("Data snapshot file not found for ", article, ". Skipping tests for the article."))
-      }
+    if (isFALSE(file.exists(data_file))) {
+      next
+    }
 
-      data_snap <- readRDS(data_file)
+    data_snap <- readRDS(data_file)
 
-      for (i in names(data_snap)) {
+    for (i in names(data_snap)) {
+      testthat::test_that(paste(c(article, i, profile), collapse = " "), {
         testthat::expect_snapshot(
           print(data_snap[[i]]),
           variant = paste0(c(gsub("/", "_", article), profile), collapse = "_")
         )
-      }
-    })
+      })
+    }
   }
 }

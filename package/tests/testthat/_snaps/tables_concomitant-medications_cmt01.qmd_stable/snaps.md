@@ -1,4 +1,4 @@
-# tables/concomitant-medications/cmt01.qmd stable
+# tables/concomitant-medications/cmt01.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -24,7 +24,7 @@
           medname C_2/2                                          52 (38.8%)    58 (43.3%)      60 (45.5%)  
           medname C_1/2                                          51 (38.1%)    50 (37.3%)      56 (42.4%)  
 
----
+# tables/concomitant-medications/cmt01.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])
@@ -44,7 +44,7 @@
         medname B_2/4                                          52 (38.8%)   55 (41.0%)     56 (42.4%)  
         medname B_3/4                                          47 (35.1%)   47 (35.1%)     52 (39.4%)  
 
----
+# tables/concomitant-medications/cmt01.qmd result_v3 stable
 
     Code
       print(data_snap[[i]])
@@ -67,7 +67,7 @@
         medname C_2/2                                          52 (38.8%)    58 (43.3%)      60 (45.5%)  
         medname C_1/2                                          51 (38.1%)    50 (37.3%)      56 (42.4%)  
 
----
+# tables/concomitant-medications/cmt01.qmd result_v4 stable
 
     Code
       print(data_snap[[i]])

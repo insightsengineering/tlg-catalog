@@ -1,4 +1,4 @@
-# tables/ECG/egt03.qmd stable
+# tables/ECG/egt03.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -22,7 +22,7 @@
         HIGH                                  1 (0.8%)     8 (6.1%)     0     1 (0.8%)
         Missing                               1 (0.8%)        0         0        0    
 
----
+# tables/ECG/egt03.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])

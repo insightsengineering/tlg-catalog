@@ -1,4 +1,4 @@
-# listings/ADA/adal02.qmd development
+# listings/ADA/adal02.qmd lsting development
 
     Code
       print(data_snap[[i]])

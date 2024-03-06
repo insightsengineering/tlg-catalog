@@ -1,4 +1,4 @@
-# tables/efficacy/rspt01.qmd stable
+# tables/efficacy/rspt01.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -24,7 +24,7 @@
       Not Evaluable (NE)                      1 (0.7%)          12 (9.0%)             5 (3.8%)     
         95% CI (Wald, with correction)      (0.00, 2.58)      (3.75, 14.16)         (0.15, 7.42)   
 
----
+# tables/efficacy/rspt01.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])
@@ -49,7 +49,7 @@
       Not Evaluable (NE)                      1 (0.7%)        12 (9.0%)         5 (3.8%)   
         95% CI (Wald, with correction)      (0.00, 2.58)    (3.75, 14.16)     (0.15, 7.42) 
 
----
+# tables/efficacy/rspt01.qmd result_v3 stable
 
     Code
       print(data_snap[[i]])
@@ -75,7 +75,7 @@
       Not Evaluable (NE)                     1 (0.7%)          12 (9.0%)             5 (3.8%)     
         90% CI (Clopper-Pearson)           (0.04, 3.49)      (5.25, 14.11)         (1.50, 7.80)   
 
----
+# tables/efficacy/rspt01.qmd result_v4 stable
 
     Code
       print(data_snap[[i]])
@@ -106,7 +106,7 @@
       Not Evaluable (NE)                            1 (0.7%)          12 (9.0%)             5 (3.8%)     
         95% CI (Wald, with correction)            (0.00, 2.58)      (3.75, 14.16)         (0.15, 7.42)   
 
----
+# tables/efficacy/rspt01.qmd result_v5 stable
 
     Code
       print(data_snap[[i]])
@@ -132,7 +132,7 @@
       Not Evaluable (NE)                      1 (0.7%)          12 (9.0%)             5 (3.8%)     
         95% CI (Wald, with correction)      (0.00, 2.58)      (3.75, 14.16)         (0.15, 7.42)   
 
----
+# tables/efficacy/rspt01.qmd result_v6 stable
 
     Code
       print(data_snap[[i]])

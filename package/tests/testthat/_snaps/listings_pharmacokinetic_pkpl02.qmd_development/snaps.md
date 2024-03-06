@@ -1,4 +1,4 @@
-# listings/pharmacokinetic/pkpl02.qmd development
+# listings/pharmacokinetic/pkpl02.qmd lsting development
 
     Code
       print(data_snap[[i]])

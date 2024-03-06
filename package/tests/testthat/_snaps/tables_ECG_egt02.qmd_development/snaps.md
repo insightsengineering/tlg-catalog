@@ -1,4 +1,4 @@
-# tables/ECG/egt02.qmd development
+# tables/ECG/egt02.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -16,7 +16,7 @@
         Low           45/134 (33.6%)   26/134 (19.4%)   38/132 (28.8%)
         High          29/134 (21.6%)   49/134 (36.6%)   27/132 (20.5%)
 
----
+# tables/ECG/egt02.qmd result_v2 development
 
     Code
       print(data_snap[[i]])

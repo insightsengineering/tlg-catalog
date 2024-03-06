@@ -1,4 +1,4 @@
-# tables/pharmacokinetic/pkpt06.qmd stable
+# tables/pharmacokinetic/pkpt06.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -19,7 +19,7 @@
         Median                     0.00497              0.00515      
         Min - Max             0.00238 - 0.00726    0.00236 - 0.00741 
 
----
+# tables/pharmacokinetic/pkpt06.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])

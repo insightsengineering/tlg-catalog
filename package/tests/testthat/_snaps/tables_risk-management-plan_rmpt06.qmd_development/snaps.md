@@ -1,4 +1,4 @@
-# tables/risk-management-plan/rmpt06.qmd development
+# tables/risk-management-plan/rmpt06.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -24,7 +24,7 @@
         Recovering/Resolving                                             81 (66.4%)     84 (68.3%)      88 (73.3%)  
         Unknown outcome                                                  38 (31.1%)     49 (39.8%)      44 (36.7%)  
 
----
+# tables/risk-management-plan/rmpt06.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -43,7 +43,7 @@
         Grade 5                                                          76 (56.7%)     70 (52.2%)      75 (56.8%)  
       Number of patients with at least one serious AE                   104 (77.6%)    101 (75.4%)      99 (75.0%)  
 
----
+# tables/risk-management-plan/rmpt06.qmd result_v3 development
 
     Code
       print(data_snap[[i]])
@@ -71,7 +71,7 @@
         Recovering/Resolving                                    81 (66.4%)     84 (68.3%)      88 (73.3%)  
         Unknown outcome                                         38 (31.1%)     49 (39.8%)      44 (36.7%)  
 
----
+# tables/risk-management-plan/rmpt06.qmd result_v4 development
 
     Code
       print(data_snap[[i]])

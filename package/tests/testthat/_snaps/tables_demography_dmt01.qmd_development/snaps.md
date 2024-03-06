@@ -1,4 +1,4 @@
-# tables/demography/dmt01.qmd development
+# tables/demography/dmt01.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -42,7 +42,7 @@
         Median                                          5.4           4.8            4.6             4.8     
         Min - Max                                   0.4 - 17.7    0.6 - 14.2      0.2 - 21.4      0.2 - 21.4 
 
----
+# tables/demography/dmt01.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -86,7 +86,7 @@
         MEDIUM                                      84 (62.7%)    76 (56.7%)      80 (60.6%)  
         HIGH                                        17 (12.7%)    17 (12.7%)      14 (10.6%)  
 
----
+# tables/demography/dmt01.qmd result_v3 development
 
     Code
       print(data_snap[[i]])
@@ -129,7 +129,7 @@
         Median                                          5.8           5.6            4.5      
         Min - Max                                   0.5 - 15.1    1.5 - 13.9      1.2 - 21.4  
 
----
+# tables/demography/dmt01.qmd result_v4 development
 
     Code
       print(data_snap[[i]])
@@ -167,7 +167,7 @@
         Median                                         150.1          153.0           146.5     
         Min - Max                                   69.1 - 231.2   87.2 - 220.9    71.8 - 220.2 
 
----
+# tables/demography/dmt01.qmd result_v5 development
 
     Code
       print(data_snap[[i]])

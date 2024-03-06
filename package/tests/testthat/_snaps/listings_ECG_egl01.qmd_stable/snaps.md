@@ -1,4 +1,4 @@
-# listings/ECG/egl01.qmd stable
+# listings/ECG/egl01.qmd lsting stable
 
     Code
       print(data_snap[[i]])

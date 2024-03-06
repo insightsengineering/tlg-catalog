@@ -1,4 +1,4 @@
-# tables/efficacy/dort01.qmd stable
+# tables/efficacy/dort01.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -22,7 +22,7 @@
         Event Free Rate (%)                           NA           NA             NA      
         95% CI                                        NA           NA             NA      
 
----
+# tables/efficacy/dort01.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])
@@ -46,7 +46,7 @@
         Hazard Ratio                                               0.60            0.90     
         95% CI                                                 (0.39, 0.93)    (0.57, 1.44) 
 
----
+# tables/efficacy/dort01.qmd result_v3 stable
 
     Code
       print(data_snap[[i]])
@@ -70,7 +70,7 @@
         Event Free Rate (%)                           NA           NA             NA      
         97.5% CI                                      NA           NA             NA      
 
----
+# tables/efficacy/dort01.qmd result_v4 stable
 
     Code
       print(data_snap[[i]])

@@ -1,4 +1,4 @@
-# tables/pharmacokinetic/pkpt02.qmd development
+# tables/pharmacokinetic/pkpt02.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -35,7 +35,7 @@
         Median                    5.08           4.97    
         Min - Max              2.25 - 7.39   2.10 - 7.49 
 
----
+# tables/pharmacokinetic/pkpt02.qmd result_v2 development
 
     Code
       print(data_snap[[i]])

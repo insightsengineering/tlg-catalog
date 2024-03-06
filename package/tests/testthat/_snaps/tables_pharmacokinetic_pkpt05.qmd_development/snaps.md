@@ -1,4 +1,4 @@
-# tables/pharmacokinetic/pkpt05.qmd development
+# tables/pharmacokinetic/pkpt05.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -22,7 +22,7 @@
         CLR (L/hr)           132   0.0502     0.0105     20.9        0.0491              21.9           0.0498    0.0251    0.0856 
         RENALCLD (L/hr/mg)   132   0.00511   0.000934    18.3       0.00502              19.7           0.00515   0.00236   0.00741
 
----
+# tables/pharmacokinetic/pkpt05.qmd result_v2 development
 
     Code
       print(data_snap[[i]])

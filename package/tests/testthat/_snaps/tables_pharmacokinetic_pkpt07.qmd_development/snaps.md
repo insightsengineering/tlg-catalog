@@ -1,4 +1,4 @@
-# tables/pharmacokinetic/pkpt07.qmd development
+# tables/pharmacokinetic/pkpt07.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -16,7 +16,7 @@
       ARM C                                                                                                                        
         RENALCLD (L/hr/mg)   132   0.00511   0.000934    18.3       0.00502              19.7           0.00515   0.00236   0.00741
 
----
+# tables/pharmacokinetic/pkpt07.qmd result_v2 development
 
     Code
       print(data_snap[[i]])

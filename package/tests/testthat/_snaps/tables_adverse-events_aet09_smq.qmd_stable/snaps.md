@@ -1,4 +1,4 @@
-# tables/adverse-events/aet09_smq.qmd stable
+# tables/adverse-events/aet09_smq.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -12,7 +12,7 @@
         Total number of events                                         55           63           64    
         dcd C.1.1.1.3                                              43 (32.1%)   46 (34.3%)   43 (32.6%)
 
----
+# tables/adverse-events/aet09_smq.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])

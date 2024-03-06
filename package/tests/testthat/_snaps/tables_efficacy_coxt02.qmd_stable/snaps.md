@@ -1,4 +1,4 @@
-# tables/efficacy/coxt02.qmd stable
+# tables/efficacy/coxt02.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -15,7 +15,7 @@
         Age                                                                         
           All                                      0.99       (0.97, 1.01)   0.5104 
 
----
+# tables/efficacy/coxt02.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])

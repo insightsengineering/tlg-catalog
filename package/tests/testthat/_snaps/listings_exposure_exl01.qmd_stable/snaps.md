@@ -1,4 +1,4 @@
-# listings/exposure/exl01.qmd stable
+# listings/exposure/exl01.qmd lsting stable
 
     Code
       print(data_snap[[i]])

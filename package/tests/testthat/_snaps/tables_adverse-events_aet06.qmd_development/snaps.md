@@ -1,4 +1,4 @@
-# tables/adverse-events/aet06.qmd development
+# tables/adverse-events/aet06.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -41,7 +41,7 @@
         Total number of events                                         39           16           52           11           44           20    
         dcd C.1.1.1.3                                              30 (38.0%)   13 (23.6%)   36 (43.9%)   10 (19.2%)   27 (38.6%)   16 (25.8%)
 
----
+# tables/adverse-events/aet06.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -84,7 +84,7 @@
         Total number of events                                         21           19           15           24           23           16           18           29           17    
         dcd C.1.1.1.3                                              17 (34.0%)   14 (37.8%)   12 (25.5%)   17 (37.8%)   17 (30.4%)   12 (36.4%)   12 (30.0%)   17 (40.5%)   14 (28.0%)
 
----
+# tables/adverse-events/aet06.qmd result_v3 development
 
     Code
       print(data_snap[[i]])
@@ -127,7 +127,7 @@
         Total number of events                                         14            7            4           30           20            7            1           35           8            12            9            35    
         dcd C.1.1.1.3                                              11 (25.0%)    4 (23.5%)    4 (36.4%)   24 (38.7%)   13 (35.1%)    6 (33.3%)    1 (10.0%)   26 (37.7%)   6 (21.4%)     7 (35.0%)    6 (33.3%)    24 (36.4%)
 
----
+# tables/adverse-events/aet06.qmd result_v4 development
 
     Code
       print(data_snap[[i]])
@@ -170,7 +170,7 @@
         Total number of events                                         5            50           18           45           13           51    
         dcd C.1.1.1.3                                              5 (18.5%)    38 (35.5%)   13 (50.0%)   33 (30.6%)   8 (38.1%)    35 (31.5%)
 
----
+# tables/adverse-events/aet06.qmd result_v5 development
 
     Code
       print(data_snap[[i]])

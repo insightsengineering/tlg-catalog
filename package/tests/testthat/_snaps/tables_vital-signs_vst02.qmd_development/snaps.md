@@ -1,4 +1,4 @@
-# tables/vital-signs/vst02.qmd development
+# tables/vital-signs/vst02.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -25,7 +25,7 @@
         Low                      43/134 (32.1%)    39/134 (29.1%)    39/132 (29.5%)    121/400 (30.2%)
         High                     46/134 (34.3%)    43/134 (32.1%)    44/132 (33.3%)    133/400 (33.2%)
 
----
+# tables/vital-signs/vst02.qmd result_v2 development
 
     Code
       print(data_snap[[i]])

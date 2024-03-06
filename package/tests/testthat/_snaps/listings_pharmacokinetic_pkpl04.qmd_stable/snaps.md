@@ -1,4 +1,4 @@
-# listings/pharmacokinetic/pkpl04.qmd stable
+# listings/pharmacokinetic/pkpl04.qmd lsting stable
 
     Code
       print(data_snap[[i]])

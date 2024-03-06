@@ -1,4 +1,4 @@
-# tables/adverse-events/aet04_pi.qmd development
+# tables/adverse-events/aet04_pi.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -25,7 +25,7 @@
       cl C.1                                                                                                                                                             
       dcd C.1.1.1.3                    32              32              0             34              34              0             33              33              0     
 
----
+# tables/adverse-events/aet04_pi.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -39,7 +39,7 @@
       cl D.1                                                                                                                                                             
       dcd D.1.1.1.1                    37               0             37             31               0             31             39               0             39     
 
----
+# tables/adverse-events/aet04_pi.qmd result_v3 development
 
     Code
       print(data_snap[[i]])
@@ -57,7 +57,7 @@
       cl C.2                                                                                                                                                             
       dcd C.2.1.2.1                    26               0              0             36               0              0             42               0              0     
 
----
+# tables/adverse-events/aet04_pi.qmd result_v4 development
 
     Code
       print(data_snap[[i]])
@@ -69,7 +69,7 @@
       cl C.2                                                                                                                                                             
       dcd C.2.1.2.1                    26               0              0             36               0              0             42               0              0     
 
----
+# tables/adverse-events/aet04_pi.qmd result_v5 development
 
     Code
       print(data_snap[[i]])
@@ -92,7 +92,7 @@
       cl C.1                                                                                                                                                             
       dcd C.1.1.1.3                    32              32              0             34              34              0             33              33              0     
 
----
+# tables/adverse-events/aet04_pi.qmd result_v6 development
 
     Code
       print(data_snap[[i]])
@@ -110,7 +110,7 @@
       cl C.2                                                                                                                                                                                                             
       dcd C.2.1.2.1                    26              26               0              0             36              36               0              0             42              42               0              0     
 
----
+# tables/adverse-events/aet04_pi.qmd result_v7 development
 
     Code
       print(data_snap[[i]])
@@ -128,7 +128,7 @@
       cl C.2                                                                                                                                                                                                             
       dcd C.2.1.2.1                    26               0               0              0             36               0               0              0             42               0               0              0     
 
----
+# tables/adverse-events/aet04_pi.qmd result_v8 development
 
     Code
       print(data_snap[[i]])

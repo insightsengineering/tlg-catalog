@@ -1,4 +1,4 @@
-# tables/efficacy/ttet01.qmd stable
+# tables/efficacy/ttet01.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -39,7 +39,7 @@
       —————————————————————————————————————————————————————————————————————————————————————
       
 
----
+# tables/efficacy/ttet01.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])
@@ -72,7 +72,7 @@
       ——————————————————————————————————————————————————————————————————————————————————
       
 
----
+# tables/efficacy/ttet01.qmd result_v3 stable
 
     Code
       print(data_snap[[i]])
@@ -106,7 +106,7 @@
       ———————————————————————————————————————————————————————————————————————————————————
       
 
----
+# tables/efficacy/ttet01.qmd result_v4 stable
 
     Code
       print(data_snap[[i]])
@@ -128,9 +128,9 @@
         Hazard Ratio                                           1.00              1.29      
         95% CI                                             (0.69, 1.44)      (0.91, 1.83)  
       Stratified Analysis                                                                  
-        p-value (log-rank)                                    0.9978            0.1733     
-        Hazard Ratio                                           1.00              1.27      
-        95% CI                                             (0.69, 1.44)      (0.90, 1.81)  
+        p-value (log-rank)                                    0.9998            0.1541     
+        Hazard Ratio                                           1.00              1.29      
+        95% CI                                             (0.69, 1.44)      (0.91, 1.83)  
       12 Months                                                                            
         Patients remaining at risk            49                48                37       
         Event Free Rate (%)                  56.72             56.72             47.73     
@@ -144,7 +144,7 @@
       —————————————————————————————————————————————————————————————————————————————————————
       
 
----
+# tables/efficacy/ttet01.qmd result_v5 stable
 
     Code
       print(data_snap[[i]])
@@ -178,7 +178,7 @@
       —————————————————————————————————————————————————————————————————————————————————————
       
 
----
+# tables/efficacy/ttet01.qmd result_v6 stable
 
     Code
       print(data_snap[[i]])

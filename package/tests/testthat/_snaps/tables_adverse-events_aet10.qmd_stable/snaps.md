@@ -1,4 +1,4 @@
-# tables/adverse-events/aet10.qmd stable
+# tables/adverse-events/aet10.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -17,7 +17,7 @@
       dcd C.2.1.2.1   35 (26.1%)   48 (35.8%)     55 (41.7%)     138 (34.5%) 
       dcd C.1.1.1.3   43 (32.1%)   46 (34.3%)     43 (32.6%)     132 (33.0%) 
 
----
+# tables/adverse-events/aet10.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])

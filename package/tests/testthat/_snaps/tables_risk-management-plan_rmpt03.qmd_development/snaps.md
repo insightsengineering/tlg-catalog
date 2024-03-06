@@ -1,4 +1,4 @@
-# tables/risk-management-plan/rmpt03.qmd development
+# tables/risk-management-plan/rmpt03.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -16,7 +16,7 @@
       
       * Patient Time is the sum of exposure across all patients in days.
 
----
+# tables/risk-management-plan/rmpt03.qmd result_v2 development
 
     Code
       print(data_snap[[i]])

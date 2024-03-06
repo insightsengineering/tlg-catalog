@@ -1,4 +1,4 @@
-# tables/deaths/dtht01.qmd development
+# tables/deaths/dtht01.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -13,7 +13,7 @@
         PROGRESSIVE DISEASE     8 (32%)     6 (26.1%)      6 (27.3%)       20 (28.6%) 
         OTHER                   8 (32%)     10 (43.5%)     6 (27.3%)       24 (34.3%) 
 
----
+# tables/deaths/dtht01.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -48,7 +48,7 @@
           PROGRESSIVE DISEASE                                     2 (18.2%)     3 (25%)        2 (25%)        7 (22.6%)  
           OTHER                                                   4 (36.4%)    4 (33.3%)       2 (25%)        10 (32.3%) 
 
----
+# tables/deaths/dtht01.qmd result_v3 development
 
     Code
       print(data_snap[[i]])
@@ -65,7 +65,7 @@
           Post-study reportings of death   1 (12.5%)    2 (20.0%)      1 (16.7%)       4 (16.7%)  
           All other causes                 7 (87.5%)    8 (80.0%)      5 (83.3%)       20 (83.3%) 
 
----
+# tables/deaths/dtht01.qmd result_v4 development
 
     Code
       print(data_snap[[i]])

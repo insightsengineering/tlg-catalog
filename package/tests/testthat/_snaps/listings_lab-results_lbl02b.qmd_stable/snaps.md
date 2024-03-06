@@ -1,4 +1,4 @@
-# listings/lab-results/lbl02b.qmd stable
+# listings/lab-results/lbl02b.qmd lsting stable
 
     Code
       print(data_snap[[i]])

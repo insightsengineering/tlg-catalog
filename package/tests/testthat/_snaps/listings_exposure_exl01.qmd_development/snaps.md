@@ -1,4 +1,4 @@
-# listings/exposure/exl01.qmd development
+# listings/exposure/exl01.qmd lsting development
 
     Code
       print(data_snap[[i]])

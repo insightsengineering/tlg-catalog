@@ -1,4 +1,4 @@
-# tables/medical-history/mht01.qmd stable
+# tables/medical-history/mht01.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -31,7 +31,7 @@
         trm D_2/3                                              48 (35.8%)    42 (31.3%)      50 (37.9%)  
         trm D_3/3                                              47 (35.1%)    58 (43.3%)      57 (43.2%)  
 
----
+# tables/medical-history/mht01.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])
@@ -46,7 +46,7 @@
         Total number of conditions                                 0           0              1       
         trm D_2/3                                                  0           0           1 (0.8%)   
 
----
+# tables/medical-history/mht01.qmd result_v3 stable
 
     Code
       print(data_snap[[i]])
@@ -74,7 +74,7 @@
         trm D_2/3                                              48 (35.8%)    42 (31.3%)      50 (37.9%)  
         trm D_3/3                                              47 (35.1%)    58 (43.3%)      57 (43.2%)  
 
----
+# tables/medical-history/mht01.qmd result_v4 stable
 
     Code
       print(data_snap[[i]])

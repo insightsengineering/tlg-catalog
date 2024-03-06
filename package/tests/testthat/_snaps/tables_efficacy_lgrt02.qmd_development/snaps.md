@@ -1,4 +1,4 @@
-# tables/efficacy/lgrt02.qmd development
+# tables/efficacy/lgrt02.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -15,7 +15,7 @@
       Age                                                                                                                         
         Age                                1                  0.070              0.054           1.07      (0.97, 1.19)    0.1945 
 
----
+# tables/efficacy/lgrt02.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -46,7 +46,7 @@
         ARM B * F, n = 82                             1                  16.373            2362.767                                     0.9945 
         ARM C * F, n = 70                             1                  32.492            3156.732                                     0.9918 
 
----
+# tables/efficacy/lgrt02.qmd result_v3 development
 
     Code
       print(data_snap[[i]])
@@ -70,7 +70,7 @@
         MULTIPLE, n = 1                                              1                  -0.363           10941.553         0.70      (0.00, >999.99)   1.0000 
         NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER, n = 1             1                  1.036            10941.553         2.82      (0.00, >999.99)   0.9999 
 
----
+# tables/efficacy/lgrt02.qmd result_v4 development
 
     Code
       print(data_snap[[i]])

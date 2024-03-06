@@ -1,4 +1,4 @@
-# tables/adverse-events/aet06_smq.qmd development
+# tables/adverse-events/aet06_smq.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -14,7 +14,7 @@
           dcd B.2.2.3.1                                            30 (38.0%)   18 (32.7%)   32 (39.0%)   22 (42.3%)   26 (37.1%)   25 (40.3%)
           dcd C.1.1.1.3                                            30 (38.0%)   13 (23.6%)   36 (43.9%)   10 (19.2%)   27 (38.6%)   16 (25.8%)
 
----
+# tables/adverse-events/aet06_smq.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -38,7 +38,7 @@
         Total number of patients with at least one adverse event       0            0            0            0            0            0     
         Total number of events                                         0            0            0            0            0            0     
 
----
+# tables/adverse-events/aet06_smq.qmd result_v3 development
 
     Code
       print(data_snap[[i]])

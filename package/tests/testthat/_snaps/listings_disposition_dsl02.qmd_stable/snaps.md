@@ -1,4 +1,4 @@
-# listings/disposition/dsl02.qmd stable
+# listings/disposition/dsl02.qmd lsting stable
 
     Code
       print(data_snap[[i]])

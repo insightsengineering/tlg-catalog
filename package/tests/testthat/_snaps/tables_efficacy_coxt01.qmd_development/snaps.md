@@ -1,4 +1,4 @@
-# tables/efficacy/coxt01.qmd development
+# tables/efficacy/coxt01.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -13,7 +13,7 @@
         Sex                                     247        0.98        (0.67, 1.43)     0.8970 
         Race                                    247        0.98        (0.67, 1.44)     0.9239 
 
----
+# tables/efficacy/coxt01.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -31,7 +31,7 @@
           BLACK OR AFRICAN AMERICAN                      1.08       (0.51, 2.29)                                
           WHITE                                          0.67       (0.27, 1.71)                                
 
----
+# tables/efficacy/coxt01.qmd result_v3 development
 
     Code
       print(data_snap[[i]])
@@ -50,7 +50,7 @@
           F                                              0.77       (0.47, 1.27)                                
           M                                              1.38       (0.75, 2.52)                                
 
----
+# tables/efficacy/coxt01.qmd result_v4 development
 
     Code
       print(data_snap[[i]])

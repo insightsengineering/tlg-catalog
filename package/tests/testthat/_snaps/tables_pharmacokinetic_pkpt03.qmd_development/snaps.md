@@ -1,4 +1,4 @@
-# tables/pharmacokinetic/pkpt03.qmd development
+# tables/pharmacokinetic/pkpt03.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -40,7 +40,7 @@
         CL obs (ml/day/kg)       132   5.07   1.07    21.1         4.96               22.4            5.01     2.48      7.50  
       
 
----
+# tables/pharmacokinetic/pkpt03.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -81,7 +81,7 @@
         CL obs (ml/day/kg)       132   5.07   1.07    21.1         4.96               22.4            5.01     2.48      7.50  
       
 
----
+# tables/pharmacokinetic/pkpt03.qmd result_v3 development
 
     Code
       print(data_snap[[i]])

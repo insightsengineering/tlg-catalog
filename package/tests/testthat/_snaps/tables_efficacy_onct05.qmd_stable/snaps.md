@@ -1,4 +1,4 @@
-# tables/efficacy/onct05.qmd stable
+# tables/efficacy/onct05.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -14,7 +14,7 @@
         S1                        140     67        38          56.7%       73        56          76.7%          2.51      (1.22, 5.20)
         S2                        128     67        46          68.7%       61        44          72.1%          1.18      (0.55, 2.53)
 
----
+# tables/efficacy/onct05.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])
@@ -31,7 +31,7 @@
         B                         92      45        26          57.8%       47        32          68.1%          1.56      (0.66, 3.66)
         A                         82      44        25          56.8%       38        31          81.6%          3.37      (1.22, 9.28)
 
----
+# tables/efficacy/onct05.qmd result_v3 stable
 
     Code
       print(data_snap[[i]])
@@ -47,7 +47,7 @@
         S1                        140     67        38          56.7%       73        56          76.7%          2.51      (1.37, 4.63)             0.0119          
         S2                        128     67        46          68.7%       61        44          72.1%          1.18      (0.62, 2.24)             0.6674          
 
----
+# tables/efficacy/onct05.qmd result_v4 stable
 
     Code
       print(data_snap[[i]])

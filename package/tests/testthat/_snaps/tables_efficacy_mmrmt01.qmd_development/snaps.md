@@ -1,4 +1,4 @@
-# tables/efficacy/mmrmt01.qmd development
+# tables/efficacy/mmrmt01.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -47,7 +47,7 @@
           Relative Increase (%)                                      6.1%               0.9%      
           p-value (MMRM)                                            0.3408             0.8937     
 
----
+# tables/efficacy/mmrmt01.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -76,7 +76,7 @@
         Adjusted Mean (SE)    24.028 (0.747) 
           95% CI             (22.560, 25.496)
 
----
+# tables/efficacy/mmrmt01.qmd result_v3 development
 
     Code
       print(data_snap[[i]])

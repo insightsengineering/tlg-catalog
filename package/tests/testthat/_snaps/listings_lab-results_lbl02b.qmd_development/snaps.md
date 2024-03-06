@@ -1,4 +1,4 @@
-# listings/lab-results/lbl02b.qmd development
+# listings/lab-results/lbl02b.qmd lsting development
 
     Code
       print(data_snap[[i]])

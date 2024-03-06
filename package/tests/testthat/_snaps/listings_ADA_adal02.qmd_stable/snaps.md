@@ -1,4 +1,4 @@
-# listings/ADA/adal02.qmd stable
+# listings/ADA/adal02.qmd lsting stable
 
     Code
       print(data_snap[[i]])

@@ -1,4 +1,4 @@
-# tables/lab-results/lbt06.qmd stable
+# tables/lab-results/lbt06.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -53,7 +53,7 @@
                   High                         4/20 (20%)      6/22 (27.3%)     2/17 (11.8%) 
                   Total                      23/134 (17.2%)   23/134 (17.2%)   13/132 (9.8%) 
 
----
+# tables/lab-results/lbt06.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])

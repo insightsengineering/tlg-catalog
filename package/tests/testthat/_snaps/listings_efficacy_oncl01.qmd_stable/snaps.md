@@ -1,4 +1,4 @@
-# listings/efficacy/oncl01.qmd stable
+# listings/efficacy/oncl01.qmd lsting stable
 
     Code
       print(data_snap[[i]])

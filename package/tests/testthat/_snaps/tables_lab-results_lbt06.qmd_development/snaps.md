@@ -1,4 +1,4 @@
-# tables/lab-results/lbt06.qmd development
+# tables/lab-results/lbt06.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -53,7 +53,7 @@
                   High                         4/20 (20%)      6/22 (27.3%)     2/17 (11.8%) 
                   Total                      23/134 (17.2%)   23/134 (17.2%)   13/132 (9.8%) 
 
----
+# tables/lab-results/lbt06.qmd result_v2 development
 
     Code
       print(data_snap[[i]])

@@ -1,4 +1,4 @@
-# tables/adverse-events/aet09.qmd development
+# tables/adverse-events/aet09.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -29,7 +29,7 @@
         Total number of events related to study drug                                         55            63              64             182     
         dcd C.1.1.1.3                                                                    43 (32.1%)    46 (34.3%)      43 (32.6%)     132 (33.0%) 
 
----
+# tables/adverse-events/aet09.qmd result_v2 development
 
     Code
       print(data_snap[[i]])

@@ -1,4 +1,4 @@
-# tables/lab-results/lbt05.qmd development
+# tables/lab-results/lbt05.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -30,7 +30,7 @@
           Last or replicated                     48 (37.2%)   47 (38.5%)     55 (45.5%)  
           Any Abnormality                        52 (40.3%)   53 (43.4%)     58 (47.9%)  
 
----
+# tables/lab-results/lbt05.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -66,7 +66,7 @@
           Last or replicated                     48 (37.2%)   47 (38.5%)     55 (45.5%)  
           Any Abnormality                        52 (40.3%)   53 (43.4%)     58 (47.9%)  
 
----
+# tables/lab-results/lbt05.qmd result_v4 development
 
     Code
       print(data_snap[[i]])

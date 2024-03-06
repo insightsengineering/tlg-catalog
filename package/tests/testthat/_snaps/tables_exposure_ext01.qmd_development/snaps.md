@@ -1,4 +1,4 @@
-# tables/exposure/ext01.qmd development
+# tables/exposure/ext01.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -49,7 +49,7 @@
           Median                                          9.0              10.0              11.0      
           Min - Max                                   0.0 - 20.0        0.0 - 20.0        1.0 - 20.0   
 
----
+# tables/exposure/ext01.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -102,7 +102,7 @@
           Median                                   7.0               7.0               7.0      
           Min - Max                             7.0 - 7.0         7.0 - 7.0         7.0 - 7.0   
 
----
+# tables/exposure/ext01.qmd result_v3 development
 
     Code
       print(data_snap[[i]])

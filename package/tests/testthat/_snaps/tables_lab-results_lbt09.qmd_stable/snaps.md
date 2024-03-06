@@ -1,4 +1,4 @@
-# tables/lab-results/lbt09.qmd stable
+# tables/lab-results/lbt09.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -43,7 +43,7 @@
         AST >10 - <= 20xULN                                       29/134 (21.6%)   31/134 (23.1%)   28/134 (20.9%)   22/134 (16.4%)   22/132 (16.7%)   21/132 (15.9%)
         AST > 20xULN                                              34/134 (25.4%)   21/134 (15.7%)   19/134 (14.2%)   28/134 (20.9%)   21/132 (15.9%)   33/132 (25.0%)
 
----
+# tables/lab-results/lbt09.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])

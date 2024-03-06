@@ -1,4 +1,4 @@
-# tables/lab-results/lbt15.qmd development
+# tables/lab-results/lbt15.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -19,7 +19,7 @@
                   Low                              0/134            0/134            0/132             0/400     
                   High                         33/128 (25.8%)   32/124 (25.8%)   28/120 (23.3%)    93/372 (25%)  
 
----
+# tables/lab-results/lbt15.qmd result_v2 development
 
     Code
       print(data_snap[[i]])

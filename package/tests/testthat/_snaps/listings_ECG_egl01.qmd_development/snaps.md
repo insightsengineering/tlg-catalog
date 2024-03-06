@@ -1,4 +1,4 @@
-# listings/ECG/egl01.qmd development
+# listings/ECG/egl01.qmd lsting development
 
     Code
       print(data_snap[[i]])

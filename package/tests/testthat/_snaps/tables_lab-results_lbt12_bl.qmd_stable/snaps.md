@@ -1,4 +1,4 @@
-# tables/lab-results/lbt12_bl.qmd stable
+# tables/lab-results/lbt12_bl.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])

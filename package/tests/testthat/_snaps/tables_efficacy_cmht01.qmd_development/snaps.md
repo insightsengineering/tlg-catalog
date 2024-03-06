@@ -1,4 +1,4 @@
-# tables/efficacy/cmht01.qmd development
+# tables/efficacy/cmht01.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -19,7 +19,7 @@
         p-value (Cochran-Mantel-Haenszel Test)                        0.6397               0.7952      
       Odds Ratio (95% CI)                                       1.12 (0.68 - 1.83)   0.99 (0.60 - 1.64)
 
----
+# tables/efficacy/cmht01.qmd result_v2 development
 
     Code
       print(data_snap[[i]])

@@ -1,4 +1,4 @@
-# tables/adverse-events/aet01_aesi.qmd stable
+# tables/adverse-events/aet01_aesi.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -22,7 +22,7 @@
       Total number of patients with at least one serious AE                           85 (63.4%)    80 (59.7%)     87 (65.9%)  
       Total number of patients with at least one related AE                           86 (64.2%)    85 (63.4%)     92 (69.7%)  
 
----
+# tables/adverse-events/aet01_aesi.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])
@@ -59,7 +59,7 @@
         No. of patients with treatment received for related AE                           53 (39.6%)    58 (43.3%)     60 (45.5%)  
         No. of patients with serious, related AE                                         64 (47.8%)    52 (38.8%)     64 (48.5%)  
 
----
+# tables/adverse-events/aet01_aesi.qmd result_v3 stable
 
     Code
       print(data_snap[[i]])
@@ -113,7 +113,7 @@
         No. of patients with treatment received for AE related to study drug 2                             53 (39.6%)    58 (43.3%)     60 (45.5%)  
         No. of patients with serious AE related to study drug 2                                            64 (47.8%)    52 (38.8%)     64 (48.5%)  
 
----
+# tables/adverse-events/aet01_aesi.qmd result_v4 stable
 
     Code
       print(data_snap[[i]])

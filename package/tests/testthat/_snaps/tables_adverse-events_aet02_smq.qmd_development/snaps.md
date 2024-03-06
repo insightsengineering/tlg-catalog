@@ -1,4 +1,4 @@
-# tables/adverse-events/aet02_smq.qmd development
+# tables/adverse-events/aet02_smq.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -13,7 +13,7 @@
         dcd B.2.2.3.1                                              48 (35.8%)   54 (40.3%)   51 (38.6%)
         dcd C.1.1.1.3                                              43 (32.1%)   46 (34.3%)   43 (32.6%)
 
----
+# tables/adverse-events/aet02_smq.qmd result_v2 development
 
     Code
       print(data_snap[[i]])

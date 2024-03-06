@@ -1,4 +1,4 @@
-# tables/concomitant-medications/cmt01a.qmd stable
+# tables/concomitant-medications/cmt01a.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -45,7 +45,7 @@
         Total number of treatments                                 69            73              80      
         medname C_2/2                                          52 (38.8%)    58 (43.3%)      60 (45.5%)  
 
----
+# tables/concomitant-medications/cmt01a.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])
@@ -92,7 +92,7 @@
         Total number of treatments                                 69            73              80      
         medname C_2/2                                          52 (38.8%)    58 (43.3%)      60 (45.5%)  
 
----
+# tables/concomitant-medications/cmt01a.qmd result_v3 stable
 
     Code
       print(data_snap[[i]])
@@ -139,7 +139,7 @@
         Total number of treatments                                 58            66              64      
         medname A_3/3                                          45 (33.6%)    54 (40.3%)      48 (36.4%)  
 
----
+# tables/concomitant-medications/cmt01a.qmd result_v4 stable
 
     Code
       print(data_snap[[i]])

@@ -1,4 +1,4 @@
-# tables/disclosures/disclosurest01.qmd development
+# tables/disclosures/disclosurest01.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -15,7 +15,7 @@
         Protocol Violation        4 (26.7%)       4 (14.3%)       4 (16.7%)       12 (17.9%)  
         Withdrawal By Subject     2 (13.3%)      10 (35.7%)       3 (12.5%)       15 (22.4%)  
 
----
+# tables/disclosures/disclosurest01.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
@@ -54,7 +54,7 @@
         NOT REPORTED                                 6 (4.5%)      10 (7.5%)      11 (8.3%)       27 (6.8%)  
         UNKNOWN                                      9 (6.7%)      3 (2.2%)        5 (3.8%)       17 (4.2%)  
 
----
+# tables/disclosures/disclosurest01.qmd result_v3 development
 
     Code
       print(data_snap[[i]])
@@ -73,7 +73,7 @@
       GBR         4 (3%)      3 (2.2%)       2 (1.5%)        9 (2.2%)  
       CAN        3 (2.2%)     2 (1.5%)       3 (2.3%)         8 (2%)   
 
----
+# tables/disclosures/disclosurest01.qmd result_v4 development
 
     Code
       print(data_snap[[i]])
@@ -95,7 +95,7 @@
       cl D.2                                                                                                                                                                                                       
         dcd D.2.1.5.3                                                                                                       47              62              58              72              57              74     
 
----
+# tables/disclosures/disclosurest01.qmd result_v5 development
 
     Code
       print(data_snap[[i]])
@@ -113,7 +113,7 @@
       cl D.1                                                                                                                                                         
         dcd D.1.1.1.1                                                          50              61               61                61                    61           
 
----
+# tables/disclosures/disclosurest01.qmd result_v6 development
 
     Code
       print(data_snap[[i]])

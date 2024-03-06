@@ -1,4 +1,4 @@
-# tables/lab-results/lbt11_bl.qmd stable
+# tables/lab-results/lbt11_bl.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -23,7 +23,7 @@
       ———————————————————————————————————————————————————————————————————————————————————————
       
 
----
+# tables/lab-results/lbt11_bl.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])
@@ -44,7 +44,7 @@
       ———————————————————————————————————————————————————————————————————————————————————————
       
 
----
+# tables/lab-results/lbt11_bl.qmd result_v3 stable
 
     Code
       print(data_snap[[i]])
@@ -64,9 +64,9 @@
         Hazard Ratio                                            1.27               0.84      
         95% CI                                              (0.63, 2.56)       (0.40, 1.75)  
       Stratified By: RACE, SEX                                                               
-        p-value (log-rank)                                     0.3886             0.7970     
-        Hazard Ratio                                            1.39               0.91      
-        95% CI                                              (0.65, 2.97)       (0.43, 1.93)  
+        p-value (log-rank)                                     0.5013             0.6413     
+        Hazard Ratio                                            1.27               0.84      
+        95% CI                                              (0.63, 2.56)       (0.40, 1.75)  
       ———————————————————————————————————————————————————————————————————————————————————————
       
       {1} - Censored observations: range minimum & maximum

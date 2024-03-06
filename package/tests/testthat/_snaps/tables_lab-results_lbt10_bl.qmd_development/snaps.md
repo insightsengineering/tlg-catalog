@@ -1,4 +1,4 @@
-# tables/lab-results/lbt10_bl.qmd development
+# tables/lab-results/lbt10_bl.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -13,7 +13,7 @@
         ALT >3xULN at 2 Visits   26/134 (19.4%)   31/134 (23.1%)   23/132 (17.4%)
         AST >3xULN at 2 Visits   30/134 (22.4%)   27/134 (20.1%)   26/132 (19.7%)
 
----
+# tables/lab-results/lbt10_bl.qmd result_v2 development
 
     Code
       print(data_snap[[i]])

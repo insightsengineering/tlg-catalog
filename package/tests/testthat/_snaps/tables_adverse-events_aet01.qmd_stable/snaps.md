@@ -1,4 +1,4 @@
-# tables/adverse-events/aet01.qmd stable
+# tables/adverse-events/aet01.qmd result_v1 stable
 
     Code
       print(data_snap[[i]])
@@ -23,7 +23,7 @@
         Related AE leading to dose modification/interruption       44 (32.8%)    44 (32.8%)     51 (38.6%)  
         Severe AE (at greatest intensity)                          77 (57.5%)    70 (52.2%)     79 (59.8%)  
 
----
+# tables/adverse-events/aet01.qmd result_v2 stable
 
     Code
       print(data_snap[[i]])
@@ -52,7 +52,7 @@
         SMQ 02 Reference Name                                           0            0              0       
         D.2.1.5.3/A.1.1.1.1 AESI                                   62 (46.3%)    61 (45.5%)     76 (57.6%)  
 
----
+# tables/adverse-events/aet01.qmd result_v3 stable
 
     Code
       print(data_snap[[i]])
@@ -73,7 +73,7 @@
         Grade 3-5 AE                                               90 (67.2%)    83 (61.9%)     93 (70.5%)  
         Grade 4/5 AE                                               77 (57.5%)    70 (52.2%)     79 (59.8%)  
 
----
+# tables/adverse-events/aet01.qmd result_v4 stable
 
     Code
       print(data_snap[[i]])

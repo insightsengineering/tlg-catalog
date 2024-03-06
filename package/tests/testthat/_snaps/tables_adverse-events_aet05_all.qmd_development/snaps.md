@@ -1,4 +1,4 @@
-# tables/adverse-events/aet05_all.qmd development
+# tables/adverse-events/aet05_all.qmd result_v1 development
 
     Code
       print(data_snap[[i]])
@@ -11,7 +11,7 @@
       AE rate per 100 patient-years           101.51             114.51             116.22     
       95% CI                              (90.77, 112.25)   (103.00, 126.02)   (104.79, 127.65)
 
----
+# tables/adverse-events/aet05_all.qmd result_v2 development
 
     Code
       print(data_snap[[i]])
