@@ -1,6 +1,3 @@
-#temp
-test_profile <- Sys.getenv("QUARTO_PROFILE", "stable")
-
 test_book_path <- testthat::test_path("_book")
 test_data_path <- testthat::test_path("_data")
 Sys.setenv("QUARTO_TESTTHAT_DATA_PATH" = normalizePath(test_data_path))
