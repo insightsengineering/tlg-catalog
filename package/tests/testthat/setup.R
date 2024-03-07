@@ -21,7 +21,13 @@ options(pillar.width = Inf)
 
 if (isTRUE(if_render_book)) {
   cat("Start rendering the book...\n")
-  quarto::quarto_render(test_book_path, as_job = FALSE, quiet = FALSE, cache = FALSE, metadata = list(execute = list(freeze = FALSE)))
+  quarto::quarto_render(
+    test_book_path,
+    as_job = FALSE,
+    quiet = FALSE,
+    cache = FALSE,
+    metadata = list(execute = list(freeze = FALSE))
+  )
   cat("Render finished!\n")
 }
 
