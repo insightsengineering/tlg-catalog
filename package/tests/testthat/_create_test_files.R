@@ -1,4 +1,6 @@
-# run with
+# Script to create test files for all articles in the test book.
+# It would not remove existing test files so in case article location or name is changed, the old test file should be removed manually.
+# run with `source()`, e.g.:
 # source("./tests//testthat/_create_test_files.R")
 
 article_files <- list.files(
