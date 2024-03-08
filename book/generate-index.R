@@ -1,5 +1,6 @@
 # Run file contents within TLG-C project, with working directory set
 # to tlg-catalog/book, to update the index
+# Set locale to Sys.setlocale("LC_COLLATE", "C") or different if issues with sorting of subsections occur.
 
 print_ref_templates <- function(fpath) {
   title <- sub("title: ", "", readLines(fpath)[2], )
