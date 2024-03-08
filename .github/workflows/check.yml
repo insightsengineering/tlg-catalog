@@ -22,7 +22,7 @@ jobs:
     uses: insightsengineering/r.pkg.template/.github/workflows/audit.yaml@main
   r-cmd:
     if: github.event_name != 'push'
-    name: R CMD Check 🧬
+    name: R CMD Check (development) 🧬
     uses: insightsengineering/r.pkg.template/.github/workflows/build-check-install.yaml@main
     secrets:
       REPO_GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
@@ -31,6 +31,9 @@ jobs:
       additional-env-vars: |
         _R_CHECK_CRAN_INCOMING_REMOTE_=false
         QUARTO_PROFILE=development
+    concurrency:
+      group: r-cmd-development-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
   r-cmd-stable:
     if: github.event_name != 'push'
     name: R CMD Check (stable) 🧬
@@ -43,6 +46,9 @@ jobs:
       additional-env-vars: |
         _R_CHECK_CRAN_INCOMING_REMOTE_=false
           QUARTO_PROFILE=stable
+    concurrency:
+      group: r-cmd-stable-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
   linter:
     if: github.event_name != 'push'
     name: SuperLinter 🦸‍♀️
