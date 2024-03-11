@@ -17,8 +17,6 @@ if (isTRUE(if_render_book) && isTRUE(if_render_articles)) {
   stop("Render both book and articles at the same time is not efficient! Please set one of them to FALSE.")
 }
 
-options(pillar.width = Inf)
-
 if (isTRUE(if_render_book)) {
   cat("Start rendering the book...\n")
   quarto::quarto_render(
