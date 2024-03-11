@@ -13,7 +13,7 @@
         Difference in Adjusted Means (SE)                       0.759 (0.973)      -0.325 (0.976) 
           95% CI                                               (-1.155, 2.672)    (-2.243, 1.593) 
           Relative Increase (%)                                     21.8%              -9.3%      
-          p-value (MMRM)                                            0.4362             0.7393     
+          p-value (MMRM)                                            0.4362             0.7394     
       WEEK 2 DAY 15                                                                               
         n                                         134                134                132       
         Adjusted Mean (SE)                   9.135 (0.768)      9.018 (0.767)      8.509 (0.773)  
@@ -21,7 +21,7 @@
         Difference in Adjusted Means (SE)                       -0.117 (1.087)     -0.626 (1.090) 
           95% CI                                               (-2.253, 2.020)    (-2.768, 1.517) 
           Relative Increase (%)                                     -1.3%              -6.8%      
-          p-value (MMRM)                                            0.9147             0.5662     
+          p-value (MMRM)                                            0.9146             0.5662     
       WEEK 3 DAY 22                                                                               
         n                                         134                134                132       
         Adjusted Mean (SE)                   13.547 (0.871)     16.014 (0.871)     15.789 (0.877) 

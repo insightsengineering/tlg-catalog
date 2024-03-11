@@ -51,12 +51,13 @@ y_var <- "AUCinf"
 
 ## Summary of Pharmacokinetic <br/> Parameters -- Plasma
 
-```{r plot1, test = list(plot_v1 = "plot")}
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot1, test = list(plot_v1 = "plot"), opts.label = c('skip_test_strict')}
 # calculate Summary Statistics (mean and sd) for each group
-SummaryStat <- adpp_adex %>%
+SummaryStat <- adpp_adex %>% # nolint: object_name.
   group_by(Dose = as.factor(Dose)) %>%
   summarise(AUCsd = sd(AUCinf), meanAUC = mean(AUCinf))
-SummaryStat$Dose <- as.numeric(as.character(SummaryStat$Dose))
+SummaryStat$Dose <- as.numeric(as.character(SummaryStat$Dose)) # nolint: object_name.
 
 # generate linear model
 mod1 <- lm(log(AUCinf) ~ log(Dose), adpp_adex)
@@ -82,7 +83,7 @@ plot <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +
   ) +
   scale_y_continuous(
     name = paste(y_var, adpp_a$AVALU),
-    trans = "log",
+    transform = "log",
     breaks = exp(ceiling(seq(
       from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)),
       by = 1
@@ -92,10 +93,12 @@ plot <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +
       to = max(log(adpp_adex$AUCinf)), by = 1
     )))
   ) +
-  geom_smooth(method = "lm", formula = y ~ x, se = F, color = "black", linewidth = 0.5) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "black", linewidth = 0.5) +
   # Display error bars for each dosing group (this will only appear if the sd is less than the mean)
   geom_errorbar(
-    data = SummaryStat, aes(x = `Dose`, y = `meanAUC`, ymin = `meanAUC` - `AUCsd`, ymax = `meanAUC` + AUCsd), width = .05,
+    data = SummaryStat,
+    aes(x = `Dose`, y = `meanAUC`, ymin = `meanAUC` - `AUCsd`, ymax = `meanAUC` + AUCsd),
+    width = .05,
     position = position_dodge(.1)
   ) +
   geom_point(data = SummaryStat, aes(x = Dose, y = meanAUC, size = 1), shape = 2, show.legend = FALSE) +
@@ -111,23 +114,33 @@ plot
 
 ## Summary of Plasma Pharmacokinetic <br/> Parameters with Median Points
 
-```{r plot2, test = list(plot_v2 = "plot")}
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot2, test = list(plot_v2 = "plot"), opts.label = c('skip_test_strict')}
 # calculate median for each group if preferred
-SummaryStat <- adpp_adex %>%
+SummaryStat <- adpp_adex %>% # nolint: object_name.
   group_by(Dose = as.factor(Dose)) %>%
   summarise(medAUC = median(AUCinf))
-SummaryStat$Dose <- as.numeric(as.character(SummaryStat$Dose))
+SummaryStat$Dose <- as.numeric(as.character(SummaryStat$Dose)) # nolint: object_name.
 
 plot <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +
   annotate(geom = "text", x = min(adpp_adex[[x_var]]), y = max(adpp_adex[[y_var]]), label = eq, hjust = 0.1) +
   geom_point(size = 1, aes(color = factor(`count`))) +
-  geom_smooth(method = "lm", formula = y ~ x, se = F, color = "black", linewidth = 0.5) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "black", linewidth = 0.5) +
   geom_point(data = SummaryStat, aes(x = Dose, y = medAUC, size = 1), shape = 2, show.legend = FALSE) +
-  ggtitle(paste("Dose-Proportionality Plot of Serum", as.character(unique(adex$TRT01P)), y_var, "in", adpp_a$AVALU), subtitle = "Summary of serum PK parameters by treatment") +
+  ggtitle(
+    paste(
+      "Dose-Proportionality Plot of Serum",
+      as.character(unique(adex$TRT01P)),
+      y_var,
+      "in",
+      adpp_a$AVALU
+    ),
+    subtitle = "Summary of serum PK parameters by treatment"
+  ) +
   labs(color = "Treatment Arm") +
   scale_y_continuous(
     name = paste(y_var, adpp_a$AVALU),
-    trans = "log",
+    transform = "log",
     breaks = exp(ceiling(seq(from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)), by = 1))),
     labels = as.character(ceiling(seq(from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)), by = 1)))
   ) +
@@ -151,5 +164,4 @@ plot
 ```
 
 {{< include ../../repro.qmd >}}
-
 :::
