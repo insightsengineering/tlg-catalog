@@ -1711,83 +1711,94 @@ C.1.1.1.3/B.2.2.3.1 AESI(BROAD)
     dcd C.1.1.1.3                                            43 (32.1%)     0     46 (34.3%)     0     43 (32.8%)     0  </code></pre>
 </div>
 </div>
+<div class="cell" data-renv.ignore="true">
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="cf">if</span> (<span class="fu">exists</span>(<span class="st">"tenv"</span>)) {</span>
+<span id="cb8-2"><a href="#cb8-2"></a>  filename <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>, <span class="st">""</span>, knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)), <span class="st">".rds"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3"></a>  filepath <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="fu">normalizePath</span>(<span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_PROJECT_DIR"</span>)), <span class="fu">file.path</span>(<span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_TESTTHAT_DATA_PATH"</span>), <span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_PROFILE"</span>)), filename)</span>
+<span id="cb8-4"><a href="#cb8-4"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">dirname</span>(filepath))) {</span>
+<span id="cb8-5"><a href="#cb8-5"></a>    <span class="fu">dir.create</span>(<span class="fu">dirname</span>(filepath), <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb8-6"><a href="#cb8-6"></a>  }</span>
+<span id="cb8-7"><a href="#cb8-7"></a>  <span class="fu">saveRDS</span>(tenv, filepath)</span>
+<span id="cb8-8"><a href="#cb8-8"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 </div>
 <div id="tabset-1-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-5-tab">
 <div class="cell" data-webshot="webshot2" data-screenshot.force="true" data-screenshot.opts="{&quot;delay&quot;:5}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
-<span id="cb8-2"><a href="#cb8-2"></a></span>
-<span id="cb8-3"><a href="#cb8-3"></a><span class="do">## Data reproducible code</span></span>
-<span id="cb8-4"><a href="#cb8-4"></a>data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
-<span id="cb8-5"><a href="#cb8-5"></a>data <span class="ot">&lt;-</span> <span class="fu">within</span>(data, {</span>
-<span id="cb8-6"><a href="#cb8-6"></a>  <span class="fu">library</span>(scda)</span>
-<span id="cb8-7"><a href="#cb8-7"></a>  <span class="fu">library</span>(dplyr)</span>
-<span id="cb8-8"><a href="#cb8-8"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-9"><a href="#cb8-9"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb8-10"><a href="#cb8-10"></a>      <span class="at">AGE65 =</span> <span class="fu">case_when</span>(</span>
-<span id="cb8-11"><a href="#cb8-11"></a>        AGE <span class="sc">&gt;=</span> <span class="dv">65</span> <span class="sc">~</span> <span class="st">"&gt;= 65"</span>,</span>
-<span id="cb8-12"><a href="#cb8-12"></a>        <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"&lt; 65"</span></span>
-<span id="cb8-13"><a href="#cb8-13"></a>      ),</span>
-<span id="cb8-14"><a href="#cb8-14"></a>      <span class="at">AGE65 =</span> <span class="fu">factor</span>(</span>
-<span id="cb8-15"><a href="#cb8-15"></a>        AGE65,</span>
-<span id="cb8-16"><a href="#cb8-16"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"&lt; 65"</span>, <span class="st">"&gt;= 65"</span>)</span>
-<span id="cb8-17"><a href="#cb8-17"></a>      )</span>
-<span id="cb8-18"><a href="#cb8-18"></a>    )</span>
-<span id="cb8-19"><a href="#cb8-19"></a>  ADAE <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adae"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-20"><a href="#cb8-20"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb8-21"><a href="#cb8-21"></a>      <span class="at">AGE65 =</span> <span class="fu">case_when</span>(</span>
-<span id="cb8-22"><a href="#cb8-22"></a>        AGE <span class="sc">&gt;=</span> <span class="dv">65</span> <span class="sc">~</span> <span class="st">"&gt;= 65"</span>,</span>
-<span id="cb8-23"><a href="#cb8-23"></a>        <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"&lt; 65"</span></span>
-<span id="cb8-24"><a href="#cb8-24"></a>      ),</span>
-<span id="cb8-25"><a href="#cb8-25"></a>      <span class="at">AGE65 =</span> <span class="fu">factor</span>(</span>
-<span id="cb8-26"><a href="#cb8-26"></a>        AGE65,</span>
-<span id="cb8-27"><a href="#cb8-27"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"&lt; 65"</span>, <span class="st">"&gt;= 65"</span>)</span>
-<span id="cb8-28"><a href="#cb8-28"></a>      )</span>
-<span id="cb8-29"><a href="#cb8-29"></a>    )</span>
-<span id="cb8-30"><a href="#cb8-30"></a>})</span>
-<span id="cb8-31"><a href="#cb8-31"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADAE"</span>)</span>
-<span id="cb8-32"><a href="#cb8-32"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
-<span id="cb8-33"><a href="#cb8-33"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
-<span id="cb8-34"><a href="#cb8-34"></a></span>
-<span id="cb8-35"><a href="#cb8-35"></a><span class="do">## Reusable Configuration For Modules</span></span>
-<span id="cb8-36"><a href="#cb8-36"></a>ADSL <span class="ot">&lt;-</span> data[[<span class="st">"ADSL"</span>]]</span>
-<span id="cb8-37"><a href="#cb8-37"></a>ADAE <span class="ot">&lt;-</span> data[[<span class="st">"ADAE"</span>]]</span>
-<span id="cb8-38"><a href="#cb8-38"></a></span>
-<span id="cb8-39"><a href="#cb8-39"></a>names_baskets <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="st">"^(SMQ|CQ).*NAM$"</span>, <span class="fu">names</span>(ADAE), <span class="at">value =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb8-40"><a href="#cb8-40"></a>names_scopes <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="st">"^SMQ.*SC$"</span>, <span class="fu">names</span>(ADAE), <span class="at">value =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb8-41"><a href="#cb8-41"></a></span>
-<span id="cb8-42"><a href="#cb8-42"></a>cs_baskets <span class="ot">&lt;-</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb8-43"><a href="#cb8-43"></a>  <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="at">subset =</span> names_baskets),</span>
-<span id="cb8-44"><a href="#cb8-44"></a>  <span class="at">selected =</span> names_baskets</span>
-<span id="cb8-45"><a href="#cb8-45"></a>)</span>
-<span id="cb8-46"><a href="#cb8-46"></a>cs_scopes <span class="ot">&lt;-</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb8-47"><a href="#cb8-47"></a>  <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="at">subset =</span> names_scopes),</span>
-<span id="cb8-48"><a href="#cb8-48"></a>  <span class="at">selected =</span> names_scopes,</span>
-<span id="cb8-49"><a href="#cb8-49"></a>  <span class="at">fixed =</span> <span class="cn">TRUE</span></span>
-<span id="cb8-50"><a href="#cb8-50"></a>)</span>
-<span id="cb8-51"><a href="#cb8-51"></a></span>
-<span id="cb8-52"><a href="#cb8-52"></a><span class="do">## Setup App</span></span>
-<span id="cb8-53"><a href="#cb8-53"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb8-54"><a href="#cb8-54"></a>  <span class="at">data =</span> data,</span>
-<span id="cb8-55"><a href="#cb8-55"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb8-56"><a href="#cb8-56"></a>    <span class="fu">tm_t_smq</span>(</span>
-<span id="cb8-57"><a href="#cb8-57"></a>      <span class="at">label =</span> <span class="st">"Adverse events by `SMQ` Table"</span>,</span>
-<span id="cb8-58"><a href="#cb8-58"></a>      <span class="at">dataname =</span> <span class="st">"ADAE"</span>,</span>
-<span id="cb8-59"><a href="#cb8-59"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb8-60"><a href="#cb8-60"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADSL, <span class="at">subset =</span> <span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"SEX"</span>, <span class="st">"AGE65"</span>)),</span>
-<span id="cb8-61"><a href="#cb8-61"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"SEX"</span>)</span>
-<span id="cb8-62"><a href="#cb8-62"></a>      ),</span>
-<span id="cb8-63"><a href="#cb8-63"></a>      <span class="at">add_total =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb8-64"><a href="#cb8-64"></a>      <span class="at">baskets =</span> cs_baskets,</span>
-<span id="cb8-65"><a href="#cb8-65"></a>      <span class="at">scopes =</span> cs_scopes,</span>
-<span id="cb8-66"><a href="#cb8-66"></a>      <span class="at">llt =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb8-67"><a href="#cb8-67"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="at">subset =</span> <span class="fu">c</span>(<span class="st">"AEDECOD"</span>)),</span>
-<span id="cb8-68"><a href="#cb8-68"></a>        <span class="at">selected =</span> <span class="st">"AEDECOD"</span></span>
-<span id="cb8-69"><a href="#cb8-69"></a>      )</span>
-<span id="cb8-70"><a href="#cb8-70"></a>    )</span>
-<span id="cb8-71"><a href="#cb8-71"></a>  )</span>
-<span id="cb8-72"><a href="#cb8-72"></a>)</span>
-<span id="cb8-73"><a href="#cb8-73"></a></span>
-<span id="cb8-74"><a href="#cb8-74"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
+<span id="cb9-2"><a href="#cb9-2"></a></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="do">## Data reproducible code</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a>data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
+<span id="cb9-5"><a href="#cb9-5"></a>data <span class="ot">&lt;-</span> <span class="fu">within</span>(data, {</span>
+<span id="cb9-6"><a href="#cb9-6"></a>  <span class="fu">library</span>(scda)</span>
+<span id="cb9-7"><a href="#cb9-7"></a>  <span class="fu">library</span>(dplyr)</span>
+<span id="cb9-8"><a href="#cb9-8"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb9-10"><a href="#cb9-10"></a>      <span class="at">AGE65 =</span> <span class="fu">case_when</span>(</span>
+<span id="cb9-11"><a href="#cb9-11"></a>        AGE <span class="sc">&gt;=</span> <span class="dv">65</span> <span class="sc">~</span> <span class="st">"&gt;= 65"</span>,</span>
+<span id="cb9-12"><a href="#cb9-12"></a>        <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"&lt; 65"</span></span>
+<span id="cb9-13"><a href="#cb9-13"></a>      ),</span>
+<span id="cb9-14"><a href="#cb9-14"></a>      <span class="at">AGE65 =</span> <span class="fu">factor</span>(</span>
+<span id="cb9-15"><a href="#cb9-15"></a>        AGE65,</span>
+<span id="cb9-16"><a href="#cb9-16"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"&lt; 65"</span>, <span class="st">"&gt;= 65"</span>)</span>
+<span id="cb9-17"><a href="#cb9-17"></a>      )</span>
+<span id="cb9-18"><a href="#cb9-18"></a>    )</span>
+<span id="cb9-19"><a href="#cb9-19"></a>  ADAE <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adae"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-20"><a href="#cb9-20"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb9-21"><a href="#cb9-21"></a>      <span class="at">AGE65 =</span> <span class="fu">case_when</span>(</span>
+<span id="cb9-22"><a href="#cb9-22"></a>        AGE <span class="sc">&gt;=</span> <span class="dv">65</span> <span class="sc">~</span> <span class="st">"&gt;= 65"</span>,</span>
+<span id="cb9-23"><a href="#cb9-23"></a>        <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"&lt; 65"</span></span>
+<span id="cb9-24"><a href="#cb9-24"></a>      ),</span>
+<span id="cb9-25"><a href="#cb9-25"></a>      <span class="at">AGE65 =</span> <span class="fu">factor</span>(</span>
+<span id="cb9-26"><a href="#cb9-26"></a>        AGE65,</span>
+<span id="cb9-27"><a href="#cb9-27"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"&lt; 65"</span>, <span class="st">"&gt;= 65"</span>)</span>
+<span id="cb9-28"><a href="#cb9-28"></a>      )</span>
+<span id="cb9-29"><a href="#cb9-29"></a>    )</span>
+<span id="cb9-30"><a href="#cb9-30"></a>})</span>
+<span id="cb9-31"><a href="#cb9-31"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADAE"</span>)</span>
+<span id="cb9-32"><a href="#cb9-32"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
+<span id="cb9-33"><a href="#cb9-33"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
+<span id="cb9-34"><a href="#cb9-34"></a></span>
+<span id="cb9-35"><a href="#cb9-35"></a><span class="do">## Reusable Configuration For Modules</span></span>
+<span id="cb9-36"><a href="#cb9-36"></a>ADSL <span class="ot">&lt;-</span> data[[<span class="st">"ADSL"</span>]]</span>
+<span id="cb9-37"><a href="#cb9-37"></a>ADAE <span class="ot">&lt;-</span> data[[<span class="st">"ADAE"</span>]]</span>
+<span id="cb9-38"><a href="#cb9-38"></a></span>
+<span id="cb9-39"><a href="#cb9-39"></a>names_baskets <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="st">"^(SMQ|CQ).*NAM$"</span>, <span class="fu">names</span>(ADAE), <span class="at">value =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb9-40"><a href="#cb9-40"></a>names_scopes <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="st">"^SMQ.*SC$"</span>, <span class="fu">names</span>(ADAE), <span class="at">value =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb9-41"><a href="#cb9-41"></a></span>
+<span id="cb9-42"><a href="#cb9-42"></a>cs_baskets <span class="ot">&lt;-</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb9-43"><a href="#cb9-43"></a>  <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="at">subset =</span> names_baskets),</span>
+<span id="cb9-44"><a href="#cb9-44"></a>  <span class="at">selected =</span> names_baskets</span>
+<span id="cb9-45"><a href="#cb9-45"></a>)</span>
+<span id="cb9-46"><a href="#cb9-46"></a>cs_scopes <span class="ot">&lt;-</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb9-47"><a href="#cb9-47"></a>  <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="at">subset =</span> names_scopes),</span>
+<span id="cb9-48"><a href="#cb9-48"></a>  <span class="at">selected =</span> names_scopes,</span>
+<span id="cb9-49"><a href="#cb9-49"></a>  <span class="at">fixed =</span> <span class="cn">TRUE</span></span>
+<span id="cb9-50"><a href="#cb9-50"></a>)</span>
+<span id="cb9-51"><a href="#cb9-51"></a></span>
+<span id="cb9-52"><a href="#cb9-52"></a><span class="do">## Setup App</span></span>
+<span id="cb9-53"><a href="#cb9-53"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb9-54"><a href="#cb9-54"></a>  <span class="at">data =</span> data,</span>
+<span id="cb9-55"><a href="#cb9-55"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb9-56"><a href="#cb9-56"></a>    <span class="fu">tm_t_smq</span>(</span>
+<span id="cb9-57"><a href="#cb9-57"></a>      <span class="at">label =</span> <span class="st">"Adverse events by `SMQ` Table"</span>,</span>
+<span id="cb9-58"><a href="#cb9-58"></a>      <span class="at">dataname =</span> <span class="st">"ADAE"</span>,</span>
+<span id="cb9-59"><a href="#cb9-59"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb9-60"><a href="#cb9-60"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADSL, <span class="at">subset =</span> <span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"SEX"</span>, <span class="st">"AGE65"</span>)),</span>
+<span id="cb9-61"><a href="#cb9-61"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"SEX"</span>)</span>
+<span id="cb9-62"><a href="#cb9-62"></a>      ),</span>
+<span id="cb9-63"><a href="#cb9-63"></a>      <span class="at">add_total =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb9-64"><a href="#cb9-64"></a>      <span class="at">baskets =</span> cs_baskets,</span>
+<span id="cb9-65"><a href="#cb9-65"></a>      <span class="at">scopes =</span> cs_scopes,</span>
+<span id="cb9-66"><a href="#cb9-66"></a>      <span class="at">llt =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb9-67"><a href="#cb9-67"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="at">subset =</span> <span class="fu">c</span>(<span class="st">"AEDECOD"</span>)),</span>
+<span id="cb9-68"><a href="#cb9-68"></a>        <span class="at">selected =</span> <span class="st">"AEDECOD"</span></span>
+<span id="cb9-69"><a href="#cb9-69"></a>      )</span>
+<span id="cb9-70"><a href="#cb9-70"></a>    )</span>
+<span id="cb9-71"><a href="#cb9-71"></a>  )</span>
+<span id="cb9-72"><a href="#cb9-72"></a>)</span>
+<span id="cb9-73"><a href="#cb9-73"></a></span>
+<span id="cb9-74"><a href="#cb9-74"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="aet06_smq_files/figure-html/teal-1.png" class="img-fluid figure-img" width="1440"></p>
@@ -1799,14 +1810,14 @@ C.1.1.1.3/B.2.2.3.1 AESI(BROAD)
 <div id="tabset-1-6" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-6-tab">
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-03-11 16:50:55 UTC"</code></pre>
+<pre><code>[1] "2024-03-12 14:20:53 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>R version 4.3.3 (2024-02-29)
 Platform: x86_64-pc-linux-gnu (64-bit)
@@ -1876,31 +1887,31 @@ loaded via a namespace (and not attached):
 <code>.lock</code> file</h3>
 <p>Download the <code>.lock</code> file and use <a href="https://rstudio.github.io/renv/reference/restore.html"><code>renv::restore()</code></a> on it to recreate environment used to generate this website.</p>
 <div class="cell" data-renv.ignore="true">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb13-2"><a href="#cb13-2"></a></span>
-<span id="cb13-3"><a href="#cb13-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
-<span id="cb13-4"><a href="#cb13-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
-<span id="cb13-5"><a href="#cb13-5"></a></span>
-<span id="cb13-6"><a href="#cb13-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
-<span id="cb13-7"><a href="#cb13-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
-<span id="cb13-8"><a href="#cb13-8"></a>  <span class="fu">paste0</span>(</span>
-<span id="cb13-9"><a href="#cb13-9"></a>    <span class="fu">gsub</span>(</span>
-<span id="cb13-10"><a href="#cb13-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
-<span id="cb13-11"><a href="#cb13-11"></a>      <span class="st">""</span>,</span>
-<span id="cb13-12"><a href="#cb13-12"></a>      <span class="fu">gsub</span>(</span>
-<span id="cb13-13"><a href="#cb13-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
-<span id="cb13-14"><a href="#cb13-14"></a>        <span class="st">""</span>,</span>
-<span id="cb13-15"><a href="#cb13-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb13-16"><a href="#cb13-16"></a>      )</span>
-<span id="cb13-17"><a href="#cb13-17"></a>    ),</span>
-<span id="cb13-18"><a href="#cb13-18"></a>    <span class="st">".lock"</span></span>
-<span id="cb13-19"><a href="#cb13-19"></a>  )</span>
-<span id="cb13-20"><a href="#cb13-20"></a>)</span>
-<span id="cb13-21"><a href="#cb13-21"></a></span>
-<span id="cb13-22"><a href="#cb13-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
-<span id="cb13-23"><a href="#cb13-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb13-24"><a href="#cb13-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb13-25"><a href="#cb13-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb14-2"><a href="#cb14-2"></a></span>
+<span id="cb14-3"><a href="#cb14-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
+<span id="cb14-5"><a href="#cb14-5"></a></span>
+<span id="cb14-6"><a href="#cb14-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
+<span id="cb14-7"><a href="#cb14-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8"></a>  <span class="fu">paste0</span>(</span>
+<span id="cb14-9"><a href="#cb14-9"></a>    <span class="fu">gsub</span>(</span>
+<span id="cb14-10"><a href="#cb14-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
+<span id="cb14-11"><a href="#cb14-11"></a>      <span class="st">""</span>,</span>
+<span id="cb14-12"><a href="#cb14-12"></a>      <span class="fu">gsub</span>(</span>
+<span id="cb14-13"><a href="#cb14-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
+<span id="cb14-14"><a href="#cb14-14"></a>        <span class="st">""</span>,</span>
+<span id="cb14-15"><a href="#cb14-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb14-16"><a href="#cb14-16"></a>      )</span>
+<span id="cb14-17"><a href="#cb14-17"></a>    ),</span>
+<span id="cb14-18"><a href="#cb14-18"></a>    <span class="st">".lock"</span></span>
+<span id="cb14-19"><a href="#cb14-19"></a>  )</span>
+<span id="cb14-20"><a href="#cb14-20"></a>)</span>
+<span id="cb14-21"><a href="#cb14-21"></a></span>
+<span id="cb14-22"><a href="#cb14-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
+<span id="cb14-23"><a href="#cb14-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb14-24"><a href="#cb14-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb14-25"><a href="#cb14-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p><a href="../../assets/www/lock/tables/adverse-events/aet06_smq.lock">Download</a></p>
@@ -2528,326 +2539,326 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb14" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb14-1"><a href="#cb14-1"></a><span class="co">---</span></span>
-<span id="cb14-2"><a href="#cb14-2"></a><span class="an">title:</span><span class="co"> AET06_SMQ</span></span>
-<span id="cb14-3"><a href="#cb14-3"></a><span class="an">subtitle:</span><span class="co"> Adverse Events by Baseline Characteristic, by SMQ and Preferred Term</span></span>
-<span id="cb14-4"><a href="#cb14-4"></a><span class="co">---</span></span>
-<span id="cb14-5"><a href="#cb14-5"></a></span>
-<span id="cb14-6"><a href="#cb14-6"></a>------------------------------------------------------------------------</span>
-<span id="cb14-7"><a href="#cb14-7"></a></span>
-<span id="cb14-8"><a href="#cb14-8"></a>{{&lt; include ../../test-utils/envir_hook.qmd &gt;}}</span>
-<span id="cb14-9"><a href="#cb14-9"></a></span>
-<span id="cb14-10"><a href="#cb14-10"></a>::: panel-tabset</span>
-<span id="cb14-11"><a href="#cb14-11"></a><span class="fu">## Data Setup</span></span>
-<span id="cb14-12"><a href="#cb14-12"></a></span>
-<span id="cb14-13"><a href="#cb14-13"></a><span class="in">```{r setup, message=FALSE}</span></span>
-<span id="cb14-14"><a href="#cb14-14"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb14-15"><a href="#cb14-15"></a></span>
-<span id="cb14-16"><a href="#cb14-16"></a><span class="in">library(dplyr)</span></span>
-<span id="cb14-17"><a href="#cb14-17"></a><span class="in">library(tern)</span></span>
-<span id="cb14-18"><a href="#cb14-18"></a><span class="in">library(scda)</span></span>
-<span id="cb14-19"><a href="#cb14-19"></a><span class="in">library(stringr)</span></span>
-<span id="cb14-20"><a href="#cb14-20"></a></span>
-<span id="cb14-21"><a href="#cb14-21"></a><span class="in">adsl &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
-<span id="cb14-22"><a href="#cb14-22"></a><span class="in">adae &lt;- synthetic_cdisc_dataset("latest", "adae")</span></span>
-<span id="cb14-23"><a href="#cb14-23"></a></span>
-<span id="cb14-24"><a href="#cb14-24"></a><span class="in">adsl_labels &lt;- var_labels(adsl)</span></span>
-<span id="cb14-25"><a href="#cb14-25"></a><span class="in">adae_labels &lt;- var_labels(adae)</span></span>
-<span id="cb14-26"><a href="#cb14-26"></a></span>
-<span id="cb14-27"><a href="#cb14-27"></a><span class="in">adsl &lt;- adsl %&gt;%</span></span>
-<span id="cb14-28"><a href="#cb14-28"></a><span class="in">  mutate(</span></span>
-<span id="cb14-29"><a href="#cb14-29"></a><span class="in">    AGE65 = case_when(</span></span>
-<span id="cb14-30"><a href="#cb14-30"></a><span class="in">      AGE &gt;= 65 ~ "&gt;= 65",</span></span>
-<span id="cb14-31"><a href="#cb14-31"></a><span class="in">      TRUE ~ "&lt; 65"</span></span>
-<span id="cb14-32"><a href="#cb14-32"></a><span class="in">    ),</span></span>
-<span id="cb14-33"><a href="#cb14-33"></a><span class="in">    AGE65 = factor(</span></span>
-<span id="cb14-34"><a href="#cb14-34"></a><span class="in">      AGE65,</span></span>
-<span id="cb14-35"><a href="#cb14-35"></a><span class="in">      levels = c("&lt; 65", "&gt;= 65")</span></span>
-<span id="cb14-36"><a href="#cb14-36"></a><span class="in">    )</span></span>
-<span id="cb14-37"><a href="#cb14-37"></a><span class="in">  )</span></span>
-<span id="cb14-38"><a href="#cb14-38"></a></span>
-<span id="cb14-39"><a href="#cb14-39"></a><span class="in">adae &lt;- adae %&gt;%</span></span>
-<span id="cb14-40"><a href="#cb14-40"></a><span class="in">  mutate(</span></span>
-<span id="cb14-41"><a href="#cb14-41"></a><span class="in">    AGE65 = case_when(</span></span>
-<span id="cb14-42"><a href="#cb14-42"></a><span class="in">      AGE &gt;= 65 ~ "&gt;= 65",</span></span>
-<span id="cb14-43"><a href="#cb14-43"></a><span class="in">      TRUE ~ "&lt; 65"</span></span>
-<span id="cb14-44"><a href="#cb14-44"></a><span class="in">    ),</span></span>
-<span id="cb14-45"><a href="#cb14-45"></a><span class="in">    AGE65 = factor(</span></span>
-<span id="cb14-46"><a href="#cb14-46"></a><span class="in">      AGE65,</span></span>
-<span id="cb14-47"><a href="#cb14-47"></a><span class="in">      levels = c("&lt; 65", "&gt;= 65")</span></span>
-<span id="cb14-48"><a href="#cb14-48"></a><span class="in">    )</span></span>
-<span id="cb14-49"><a href="#cb14-49"></a><span class="in">  )</span></span>
-<span id="cb14-50"><a href="#cb14-50"></a></span>
-<span id="cb14-51"><a href="#cb14-51"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing</span></span>
-<span id="cb14-52"><a href="#cb14-52"></a><span class="in"># levels. For details, refer to Teal and Study Data article.</span></span>
-<span id="cb14-53"><a href="#cb14-53"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb14-54"><a href="#cb14-54"></a><span class="in">adae &lt;- df_explicit_na(adae)</span></span>
-<span id="cb14-55"><a href="#cb14-55"></a></span>
-<span id="cb14-56"><a href="#cb14-56"></a><span class="in"># Simulate a random AAG dataset.</span></span>
-<span id="cb14-57"><a href="#cb14-57"></a><span class="in">aag &lt;- data.frame(</span></span>
-<span id="cb14-58"><a href="#cb14-58"></a><span class="in">  NAMVAR = c("SMQ01NAM", "SMQ01NAM", "SMQ02NAM", "CQ01NAM", "CQ01NAM"),</span></span>
-<span id="cb14-59"><a href="#cb14-59"></a><span class="in">  SRCVAR = rep("AEDECOD", 5),</span></span>
-<span id="cb14-60"><a href="#cb14-60"></a><span class="in">  GRPTYPE = c("SMQ", "SMQ", "SMQ", "CUSTOM", "CUSTOM"),</span></span>
-<span id="cb14-61"><a href="#cb14-61"></a><span class="in">  REFID = c(1, 1, 2, 3, 3),</span></span>
-<span id="cb14-62"><a href="#cb14-62"></a><span class="in">  REFNAME = c(rep("C.1.1.1.3/B.2.2.3.1 AESI", 2), "non observed SMQ02NAM level", rep("D.2.1.5.3/A.1.1.1.1 AESI", 2)),</span></span>
-<span id="cb14-63"><a href="#cb14-63"></a><span class="in">  SCOPE = c("BROAD", "BROAD", "BROAD", "", ""),</span></span>
-<span id="cb14-64"><a href="#cb14-64"></a><span class="in">  REFTERM = c("C.1.1.1.3", "B.2.2.3.1", "Z.9.9.9.9", "D.2.1.5.3", "A.1.1.1.1"),</span></span>
-<span id="cb14-65"><a href="#cb14-65"></a><span class="in">  stringsAsFactors = FALSE</span></span>
-<span id="cb14-66"><a href="#cb14-66"></a><span class="in">)</span></span>
-<span id="cb14-67"><a href="#cb14-67"></a></span>
-<span id="cb14-68"><a href="#cb14-68"></a><span class="in"># Create summary AAG dataset (used for labelling).</span></span>
-<span id="cb14-69"><a href="#cb14-69"></a><span class="in"># Note it's important to incorporate SCOPE into the basket names for SMQs so as to</span></span>
-<span id="cb14-70"><a href="#cb14-70"></a><span class="in"># match the flags present in ADAE.</span></span>
-<span id="cb14-71"><a href="#cb14-71"></a><span class="in">aag_summary &lt;- aag %&gt;%</span></span>
-<span id="cb14-72"><a href="#cb14-72"></a><span class="in">  select(NAMVAR, REFNAME, SCOPE) %&gt;%</span></span>
-<span id="cb14-73"><a href="#cb14-73"></a><span class="in">  unique() %&gt;%</span></span>
-<span id="cb14-74"><a href="#cb14-74"></a><span class="in">  mutate(</span></span>
-<span id="cb14-75"><a href="#cb14-75"></a><span class="in">    REFNAME_SCOPE = ifelse(SCOPE == "", REFNAME, paste0(REFNAME, "(", SCOPE, ")"))</span></span>
-<span id="cb14-76"><a href="#cb14-76"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-77"><a href="#cb14-77"></a><span class="in">  rename(basket = NAMVAR, basket_name = REFNAME_SCOPE) %&gt;%</span></span>
-<span id="cb14-78"><a href="#cb14-78"></a><span class="in">  select(basket, basket_name)</span></span>
-<span id="cb14-79"><a href="#cb14-79"></a></span>
-<span id="cb14-80"><a href="#cb14-80"></a><span class="in"># Make a summary of the full ADAE based on AAG by using h_stack_by_baskets helper function</span></span>
-<span id="cb14-81"><a href="#cb14-81"></a><span class="in">adae_smq_all &lt;- h_stack_by_baskets(</span></span>
-<span id="cb14-82"><a href="#cb14-82"></a><span class="in">  df = adae,</span></span>
-<span id="cb14-83"><a href="#cb14-83"></a><span class="in">  aag_summary = aag_summary,</span></span>
-<span id="cb14-84"><a href="#cb14-84"></a><span class="in">  keys = c("STUDYID", "USUBJID", "ACTARMCD", "AEDECOD", "SEX", "AGE65")</span></span>
-<span id="cb14-85"><a href="#cb14-85"></a><span class="in">)</span></span>
-<span id="cb14-86"><a href="#cb14-86"></a><span class="in"># Post-process adae_smq_all to keep only certain baskets of interest for variant 1</span></span>
-<span id="cb14-87"><a href="#cb14-87"></a><span class="in"># Not need to drop baskets for variant 2 as all baskets will be considered.</span></span>
-<span id="cb14-88"><a href="#cb14-88"></a><span class="in">baskets_to_drop_variant &lt;- aag_summary$basket_name[!aag_summary$basket %in% c("SMQ01NAM")]</span></span>
-<span id="cb14-89"><a href="#cb14-89"></a></span>
-<span id="cb14-90"><a href="#cb14-90"></a><span class="in"># Adjust the analysis dataset based on basket subset for variant 1.</span></span>
-<span id="cb14-91"><a href="#cb14-91"></a><span class="in">adae_smq_1 &lt;- adae_smq_all %&gt;%</span></span>
-<span id="cb14-92"><a href="#cb14-92"></a><span class="in">  filter(!adae_smq_all$SMQ %in% baskets_to_drop_variant) %&gt;%</span></span>
-<span id="cb14-93"><a href="#cb14-93"></a><span class="in">  mutate(</span></span>
-<span id="cb14-94"><a href="#cb14-94"></a><span class="in">    SMQ = tern::fct_discard(SMQ, discard = baskets_to_drop_variant)</span></span>
-<span id="cb14-95"><a href="#cb14-95"></a><span class="in">  )</span></span>
-<span id="cb14-96"><a href="#cb14-96"></a><span class="in">```</span></span>
-<span id="cb14-97"><a href="#cb14-97"></a></span>
-<span id="cb14-98"><a href="#cb14-98"></a><span class="fu">## Adverse Events by Sex, &lt;br/&gt; by SMQ and Preferred Term</span></span>
-<span id="cb14-99"><a href="#cb14-99"></a></span>
-<span id="cb14-100"><a href="#cb14-100"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb14-101"><a href="#cb14-101"></a><span class="in">criteria_fun &lt;- function(tr) !is(tr, "ContentRow") &amp;&amp; all_zero_or_na(tr)</span></span>
-<span id="cb14-102"><a href="#cb14-102"></a></span>
-<span id="cb14-103"><a href="#cb14-103"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb14-104"><a href="#cb14-104"></a><span class="in">  split_cols_by("ACTARMCD") %&gt;%</span></span>
-<span id="cb14-105"><a href="#cb14-105"></a><span class="in">  split_cols_by("SEX") %&gt;%</span></span>
-<span id="cb14-106"><a href="#cb14-106"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb14-107"><a href="#cb14-107"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb14-108"><a href="#cb14-108"></a><span class="in">    .stats = c("unique"),</span></span>
-<span id="cb14-109"><a href="#cb14-109"></a><span class="in">    .labels = c(unique = "Total number of patients with at least one adverse event")</span></span>
-<span id="cb14-110"><a href="#cb14-110"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-111"><a href="#cb14-111"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb14-112"><a href="#cb14-112"></a><span class="in">    "SMQ",</span></span>
-<span id="cb14-113"><a href="#cb14-113"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb14-114"><a href="#cb14-114"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb14-115"><a href="#cb14-115"></a><span class="in">    split_fun = trim_levels_in_group("AEDECOD", drop_outlevs = FALSE),</span></span>
-<span id="cb14-116"><a href="#cb14-116"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb14-117"><a href="#cb14-117"></a><span class="in">    split_label = "Standardized MedDRA Query"</span></span>
-<span id="cb14-118"><a href="#cb14-118"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-119"><a href="#cb14-119"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb14-120"><a href="#cb14-120"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb14-121"><a href="#cb14-121"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb14-122"><a href="#cb14-122"></a><span class="in">    .labels = c(</span></span>
-<span id="cb14-123"><a href="#cb14-123"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
-<span id="cb14-124"><a href="#cb14-124"></a><span class="in">      nonunique = "Total number of events"</span></span>
-<span id="cb14-125"><a href="#cb14-125"></a><span class="in">    )</span></span>
-<span id="cb14-126"><a href="#cb14-126"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-127"><a href="#cb14-127"></a><span class="in">  count_occurrences(vars = "AEDECOD", drop = FALSE) %&gt;%</span></span>
-<span id="cb14-128"><a href="#cb14-128"></a><span class="in">  append_varlabels(adae_smq_1, "AEDECOD", indent = 1L)</span></span>
-<span id="cb14-129"><a href="#cb14-129"></a></span>
-<span id="cb14-130"><a href="#cb14-130"></a><span class="in">result &lt;- build_table(</span></span>
-<span id="cb14-131"><a href="#cb14-131"></a><span class="in">  lyt = lyt,</span></span>
-<span id="cb14-132"><a href="#cb14-132"></a><span class="in">  df = adae_smq_1,</span></span>
-<span id="cb14-133"><a href="#cb14-133"></a><span class="in">  alt_counts_df = adsl</span></span>
-<span id="cb14-134"><a href="#cb14-134"></a><span class="in">) %&gt;%</span></span>
-<span id="cb14-135"><a href="#cb14-135"></a><span class="in">  sort_at_path(path = c("SMQ"), scorefun = cont_n_allcols) %&gt;%</span></span>
-<span id="cb14-136"><a href="#cb14-136"></a><span class="in">  sort_at_path(path = c("SMQ", "*", "AEDECOD"), scorefun = score_occurrences, na.pos = "last") %&gt;%</span></span>
-<span id="cb14-137"><a href="#cb14-137"></a><span class="in">  trim_rows(criteria = criteria_fun)</span></span>
-<span id="cb14-138"><a href="#cb14-138"></a></span>
-<span id="cb14-139"><a href="#cb14-139"></a><span class="in">result</span></span>
-<span id="cb14-140"><a href="#cb14-140"></a><span class="in">```</span></span>
-<span id="cb14-141"><a href="#cb14-141"></a></span>
-<span id="cb14-142"><a href="#cb14-142"></a><span class="fu">## Adverse Events by Sex, by SMQ and &lt;br/&gt; Preferred Term (with Customized Queries)</span></span>
-<span id="cb14-143"><a href="#cb14-143"></a></span>
-<span id="cb14-144"><a href="#cb14-144"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb14-145"><a href="#cb14-145"></a><span class="in">criteria_fun &lt;- function(tr) {</span></span>
-<span id="cb14-146"><a href="#cb14-146"></a><span class="in">  !is(tr, "ContentRow") &amp;&amp; all_zero_or_na(tr) &amp;&amp; !grepl("Total number of", obj_label(tr))</span></span>
-<span id="cb14-147"><a href="#cb14-147"></a><span class="in">}</span></span>
-<span id="cb14-148"><a href="#cb14-148"></a></span>
-<span id="cb14-149"><a href="#cb14-149"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb14-150"><a href="#cb14-150"></a><span class="in">  split_cols_by("ACTARMCD") %&gt;%</span></span>
-<span id="cb14-151"><a href="#cb14-151"></a><span class="in">  split_cols_by("SEX") %&gt;%</span></span>
-<span id="cb14-152"><a href="#cb14-152"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb14-153"><a href="#cb14-153"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb14-154"><a href="#cb14-154"></a><span class="in">    .stats = c("unique"),</span></span>
-<span id="cb14-155"><a href="#cb14-155"></a><span class="in">    .labels = c(unique = "Total number of patients with at least one adverse event")</span></span>
-<span id="cb14-156"><a href="#cb14-156"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-157"><a href="#cb14-157"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb14-158"><a href="#cb14-158"></a><span class="in">    "SMQ",</span></span>
-<span id="cb14-159"><a href="#cb14-159"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb14-160"><a href="#cb14-160"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb14-161"><a href="#cb14-161"></a><span class="in">    split_fun = trim_levels_in_group("AEDECOD", drop_outlevs = FALSE),</span></span>
-<span id="cb14-162"><a href="#cb14-162"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb14-163"><a href="#cb14-163"></a><span class="in">    split_label = "Standardized MedDRA Query"</span></span>
-<span id="cb14-164"><a href="#cb14-164"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-165"><a href="#cb14-165"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb14-166"><a href="#cb14-166"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb14-167"><a href="#cb14-167"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb14-168"><a href="#cb14-168"></a><span class="in">    .labels = c(</span></span>
-<span id="cb14-169"><a href="#cb14-169"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
-<span id="cb14-170"><a href="#cb14-170"></a><span class="in">      nonunique = "Total number of events"</span></span>
-<span id="cb14-171"><a href="#cb14-171"></a><span class="in">    ),</span></span>
-<span id="cb14-172"><a href="#cb14-172"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb14-173"><a href="#cb14-173"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-174"><a href="#cb14-174"></a><span class="in">  count_occurrences(vars = "AEDECOD", drop = FALSE) %&gt;%</span></span>
-<span id="cb14-175"><a href="#cb14-175"></a><span class="in">  append_varlabels(adae_smq_all, "AEDECOD", indent = 1L)</span></span>
-<span id="cb14-176"><a href="#cb14-176"></a></span>
-<span id="cb14-177"><a href="#cb14-177"></a><span class="in">score_ae_pts &lt;- function(tt) {</span></span>
-<span id="cb14-178"><a href="#cb14-178"></a><span class="in">  count_vals &lt;- cell_values(tree_children(tt)[["USUBJID"]])[[1]]</span></span>
-<span id="cb14-179"><a href="#cb14-179"></a><span class="in">  sum(matrix(unlist(count_vals), nrow = length(count_vals), byrow = TRUE)[, 1])</span></span>
-<span id="cb14-180"><a href="#cb14-180"></a><span class="in">}</span></span>
-<span id="cb14-181"><a href="#cb14-181"></a></span>
-<span id="cb14-182"><a href="#cb14-182"></a><span class="in">result &lt;- build_table(</span></span>
-<span id="cb14-183"><a href="#cb14-183"></a><span class="in">  lyt = lyt,</span></span>
-<span id="cb14-184"><a href="#cb14-184"></a><span class="in">  df = adae_smq_all,</span></span>
-<span id="cb14-185"><a href="#cb14-185"></a><span class="in">  alt_counts_df = adsl</span></span>
-<span id="cb14-186"><a href="#cb14-186"></a><span class="in">) %&gt;%</span></span>
-<span id="cb14-187"><a href="#cb14-187"></a><span class="in">  sort_at_path(path = c("SMQ"), scorefun = score_ae_pts) %&gt;%</span></span>
-<span id="cb14-188"><a href="#cb14-188"></a><span class="in">  sort_at_path(path = c("SMQ", "*", "AEDECOD"), scorefun = score_occurrences, na.pos = "last") %&gt;%</span></span>
-<span id="cb14-189"><a href="#cb14-189"></a><span class="in">  trim_rows(criteria = criteria_fun)</span></span>
-<span id="cb14-190"><a href="#cb14-190"></a></span>
-<span id="cb14-191"><a href="#cb14-191"></a><span class="in">result</span></span>
-<span id="cb14-192"><a href="#cb14-192"></a><span class="in">```</span></span>
-<span id="cb14-193"><a href="#cb14-193"></a></span>
-<span id="cb14-194"><a href="#cb14-194"></a><span class="fu">## Adverse Events by Other Baseline &lt;br/&gt; Characteristics (e.g. Age Group)</span></span>
-<span id="cb14-195"><a href="#cb14-195"></a></span>
-<span id="cb14-196"><a href="#cb14-196"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
-<span id="cb14-197"><a href="#cb14-197"></a><span class="in">criteria_fun &lt;- function(tr) !is(tr, "ContentRow") &amp;&amp; all_zero_or_na(tr)</span></span>
-<span id="cb14-198"><a href="#cb14-198"></a></span>
-<span id="cb14-199"><a href="#cb14-199"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb14-200"><a href="#cb14-200"></a><span class="in">  split_cols_by("ACTARMCD") %&gt;%</span></span>
-<span id="cb14-201"><a href="#cb14-201"></a><span class="in">  split_cols_by("AGE65") %&gt;%</span></span>
-<span id="cb14-202"><a href="#cb14-202"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb14-203"><a href="#cb14-203"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb14-204"><a href="#cb14-204"></a><span class="in">    .stats = c("unique"),</span></span>
-<span id="cb14-205"><a href="#cb14-205"></a><span class="in">    .labels = c(unique = "Total number of patients with at least one adverse event")</span></span>
-<span id="cb14-206"><a href="#cb14-206"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-207"><a href="#cb14-207"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb14-208"><a href="#cb14-208"></a><span class="in">    "SMQ",</span></span>
-<span id="cb14-209"><a href="#cb14-209"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb14-210"><a href="#cb14-210"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb14-211"><a href="#cb14-211"></a><span class="in">    split_fun = trim_levels_in_group("AEDECOD", drop_outlevs = FALSE),</span></span>
-<span id="cb14-212"><a href="#cb14-212"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb14-213"><a href="#cb14-213"></a><span class="in">    split_label = "Standardized MedDRA Query"</span></span>
-<span id="cb14-214"><a href="#cb14-214"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-215"><a href="#cb14-215"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb14-216"><a href="#cb14-216"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb14-217"><a href="#cb14-217"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb14-218"><a href="#cb14-218"></a><span class="in">    .labels = c(</span></span>
-<span id="cb14-219"><a href="#cb14-219"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
-<span id="cb14-220"><a href="#cb14-220"></a><span class="in">      nonunique = "Total number of events"</span></span>
-<span id="cb14-221"><a href="#cb14-221"></a><span class="in">    )</span></span>
-<span id="cb14-222"><a href="#cb14-222"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-223"><a href="#cb14-223"></a><span class="in">  count_occurrences(vars = "AEDECOD", drop = FALSE) %&gt;%</span></span>
-<span id="cb14-224"><a href="#cb14-224"></a><span class="in">  append_varlabels(adae_smq_1, "AEDECOD", indent = 1L)</span></span>
-<span id="cb14-225"><a href="#cb14-225"></a></span>
-<span id="cb14-226"><a href="#cb14-226"></a><span class="in">result &lt;- build_table(</span></span>
-<span id="cb14-227"><a href="#cb14-227"></a><span class="in">  lyt = lyt,</span></span>
-<span id="cb14-228"><a href="#cb14-228"></a><span class="in">  df = adae_smq_1,</span></span>
-<span id="cb14-229"><a href="#cb14-229"></a><span class="in">  alt_counts_df = adsl</span></span>
-<span id="cb14-230"><a href="#cb14-230"></a><span class="in">) %&gt;%</span></span>
-<span id="cb14-231"><a href="#cb14-231"></a><span class="in">  sort_at_path(path = c("SMQ"), scorefun = cont_n_allcols) %&gt;%</span></span>
-<span id="cb14-232"><a href="#cb14-232"></a><span class="in">  sort_at_path(path = c("SMQ", "*", "AEDECOD"), scorefun = score_occurrences, na.pos = "last") %&gt;%</span></span>
-<span id="cb14-233"><a href="#cb14-233"></a><span class="in">  trim_rows(criteria = criteria_fun)</span></span>
-<span id="cb14-234"><a href="#cb14-234"></a></span>
-<span id="cb14-235"><a href="#cb14-235"></a><span class="in">result</span></span>
-<span id="cb14-236"><a href="#cb14-236"></a><span class="in">```</span></span>
-<span id="cb14-237"><a href="#cb14-237"></a></span>
-<span id="cb14-238"><a href="#cb14-238"></a>{{&lt; include ../../test-utils/save_results.qmd &gt;}}</span>
-<span id="cb14-239"><a href="#cb14-239"></a></span>
-<span id="cb14-240"><a href="#cb14-240"></a><span class="fu">## `teal` App</span></span>
-<span id="cb14-241"><a href="#cb14-241"></a></span>
-<span id="cb14-242"><a href="#cb14-242"></a><span class="in">```{r teal, opts.label=c('skip_if_testing', 'app')}</span></span>
-<span id="cb14-243"><a href="#cb14-243"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb14-244"><a href="#cb14-244"></a></span>
-<span id="cb14-245"><a href="#cb14-245"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb14-246"><a href="#cb14-246"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb14-247"><a href="#cb14-247"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb14-248"><a href="#cb14-248"></a><span class="in">  library(scda)</span></span>
-<span id="cb14-249"><a href="#cb14-249"></a><span class="in">  library(dplyr)</span></span>
-<span id="cb14-250"><a href="#cb14-250"></a><span class="in">  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl") %&gt;%</span></span>
-<span id="cb14-251"><a href="#cb14-251"></a><span class="in">    mutate(</span></span>
-<span id="cb14-252"><a href="#cb14-252"></a><span class="in">      AGE65 = case_when(</span></span>
-<span id="cb14-253"><a href="#cb14-253"></a><span class="in">        AGE &gt;= 65 ~ "&gt;= 65",</span></span>
-<span id="cb14-254"><a href="#cb14-254"></a><span class="in">        TRUE ~ "&lt; 65"</span></span>
-<span id="cb14-255"><a href="#cb14-255"></a><span class="in">      ),</span></span>
-<span id="cb14-256"><a href="#cb14-256"></a><span class="in">      AGE65 = factor(</span></span>
-<span id="cb14-257"><a href="#cb14-257"></a><span class="in">        AGE65,</span></span>
-<span id="cb14-258"><a href="#cb14-258"></a><span class="in">        levels = c("&lt; 65", "&gt;= 65")</span></span>
-<span id="cb14-259"><a href="#cb14-259"></a><span class="in">      )</span></span>
-<span id="cb14-260"><a href="#cb14-260"></a><span class="in">    )</span></span>
-<span id="cb14-261"><a href="#cb14-261"></a><span class="in">  ADAE &lt;- synthetic_cdisc_dataset("latest", "adae") %&gt;%</span></span>
-<span id="cb14-262"><a href="#cb14-262"></a><span class="in">    mutate(</span></span>
-<span id="cb14-263"><a href="#cb14-263"></a><span class="in">      AGE65 = case_when(</span></span>
-<span id="cb14-264"><a href="#cb14-264"></a><span class="in">        AGE &gt;= 65 ~ "&gt;= 65",</span></span>
-<span id="cb14-265"><a href="#cb14-265"></a><span class="in">        TRUE ~ "&lt; 65"</span></span>
-<span id="cb14-266"><a href="#cb14-266"></a><span class="in">      ),</span></span>
-<span id="cb14-267"><a href="#cb14-267"></a><span class="in">      AGE65 = factor(</span></span>
-<span id="cb14-268"><a href="#cb14-268"></a><span class="in">        AGE65,</span></span>
-<span id="cb14-269"><a href="#cb14-269"></a><span class="in">        levels = c("&lt; 65", "&gt;= 65")</span></span>
-<span id="cb14-270"><a href="#cb14-270"></a><span class="in">      )</span></span>
-<span id="cb14-271"><a href="#cb14-271"></a><span class="in">    )</span></span>
-<span id="cb14-272"><a href="#cb14-272"></a><span class="in">})</span></span>
-<span id="cb14-273"><a href="#cb14-273"></a><span class="in">datanames &lt;- c("ADSL", "ADAE")</span></span>
-<span id="cb14-274"><a href="#cb14-274"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb14-275"><a href="#cb14-275"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb14-276"><a href="#cb14-276"></a></span>
-<span id="cb14-277"><a href="#cb14-277"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb14-278"><a href="#cb14-278"></a><span class="in">ADSL &lt;- data[["ADSL"]]</span></span>
-<span id="cb14-279"><a href="#cb14-279"></a><span class="in">ADAE &lt;- data[["ADAE"]]</span></span>
-<span id="cb14-280"><a href="#cb14-280"></a></span>
-<span id="cb14-281"><a href="#cb14-281"></a><span class="in">names_baskets &lt;- grep("^(SMQ|CQ).*NAM$", names(ADAE), value = TRUE)</span></span>
-<span id="cb14-282"><a href="#cb14-282"></a><span class="in">names_scopes &lt;- grep("^SMQ.*SC$", names(ADAE), value = TRUE)</span></span>
-<span id="cb14-283"><a href="#cb14-283"></a></span>
-<span id="cb14-284"><a href="#cb14-284"></a><span class="in">cs_baskets &lt;- choices_selected(</span></span>
-<span id="cb14-285"><a href="#cb14-285"></a><span class="in">  choices = variable_choices(ADAE, subset = names_baskets),</span></span>
-<span id="cb14-286"><a href="#cb14-286"></a><span class="in">  selected = names_baskets</span></span>
-<span id="cb14-287"><a href="#cb14-287"></a><span class="in">)</span></span>
-<span id="cb14-288"><a href="#cb14-288"></a><span class="in">cs_scopes &lt;- choices_selected(</span></span>
-<span id="cb14-289"><a href="#cb14-289"></a><span class="in">  choices = variable_choices(ADAE, subset = names_scopes),</span></span>
-<span id="cb14-290"><a href="#cb14-290"></a><span class="in">  selected = names_scopes,</span></span>
-<span id="cb14-291"><a href="#cb14-291"></a><span class="in">  fixed = TRUE</span></span>
-<span id="cb14-292"><a href="#cb14-292"></a><span class="in">)</span></span>
-<span id="cb14-293"><a href="#cb14-293"></a></span>
-<span id="cb14-294"><a href="#cb14-294"></a><span class="in">## Setup App</span></span>
-<span id="cb14-295"><a href="#cb14-295"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb14-296"><a href="#cb14-296"></a><span class="in">  data = data,</span></span>
-<span id="cb14-297"><a href="#cb14-297"></a><span class="in">  modules = modules(</span></span>
-<span id="cb14-298"><a href="#cb14-298"></a><span class="in">    tm_t_smq(</span></span>
-<span id="cb14-299"><a href="#cb14-299"></a><span class="in">      label = "Adverse events by `SMQ` Table",</span></span>
-<span id="cb14-300"><a href="#cb14-300"></a><span class="in">      dataname = "ADAE",</span></span>
-<span id="cb14-301"><a href="#cb14-301"></a><span class="in">      arm_var = choices_selected(</span></span>
-<span id="cb14-302"><a href="#cb14-302"></a><span class="in">        choices = variable_choices(ADSL, subset = c("ARM", "SEX", "AGE65")),</span></span>
-<span id="cb14-303"><a href="#cb14-303"></a><span class="in">        selected = c("ARM", "SEX")</span></span>
-<span id="cb14-304"><a href="#cb14-304"></a><span class="in">      ),</span></span>
-<span id="cb14-305"><a href="#cb14-305"></a><span class="in">      add_total = FALSE,</span></span>
-<span id="cb14-306"><a href="#cb14-306"></a><span class="in">      baskets = cs_baskets,</span></span>
-<span id="cb14-307"><a href="#cb14-307"></a><span class="in">      scopes = cs_scopes,</span></span>
-<span id="cb14-308"><a href="#cb14-308"></a><span class="in">      llt = choices_selected(</span></span>
-<span id="cb14-309"><a href="#cb14-309"></a><span class="in">        choices = variable_choices(ADAE, subset = c("AEDECOD")),</span></span>
-<span id="cb14-310"><a href="#cb14-310"></a><span class="in">        selected = "AEDECOD"</span></span>
-<span id="cb14-311"><a href="#cb14-311"></a><span class="in">      )</span></span>
-<span id="cb14-312"><a href="#cb14-312"></a><span class="in">    )</span></span>
-<span id="cb14-313"><a href="#cb14-313"></a><span class="in">  )</span></span>
-<span id="cb14-314"><a href="#cb14-314"></a><span class="in">)</span></span>
-<span id="cb14-315"><a href="#cb14-315"></a></span>
-<span id="cb14-316"><a href="#cb14-316"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb14-317"><a href="#cb14-317"></a><span class="in">```</span></span>
-<span id="cb14-318"><a href="#cb14-318"></a></span>
-<span id="cb14-319"><a href="#cb14-319"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb14-320"><a href="#cb14-320"></a>:::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb15" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb15-1"><a href="#cb15-1"></a><span class="co">---</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="an">title:</span><span class="co"> AET06_SMQ</span></span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="an">subtitle:</span><span class="co"> Adverse Events by Baseline Characteristic, by SMQ and Preferred Term</span></span>
+<span id="cb15-4"><a href="#cb15-4"></a><span class="co">---</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a></span>
+<span id="cb15-6"><a href="#cb15-6"></a>------------------------------------------------------------------------</span>
+<span id="cb15-7"><a href="#cb15-7"></a></span>
+<span id="cb15-8"><a href="#cb15-8"></a>{{&lt; include ../../test-utils/envir_hook.qmd &gt;}}</span>
+<span id="cb15-9"><a href="#cb15-9"></a></span>
+<span id="cb15-10"><a href="#cb15-10"></a>::: panel-tabset</span>
+<span id="cb15-11"><a href="#cb15-11"></a><span class="fu">## Data Setup</span></span>
+<span id="cb15-12"><a href="#cb15-12"></a></span>
+<span id="cb15-13"><a href="#cb15-13"></a><span class="in">```{r setup, message = FALSE}</span></span>
+<span id="cb15-14"><a href="#cb15-14"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb15-15"><a href="#cb15-15"></a></span>
+<span id="cb15-16"><a href="#cb15-16"></a><span class="in">library(dplyr)</span></span>
+<span id="cb15-17"><a href="#cb15-17"></a><span class="in">library(tern)</span></span>
+<span id="cb15-18"><a href="#cb15-18"></a><span class="in">library(scda)</span></span>
+<span id="cb15-19"><a href="#cb15-19"></a><span class="in">library(stringr)</span></span>
+<span id="cb15-20"><a href="#cb15-20"></a></span>
+<span id="cb15-21"><a href="#cb15-21"></a><span class="in">adsl &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
+<span id="cb15-22"><a href="#cb15-22"></a><span class="in">adae &lt;- synthetic_cdisc_dataset("latest", "adae")</span></span>
+<span id="cb15-23"><a href="#cb15-23"></a></span>
+<span id="cb15-24"><a href="#cb15-24"></a><span class="in">adsl_labels &lt;- var_labels(adsl)</span></span>
+<span id="cb15-25"><a href="#cb15-25"></a><span class="in">adae_labels &lt;- var_labels(adae)</span></span>
+<span id="cb15-26"><a href="#cb15-26"></a></span>
+<span id="cb15-27"><a href="#cb15-27"></a><span class="in">adsl &lt;- adsl %&gt;%</span></span>
+<span id="cb15-28"><a href="#cb15-28"></a><span class="in">  mutate(</span></span>
+<span id="cb15-29"><a href="#cb15-29"></a><span class="in">    AGE65 = case_when(</span></span>
+<span id="cb15-30"><a href="#cb15-30"></a><span class="in">      AGE &gt;= 65 ~ "&gt;= 65",</span></span>
+<span id="cb15-31"><a href="#cb15-31"></a><span class="in">      TRUE ~ "&lt; 65"</span></span>
+<span id="cb15-32"><a href="#cb15-32"></a><span class="in">    ),</span></span>
+<span id="cb15-33"><a href="#cb15-33"></a><span class="in">    AGE65 = factor(</span></span>
+<span id="cb15-34"><a href="#cb15-34"></a><span class="in">      AGE65,</span></span>
+<span id="cb15-35"><a href="#cb15-35"></a><span class="in">      levels = c("&lt; 65", "&gt;= 65")</span></span>
+<span id="cb15-36"><a href="#cb15-36"></a><span class="in">    )</span></span>
+<span id="cb15-37"><a href="#cb15-37"></a><span class="in">  )</span></span>
+<span id="cb15-38"><a href="#cb15-38"></a></span>
+<span id="cb15-39"><a href="#cb15-39"></a><span class="in">adae &lt;- adae %&gt;%</span></span>
+<span id="cb15-40"><a href="#cb15-40"></a><span class="in">  mutate(</span></span>
+<span id="cb15-41"><a href="#cb15-41"></a><span class="in">    AGE65 = case_when(</span></span>
+<span id="cb15-42"><a href="#cb15-42"></a><span class="in">      AGE &gt;= 65 ~ "&gt;= 65",</span></span>
+<span id="cb15-43"><a href="#cb15-43"></a><span class="in">      TRUE ~ "&lt; 65"</span></span>
+<span id="cb15-44"><a href="#cb15-44"></a><span class="in">    ),</span></span>
+<span id="cb15-45"><a href="#cb15-45"></a><span class="in">    AGE65 = factor(</span></span>
+<span id="cb15-46"><a href="#cb15-46"></a><span class="in">      AGE65,</span></span>
+<span id="cb15-47"><a href="#cb15-47"></a><span class="in">      levels = c("&lt; 65", "&gt;= 65")</span></span>
+<span id="cb15-48"><a href="#cb15-48"></a><span class="in">    )</span></span>
+<span id="cb15-49"><a href="#cb15-49"></a><span class="in">  )</span></span>
+<span id="cb15-50"><a href="#cb15-50"></a></span>
+<span id="cb15-51"><a href="#cb15-51"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing</span></span>
+<span id="cb15-52"><a href="#cb15-52"></a><span class="in"># levels. For details, refer to Teal and Study Data article.</span></span>
+<span id="cb15-53"><a href="#cb15-53"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb15-54"><a href="#cb15-54"></a><span class="in">adae &lt;- df_explicit_na(adae)</span></span>
+<span id="cb15-55"><a href="#cb15-55"></a></span>
+<span id="cb15-56"><a href="#cb15-56"></a><span class="in"># Simulate a random AAG dataset.</span></span>
+<span id="cb15-57"><a href="#cb15-57"></a><span class="in">aag &lt;- data.frame(</span></span>
+<span id="cb15-58"><a href="#cb15-58"></a><span class="in">  NAMVAR = c("SMQ01NAM", "SMQ01NAM", "SMQ02NAM", "CQ01NAM", "CQ01NAM"),</span></span>
+<span id="cb15-59"><a href="#cb15-59"></a><span class="in">  SRCVAR = rep("AEDECOD", 5),</span></span>
+<span id="cb15-60"><a href="#cb15-60"></a><span class="in">  GRPTYPE = c("SMQ", "SMQ", "SMQ", "CUSTOM", "CUSTOM"),</span></span>
+<span id="cb15-61"><a href="#cb15-61"></a><span class="in">  REFID = c(1, 1, 2, 3, 3),</span></span>
+<span id="cb15-62"><a href="#cb15-62"></a><span class="in">  REFNAME = c(rep("C.1.1.1.3/B.2.2.3.1 AESI", 2), "non observed SMQ02NAM level", rep("D.2.1.5.3/A.1.1.1.1 AESI", 2)),</span></span>
+<span id="cb15-63"><a href="#cb15-63"></a><span class="in">  SCOPE = c("BROAD", "BROAD", "BROAD", "", ""),</span></span>
+<span id="cb15-64"><a href="#cb15-64"></a><span class="in">  REFTERM = c("C.1.1.1.3", "B.2.2.3.1", "Z.9.9.9.9", "D.2.1.5.3", "A.1.1.1.1"),</span></span>
+<span id="cb15-65"><a href="#cb15-65"></a><span class="in">  stringsAsFactors = FALSE</span></span>
+<span id="cb15-66"><a href="#cb15-66"></a><span class="in">)</span></span>
+<span id="cb15-67"><a href="#cb15-67"></a></span>
+<span id="cb15-68"><a href="#cb15-68"></a><span class="in"># Create summary AAG dataset (used for labelling).</span></span>
+<span id="cb15-69"><a href="#cb15-69"></a><span class="in"># Note it's important to incorporate SCOPE into the basket names for SMQs so as to</span></span>
+<span id="cb15-70"><a href="#cb15-70"></a><span class="in"># match the flags present in ADAE.</span></span>
+<span id="cb15-71"><a href="#cb15-71"></a><span class="in">aag_summary &lt;- aag %&gt;%</span></span>
+<span id="cb15-72"><a href="#cb15-72"></a><span class="in">  select(NAMVAR, REFNAME, SCOPE) %&gt;%</span></span>
+<span id="cb15-73"><a href="#cb15-73"></a><span class="in">  unique() %&gt;%</span></span>
+<span id="cb15-74"><a href="#cb15-74"></a><span class="in">  mutate(</span></span>
+<span id="cb15-75"><a href="#cb15-75"></a><span class="in">    REFNAME_SCOPE = ifelse(SCOPE == "", REFNAME, paste0(REFNAME, "(", SCOPE, ")"))</span></span>
+<span id="cb15-76"><a href="#cb15-76"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb15-77"><a href="#cb15-77"></a><span class="in">  rename(basket = NAMVAR, basket_name = REFNAME_SCOPE) %&gt;%</span></span>
+<span id="cb15-78"><a href="#cb15-78"></a><span class="in">  select(basket, basket_name)</span></span>
+<span id="cb15-79"><a href="#cb15-79"></a></span>
+<span id="cb15-80"><a href="#cb15-80"></a><span class="in"># Make a summary of the full ADAE based on AAG by using h_stack_by_baskets helper function</span></span>
+<span id="cb15-81"><a href="#cb15-81"></a><span class="in">adae_smq_all &lt;- h_stack_by_baskets(</span></span>
+<span id="cb15-82"><a href="#cb15-82"></a><span class="in">  df = adae,</span></span>
+<span id="cb15-83"><a href="#cb15-83"></a><span class="in">  aag_summary = aag_summary,</span></span>
+<span id="cb15-84"><a href="#cb15-84"></a><span class="in">  keys = c("STUDYID", "USUBJID", "ACTARMCD", "AEDECOD", "SEX", "AGE65")</span></span>
+<span id="cb15-85"><a href="#cb15-85"></a><span class="in">)</span></span>
+<span id="cb15-86"><a href="#cb15-86"></a><span class="in"># Post-process adae_smq_all to keep only certain baskets of interest for variant 1</span></span>
+<span id="cb15-87"><a href="#cb15-87"></a><span class="in"># Not need to drop baskets for variant 2 as all baskets will be considered.</span></span>
+<span id="cb15-88"><a href="#cb15-88"></a><span class="in">baskets_to_drop_variant &lt;- aag_summary$basket_name[!aag_summary$basket %in% c("SMQ01NAM")]</span></span>
+<span id="cb15-89"><a href="#cb15-89"></a></span>
+<span id="cb15-90"><a href="#cb15-90"></a><span class="in"># Adjust the analysis dataset based on basket subset for variant 1.</span></span>
+<span id="cb15-91"><a href="#cb15-91"></a><span class="in">adae_smq_1 &lt;- adae_smq_all %&gt;%</span></span>
+<span id="cb15-92"><a href="#cb15-92"></a><span class="in">  filter(!adae_smq_all$SMQ %in% baskets_to_drop_variant) %&gt;%</span></span>
+<span id="cb15-93"><a href="#cb15-93"></a><span class="in">  mutate(</span></span>
+<span id="cb15-94"><a href="#cb15-94"></a><span class="in">    SMQ = tern::fct_discard(SMQ, discard = baskets_to_drop_variant)</span></span>
+<span id="cb15-95"><a href="#cb15-95"></a><span class="in">  )</span></span>
+<span id="cb15-96"><a href="#cb15-96"></a><span class="in">```</span></span>
+<span id="cb15-97"><a href="#cb15-97"></a></span>
+<span id="cb15-98"><a href="#cb15-98"></a><span class="fu">## Adverse Events by Sex, &lt;br/&gt; by SMQ and Preferred Term</span></span>
+<span id="cb15-99"><a href="#cb15-99"></a></span>
+<span id="cb15-100"><a href="#cb15-100"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb15-101"><a href="#cb15-101"></a><span class="in">criteria_fun &lt;- function(tr) !is(tr, "ContentRow") &amp;&amp; all_zero_or_na(tr)</span></span>
+<span id="cb15-102"><a href="#cb15-102"></a></span>
+<span id="cb15-103"><a href="#cb15-103"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb15-104"><a href="#cb15-104"></a><span class="in">  split_cols_by("ACTARMCD") %&gt;%</span></span>
+<span id="cb15-105"><a href="#cb15-105"></a><span class="in">  split_cols_by("SEX") %&gt;%</span></span>
+<span id="cb15-106"><a href="#cb15-106"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb15-107"><a href="#cb15-107"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb15-108"><a href="#cb15-108"></a><span class="in">    .stats = c("unique"),</span></span>
+<span id="cb15-109"><a href="#cb15-109"></a><span class="in">    .labels = c(unique = "Total number of patients with at least one adverse event")</span></span>
+<span id="cb15-110"><a href="#cb15-110"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb15-111"><a href="#cb15-111"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb15-112"><a href="#cb15-112"></a><span class="in">    "SMQ",</span></span>
+<span id="cb15-113"><a href="#cb15-113"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb15-114"><a href="#cb15-114"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb15-115"><a href="#cb15-115"></a><span class="in">    split_fun = trim_levels_in_group("AEDECOD", drop_outlevs = FALSE),</span></span>
+<span id="cb15-116"><a href="#cb15-116"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb15-117"><a href="#cb15-117"></a><span class="in">    split_label = "Standardized MedDRA Query"</span></span>
+<span id="cb15-118"><a href="#cb15-118"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb15-119"><a href="#cb15-119"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb15-120"><a href="#cb15-120"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb15-121"><a href="#cb15-121"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb15-122"><a href="#cb15-122"></a><span class="in">    .labels = c(</span></span>
+<span id="cb15-123"><a href="#cb15-123"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
+<span id="cb15-124"><a href="#cb15-124"></a><span class="in">      nonunique = "Total number of events"</span></span>
+<span id="cb15-125"><a href="#cb15-125"></a><span class="in">    )</span></span>
+<span id="cb15-126"><a href="#cb15-126"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb15-127"><a href="#cb15-127"></a><span class="in">  count_occurrences(vars = "AEDECOD", drop = FALSE) %&gt;%</span></span>
+<span id="cb15-128"><a href="#cb15-128"></a><span class="in">  append_varlabels(adae_smq_1, "AEDECOD", indent = 1L)</span></span>
+<span id="cb15-129"><a href="#cb15-129"></a></span>
+<span id="cb15-130"><a href="#cb15-130"></a><span class="in">result &lt;- build_table(</span></span>
+<span id="cb15-131"><a href="#cb15-131"></a><span class="in">  lyt = lyt,</span></span>
+<span id="cb15-132"><a href="#cb15-132"></a><span class="in">  df = adae_smq_1,</span></span>
+<span id="cb15-133"><a href="#cb15-133"></a><span class="in">  alt_counts_df = adsl</span></span>
+<span id="cb15-134"><a href="#cb15-134"></a><span class="in">) %&gt;%</span></span>
+<span id="cb15-135"><a href="#cb15-135"></a><span class="in">  sort_at_path(path = c("SMQ"), scorefun = cont_n_allcols) %&gt;%</span></span>
+<span id="cb15-136"><a href="#cb15-136"></a><span class="in">  sort_at_path(path = c("SMQ", "*", "AEDECOD"), scorefun = score_occurrences, na.pos = "last") %&gt;%</span></span>
+<span id="cb15-137"><a href="#cb15-137"></a><span class="in">  trim_rows(criteria = criteria_fun)</span></span>
+<span id="cb15-138"><a href="#cb15-138"></a></span>
+<span id="cb15-139"><a href="#cb15-139"></a><span class="in">result</span></span>
+<span id="cb15-140"><a href="#cb15-140"></a><span class="in">```</span></span>
+<span id="cb15-141"><a href="#cb15-141"></a></span>
+<span id="cb15-142"><a href="#cb15-142"></a><span class="fu">## Adverse Events by Sex, by SMQ and &lt;br/&gt; Preferred Term (with Customized Queries)</span></span>
+<span id="cb15-143"><a href="#cb15-143"></a></span>
+<span id="cb15-144"><a href="#cb15-144"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb15-145"><a href="#cb15-145"></a><span class="in">criteria_fun &lt;- function(tr) {</span></span>
+<span id="cb15-146"><a href="#cb15-146"></a><span class="in">  !is(tr, "ContentRow") &amp;&amp; all_zero_or_na(tr) &amp;&amp; !grepl("Total number of", obj_label(tr))</span></span>
+<span id="cb15-147"><a href="#cb15-147"></a><span class="in">}</span></span>
+<span id="cb15-148"><a href="#cb15-148"></a></span>
+<span id="cb15-149"><a href="#cb15-149"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb15-150"><a href="#cb15-150"></a><span class="in">  split_cols_by("ACTARMCD") %&gt;%</span></span>
+<span id="cb15-151"><a href="#cb15-151"></a><span class="in">  split_cols_by("SEX") %&gt;%</span></span>
+<span id="cb15-152"><a href="#cb15-152"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb15-153"><a href="#cb15-153"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb15-154"><a href="#cb15-154"></a><span class="in">    .stats = c("unique"),</span></span>
+<span id="cb15-155"><a href="#cb15-155"></a><span class="in">    .labels = c(unique = "Total number of patients with at least one adverse event")</span></span>
+<span id="cb15-156"><a href="#cb15-156"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb15-157"><a href="#cb15-157"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb15-158"><a href="#cb15-158"></a><span class="in">    "SMQ",</span></span>
+<span id="cb15-159"><a href="#cb15-159"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb15-160"><a href="#cb15-160"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb15-161"><a href="#cb15-161"></a><span class="in">    split_fun = trim_levels_in_group("AEDECOD", drop_outlevs = FALSE),</span></span>
+<span id="cb15-162"><a href="#cb15-162"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb15-163"><a href="#cb15-163"></a><span class="in">    split_label = "Standardized MedDRA Query"</span></span>
+<span id="cb15-164"><a href="#cb15-164"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb15-165"><a href="#cb15-165"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb15-166"><a href="#cb15-166"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb15-167"><a href="#cb15-167"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb15-168"><a href="#cb15-168"></a><span class="in">    .labels = c(</span></span>
+<span id="cb15-169"><a href="#cb15-169"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
+<span id="cb15-170"><a href="#cb15-170"></a><span class="in">      nonunique = "Total number of events"</span></span>
+<span id="cb15-171"><a href="#cb15-171"></a><span class="in">    ),</span></span>
+<span id="cb15-172"><a href="#cb15-172"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb15-173"><a href="#cb15-173"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb15-174"><a href="#cb15-174"></a><span class="in">  count_occurrences(vars = "AEDECOD", drop = FALSE) %&gt;%</span></span>
+<span id="cb15-175"><a href="#cb15-175"></a><span class="in">  append_varlabels(adae_smq_all, "AEDECOD", indent = 1L)</span></span>
+<span id="cb15-176"><a href="#cb15-176"></a></span>
+<span id="cb15-177"><a href="#cb15-177"></a><span class="in">score_ae_pts &lt;- function(tt) {</span></span>
+<span id="cb15-178"><a href="#cb15-178"></a><span class="in">  count_vals &lt;- cell_values(tree_children(tt)[["USUBJID"]])[[1]]</span></span>
+<span id="cb15-179"><a href="#cb15-179"></a><span class="in">  sum(matrix(unlist(count_vals), nrow = length(count_vals), byrow = TRUE)[, 1])</span></span>
+<span id="cb15-180"><a href="#cb15-180"></a><span class="in">}</span></span>
+<span id="cb15-181"><a href="#cb15-181"></a></span>
+<span id="cb15-182"><a href="#cb15-182"></a><span class="in">result &lt;- build_table(</span></span>
+<span id="cb15-183"><a href="#cb15-183"></a><span class="in">  lyt = lyt,</span></span>
+<span id="cb15-184"><a href="#cb15-184"></a><span class="in">  df = adae_smq_all,</span></span>
+<span id="cb15-185"><a href="#cb15-185"></a><span class="in">  alt_counts_df = adsl</span></span>
+<span id="cb15-186"><a href="#cb15-186"></a><span class="in">) %&gt;%</span></span>
+<span id="cb15-187"><a href="#cb15-187"></a><span class="in">  sort_at_path(path = c("SMQ"), scorefun = score_ae_pts) %&gt;%</span></span>
+<span id="cb15-188"><a href="#cb15-188"></a><span class="in">  sort_at_path(path = c("SMQ", "*", "AEDECOD"), scorefun = score_occurrences, na.pos = "last") %&gt;%</span></span>
+<span id="cb15-189"><a href="#cb15-189"></a><span class="in">  trim_rows(criteria = criteria_fun)</span></span>
+<span id="cb15-190"><a href="#cb15-190"></a></span>
+<span id="cb15-191"><a href="#cb15-191"></a><span class="in">result</span></span>
+<span id="cb15-192"><a href="#cb15-192"></a><span class="in">```</span></span>
+<span id="cb15-193"><a href="#cb15-193"></a></span>
+<span id="cb15-194"><a href="#cb15-194"></a><span class="fu">## Adverse Events by Other Baseline &lt;br/&gt; Characteristics (e.g. Age Group)</span></span>
+<span id="cb15-195"><a href="#cb15-195"></a></span>
+<span id="cb15-196"><a href="#cb15-196"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
+<span id="cb15-197"><a href="#cb15-197"></a><span class="in">criteria_fun &lt;- function(tr) !is(tr, "ContentRow") &amp;&amp; all_zero_or_na(tr)</span></span>
+<span id="cb15-198"><a href="#cb15-198"></a></span>
+<span id="cb15-199"><a href="#cb15-199"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb15-200"><a href="#cb15-200"></a><span class="in">  split_cols_by("ACTARMCD") %&gt;%</span></span>
+<span id="cb15-201"><a href="#cb15-201"></a><span class="in">  split_cols_by("AGE65") %&gt;%</span></span>
+<span id="cb15-202"><a href="#cb15-202"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb15-203"><a href="#cb15-203"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb15-204"><a href="#cb15-204"></a><span class="in">    .stats = c("unique"),</span></span>
+<span id="cb15-205"><a href="#cb15-205"></a><span class="in">    .labels = c(unique = "Total number of patients with at least one adverse event")</span></span>
+<span id="cb15-206"><a href="#cb15-206"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb15-207"><a href="#cb15-207"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb15-208"><a href="#cb15-208"></a><span class="in">    "SMQ",</span></span>
+<span id="cb15-209"><a href="#cb15-209"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb15-210"><a href="#cb15-210"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb15-211"><a href="#cb15-211"></a><span class="in">    split_fun = trim_levels_in_group("AEDECOD", drop_outlevs = FALSE),</span></span>
+<span id="cb15-212"><a href="#cb15-212"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb15-213"><a href="#cb15-213"></a><span class="in">    split_label = "Standardized MedDRA Query"</span></span>
+<span id="cb15-214"><a href="#cb15-214"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb15-215"><a href="#cb15-215"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb15-216"><a href="#cb15-216"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb15-217"><a href="#cb15-217"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb15-218"><a href="#cb15-218"></a><span class="in">    .labels = c(</span></span>
+<span id="cb15-219"><a href="#cb15-219"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
+<span id="cb15-220"><a href="#cb15-220"></a><span class="in">      nonunique = "Total number of events"</span></span>
+<span id="cb15-221"><a href="#cb15-221"></a><span class="in">    )</span></span>
+<span id="cb15-222"><a href="#cb15-222"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb15-223"><a href="#cb15-223"></a><span class="in">  count_occurrences(vars = "AEDECOD", drop = FALSE) %&gt;%</span></span>
+<span id="cb15-224"><a href="#cb15-224"></a><span class="in">  append_varlabels(adae_smq_1, "AEDECOD", indent = 1L)</span></span>
+<span id="cb15-225"><a href="#cb15-225"></a></span>
+<span id="cb15-226"><a href="#cb15-226"></a><span class="in">result &lt;- build_table(</span></span>
+<span id="cb15-227"><a href="#cb15-227"></a><span class="in">  lyt = lyt,</span></span>
+<span id="cb15-228"><a href="#cb15-228"></a><span class="in">  df = adae_smq_1,</span></span>
+<span id="cb15-229"><a href="#cb15-229"></a><span class="in">  alt_counts_df = adsl</span></span>
+<span id="cb15-230"><a href="#cb15-230"></a><span class="in">) %&gt;%</span></span>
+<span id="cb15-231"><a href="#cb15-231"></a><span class="in">  sort_at_path(path = c("SMQ"), scorefun = cont_n_allcols) %&gt;%</span></span>
+<span id="cb15-232"><a href="#cb15-232"></a><span class="in">  sort_at_path(path = c("SMQ", "*", "AEDECOD"), scorefun = score_occurrences, na.pos = "last") %&gt;%</span></span>
+<span id="cb15-233"><a href="#cb15-233"></a><span class="in">  trim_rows(criteria = criteria_fun)</span></span>
+<span id="cb15-234"><a href="#cb15-234"></a></span>
+<span id="cb15-235"><a href="#cb15-235"></a><span class="in">result</span></span>
+<span id="cb15-236"><a href="#cb15-236"></a><span class="in">```</span></span>
+<span id="cb15-237"><a href="#cb15-237"></a></span>
+<span id="cb15-238"><a href="#cb15-238"></a>{{&lt; include ../../test-utils/save_results.qmd &gt;}}</span>
+<span id="cb15-239"><a href="#cb15-239"></a></span>
+<span id="cb15-240"><a href="#cb15-240"></a><span class="fu">## `teal` App</span></span>
+<span id="cb15-241"><a href="#cb15-241"></a></span>
+<span id="cb15-242"><a href="#cb15-242"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb15-243"><a href="#cb15-243"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb15-244"><a href="#cb15-244"></a></span>
+<span id="cb15-245"><a href="#cb15-245"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb15-246"><a href="#cb15-246"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb15-247"><a href="#cb15-247"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb15-248"><a href="#cb15-248"></a><span class="in">  library(scda)</span></span>
+<span id="cb15-249"><a href="#cb15-249"></a><span class="in">  library(dplyr)</span></span>
+<span id="cb15-250"><a href="#cb15-250"></a><span class="in">  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl") %&gt;%</span></span>
+<span id="cb15-251"><a href="#cb15-251"></a><span class="in">    mutate(</span></span>
+<span id="cb15-252"><a href="#cb15-252"></a><span class="in">      AGE65 = case_when(</span></span>
+<span id="cb15-253"><a href="#cb15-253"></a><span class="in">        AGE &gt;= 65 ~ "&gt;= 65",</span></span>
+<span id="cb15-254"><a href="#cb15-254"></a><span class="in">        TRUE ~ "&lt; 65"</span></span>
+<span id="cb15-255"><a href="#cb15-255"></a><span class="in">      ),</span></span>
+<span id="cb15-256"><a href="#cb15-256"></a><span class="in">      AGE65 = factor(</span></span>
+<span id="cb15-257"><a href="#cb15-257"></a><span class="in">        AGE65,</span></span>
+<span id="cb15-258"><a href="#cb15-258"></a><span class="in">        levels = c("&lt; 65", "&gt;= 65")</span></span>
+<span id="cb15-259"><a href="#cb15-259"></a><span class="in">      )</span></span>
+<span id="cb15-260"><a href="#cb15-260"></a><span class="in">    )</span></span>
+<span id="cb15-261"><a href="#cb15-261"></a><span class="in">  ADAE &lt;- synthetic_cdisc_dataset("latest", "adae") %&gt;%</span></span>
+<span id="cb15-262"><a href="#cb15-262"></a><span class="in">    mutate(</span></span>
+<span id="cb15-263"><a href="#cb15-263"></a><span class="in">      AGE65 = case_when(</span></span>
+<span id="cb15-264"><a href="#cb15-264"></a><span class="in">        AGE &gt;= 65 ~ "&gt;= 65",</span></span>
+<span id="cb15-265"><a href="#cb15-265"></a><span class="in">        TRUE ~ "&lt; 65"</span></span>
+<span id="cb15-266"><a href="#cb15-266"></a><span class="in">      ),</span></span>
+<span id="cb15-267"><a href="#cb15-267"></a><span class="in">      AGE65 = factor(</span></span>
+<span id="cb15-268"><a href="#cb15-268"></a><span class="in">        AGE65,</span></span>
+<span id="cb15-269"><a href="#cb15-269"></a><span class="in">        levels = c("&lt; 65", "&gt;= 65")</span></span>
+<span id="cb15-270"><a href="#cb15-270"></a><span class="in">      )</span></span>
+<span id="cb15-271"><a href="#cb15-271"></a><span class="in">    )</span></span>
+<span id="cb15-272"><a href="#cb15-272"></a><span class="in">})</span></span>
+<span id="cb15-273"><a href="#cb15-273"></a><span class="in">datanames &lt;- c("ADSL", "ADAE")</span></span>
+<span id="cb15-274"><a href="#cb15-274"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb15-275"><a href="#cb15-275"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb15-276"><a href="#cb15-276"></a></span>
+<span id="cb15-277"><a href="#cb15-277"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb15-278"><a href="#cb15-278"></a><span class="in">ADSL &lt;- data[["ADSL"]]</span></span>
+<span id="cb15-279"><a href="#cb15-279"></a><span class="in">ADAE &lt;- data[["ADAE"]]</span></span>
+<span id="cb15-280"><a href="#cb15-280"></a></span>
+<span id="cb15-281"><a href="#cb15-281"></a><span class="in">names_baskets &lt;- grep("^(SMQ|CQ).*NAM$", names(ADAE), value = TRUE)</span></span>
+<span id="cb15-282"><a href="#cb15-282"></a><span class="in">names_scopes &lt;- grep("^SMQ.*SC$", names(ADAE), value = TRUE)</span></span>
+<span id="cb15-283"><a href="#cb15-283"></a></span>
+<span id="cb15-284"><a href="#cb15-284"></a><span class="in">cs_baskets &lt;- choices_selected(</span></span>
+<span id="cb15-285"><a href="#cb15-285"></a><span class="in">  choices = variable_choices(ADAE, subset = names_baskets),</span></span>
+<span id="cb15-286"><a href="#cb15-286"></a><span class="in">  selected = names_baskets</span></span>
+<span id="cb15-287"><a href="#cb15-287"></a><span class="in">)</span></span>
+<span id="cb15-288"><a href="#cb15-288"></a><span class="in">cs_scopes &lt;- choices_selected(</span></span>
+<span id="cb15-289"><a href="#cb15-289"></a><span class="in">  choices = variable_choices(ADAE, subset = names_scopes),</span></span>
+<span id="cb15-290"><a href="#cb15-290"></a><span class="in">  selected = names_scopes,</span></span>
+<span id="cb15-291"><a href="#cb15-291"></a><span class="in">  fixed = TRUE</span></span>
+<span id="cb15-292"><a href="#cb15-292"></a><span class="in">)</span></span>
+<span id="cb15-293"><a href="#cb15-293"></a></span>
+<span id="cb15-294"><a href="#cb15-294"></a><span class="in">## Setup App</span></span>
+<span id="cb15-295"><a href="#cb15-295"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb15-296"><a href="#cb15-296"></a><span class="in">  data = data,</span></span>
+<span id="cb15-297"><a href="#cb15-297"></a><span class="in">  modules = modules(</span></span>
+<span id="cb15-298"><a href="#cb15-298"></a><span class="in">    tm_t_smq(</span></span>
+<span id="cb15-299"><a href="#cb15-299"></a><span class="in">      label = "Adverse events by `SMQ` Table",</span></span>
+<span id="cb15-300"><a href="#cb15-300"></a><span class="in">      dataname = "ADAE",</span></span>
+<span id="cb15-301"><a href="#cb15-301"></a><span class="in">      arm_var = choices_selected(</span></span>
+<span id="cb15-302"><a href="#cb15-302"></a><span class="in">        choices = variable_choices(ADSL, subset = c("ARM", "SEX", "AGE65")),</span></span>
+<span id="cb15-303"><a href="#cb15-303"></a><span class="in">        selected = c("ARM", "SEX")</span></span>
+<span id="cb15-304"><a href="#cb15-304"></a><span class="in">      ),</span></span>
+<span id="cb15-305"><a href="#cb15-305"></a><span class="in">      add_total = FALSE,</span></span>
+<span id="cb15-306"><a href="#cb15-306"></a><span class="in">      baskets = cs_baskets,</span></span>
+<span id="cb15-307"><a href="#cb15-307"></a><span class="in">      scopes = cs_scopes,</span></span>
+<span id="cb15-308"><a href="#cb15-308"></a><span class="in">      llt = choices_selected(</span></span>
+<span id="cb15-309"><a href="#cb15-309"></a><span class="in">        choices = variable_choices(ADAE, subset = c("AEDECOD")),</span></span>
+<span id="cb15-310"><a href="#cb15-310"></a><span class="in">        selected = "AEDECOD"</span></span>
+<span id="cb15-311"><a href="#cb15-311"></a><span class="in">      )</span></span>
+<span id="cb15-312"><a href="#cb15-312"></a><span class="in">    )</span></span>
+<span id="cb15-313"><a href="#cb15-313"></a><span class="in">  )</span></span>
+<span id="cb15-314"><a href="#cb15-314"></a><span class="in">)</span></span>
+<span id="cb15-315"><a href="#cb15-315"></a></span>
+<span id="cb15-316"><a href="#cb15-316"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb15-317"><a href="#cb15-317"></a><span class="in">```</span></span>
+<span id="cb15-318"><a href="#cb15-318"></a></span>
+<span id="cb15-319"><a href="#cb15-319"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb15-320"><a href="#cb15-320"></a>:::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

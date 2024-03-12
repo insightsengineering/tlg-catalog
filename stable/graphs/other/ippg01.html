@@ -1550,79 +1550,90 @@ cookieconsent.run({
 </div>
 </div>
 </div>
+<div class="cell" data-renv.ignore="true">
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="cf">if</span> (<span class="fu">exists</span>(<span class="st">"tenv"</span>)) {</span>
+<span id="cb8-2"><a href="#cb8-2"></a>  filename <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>, <span class="st">""</span>, knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)), <span class="st">".rds"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3"></a>  filepath <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="fu">normalizePath</span>(<span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_PROJECT_DIR"</span>)), <span class="fu">file.path</span>(<span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_TESTTHAT_DATA_PATH"</span>), <span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_PROFILE"</span>)), filename)</span>
+<span id="cb8-4"><a href="#cb8-4"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">dirname</span>(filepath))) {</span>
+<span id="cb8-5"><a href="#cb8-5"></a>    <span class="fu">dir.create</span>(<span class="fu">dirname</span>(filepath), <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb8-6"><a href="#cb8-6"></a>  }</span>
+<span id="cb8-7"><a href="#cb8-7"></a>  <span class="fu">saveRDS</span>(tenv, filepath)</span>
+<span id="cb8-8"><a href="#cb8-8"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 </div>
 <div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
 <div class="cell" data-webshot="webshot2" data-screenshot.force="true" data-screenshot.opts="{&quot;delay&quot;:5}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
-<span id="cb8-2"><a href="#cb8-2"></a></span>
-<span id="cb8-3"><a href="#cb8-3"></a><span class="do">## Data reproducible code</span></span>
-<span id="cb8-4"><a href="#cb8-4"></a>data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
-<span id="cb8-5"><a href="#cb8-5"></a>data <span class="ot">&lt;-</span> <span class="fu">within</span>(data, {</span>
-<span id="cb8-6"><a href="#cb8-6"></a>  <span class="fu">library</span>(tern)</span>
-<span id="cb8-7"><a href="#cb8-7"></a>  <span class="fu">library</span>(scda)</span>
-<span id="cb8-8"><a href="#cb8-8"></a>  <span class="fu">library</span>(dplyr)</span>
-<span id="cb8-9"><a href="#cb8-9"></a></span>
-<span id="cb8-10"><a href="#cb8-10"></a>  <span class="co"># use small sample size</span></span>
-<span id="cb8-11"><a href="#cb8-11"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>) <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">15</span>)</span>
-<span id="cb8-12"><a href="#cb8-12"></a>  ADLB <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adlb"</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(USUBJID <span class="sc">%in%</span> ADSL<span class="sc">$</span>USUBJID)</span>
-<span id="cb8-13"><a href="#cb8-13"></a></span>
-<span id="cb8-14"><a href="#cb8-14"></a>  <span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb8-15"><a href="#cb8-15"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(ADSL)</span>
-<span id="cb8-16"><a href="#cb8-16"></a>  ADLB <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(ADLB) <span class="sc">%&gt;%</span></span>
-<span id="cb8-17"><a href="#cb8-17"></a>    <span class="fu">filter</span>(AVISIT <span class="sc">!=</span> <span class="st">"SCREENING"</span>)</span>
-<span id="cb8-18"><a href="#cb8-18"></a>})</span>
-<span id="cb8-19"><a href="#cb8-19"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADLB"</span>)</span>
-<span id="cb8-20"><a href="#cb8-20"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
-<span id="cb8-21"><a href="#cb8-21"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
-<span id="cb8-22"><a href="#cb8-22"></a></span>
-<span id="cb8-23"><a href="#cb8-23"></a><span class="do">## Reusable Configuration For Modules</span></span>
-<span id="cb8-24"><a href="#cb8-24"></a>ADLB <span class="ot">&lt;-</span> data[[<span class="st">"ADLB"</span>]]</span>
-<span id="cb8-25"><a href="#cb8-25"></a></span>
-<span id="cb8-26"><a href="#cb8-26"></a><span class="do">## Setup App</span></span>
-<span id="cb8-27"><a href="#cb8-27"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb8-28"><a href="#cb8-28"></a>  <span class="at">data =</span> data,</span>
-<span id="cb8-29"><a href="#cb8-29"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb8-30"><a href="#cb8-30"></a>    <span class="fu">tm_g_ipp</span>(</span>
-<span id="cb8-31"><a href="#cb8-31"></a>      <span class="at">label =</span> <span class="st">"Individual Patient Plot"</span>,</span>
-<span id="cb8-32"><a href="#cb8-32"></a>      <span class="at">dataname =</span> <span class="st">"ADLB"</span>,</span>
-<span id="cb8-33"><a href="#cb8-33"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb8-34"><a href="#cb8-34"></a>        <span class="fu">value_choices</span>(ADLB, <span class="fu">c</span>(<span class="st">"ARMCD"</span>)),</span>
-<span id="cb8-35"><a href="#cb8-35"></a>        <span class="st">"ARM A"</span></span>
-<span id="cb8-36"><a href="#cb8-36"></a>      ),</span>
-<span id="cb8-37"><a href="#cb8-37"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb8-38"><a href="#cb8-38"></a>        <span class="fu">value_choices</span>(ADLB, <span class="st">"PARAMCD"</span>),</span>
-<span id="cb8-39"><a href="#cb8-39"></a>        <span class="st">"ALT"</span></span>
-<span id="cb8-40"><a href="#cb8-40"></a>      ),</span>
-<span id="cb8-41"><a href="#cb8-41"></a>      <span class="at">aval_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb8-42"><a href="#cb8-42"></a>        <span class="fu">variable_choices</span>(ADLB, <span class="fu">c</span>(<span class="st">"AVAL"</span>)),</span>
-<span id="cb8-43"><a href="#cb8-43"></a>        <span class="st">"AVAL"</span></span>
-<span id="cb8-44"><a href="#cb8-44"></a>      ),</span>
-<span id="cb8-45"><a href="#cb8-45"></a>      <span class="at">avalu_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb8-46"><a href="#cb8-46"></a>        <span class="fu">variable_choices</span>(ADLB, <span class="fu">c</span>(<span class="st">"AVALU"</span>)),</span>
-<span id="cb8-47"><a href="#cb8-47"></a>        <span class="st">"AVALU"</span>,</span>
-<span id="cb8-48"><a href="#cb8-48"></a>        <span class="at">fixed =</span> <span class="cn">TRUE</span></span>
-<span id="cb8-49"><a href="#cb8-49"></a>      ),</span>
-<span id="cb8-50"><a href="#cb8-50"></a>      <span class="at">id_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb8-51"><a href="#cb8-51"></a>        <span class="fu">variable_choices</span>(ADLB, <span class="fu">c</span>(<span class="st">"USUBJID"</span>)),</span>
-<span id="cb8-52"><a href="#cb8-52"></a>        <span class="st">"USUBJID"</span>,</span>
-<span id="cb8-53"><a href="#cb8-53"></a>        <span class="at">fixed =</span> <span class="cn">TRUE</span></span>
-<span id="cb8-54"><a href="#cb8-54"></a>      ),</span>
-<span id="cb8-55"><a href="#cb8-55"></a>      <span class="at">visit_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb8-56"><a href="#cb8-56"></a>        <span class="fu">variable_choices</span>(ADLB, <span class="fu">c</span>(<span class="st">"AVISIT"</span>)),</span>
-<span id="cb8-57"><a href="#cb8-57"></a>        <span class="st">"AVISIT"</span></span>
-<span id="cb8-58"><a href="#cb8-58"></a>      ),</span>
-<span id="cb8-59"><a href="#cb8-59"></a>      <span class="at">baseline_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb8-60"><a href="#cb8-60"></a>        <span class="fu">variable_choices</span>(ADLB, <span class="fu">c</span>(<span class="st">"BASE"</span>)),</span>
-<span id="cb8-61"><a href="#cb8-61"></a>        <span class="st">"BASE"</span>,</span>
-<span id="cb8-62"><a href="#cb8-62"></a>        <span class="at">fixed =</span> <span class="cn">TRUE</span></span>
-<span id="cb8-63"><a href="#cb8-63"></a>      ),</span>
-<span id="cb8-64"><a href="#cb8-64"></a>      <span class="at">add_baseline_hline =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb8-65"><a href="#cb8-65"></a>      <span class="at">separate_by_obs =</span> <span class="cn">FALSE</span></span>
-<span id="cb8-66"><a href="#cb8-66"></a>    )</span>
-<span id="cb8-67"><a href="#cb8-67"></a>  )</span>
-<span id="cb8-68"><a href="#cb8-68"></a>)</span>
-<span id="cb8-69"><a href="#cb8-69"></a></span>
-<span id="cb8-70"><a href="#cb8-70"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
+<span id="cb9-2"><a href="#cb9-2"></a></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="do">## Data reproducible code</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a>data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
+<span id="cb9-5"><a href="#cb9-5"></a>data <span class="ot">&lt;-</span> <span class="fu">within</span>(data, {</span>
+<span id="cb9-6"><a href="#cb9-6"></a>  <span class="fu">library</span>(tern)</span>
+<span id="cb9-7"><a href="#cb9-7"></a>  <span class="fu">library</span>(scda)</span>
+<span id="cb9-8"><a href="#cb9-8"></a>  <span class="fu">library</span>(dplyr)</span>
+<span id="cb9-9"><a href="#cb9-9"></a></span>
+<span id="cb9-10"><a href="#cb9-10"></a>  <span class="co"># use small sample size</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>) <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">15</span>)</span>
+<span id="cb9-12"><a href="#cb9-12"></a>  ADLB <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adlb"</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(USUBJID <span class="sc">%in%</span> ADSL<span class="sc">$</span>USUBJID)</span>
+<span id="cb9-13"><a href="#cb9-13"></a></span>
+<span id="cb9-14"><a href="#cb9-14"></a>  <span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb9-15"><a href="#cb9-15"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(ADSL)</span>
+<span id="cb9-16"><a href="#cb9-16"></a>  ADLB <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(ADLB) <span class="sc">%&gt;%</span></span>
+<span id="cb9-17"><a href="#cb9-17"></a>    <span class="fu">filter</span>(AVISIT <span class="sc">!=</span> <span class="st">"SCREENING"</span>)</span>
+<span id="cb9-18"><a href="#cb9-18"></a>})</span>
+<span id="cb9-19"><a href="#cb9-19"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADLB"</span>)</span>
+<span id="cb9-20"><a href="#cb9-20"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
+<span id="cb9-21"><a href="#cb9-21"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
+<span id="cb9-22"><a href="#cb9-22"></a></span>
+<span id="cb9-23"><a href="#cb9-23"></a><span class="do">## Reusable Configuration For Modules</span></span>
+<span id="cb9-24"><a href="#cb9-24"></a>ADLB <span class="ot">&lt;-</span> data[[<span class="st">"ADLB"</span>]]</span>
+<span id="cb9-25"><a href="#cb9-25"></a></span>
+<span id="cb9-26"><a href="#cb9-26"></a><span class="do">## Setup App</span></span>
+<span id="cb9-27"><a href="#cb9-27"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb9-28"><a href="#cb9-28"></a>  <span class="at">data =</span> data,</span>
+<span id="cb9-29"><a href="#cb9-29"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb9-30"><a href="#cb9-30"></a>    <span class="fu">tm_g_ipp</span>(</span>
+<span id="cb9-31"><a href="#cb9-31"></a>      <span class="at">label =</span> <span class="st">"Individual Patient Plot"</span>,</span>
+<span id="cb9-32"><a href="#cb9-32"></a>      <span class="at">dataname =</span> <span class="st">"ADLB"</span>,</span>
+<span id="cb9-33"><a href="#cb9-33"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb9-34"><a href="#cb9-34"></a>        <span class="fu">value_choices</span>(ADLB, <span class="fu">c</span>(<span class="st">"ARMCD"</span>)),</span>
+<span id="cb9-35"><a href="#cb9-35"></a>        <span class="st">"ARM A"</span></span>
+<span id="cb9-36"><a href="#cb9-36"></a>      ),</span>
+<span id="cb9-37"><a href="#cb9-37"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb9-38"><a href="#cb9-38"></a>        <span class="fu">value_choices</span>(ADLB, <span class="st">"PARAMCD"</span>),</span>
+<span id="cb9-39"><a href="#cb9-39"></a>        <span class="st">"ALT"</span></span>
+<span id="cb9-40"><a href="#cb9-40"></a>      ),</span>
+<span id="cb9-41"><a href="#cb9-41"></a>      <span class="at">aval_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb9-42"><a href="#cb9-42"></a>        <span class="fu">variable_choices</span>(ADLB, <span class="fu">c</span>(<span class="st">"AVAL"</span>)),</span>
+<span id="cb9-43"><a href="#cb9-43"></a>        <span class="st">"AVAL"</span></span>
+<span id="cb9-44"><a href="#cb9-44"></a>      ),</span>
+<span id="cb9-45"><a href="#cb9-45"></a>      <span class="at">avalu_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb9-46"><a href="#cb9-46"></a>        <span class="fu">variable_choices</span>(ADLB, <span class="fu">c</span>(<span class="st">"AVALU"</span>)),</span>
+<span id="cb9-47"><a href="#cb9-47"></a>        <span class="st">"AVALU"</span>,</span>
+<span id="cb9-48"><a href="#cb9-48"></a>        <span class="at">fixed =</span> <span class="cn">TRUE</span></span>
+<span id="cb9-49"><a href="#cb9-49"></a>      ),</span>
+<span id="cb9-50"><a href="#cb9-50"></a>      <span class="at">id_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb9-51"><a href="#cb9-51"></a>        <span class="fu">variable_choices</span>(ADLB, <span class="fu">c</span>(<span class="st">"USUBJID"</span>)),</span>
+<span id="cb9-52"><a href="#cb9-52"></a>        <span class="st">"USUBJID"</span>,</span>
+<span id="cb9-53"><a href="#cb9-53"></a>        <span class="at">fixed =</span> <span class="cn">TRUE</span></span>
+<span id="cb9-54"><a href="#cb9-54"></a>      ),</span>
+<span id="cb9-55"><a href="#cb9-55"></a>      <span class="at">visit_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb9-56"><a href="#cb9-56"></a>        <span class="fu">variable_choices</span>(ADLB, <span class="fu">c</span>(<span class="st">"AVISIT"</span>)),</span>
+<span id="cb9-57"><a href="#cb9-57"></a>        <span class="st">"AVISIT"</span></span>
+<span id="cb9-58"><a href="#cb9-58"></a>      ),</span>
+<span id="cb9-59"><a href="#cb9-59"></a>      <span class="at">baseline_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb9-60"><a href="#cb9-60"></a>        <span class="fu">variable_choices</span>(ADLB, <span class="fu">c</span>(<span class="st">"BASE"</span>)),</span>
+<span id="cb9-61"><a href="#cb9-61"></a>        <span class="st">"BASE"</span>,</span>
+<span id="cb9-62"><a href="#cb9-62"></a>        <span class="at">fixed =</span> <span class="cn">TRUE</span></span>
+<span id="cb9-63"><a href="#cb9-63"></a>      ),</span>
+<span id="cb9-64"><a href="#cb9-64"></a>      <span class="at">add_baseline_hline =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb9-65"><a href="#cb9-65"></a>      <span class="at">separate_by_obs =</span> <span class="cn">FALSE</span></span>
+<span id="cb9-66"><a href="#cb9-66"></a>    )</span>
+<span id="cb9-67"><a href="#cb9-67"></a>  )</span>
+<span id="cb9-68"><a href="#cb9-68"></a>)</span>
+<span id="cb9-69"><a href="#cb9-69"></a></span>
+<span id="cb9-70"><a href="#cb9-70"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="ippg01_files/figure-html/teal-1.png" class="img-fluid figure-img" width="1440"></p>
@@ -1634,14 +1645,14 @@ cookieconsent.run({
 <div id="tabset-1-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-5-tab">
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-03-11 16:59:19 UTC"</code></pre>
+<pre><code>[1] "2024-03-12 14:35:58 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>R version 4.3.3 (2024-02-29)
 Platform: x86_64-pc-linux-gnu (64-bit)
@@ -1713,31 +1724,31 @@ loaded via a namespace (and not attached):
 <code>.lock</code> file</h3>
 <p>Download the <code>.lock</code> file and use <a href="https://rstudio.github.io/renv/reference/restore.html"><code>renv::restore()</code></a> on it to recreate environment used to generate this website.</p>
 <div class="cell" data-renv.ignore="true">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb13-2"><a href="#cb13-2"></a></span>
-<span id="cb13-3"><a href="#cb13-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
-<span id="cb13-4"><a href="#cb13-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
-<span id="cb13-5"><a href="#cb13-5"></a></span>
-<span id="cb13-6"><a href="#cb13-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
-<span id="cb13-7"><a href="#cb13-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
-<span id="cb13-8"><a href="#cb13-8"></a>  <span class="fu">paste0</span>(</span>
-<span id="cb13-9"><a href="#cb13-9"></a>    <span class="fu">gsub</span>(</span>
-<span id="cb13-10"><a href="#cb13-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
-<span id="cb13-11"><a href="#cb13-11"></a>      <span class="st">""</span>,</span>
-<span id="cb13-12"><a href="#cb13-12"></a>      <span class="fu">gsub</span>(</span>
-<span id="cb13-13"><a href="#cb13-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
-<span id="cb13-14"><a href="#cb13-14"></a>        <span class="st">""</span>,</span>
-<span id="cb13-15"><a href="#cb13-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb13-16"><a href="#cb13-16"></a>      )</span>
-<span id="cb13-17"><a href="#cb13-17"></a>    ),</span>
-<span id="cb13-18"><a href="#cb13-18"></a>    <span class="st">".lock"</span></span>
-<span id="cb13-19"><a href="#cb13-19"></a>  )</span>
-<span id="cb13-20"><a href="#cb13-20"></a>)</span>
-<span id="cb13-21"><a href="#cb13-21"></a></span>
-<span id="cb13-22"><a href="#cb13-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
-<span id="cb13-23"><a href="#cb13-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb13-24"><a href="#cb13-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb13-25"><a href="#cb13-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb14-2"><a href="#cb14-2"></a></span>
+<span id="cb14-3"><a href="#cb14-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
+<span id="cb14-5"><a href="#cb14-5"></a></span>
+<span id="cb14-6"><a href="#cb14-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
+<span id="cb14-7"><a href="#cb14-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8"></a>  <span class="fu">paste0</span>(</span>
+<span id="cb14-9"><a href="#cb14-9"></a>    <span class="fu">gsub</span>(</span>
+<span id="cb14-10"><a href="#cb14-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
+<span id="cb14-11"><a href="#cb14-11"></a>      <span class="st">""</span>,</span>
+<span id="cb14-12"><a href="#cb14-12"></a>      <span class="fu">gsub</span>(</span>
+<span id="cb14-13"><a href="#cb14-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
+<span id="cb14-14"><a href="#cb14-14"></a>        <span class="st">""</span>,</span>
+<span id="cb14-15"><a href="#cb14-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb14-16"><a href="#cb14-16"></a>      )</span>
+<span id="cb14-17"><a href="#cb14-17"></a>    ),</span>
+<span id="cb14-18"><a href="#cb14-18"></a>    <span class="st">".lock"</span></span>
+<span id="cb14-19"><a href="#cb14-19"></a>  )</span>
+<span id="cb14-20"><a href="#cb14-20"></a>)</span>
+<span id="cb14-21"><a href="#cb14-21"></a></span>
+<span id="cb14-22"><a href="#cb14-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
+<span id="cb14-23"><a href="#cb14-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb14-24"><a href="#cb14-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb14-25"><a href="#cb14-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p><a href="../../assets/www/lock/graphs/other/ippg01.lock">Download</a></p>
@@ -2365,172 +2376,172 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb14" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb14-1"><a href="#cb14-1"></a><span class="co">---</span></span>
-<span id="cb14-2"><a href="#cb14-2"></a><span class="an">title:</span><span class="co"> IPPG01</span></span>
-<span id="cb14-3"><a href="#cb14-3"></a><span class="an">subtitle:</span><span class="co"> Individual Patient Plot Over Time</span></span>
-<span id="cb14-4"><a href="#cb14-4"></a><span class="co">---</span></span>
-<span id="cb14-5"><a href="#cb14-5"></a></span>
-<span id="cb14-6"><a href="#cb14-6"></a>------------------------------------------------------------------------</span>
-<span id="cb14-7"><a href="#cb14-7"></a></span>
-<span id="cb14-8"><a href="#cb14-8"></a>{{&lt; include ../../test-utils/envir_hook.qmd &gt;}}</span>
-<span id="cb14-9"><a href="#cb14-9"></a></span>
-<span id="cb14-10"><a href="#cb14-10"></a>For illustration purposes, we will subset the <span class="in">`adlb`</span> dataset for safety population in treatment arm A and a specific lab parameter (<span class="in">`ALT`</span>).</span>
-<span id="cb14-11"><a href="#cb14-11"></a></span>
-<span id="cb14-12"><a href="#cb14-12"></a>::: panel-tabset</span>
-<span id="cb14-13"><a href="#cb14-13"></a><span class="fu">## Data Setup</span></span>
-<span id="cb14-14"><a href="#cb14-14"></a></span>
-<span id="cb14-15"><a href="#cb14-15"></a><span class="in">```{r setup, message=FALSE}</span></span>
-<span id="cb14-16"><a href="#cb14-16"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb14-17"><a href="#cb14-17"></a></span>
-<span id="cb14-18"><a href="#cb14-18"></a><span class="in">library(tern)</span></span>
-<span id="cb14-19"><a href="#cb14-19"></a><span class="in">library(scda)</span></span>
-<span id="cb14-20"><a href="#cb14-20"></a><span class="in">library(dplyr)</span></span>
-<span id="cb14-21"><a href="#cb14-21"></a><span class="in">library(ggplot2)</span></span>
-<span id="cb14-22"><a href="#cb14-22"></a><span class="in">library(nestcolor)</span></span>
-<span id="cb14-23"><a href="#cb14-23"></a></span>
-<span id="cb14-24"><a href="#cb14-24"></a><span class="in"># use small sample size</span></span>
-<span id="cb14-25"><a href="#cb14-25"></a><span class="in">adsl &lt;- synthetic_cdisc_dataset("latest", "adsl") %&gt;% slice(1:15)</span></span>
-<span id="cb14-26"><a href="#cb14-26"></a><span class="in">adlb &lt;- synthetic_cdisc_dataset("latest", "adlb") %&gt;% filter(USUBJID %in% adsl$USUBJID)</span></span>
-<span id="cb14-27"><a href="#cb14-27"></a></span>
-<span id="cb14-28"><a href="#cb14-28"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb14-29"><a href="#cb14-29"></a><span class="in">adlb &lt;- df_explicit_na(adlb)</span></span>
-<span id="cb14-30"><a href="#cb14-30"></a></span>
-<span id="cb14-31"><a href="#cb14-31"></a><span class="in">adlb_f &lt;- adlb %&gt;%</span></span>
-<span id="cb14-32"><a href="#cb14-32"></a><span class="in">  filter(</span></span>
-<span id="cb14-33"><a href="#cb14-33"></a><span class="in">    SAFFL == "Y",</span></span>
-<span id="cb14-34"><a href="#cb14-34"></a><span class="in">    PARAMCD == "ALT",</span></span>
-<span id="cb14-35"><a href="#cb14-35"></a><span class="in">    AVISIT != "SCREENING",</span></span>
-<span id="cb14-36"><a href="#cb14-36"></a><span class="in">    ARMCD == "ARM A"</span></span>
-<span id="cb14-37"><a href="#cb14-37"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-38"><a href="#cb14-38"></a><span class="in">  mutate(Patient_ID = sub(".*id-", "", USUBJID))</span></span>
-<span id="cb14-39"><a href="#cb14-39"></a><span class="in">```</span></span>
-<span id="cb14-40"><a href="#cb14-40"></a></span>
-<span id="cb14-41"><a href="#cb14-41"></a><span class="fu">## Standard Plot</span></span>
-<span id="cb14-42"><a href="#cb14-42"></a></span>
-<span id="cb14-43"><a href="#cb14-43"></a>The user can select different <span class="in">`plotting_choices`</span> depending on their preference.</span>
-<span id="cb14-44"><a href="#cb14-44"></a>To demonstrate, separate plots are produced with a maximum of 3 observations each.</span>
-<span id="cb14-45"><a href="#cb14-45"></a></span>
-<span id="cb14-46"><a href="#cb14-46"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
-<span id="cb14-47"><a href="#cb14-47"></a><span class="in">```{r plots1, test = list(plots_v1 = "plots"), opts.label = c('skip_test_strict')}</span></span>
-<span id="cb14-48"><a href="#cb14-48"></a><span class="in">plots &lt;- g_ipp(</span></span>
-<span id="cb14-49"><a href="#cb14-49"></a><span class="in">  df = adlb_f,</span></span>
-<span id="cb14-50"><a href="#cb14-50"></a><span class="in">  xvar = "AVISIT",</span></span>
-<span id="cb14-51"><a href="#cb14-51"></a><span class="in">  yvar = "AVAL",</span></span>
-<span id="cb14-52"><a href="#cb14-52"></a><span class="in">  xlab = "Visit",</span></span>
-<span id="cb14-53"><a href="#cb14-53"></a><span class="in">  ylab = "SGOT/ALT (U/L)",</span></span>
-<span id="cb14-54"><a href="#cb14-54"></a><span class="in">  id_var = "Patient_ID",</span></span>
-<span id="cb14-55"><a href="#cb14-55"></a><span class="in">  title = "Individual Patient Plots",</span></span>
-<span id="cb14-56"><a href="#cb14-56"></a><span class="in">  subtitle = "Treatment Arm A",</span></span>
-<span id="cb14-57"><a href="#cb14-57"></a><span class="in">  plotting_choices = "split_by_max_obs",</span></span>
-<span id="cb14-58"><a href="#cb14-58"></a><span class="in">  max_obs_per_plot = 3</span></span>
-<span id="cb14-59"><a href="#cb14-59"></a><span class="in">)</span></span>
-<span id="cb14-60"><a href="#cb14-60"></a><span class="in">plots</span></span>
-<span id="cb14-61"><a href="#cb14-61"></a><span class="in">```</span></span>
-<span id="cb14-62"><a href="#cb14-62"></a></span>
-<span id="cb14-63"><a href="#cb14-63"></a><span class="fu">## Plot with Patient Baselines as Reference</span></span>
-<span id="cb14-64"><a href="#cb14-64"></a></span>
-<span id="cb14-65"><a href="#cb14-65"></a>Here, patients' individual baseline values will be shown for reference.</span>
-<span id="cb14-66"><a href="#cb14-66"></a>Note that users can provide their own custom theme to the function via the <span class="in">`ggtheme`</span> argument.</span>
-<span id="cb14-67"><a href="#cb14-67"></a></span>
-<span id="cb14-68"><a href="#cb14-68"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
-<span id="cb14-69"><a href="#cb14-69"></a><span class="in">```{r plots2, test = list(plots_v2 = "plots"), opts.label = c('skip_test_strict')}</span></span>
-<span id="cb14-70"><a href="#cb14-70"></a><span class="in">plots &lt;- g_ipp(</span></span>
-<span id="cb14-71"><a href="#cb14-71"></a><span class="in">  df = adlb_f,</span></span>
-<span id="cb14-72"><a href="#cb14-72"></a><span class="in">  xvar = "AVISIT",</span></span>
-<span id="cb14-73"><a href="#cb14-73"></a><span class="in">  yvar = "AVAL",</span></span>
-<span id="cb14-74"><a href="#cb14-74"></a><span class="in">  xlab = "Visit",</span></span>
-<span id="cb14-75"><a href="#cb14-75"></a><span class="in">  ylab = "SGOT/ALT (U/L)",</span></span>
-<span id="cb14-76"><a href="#cb14-76"></a><span class="in">  id_var = "Patient_ID",</span></span>
-<span id="cb14-77"><a href="#cb14-77"></a><span class="in">  title = "Individual Patient Plots",</span></span>
-<span id="cb14-78"><a href="#cb14-78"></a><span class="in">  subtitle = "Treatment Arm A",</span></span>
-<span id="cb14-79"><a href="#cb14-79"></a><span class="in">  add_baseline_hline = TRUE,</span></span>
-<span id="cb14-80"><a href="#cb14-80"></a><span class="in">  yvar_baseline = "BASE",</span></span>
-<span id="cb14-81"><a href="#cb14-81"></a><span class="in">  ggtheme = theme_minimal(),</span></span>
-<span id="cb14-82"><a href="#cb14-82"></a><span class="in">  plotting_choices = "split_by_max_obs",</span></span>
-<span id="cb14-83"><a href="#cb14-83"></a><span class="in">  max_obs_per_plot = 3</span></span>
-<span id="cb14-84"><a href="#cb14-84"></a><span class="in">)</span></span>
-<span id="cb14-85"><a href="#cb14-85"></a><span class="in">plots</span></span>
-<span id="cb14-86"><a href="#cb14-86"></a><span class="in">```</span></span>
-<span id="cb14-87"><a href="#cb14-87"></a></span>
-<span id="cb14-88"><a href="#cb14-88"></a>{{&lt; include ../../test-utils/save_results.qmd &gt;}}</span>
-<span id="cb14-89"><a href="#cb14-89"></a></span>
-<span id="cb14-90"><a href="#cb14-90"></a><span class="fu">## `teal` App</span></span>
-<span id="cb14-91"><a href="#cb14-91"></a></span>
-<span id="cb14-92"><a href="#cb14-92"></a><span class="in">```{r teal, opts.label=c('skip_if_testing', 'app')}</span></span>
-<span id="cb14-93"><a href="#cb14-93"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb14-94"><a href="#cb14-94"></a></span>
-<span id="cb14-95"><a href="#cb14-95"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb14-96"><a href="#cb14-96"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb14-97"><a href="#cb14-97"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb14-98"><a href="#cb14-98"></a><span class="in">  library(tern)</span></span>
-<span id="cb14-99"><a href="#cb14-99"></a><span class="in">  library(scda)</span></span>
-<span id="cb14-100"><a href="#cb14-100"></a><span class="in">  library(dplyr)</span></span>
-<span id="cb14-101"><a href="#cb14-101"></a></span>
-<span id="cb14-102"><a href="#cb14-102"></a><span class="in">  # use small sample size</span></span>
-<span id="cb14-103"><a href="#cb14-103"></a><span class="in">  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl") %&gt;% slice(1:15)</span></span>
-<span id="cb14-104"><a href="#cb14-104"></a><span class="in">  ADLB &lt;- synthetic_cdisc_dataset("latest", "adlb") %&gt;% filter(USUBJID %in% ADSL$USUBJID)</span></span>
-<span id="cb14-105"><a href="#cb14-105"></a></span>
-<span id="cb14-106"><a href="#cb14-106"></a><span class="in">  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb14-107"><a href="#cb14-107"></a><span class="in">  ADSL &lt;- df_explicit_na(ADSL)</span></span>
-<span id="cb14-108"><a href="#cb14-108"></a><span class="in">  ADLB &lt;- df_explicit_na(ADLB) %&gt;%</span></span>
-<span id="cb14-109"><a href="#cb14-109"></a><span class="in">    filter(AVISIT != "SCREENING")</span></span>
-<span id="cb14-110"><a href="#cb14-110"></a><span class="in">})</span></span>
-<span id="cb14-111"><a href="#cb14-111"></a><span class="in">datanames &lt;- c("ADSL", "ADLB")</span></span>
-<span id="cb14-112"><a href="#cb14-112"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb14-113"><a href="#cb14-113"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb14-114"><a href="#cb14-114"></a></span>
-<span id="cb14-115"><a href="#cb14-115"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb14-116"><a href="#cb14-116"></a><span class="in">ADLB &lt;- data[["ADLB"]]</span></span>
-<span id="cb14-117"><a href="#cb14-117"></a></span>
-<span id="cb14-118"><a href="#cb14-118"></a><span class="in">## Setup App</span></span>
-<span id="cb14-119"><a href="#cb14-119"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb14-120"><a href="#cb14-120"></a><span class="in">  data = data,</span></span>
-<span id="cb14-121"><a href="#cb14-121"></a><span class="in">  modules = modules(</span></span>
-<span id="cb14-122"><a href="#cb14-122"></a><span class="in">    tm_g_ipp(</span></span>
-<span id="cb14-123"><a href="#cb14-123"></a><span class="in">      label = "Individual Patient Plot",</span></span>
-<span id="cb14-124"><a href="#cb14-124"></a><span class="in">      dataname = "ADLB",</span></span>
-<span id="cb14-125"><a href="#cb14-125"></a><span class="in">      arm_var = choices_selected(</span></span>
-<span id="cb14-126"><a href="#cb14-126"></a><span class="in">        value_choices(ADLB, c("ARMCD")),</span></span>
-<span id="cb14-127"><a href="#cb14-127"></a><span class="in">        "ARM A"</span></span>
-<span id="cb14-128"><a href="#cb14-128"></a><span class="in">      ),</span></span>
-<span id="cb14-129"><a href="#cb14-129"></a><span class="in">      paramcd = choices_selected(</span></span>
-<span id="cb14-130"><a href="#cb14-130"></a><span class="in">        value_choices(ADLB, "PARAMCD"),</span></span>
-<span id="cb14-131"><a href="#cb14-131"></a><span class="in">        "ALT"</span></span>
-<span id="cb14-132"><a href="#cb14-132"></a><span class="in">      ),</span></span>
-<span id="cb14-133"><a href="#cb14-133"></a><span class="in">      aval_var = choices_selected(</span></span>
-<span id="cb14-134"><a href="#cb14-134"></a><span class="in">        variable_choices(ADLB, c("AVAL")),</span></span>
-<span id="cb14-135"><a href="#cb14-135"></a><span class="in">        "AVAL"</span></span>
-<span id="cb14-136"><a href="#cb14-136"></a><span class="in">      ),</span></span>
-<span id="cb14-137"><a href="#cb14-137"></a><span class="in">      avalu_var = choices_selected(</span></span>
-<span id="cb14-138"><a href="#cb14-138"></a><span class="in">        variable_choices(ADLB, c("AVALU")),</span></span>
-<span id="cb14-139"><a href="#cb14-139"></a><span class="in">        "AVALU",</span></span>
-<span id="cb14-140"><a href="#cb14-140"></a><span class="in">        fixed = TRUE</span></span>
-<span id="cb14-141"><a href="#cb14-141"></a><span class="in">      ),</span></span>
-<span id="cb14-142"><a href="#cb14-142"></a><span class="in">      id_var = choices_selected(</span></span>
-<span id="cb14-143"><a href="#cb14-143"></a><span class="in">        variable_choices(ADLB, c("USUBJID")),</span></span>
-<span id="cb14-144"><a href="#cb14-144"></a><span class="in">        "USUBJID",</span></span>
-<span id="cb14-145"><a href="#cb14-145"></a><span class="in">        fixed = TRUE</span></span>
-<span id="cb14-146"><a href="#cb14-146"></a><span class="in">      ),</span></span>
-<span id="cb14-147"><a href="#cb14-147"></a><span class="in">      visit_var = choices_selected(</span></span>
-<span id="cb14-148"><a href="#cb14-148"></a><span class="in">        variable_choices(ADLB, c("AVISIT")),</span></span>
-<span id="cb14-149"><a href="#cb14-149"></a><span class="in">        "AVISIT"</span></span>
-<span id="cb14-150"><a href="#cb14-150"></a><span class="in">      ),</span></span>
-<span id="cb14-151"><a href="#cb14-151"></a><span class="in">      baseline_var = choices_selected(</span></span>
-<span id="cb14-152"><a href="#cb14-152"></a><span class="in">        variable_choices(ADLB, c("BASE")),</span></span>
-<span id="cb14-153"><a href="#cb14-153"></a><span class="in">        "BASE",</span></span>
-<span id="cb14-154"><a href="#cb14-154"></a><span class="in">        fixed = TRUE</span></span>
-<span id="cb14-155"><a href="#cb14-155"></a><span class="in">      ),</span></span>
-<span id="cb14-156"><a href="#cb14-156"></a><span class="in">      add_baseline_hline = FALSE,</span></span>
-<span id="cb14-157"><a href="#cb14-157"></a><span class="in">      separate_by_obs = FALSE</span></span>
-<span id="cb14-158"><a href="#cb14-158"></a><span class="in">    )</span></span>
-<span id="cb14-159"><a href="#cb14-159"></a><span class="in">  )</span></span>
-<span id="cb14-160"><a href="#cb14-160"></a><span class="in">)</span></span>
-<span id="cb14-161"><a href="#cb14-161"></a></span>
-<span id="cb14-162"><a href="#cb14-162"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb14-163"><a href="#cb14-163"></a><span class="in">```</span></span>
-<span id="cb14-164"><a href="#cb14-164"></a></span>
-<span id="cb14-165"><a href="#cb14-165"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb14-166"><a href="#cb14-166"></a>:::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb15" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb15-1"><a href="#cb15-1"></a><span class="co">---</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="an">title:</span><span class="co"> IPPG01</span></span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="an">subtitle:</span><span class="co"> Individual Patient Plot Over Time</span></span>
+<span id="cb15-4"><a href="#cb15-4"></a><span class="co">---</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a></span>
+<span id="cb15-6"><a href="#cb15-6"></a>------------------------------------------------------------------------</span>
+<span id="cb15-7"><a href="#cb15-7"></a></span>
+<span id="cb15-8"><a href="#cb15-8"></a>{{&lt; include ../../test-utils/envir_hook.qmd &gt;}}</span>
+<span id="cb15-9"><a href="#cb15-9"></a></span>
+<span id="cb15-10"><a href="#cb15-10"></a>For illustration purposes, we will subset the <span class="in">`adlb`</span> dataset for safety population in treatment arm A and a specific lab parameter (<span class="in">`ALT`</span>).</span>
+<span id="cb15-11"><a href="#cb15-11"></a></span>
+<span id="cb15-12"><a href="#cb15-12"></a>::: panel-tabset</span>
+<span id="cb15-13"><a href="#cb15-13"></a><span class="fu">## Data Setup</span></span>
+<span id="cb15-14"><a href="#cb15-14"></a></span>
+<span id="cb15-15"><a href="#cb15-15"></a><span class="in">```{r setup, message = FALSE}</span></span>
+<span id="cb15-16"><a href="#cb15-16"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb15-17"><a href="#cb15-17"></a></span>
+<span id="cb15-18"><a href="#cb15-18"></a><span class="in">library(tern)</span></span>
+<span id="cb15-19"><a href="#cb15-19"></a><span class="in">library(scda)</span></span>
+<span id="cb15-20"><a href="#cb15-20"></a><span class="in">library(dplyr)</span></span>
+<span id="cb15-21"><a href="#cb15-21"></a><span class="in">library(ggplot2)</span></span>
+<span id="cb15-22"><a href="#cb15-22"></a><span class="in">library(nestcolor)</span></span>
+<span id="cb15-23"><a href="#cb15-23"></a></span>
+<span id="cb15-24"><a href="#cb15-24"></a><span class="in"># use small sample size</span></span>
+<span id="cb15-25"><a href="#cb15-25"></a><span class="in">adsl &lt;- synthetic_cdisc_dataset("latest", "adsl") %&gt;% slice(1:15)</span></span>
+<span id="cb15-26"><a href="#cb15-26"></a><span class="in">adlb &lt;- synthetic_cdisc_dataset("latest", "adlb") %&gt;% filter(USUBJID %in% adsl$USUBJID)</span></span>
+<span id="cb15-27"><a href="#cb15-27"></a></span>
+<span id="cb15-28"><a href="#cb15-28"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb15-29"><a href="#cb15-29"></a><span class="in">adlb &lt;- df_explicit_na(adlb)</span></span>
+<span id="cb15-30"><a href="#cb15-30"></a></span>
+<span id="cb15-31"><a href="#cb15-31"></a><span class="in">adlb_f &lt;- adlb %&gt;%</span></span>
+<span id="cb15-32"><a href="#cb15-32"></a><span class="in">  filter(</span></span>
+<span id="cb15-33"><a href="#cb15-33"></a><span class="in">    SAFFL == "Y",</span></span>
+<span id="cb15-34"><a href="#cb15-34"></a><span class="in">    PARAMCD == "ALT",</span></span>
+<span id="cb15-35"><a href="#cb15-35"></a><span class="in">    AVISIT != "SCREENING",</span></span>
+<span id="cb15-36"><a href="#cb15-36"></a><span class="in">    ARMCD == "ARM A"</span></span>
+<span id="cb15-37"><a href="#cb15-37"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb15-38"><a href="#cb15-38"></a><span class="in">  mutate(Patient_ID = sub(".*id-", "", USUBJID))</span></span>
+<span id="cb15-39"><a href="#cb15-39"></a><span class="in">```</span></span>
+<span id="cb15-40"><a href="#cb15-40"></a></span>
+<span id="cb15-41"><a href="#cb15-41"></a><span class="fu">## Standard Plot</span></span>
+<span id="cb15-42"><a href="#cb15-42"></a></span>
+<span id="cb15-43"><a href="#cb15-43"></a>The user can select different <span class="in">`plotting_choices`</span> depending on their preference.</span>
+<span id="cb15-44"><a href="#cb15-44"></a>To demonstrate, separate plots are produced with a maximum of 3 observations each.</span>
+<span id="cb15-45"><a href="#cb15-45"></a></span>
+<span id="cb15-46"><a href="#cb15-46"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
+<span id="cb15-47"><a href="#cb15-47"></a><span class="in">```{r plots1, test = list(plots_v1 = "plots"), opts.label = "skip_test_strict"}</span></span>
+<span id="cb15-48"><a href="#cb15-48"></a><span class="in">plots &lt;- g_ipp(</span></span>
+<span id="cb15-49"><a href="#cb15-49"></a><span class="in">  df = adlb_f,</span></span>
+<span id="cb15-50"><a href="#cb15-50"></a><span class="in">  xvar = "AVISIT",</span></span>
+<span id="cb15-51"><a href="#cb15-51"></a><span class="in">  yvar = "AVAL",</span></span>
+<span id="cb15-52"><a href="#cb15-52"></a><span class="in">  xlab = "Visit",</span></span>
+<span id="cb15-53"><a href="#cb15-53"></a><span class="in">  ylab = "SGOT/ALT (U/L)",</span></span>
+<span id="cb15-54"><a href="#cb15-54"></a><span class="in">  id_var = "Patient_ID",</span></span>
+<span id="cb15-55"><a href="#cb15-55"></a><span class="in">  title = "Individual Patient Plots",</span></span>
+<span id="cb15-56"><a href="#cb15-56"></a><span class="in">  subtitle = "Treatment Arm A",</span></span>
+<span id="cb15-57"><a href="#cb15-57"></a><span class="in">  plotting_choices = "split_by_max_obs",</span></span>
+<span id="cb15-58"><a href="#cb15-58"></a><span class="in">  max_obs_per_plot = 3</span></span>
+<span id="cb15-59"><a href="#cb15-59"></a><span class="in">)</span></span>
+<span id="cb15-60"><a href="#cb15-60"></a><span class="in">plots</span></span>
+<span id="cb15-61"><a href="#cb15-61"></a><span class="in">```</span></span>
+<span id="cb15-62"><a href="#cb15-62"></a></span>
+<span id="cb15-63"><a href="#cb15-63"></a><span class="fu">## Plot with Patient Baselines as Reference</span></span>
+<span id="cb15-64"><a href="#cb15-64"></a></span>
+<span id="cb15-65"><a href="#cb15-65"></a>Here, patients' individual baseline values will be shown for reference.</span>
+<span id="cb15-66"><a href="#cb15-66"></a>Note that users can provide their own custom theme to the function via the <span class="in">`ggtheme`</span> argument.</span>
+<span id="cb15-67"><a href="#cb15-67"></a></span>
+<span id="cb15-68"><a href="#cb15-68"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
+<span id="cb15-69"><a href="#cb15-69"></a><span class="in">```{r plots2, test = list(plots_v2 = "plots"), opts.label = "skip_test_strict"}</span></span>
+<span id="cb15-70"><a href="#cb15-70"></a><span class="in">plots &lt;- g_ipp(</span></span>
+<span id="cb15-71"><a href="#cb15-71"></a><span class="in">  df = adlb_f,</span></span>
+<span id="cb15-72"><a href="#cb15-72"></a><span class="in">  xvar = "AVISIT",</span></span>
+<span id="cb15-73"><a href="#cb15-73"></a><span class="in">  yvar = "AVAL",</span></span>
+<span id="cb15-74"><a href="#cb15-74"></a><span class="in">  xlab = "Visit",</span></span>
+<span id="cb15-75"><a href="#cb15-75"></a><span class="in">  ylab = "SGOT/ALT (U/L)",</span></span>
+<span id="cb15-76"><a href="#cb15-76"></a><span class="in">  id_var = "Patient_ID",</span></span>
+<span id="cb15-77"><a href="#cb15-77"></a><span class="in">  title = "Individual Patient Plots",</span></span>
+<span id="cb15-78"><a href="#cb15-78"></a><span class="in">  subtitle = "Treatment Arm A",</span></span>
+<span id="cb15-79"><a href="#cb15-79"></a><span class="in">  add_baseline_hline = TRUE,</span></span>
+<span id="cb15-80"><a href="#cb15-80"></a><span class="in">  yvar_baseline = "BASE",</span></span>
+<span id="cb15-81"><a href="#cb15-81"></a><span class="in">  ggtheme = theme_minimal(),</span></span>
+<span id="cb15-82"><a href="#cb15-82"></a><span class="in">  plotting_choices = "split_by_max_obs",</span></span>
+<span id="cb15-83"><a href="#cb15-83"></a><span class="in">  max_obs_per_plot = 3</span></span>
+<span id="cb15-84"><a href="#cb15-84"></a><span class="in">)</span></span>
+<span id="cb15-85"><a href="#cb15-85"></a><span class="in">plots</span></span>
+<span id="cb15-86"><a href="#cb15-86"></a><span class="in">```</span></span>
+<span id="cb15-87"><a href="#cb15-87"></a></span>
+<span id="cb15-88"><a href="#cb15-88"></a>{{&lt; include ../../test-utils/save_results.qmd &gt;}}</span>
+<span id="cb15-89"><a href="#cb15-89"></a></span>
+<span id="cb15-90"><a href="#cb15-90"></a><span class="fu">## `teal` App</span></span>
+<span id="cb15-91"><a href="#cb15-91"></a></span>
+<span id="cb15-92"><a href="#cb15-92"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb15-93"><a href="#cb15-93"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb15-94"><a href="#cb15-94"></a></span>
+<span id="cb15-95"><a href="#cb15-95"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb15-96"><a href="#cb15-96"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb15-97"><a href="#cb15-97"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb15-98"><a href="#cb15-98"></a><span class="in">  library(tern)</span></span>
+<span id="cb15-99"><a href="#cb15-99"></a><span class="in">  library(scda)</span></span>
+<span id="cb15-100"><a href="#cb15-100"></a><span class="in">  library(dplyr)</span></span>
+<span id="cb15-101"><a href="#cb15-101"></a></span>
+<span id="cb15-102"><a href="#cb15-102"></a><span class="in">  # use small sample size</span></span>
+<span id="cb15-103"><a href="#cb15-103"></a><span class="in">  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl") %&gt;% slice(1:15)</span></span>
+<span id="cb15-104"><a href="#cb15-104"></a><span class="in">  ADLB &lt;- synthetic_cdisc_dataset("latest", "adlb") %&gt;% filter(USUBJID %in% ADSL$USUBJID)</span></span>
+<span id="cb15-105"><a href="#cb15-105"></a></span>
+<span id="cb15-106"><a href="#cb15-106"></a><span class="in">  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb15-107"><a href="#cb15-107"></a><span class="in">  ADSL &lt;- df_explicit_na(ADSL)</span></span>
+<span id="cb15-108"><a href="#cb15-108"></a><span class="in">  ADLB &lt;- df_explicit_na(ADLB) %&gt;%</span></span>
+<span id="cb15-109"><a href="#cb15-109"></a><span class="in">    filter(AVISIT != "SCREENING")</span></span>
+<span id="cb15-110"><a href="#cb15-110"></a><span class="in">})</span></span>
+<span id="cb15-111"><a href="#cb15-111"></a><span class="in">datanames &lt;- c("ADSL", "ADLB")</span></span>
+<span id="cb15-112"><a href="#cb15-112"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb15-113"><a href="#cb15-113"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb15-114"><a href="#cb15-114"></a></span>
+<span id="cb15-115"><a href="#cb15-115"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb15-116"><a href="#cb15-116"></a><span class="in">ADLB &lt;- data[["ADLB"]]</span></span>
+<span id="cb15-117"><a href="#cb15-117"></a></span>
+<span id="cb15-118"><a href="#cb15-118"></a><span class="in">## Setup App</span></span>
+<span id="cb15-119"><a href="#cb15-119"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb15-120"><a href="#cb15-120"></a><span class="in">  data = data,</span></span>
+<span id="cb15-121"><a href="#cb15-121"></a><span class="in">  modules = modules(</span></span>
+<span id="cb15-122"><a href="#cb15-122"></a><span class="in">    tm_g_ipp(</span></span>
+<span id="cb15-123"><a href="#cb15-123"></a><span class="in">      label = "Individual Patient Plot",</span></span>
+<span id="cb15-124"><a href="#cb15-124"></a><span class="in">      dataname = "ADLB",</span></span>
+<span id="cb15-125"><a href="#cb15-125"></a><span class="in">      arm_var = choices_selected(</span></span>
+<span id="cb15-126"><a href="#cb15-126"></a><span class="in">        value_choices(ADLB, c("ARMCD")),</span></span>
+<span id="cb15-127"><a href="#cb15-127"></a><span class="in">        "ARM A"</span></span>
+<span id="cb15-128"><a href="#cb15-128"></a><span class="in">      ),</span></span>
+<span id="cb15-129"><a href="#cb15-129"></a><span class="in">      paramcd = choices_selected(</span></span>
+<span id="cb15-130"><a href="#cb15-130"></a><span class="in">        value_choices(ADLB, "PARAMCD"),</span></span>
+<span id="cb15-131"><a href="#cb15-131"></a><span class="in">        "ALT"</span></span>
+<span id="cb15-132"><a href="#cb15-132"></a><span class="in">      ),</span></span>
+<span id="cb15-133"><a href="#cb15-133"></a><span class="in">      aval_var = choices_selected(</span></span>
+<span id="cb15-134"><a href="#cb15-134"></a><span class="in">        variable_choices(ADLB, c("AVAL")),</span></span>
+<span id="cb15-135"><a href="#cb15-135"></a><span class="in">        "AVAL"</span></span>
+<span id="cb15-136"><a href="#cb15-136"></a><span class="in">      ),</span></span>
+<span id="cb15-137"><a href="#cb15-137"></a><span class="in">      avalu_var = choices_selected(</span></span>
+<span id="cb15-138"><a href="#cb15-138"></a><span class="in">        variable_choices(ADLB, c("AVALU")),</span></span>
+<span id="cb15-139"><a href="#cb15-139"></a><span class="in">        "AVALU",</span></span>
+<span id="cb15-140"><a href="#cb15-140"></a><span class="in">        fixed = TRUE</span></span>
+<span id="cb15-141"><a href="#cb15-141"></a><span class="in">      ),</span></span>
+<span id="cb15-142"><a href="#cb15-142"></a><span class="in">      id_var = choices_selected(</span></span>
+<span id="cb15-143"><a href="#cb15-143"></a><span class="in">        variable_choices(ADLB, c("USUBJID")),</span></span>
+<span id="cb15-144"><a href="#cb15-144"></a><span class="in">        "USUBJID",</span></span>
+<span id="cb15-145"><a href="#cb15-145"></a><span class="in">        fixed = TRUE</span></span>
+<span id="cb15-146"><a href="#cb15-146"></a><span class="in">      ),</span></span>
+<span id="cb15-147"><a href="#cb15-147"></a><span class="in">      visit_var = choices_selected(</span></span>
+<span id="cb15-148"><a href="#cb15-148"></a><span class="in">        variable_choices(ADLB, c("AVISIT")),</span></span>
+<span id="cb15-149"><a href="#cb15-149"></a><span class="in">        "AVISIT"</span></span>
+<span id="cb15-150"><a href="#cb15-150"></a><span class="in">      ),</span></span>
+<span id="cb15-151"><a href="#cb15-151"></a><span class="in">      baseline_var = choices_selected(</span></span>
+<span id="cb15-152"><a href="#cb15-152"></a><span class="in">        variable_choices(ADLB, c("BASE")),</span></span>
+<span id="cb15-153"><a href="#cb15-153"></a><span class="in">        "BASE",</span></span>
+<span id="cb15-154"><a href="#cb15-154"></a><span class="in">        fixed = TRUE</span></span>
+<span id="cb15-155"><a href="#cb15-155"></a><span class="in">      ),</span></span>
+<span id="cb15-156"><a href="#cb15-156"></a><span class="in">      add_baseline_hline = FALSE,</span></span>
+<span id="cb15-157"><a href="#cb15-157"></a><span class="in">      separate_by_obs = FALSE</span></span>
+<span id="cb15-158"><a href="#cb15-158"></a><span class="in">    )</span></span>
+<span id="cb15-159"><a href="#cb15-159"></a><span class="in">  )</span></span>
+<span id="cb15-160"><a href="#cb15-160"></a><span class="in">)</span></span>
+<span id="cb15-161"><a href="#cb15-161"></a></span>
+<span id="cb15-162"><a href="#cb15-162"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb15-163"><a href="#cb15-163"></a><span class="in">```</span></span>
+<span id="cb15-164"><a href="#cb15-164"></a></span>
+<span id="cb15-165"><a href="#cb15-165"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb15-166"><a href="#cb15-166"></a>:::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
