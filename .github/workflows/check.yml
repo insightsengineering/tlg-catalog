@@ -22,7 +22,7 @@ jobs:
     uses: insightsengineering/r.pkg.template/.github/workflows/audit.yaml@main
   r-cmd:
     if: github.event_name != 'push'
-    name: R CMD Check 🧬
+    name: R CMD Check (development) 🧬
     uses: insightsengineering/r.pkg.template/.github/workflows/build-check-install.yaml@main
     secrets:
       REPO_GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
@@ -30,13 +30,21 @@ jobs:
       package-subdirectory: package
       additional-env-vars: |
         _R_CHECK_CRAN_INCOMING_REMOTE_=false
-      additional-r-cmd-check-params: --as-cran
-      enforce-note-blocklist: true
-      note-blocklist: |
-        checking dependencies in R code ... NOTE
-        checking R code for possible problems ... NOTE
-        checking examples ... NOTE
-        checking Rd line widths ... NOTE
+        QUARTO_PROFILE=development
+      concurrency-group: development
+  r-cmd-stable:
+    if: github.event_name != 'push'
+    name: R CMD Check (stable) 🧬
+    uses: insightsengineering/r.pkg.template/.github/workflows/build-check-install.yaml@main
+    secrets:
+      REPO_GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
+    with:
+      install-deps-from-package-repositories: "R-universe=https://insightsengineering.r-universe.dev/,CRAN=https://cloud.r-project.org/"
+      package-subdirectory: package
+      additional-env-vars: |
+        _R_CHECK_CRAN_INCOMING_REMOTE_=false
+          QUARTO_PROFILE=stable
+      concurrency-group: stable
   linter:
     if: github.event_name != 'push'
     name: SuperLinter 🦸‍♀️
