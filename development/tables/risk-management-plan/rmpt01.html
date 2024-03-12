@@ -1526,81 +1526,92 @@ Total Number of Patients and Patient Time      217 (54.2%)           20641
 * Patient Time is the sum of exposure across all patients in days.</code></pre>
 </div>
 </div>
+<div class="cell" data-renv.ignore="true">
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="cf">if</span> (<span class="fu">exists</span>(<span class="st">"tenv"</span>)) {</span>
+<span id="cb4-2"><a href="#cb4-2"></a>  filename <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>, <span class="st">""</span>, knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)), <span class="st">".rds"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3"></a>  filepath <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="fu">normalizePath</span>(<span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_PROJECT_DIR"</span>)), <span class="fu">file.path</span>(<span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_TESTTHAT_DATA_PATH"</span>), <span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_PROFILE"</span>)), filename)</span>
+<span id="cb4-4"><a href="#cb4-4"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">dirname</span>(filepath))) {</span>
+<span id="cb4-5"><a href="#cb4-5"></a>    <span class="fu">dir.create</span>(<span class="fu">dirname</span>(filepath), <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb4-6"><a href="#cb4-6"></a>  }</span>
+<span id="cb4-7"><a href="#cb4-7"></a>  <span class="fu">saveRDS</span>(tenv, filepath)</span>
+<span id="cb4-8"><a href="#cb4-8"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 </div>
 <div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
 <div class="cell" data-webshot="webshot2" data-screenshot.force="true" data-screenshot.opts="{&quot;delay&quot;:5}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
-<span id="cb4-2"><a href="#cb4-2"></a></span>
-<span id="cb4-3"><a href="#cb4-3"></a><span class="do">## Data reproducible code</span></span>
-<span id="cb4-4"><a href="#cb4-4"></a>data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
-<span id="cb4-5"><a href="#cb4-5"></a>data <span class="ot">&lt;-</span> <span class="fu">within</span>(data, {</span>
-<span id="cb4-6"><a href="#cb4-6"></a>  <span class="fu">library</span>(scda)</span>
-<span id="cb4-7"><a href="#cb4-7"></a>  <span class="fu">library</span>(dplyr)</span>
-<span id="cb4-8"><a href="#cb4-8"></a></span>
-<span id="cb4-9"><a href="#cb4-9"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
-<span id="cb4-10"><a href="#cb4-10"></a>  ADEX <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adex"</span>)</span>
-<span id="cb4-11"><a href="#cb4-11"></a></span>
-<span id="cb4-12"><a href="#cb4-12"></a>  labels <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(ADEX)</span>
-<span id="cb4-13"><a href="#cb4-13"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>, <span class="at">kind =</span> <span class="st">"Mersenne-Twister"</span>)</span>
-<span id="cb4-14"><a href="#cb4-14"></a>  ADEX <span class="ot">&lt;-</span> ADEX <span class="sc">%&gt;%</span></span>
-<span id="cb4-15"><a href="#cb4-15"></a>    <span class="fu">distinct</span>(USUBJID, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-16"><a href="#cb4-16"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb4-17"><a href="#cb4-17"></a>      <span class="at">PARAMCD =</span> <span class="st">"TDURD"</span>,</span>
-<span id="cb4-18"><a href="#cb4-18"></a>      <span class="at">PARAM =</span> <span class="st">"Overall duration (days)"</span>,</span>
-<span id="cb4-19"><a href="#cb4-19"></a>      <span class="at">AVAL =</span> <span class="fu">sample</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">200</span>), <span class="at">size =</span> <span class="fu">n</span>(), <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb4-20"><a href="#cb4-20"></a>      <span class="at">AVALU =</span> <span class="st">"Days"</span></span>
-<span id="cb4-21"><a href="#cb4-21"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb4-22"><a href="#cb4-22"></a>    <span class="fu">bind_rows</span>(ADEX)</span>
-<span id="cb4-23"><a href="#cb4-23"></a></span>
-<span id="cb4-24"><a href="#cb4-24"></a>  ADEX <span class="ot">&lt;-</span> ADEX <span class="sc">%&gt;%</span></span>
-<span id="cb4-25"><a href="#cb4-25"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb4-26"><a href="#cb4-26"></a>      <span class="at">aval_months =</span> <span class="fu">day2month</span>(AVAL),</span>
-<span id="cb4-27"><a href="#cb4-27"></a>      <span class="at">aval_months_cat =</span> <span class="fu">factor</span>(<span class="fu">case_when</span>(</span>
-<span id="cb4-28"><a href="#cb4-28"></a>        aval_months <span class="sc">&lt;</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">"&lt; 1 month"</span>,</span>
-<span id="cb4-29"><a href="#cb4-29"></a>        aval_months <span class="sc">&gt;=</span> <span class="dv">1</span> <span class="sc">&amp;</span> aval_months <span class="sc">&lt;</span> <span class="dv">3</span> <span class="sc">~</span> <span class="st">"1 to &lt;3 months"</span>,</span>
-<span id="cb4-30"><a href="#cb4-30"></a>        aval_months <span class="sc">&gt;=</span> <span class="dv">3</span> <span class="sc">&amp;</span> aval_months <span class="sc">&lt;</span> <span class="dv">6</span> <span class="sc">~</span> <span class="st">"3 to &lt;6 months"</span>,</span>
-<span id="cb4-31"><a href="#cb4-31"></a>        <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"&gt;=6 months"</span></span>
-<span id="cb4-32"><a href="#cb4-32"></a>      ), <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"&lt; 1 month"</span>, <span class="st">"1 to &lt;3 months"</span>, <span class="st">"3 to &lt;6 months"</span>, <span class="st">"&gt;=6 months"</span>)) <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">"Overall duration"</span>)</span>
-<span id="cb4-33"><a href="#cb4-33"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb4-34"><a href="#cb4-34"></a>    <span class="fu">select</span>(<span class="sc">-</span>aval_months)</span>
-<span id="cb4-35"><a href="#cb4-35"></a>})</span>
-<span id="cb4-36"><a href="#cb4-36"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADEX"</span>)</span>
-<span id="cb4-37"><a href="#cb4-37"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
-<span id="cb4-38"><a href="#cb4-38"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
-<span id="cb4-39"><a href="#cb4-39"></a></span>
-<span id="cb4-40"><a href="#cb4-40"></a><span class="do">## Reusable Configuration For Modules</span></span>
-<span id="cb4-41"><a href="#cb4-41"></a>ADEX <span class="ot">&lt;-</span> data[[<span class="st">"ADEX"</span>]]</span>
-<span id="cb4-42"><a href="#cb4-42"></a></span>
-<span id="cb4-43"><a href="#cb4-43"></a><span class="do">## Setup App</span></span>
-<span id="cb4-44"><a href="#cb4-44"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb4-45"><a href="#cb4-45"></a>  <span class="at">data =</span> data,</span>
-<span id="cb4-46"><a href="#cb4-46"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb4-47"><a href="#cb4-47"></a>    <span class="fu">tm_t_exposure</span>(</span>
-<span id="cb4-48"><a href="#cb4-48"></a>      <span class="at">label =</span> <span class="st">"Duration of Exposure Table"</span>,</span>
-<span id="cb4-49"><a href="#cb4-49"></a>      <span class="at">dataname =</span> <span class="st">"ADEX"</span>,</span>
-<span id="cb4-50"><a href="#cb4-50"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb4-51"><a href="#cb4-51"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(ADEX, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>),</span>
-<span id="cb4-52"><a href="#cb4-52"></a>        <span class="at">selected =</span> <span class="st">"TDURD"</span></span>
-<span id="cb4-53"><a href="#cb4-53"></a>      ),</span>
-<span id="cb4-54"><a href="#cb4-54"></a>      <span class="at">col_by_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb4-55"><a href="#cb4-55"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADEX, <span class="at">subset =</span> <span class="fu">c</span>(<span class="st">"ARM"</span>)),</span>
-<span id="cb4-56"><a href="#cb4-56"></a>        <span class="at">selected =</span> <span class="st">"ARM"</span></span>
-<span id="cb4-57"><a href="#cb4-57"></a>      ),</span>
-<span id="cb4-58"><a href="#cb4-58"></a>      <span class="at">row_by_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb4-59"><a href="#cb4-59"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADEX, <span class="at">subset =</span> <span class="fu">c</span>(<span class="st">"aval_months_cat"</span>, <span class="st">"RACE"</span>, <span class="st">"STRATA1"</span>, <span class="st">"SEX"</span>)),</span>
-<span id="cb4-60"><a href="#cb4-60"></a>        <span class="at">selected =</span> <span class="st">"aval_months_cat"</span></span>
-<span id="cb4-61"><a href="#cb4-61"></a>      ),</span>
-<span id="cb4-62"><a href="#cb4-62"></a>      <span class="at">parcat =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb4-63"><a href="#cb4-63"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(ADEX, <span class="st">"PARCAT2"</span>),</span>
-<span id="cb4-64"><a href="#cb4-64"></a>        <span class="at">selected =</span> <span class="st">"Drug A"</span></span>
-<span id="cb4-65"><a href="#cb4-65"></a>      ),</span>
-<span id="cb4-66"><a href="#cb4-66"></a>      <span class="at">add_total =</span> <span class="cn">FALSE</span></span>
-<span id="cb4-67"><a href="#cb4-67"></a>    )</span>
-<span id="cb4-68"><a href="#cb4-68"></a>  ),</span>
-<span id="cb4-69"><a href="#cb4-69"></a>  <span class="at">filter =</span> <span class="fu">teal_slices</span>(<span class="fu">teal_slice</span>(<span class="st">"ADSL"</span>, <span class="st">"SAFFL"</span>, <span class="at">selected =</span> <span class="st">"Y"</span>))</span>
-<span id="cb4-70"><a href="#cb4-70"></a>)</span>
-<span id="cb4-71"><a href="#cb4-71"></a></span>
-<span id="cb4-72"><a href="#cb4-72"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="do">## Data reproducible code</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
+<span id="cb5-5"><a href="#cb5-5"></a>data <span class="ot">&lt;-</span> <span class="fu">within</span>(data, {</span>
+<span id="cb5-6"><a href="#cb5-6"></a>  <span class="fu">library</span>(scda)</span>
+<span id="cb5-7"><a href="#cb5-7"></a>  <span class="fu">library</span>(dplyr)</span>
+<span id="cb5-8"><a href="#cb5-8"></a></span>
+<span id="cb5-9"><a href="#cb5-9"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
+<span id="cb5-10"><a href="#cb5-10"></a>  ADEX <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adex"</span>)</span>
+<span id="cb5-11"><a href="#cb5-11"></a></span>
+<span id="cb5-12"><a href="#cb5-12"></a>  labels <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(ADEX)</span>
+<span id="cb5-13"><a href="#cb5-13"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>, <span class="at">kind =</span> <span class="st">"Mersenne-Twister"</span>)</span>
+<span id="cb5-14"><a href="#cb5-14"></a>  ADEX <span class="ot">&lt;-</span> ADEX <span class="sc">%&gt;%</span></span>
+<span id="cb5-15"><a href="#cb5-15"></a>    <span class="fu">distinct</span>(USUBJID, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-16"><a href="#cb5-16"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb5-17"><a href="#cb5-17"></a>      <span class="at">PARAMCD =</span> <span class="st">"TDURD"</span>,</span>
+<span id="cb5-18"><a href="#cb5-18"></a>      <span class="at">PARAM =</span> <span class="st">"Overall duration (days)"</span>,</span>
+<span id="cb5-19"><a href="#cb5-19"></a>      <span class="at">AVAL =</span> <span class="fu">sample</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">200</span>), <span class="at">size =</span> <span class="fu">n</span>(), <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb5-20"><a href="#cb5-20"></a>      <span class="at">AVALU =</span> <span class="st">"Days"</span></span>
+<span id="cb5-21"><a href="#cb5-21"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb5-22"><a href="#cb5-22"></a>    <span class="fu">bind_rows</span>(ADEX)</span>
+<span id="cb5-23"><a href="#cb5-23"></a></span>
+<span id="cb5-24"><a href="#cb5-24"></a>  ADEX <span class="ot">&lt;-</span> ADEX <span class="sc">%&gt;%</span></span>
+<span id="cb5-25"><a href="#cb5-25"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb5-26"><a href="#cb5-26"></a>      <span class="at">aval_months =</span> <span class="fu">day2month</span>(AVAL),</span>
+<span id="cb5-27"><a href="#cb5-27"></a>      <span class="at">aval_months_cat =</span> <span class="fu">factor</span>(<span class="fu">case_when</span>(</span>
+<span id="cb5-28"><a href="#cb5-28"></a>        aval_months <span class="sc">&lt;</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">"&lt; 1 month"</span>,</span>
+<span id="cb5-29"><a href="#cb5-29"></a>        aval_months <span class="sc">&gt;=</span> <span class="dv">1</span> <span class="sc">&amp;</span> aval_months <span class="sc">&lt;</span> <span class="dv">3</span> <span class="sc">~</span> <span class="st">"1 to &lt;3 months"</span>,</span>
+<span id="cb5-30"><a href="#cb5-30"></a>        aval_months <span class="sc">&gt;=</span> <span class="dv">3</span> <span class="sc">&amp;</span> aval_months <span class="sc">&lt;</span> <span class="dv">6</span> <span class="sc">~</span> <span class="st">"3 to &lt;6 months"</span>,</span>
+<span id="cb5-31"><a href="#cb5-31"></a>        <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"&gt;=6 months"</span></span>
+<span id="cb5-32"><a href="#cb5-32"></a>      ), <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"&lt; 1 month"</span>, <span class="st">"1 to &lt;3 months"</span>, <span class="st">"3 to &lt;6 months"</span>, <span class="st">"&gt;=6 months"</span>)) <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">"Overall duration"</span>)</span>
+<span id="cb5-33"><a href="#cb5-33"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb5-34"><a href="#cb5-34"></a>    <span class="fu">select</span>(<span class="sc">-</span>aval_months)</span>
+<span id="cb5-35"><a href="#cb5-35"></a>})</span>
+<span id="cb5-36"><a href="#cb5-36"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADEX"</span>)</span>
+<span id="cb5-37"><a href="#cb5-37"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
+<span id="cb5-38"><a href="#cb5-38"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
+<span id="cb5-39"><a href="#cb5-39"></a></span>
+<span id="cb5-40"><a href="#cb5-40"></a><span class="do">## Reusable Configuration For Modules</span></span>
+<span id="cb5-41"><a href="#cb5-41"></a>ADEX <span class="ot">&lt;-</span> data[[<span class="st">"ADEX"</span>]]</span>
+<span id="cb5-42"><a href="#cb5-42"></a></span>
+<span id="cb5-43"><a href="#cb5-43"></a><span class="do">## Setup App</span></span>
+<span id="cb5-44"><a href="#cb5-44"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb5-45"><a href="#cb5-45"></a>  <span class="at">data =</span> data,</span>
+<span id="cb5-46"><a href="#cb5-46"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb5-47"><a href="#cb5-47"></a>    <span class="fu">tm_t_exposure</span>(</span>
+<span id="cb5-48"><a href="#cb5-48"></a>      <span class="at">label =</span> <span class="st">"Duration of Exposure Table"</span>,</span>
+<span id="cb5-49"><a href="#cb5-49"></a>      <span class="at">dataname =</span> <span class="st">"ADEX"</span>,</span>
+<span id="cb5-50"><a href="#cb5-50"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb5-51"><a href="#cb5-51"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(ADEX, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>),</span>
+<span id="cb5-52"><a href="#cb5-52"></a>        <span class="at">selected =</span> <span class="st">"TDURD"</span></span>
+<span id="cb5-53"><a href="#cb5-53"></a>      ),</span>
+<span id="cb5-54"><a href="#cb5-54"></a>      <span class="at">col_by_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb5-55"><a href="#cb5-55"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADEX, <span class="at">subset =</span> <span class="fu">c</span>(<span class="st">"ARM"</span>)),</span>
+<span id="cb5-56"><a href="#cb5-56"></a>        <span class="at">selected =</span> <span class="st">"ARM"</span></span>
+<span id="cb5-57"><a href="#cb5-57"></a>      ),</span>
+<span id="cb5-58"><a href="#cb5-58"></a>      <span class="at">row_by_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb5-59"><a href="#cb5-59"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADEX, <span class="at">subset =</span> <span class="fu">c</span>(<span class="st">"aval_months_cat"</span>, <span class="st">"RACE"</span>, <span class="st">"STRATA1"</span>, <span class="st">"SEX"</span>)),</span>
+<span id="cb5-60"><a href="#cb5-60"></a>        <span class="at">selected =</span> <span class="st">"aval_months_cat"</span></span>
+<span id="cb5-61"><a href="#cb5-61"></a>      ),</span>
+<span id="cb5-62"><a href="#cb5-62"></a>      <span class="at">parcat =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb5-63"><a href="#cb5-63"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(ADEX, <span class="st">"PARCAT2"</span>),</span>
+<span id="cb5-64"><a href="#cb5-64"></a>        <span class="at">selected =</span> <span class="st">"Drug A"</span></span>
+<span id="cb5-65"><a href="#cb5-65"></a>      ),</span>
+<span id="cb5-66"><a href="#cb5-66"></a>      <span class="at">add_total =</span> <span class="cn">FALSE</span></span>
+<span id="cb5-67"><a href="#cb5-67"></a>    )</span>
+<span id="cb5-68"><a href="#cb5-68"></a>  ),</span>
+<span id="cb5-69"><a href="#cb5-69"></a>  <span class="at">filter =</span> <span class="fu">teal_slices</span>(<span class="fu">teal_slice</span>(<span class="st">"ADSL"</span>, <span class="st">"SAFFL"</span>, <span class="at">selected =</span> <span class="st">"Y"</span>))</span>
+<span id="cb5-70"><a href="#cb5-70"></a>)</span>
+<span id="cb5-71"><a href="#cb5-71"></a></span>
+<span id="cb5-72"><a href="#cb5-72"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="rmpt01_files/figure-html/teal-1.png" class="img-fluid figure-img" width="1440"></p>
@@ -1612,16 +1623,16 @@ Total Number of Patients and Patient Time      217 (54.2%)           20641
 <div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-03-09 17:40:27 UTC"</code></pre>
+<pre><code>[1] "2024-03-12 14:21:29 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>R version 4.3.2 (2023-10-31)
+<pre><code>R version 4.3.3 (2024-02-29)
 Platform: x86_64-pc-linux-gnu (64-bit)
 Running under: Ubuntu 22.04.3 LTS
 
@@ -1648,7 +1659,7 @@ other attached packages:
  [3] teal_0.15.2.9003                 teal.slice_0.5.0.9004           
  [5] teal.data_0.5.0.9002             teal.code_0.5.0.9003            
  [7] shiny_1.8.0                      dplyr_1.1.4                     
- [9] scda_0.1.6.9017                  tern_0.9.3.9022                 
+ [9] scda_0.1.6.9017                  tern_0.9.3.9024                 
 [11] rtables_0.6.6.9011               magrittr_2.0.3                  
 [13] formatters_0.5.5.9013           
 
@@ -1657,17 +1668,17 @@ loaded via a namespace (and not attached):
  [4] webshot2_0.1.1           promises_1.2.1           shinyjs_2.1.0           
  [7] digest_0.6.34            estimability_1.5         mime_0.12               
 [10] tern.gee_0.1.3.9004      lifecycle_1.0.4          ellipsis_0.3.2          
-[13] processx_3.8.3           survival_3.5-8           compiler_4.3.2          
-[16] sass_0.4.8               rlang_1.1.3              tools_4.3.2             
+[13] processx_3.8.3           survival_3.5-8           compiler_4.3.3          
+[16] sass_0.4.8               rlang_1.1.3              tools_4.3.3             
 [19] utf8_1.2.4               yaml_2.3.8               knitr_1.45              
 [22] htmlwidgets_1.6.4        websocket_1.4.1          multcomp_1.4-25         
 [25] withr_3.0.0              purrr_1.0.2              shinyWidgets_0.8.2      
-[28] geepack_1.3.10           grid_4.3.2               fansi_1.0.6             
+[28] geepack_1.3.10           grid_4.3.3               fansi_1.0.6             
 [31] teal.logger_0.1.3.9011   xtable_1.8-4             colorspace_2.1-0        
 [34] ggplot2_3.5.0            emmeans_1.10.0           scales_1.3.0            
 [37] MASS_7.3-60.0.1          cli_3.6.2                mvtnorm_1.2-4           
 [40] rmarkdown_2.26           generics_0.1.3           chromote_0.2.0          
-[43] cachem_1.0.8             splines_4.3.2            formatR_1.14            
+[43] cachem_1.0.8             splines_4.3.3            formatR_1.14            
 [46] vctrs_0.6.5              webshot_0.5.5            Matrix_1.6-5            
 [49] sandwich_3.1-0           jsonlite_1.8.8           callr_3.7.5             
 [52] teal.widgets_0.4.2.9006  testthat_3.2.1           fontawesome_0.5.2       
@@ -1689,17 +1700,31 @@ loaded via a namespace (and not attached):
 <code>.lock</code> file</h3>
 <p>Download the <code>.lock</code> file and use <a href="https://rstudio.github.io/renv/reference/restore.html"><code>renv::restore()</code></a> on it to recreate environment used to generate this website.</p>
 <div class="cell" data-renv.ignore="true">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb9-2"><a href="#cb9-2"></a></span>
-<span id="cb9-3"><a href="#cb9-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
-<span id="cb9-4"><a href="#cb9-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
-<span id="cb9-5"><a href="#cb9-5"></a></span>
-<span id="cb9-6"><a href="#cb9-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="st">"../../assets/www/lock"</span>, <span class="fu">paste0</span>(<span class="fu">gsub</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>), <span class="st">""</span>, <span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>, <span class="st">""</span>, knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>))), <span class="st">".lock"</span>))</span>
-<span id="cb9-7"><a href="#cb9-7"></a></span>
-<span id="cb9-8"><a href="#cb9-8"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
-<span id="cb9-9"><a href="#cb9-9"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb9-10"><a href="#cb9-10"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb9-11"><a href="#cb9-11"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-2"><a href="#cb10-2"></a></span>
+<span id="cb10-3"><a href="#cb10-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
+<span id="cb10-5"><a href="#cb10-5"></a></span>
+<span id="cb10-6"><a href="#cb10-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
+<span id="cb10-7"><a href="#cb10-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
+<span id="cb10-8"><a href="#cb10-8"></a>  <span class="fu">paste0</span>(</span>
+<span id="cb10-9"><a href="#cb10-9"></a>    <span class="fu">gsub</span>(</span>
+<span id="cb10-10"><a href="#cb10-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
+<span id="cb10-11"><a href="#cb10-11"></a>      <span class="st">""</span>,</span>
+<span id="cb10-12"><a href="#cb10-12"></a>      <span class="fu">gsub</span>(</span>
+<span id="cb10-13"><a href="#cb10-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
+<span id="cb10-14"><a href="#cb10-14"></a>        <span class="st">""</span>,</span>
+<span id="cb10-15"><a href="#cb10-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-16"><a href="#cb10-16"></a>      )</span>
+<span id="cb10-17"><a href="#cb10-17"></a>    ),</span>
+<span id="cb10-18"><a href="#cb10-18"></a>    <span class="st">".lock"</span></span>
+<span id="cb10-19"><a href="#cb10-19"></a>  )</span>
+<span id="cb10-20"><a href="#cb10-20"></a>)</span>
+<span id="cb10-21"><a href="#cb10-21"></a></span>
+<span id="cb10-22"><a href="#cb10-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
+<span id="cb10-23"><a href="#cb10-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb10-24"><a href="#cb10-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-25"><a href="#cb10-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p><a href="../../assets/www/lock/tables/risk-management-plan/rmpt01.lock">Download</a></p>
@@ -2327,167 +2352,167 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb10" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb10-1"><a href="#cb10-1"></a><span class="co">---</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a><span class="an">title:</span><span class="co"> RMPT01</span></span>
-<span id="cb10-3"><a href="#cb10-3"></a><span class="an">subtitle:</span><span class="co"> Duration of Exposure for Risk Management Plan</span></span>
-<span id="cb10-4"><a href="#cb10-4"></a><span class="co">---</span></span>
-<span id="cb10-5"><a href="#cb10-5"></a></span>
-<span id="cb10-6"><a href="#cb10-6"></a>------------------------------------------------------------------------</span>
-<span id="cb10-7"><a href="#cb10-7"></a></span>
-<span id="cb10-8"><a href="#cb10-8"></a>{{&lt; include ../../test-utils/envir_hook.qmd &gt;}}</span>
-<span id="cb10-9"><a href="#cb10-9"></a></span>
-<span id="cb10-10"><a href="#cb10-10"></a>::: panel-tabset</span>
-<span id="cb10-11"><a href="#cb10-11"></a><span class="fu">## Data Setup</span></span>
-<span id="cb10-12"><a href="#cb10-12"></a></span>
-<span id="cb10-13"><a href="#cb10-13"></a><span class="in">```{r setup, message=FALSE}</span></span>
-<span id="cb10-14"><a href="#cb10-14"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb10-15"><a href="#cb10-15"></a></span>
-<span id="cb10-16"><a href="#cb10-16"></a><span class="in">library(tern)</span></span>
-<span id="cb10-17"><a href="#cb10-17"></a><span class="in">library(scda)</span></span>
-<span id="cb10-18"><a href="#cb10-18"></a><span class="in">library(dplyr)</span></span>
-<span id="cb10-19"><a href="#cb10-19"></a></span>
-<span id="cb10-20"><a href="#cb10-20"></a><span class="in">adsl &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
-<span id="cb10-21"><a href="#cb10-21"></a><span class="in">adex &lt;- synthetic_cdisc_dataset("latest", "adex")</span></span>
-<span id="cb10-22"><a href="#cb10-22"></a></span>
-<span id="cb10-23"><a href="#cb10-23"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb10-24"><a href="#cb10-24"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb10-25"><a href="#cb10-25"></a><span class="in">adex &lt;- df_explicit_na(adex)</span></span>
-<span id="cb10-26"><a href="#cb10-26"></a></span>
-<span id="cb10-27"><a href="#cb10-27"></a><span class="in"># Simulate ADEX records with PARAMCD == "TDURD" as they are not in sample scda dataset.</span></span>
-<span id="cb10-28"><a href="#cb10-28"></a><span class="in">set.seed(1, kind = "Mersenne-Twister")</span></span>
-<span id="cb10-29"><a href="#cb10-29"></a><span class="in">adex2 &lt;- adex %&gt;%</span></span>
-<span id="cb10-30"><a href="#cb10-30"></a><span class="in">  distinct(USUBJID, .keep_all = TRUE) %&gt;%</span></span>
-<span id="cb10-31"><a href="#cb10-31"></a><span class="in">  mutate(</span></span>
-<span id="cb10-32"><a href="#cb10-32"></a><span class="in">    PARAMCD = "TDURD",</span></span>
-<span id="cb10-33"><a href="#cb10-33"></a><span class="in">    PARAM = "Overall duration (days)",</span></span>
-<span id="cb10-34"><a href="#cb10-34"></a><span class="in">    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE)</span></span>
-<span id="cb10-35"><a href="#cb10-35"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-36"><a href="#cb10-36"></a><span class="in">  bind_rows(adex)</span></span>
-<span id="cb10-37"><a href="#cb10-37"></a></span>
-<span id="cb10-38"><a href="#cb10-38"></a><span class="in"># Now pre-processing steps are carried out.</span></span>
-<span id="cb10-39"><a href="#cb10-39"></a><span class="in">anl &lt;- adex2 %&gt;%</span></span>
-<span id="cb10-40"><a href="#cb10-40"></a><span class="in">  filter(</span></span>
-<span id="cb10-41"><a href="#cb10-41"></a><span class="in">    PARAMCD == "TDURD",</span></span>
-<span id="cb10-42"><a href="#cb10-42"></a><span class="in">    PARCAT2 == "Drug A",</span></span>
-<span id="cb10-43"><a href="#cb10-43"></a><span class="in">    SAFFL == "Y"</span></span>
-<span id="cb10-44"><a href="#cb10-44"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-45"><a href="#cb10-45"></a><span class="in">  mutate(</span></span>
-<span id="cb10-46"><a href="#cb10-46"></a><span class="in">    aval_months = day2month(AVAL),</span></span>
-<span id="cb10-47"><a href="#cb10-47"></a><span class="in">    aval_months_cat = factor(case_when(</span></span>
-<span id="cb10-48"><a href="#cb10-48"></a><span class="in">      aval_months &lt; 1 ~ "&lt; 1 month",</span></span>
-<span id="cb10-49"><a href="#cb10-49"></a><span class="in">      aval_months &gt;= 1 &amp; aval_months &lt; 3 ~ "1 to &lt;3 months",</span></span>
-<span id="cb10-50"><a href="#cb10-50"></a><span class="in">      aval_months &gt;= 3 &amp; aval_months &lt; 6 ~ "3 to &lt;6 months",</span></span>
-<span id="cb10-51"><a href="#cb10-51"></a><span class="in">      TRUE ~ "&gt;=6 months"</span></span>
-<span id="cb10-52"><a href="#cb10-52"></a><span class="in">    ), levels = c("&lt; 1 month", "1 to &lt;3 months", "3 to &lt;6 months", "&gt;=6 months"))</span></span>
-<span id="cb10-53"><a href="#cb10-53"></a><span class="in">  )</span></span>
-<span id="cb10-54"><a href="#cb10-54"></a></span>
-<span id="cb10-55"><a href="#cb10-55"></a><span class="in">adsl_f &lt;- adsl %&gt;% filter(adsl$SAFFL == "Y")</span></span>
-<span id="cb10-56"><a href="#cb10-56"></a><span class="in">```</span></span>
-<span id="cb10-57"><a href="#cb10-57"></a></span>
-<span id="cb10-58"><a href="#cb10-58"></a><span class="fu">## Standard Table</span></span>
-<span id="cb10-59"><a href="#cb10-59"></a></span>
-<span id="cb10-60"><a href="#cb10-60"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb10-61"><a href="#cb10-61"></a><span class="in">lyt &lt;- basic_table(</span></span>
-<span id="cb10-62"><a href="#cb10-62"></a><span class="in">  title = "Duration of Exposure: Safety-Evaluable Patients",</span></span>
-<span id="cb10-63"><a href="#cb10-63"></a><span class="in">  main_footer = "* Patient Time is the sum of exposure across all patients in days.",</span></span>
-<span id="cb10-64"><a href="#cb10-64"></a><span class="in">  show_colcounts = TRUE</span></span>
-<span id="cb10-65"><a href="#cb10-65"></a><span class="in">) %&gt;%</span></span>
-<span id="cb10-66"><a href="#cb10-66"></a><span class="in">  summarize_patients_exposure_in_cols(</span></span>
-<span id="cb10-67"><a href="#cb10-67"></a><span class="in">    var = "AVAL", col_split = TRUE,</span></span>
-<span id="cb10-68"><a href="#cb10-68"></a><span class="in">    .labels = c(n_patients = "Number of Patients", sum_exposure = "Patient Time*"),</span></span>
-<span id="cb10-69"><a href="#cb10-69"></a><span class="in">    custom_label = "Total Number of Patients and Patient Time"</span></span>
-<span id="cb10-70"><a href="#cb10-70"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-71"><a href="#cb10-71"></a><span class="in">  analyze_patients_exposure_in_cols(</span></span>
-<span id="cb10-72"><a href="#cb10-72"></a><span class="in">    var = "aval_months_cat",</span></span>
-<span id="cb10-73"><a href="#cb10-73"></a><span class="in">    col_split = FALSE</span></span>
-<span id="cb10-74"><a href="#cb10-74"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-75"><a href="#cb10-75"></a><span class="in">  append_topleft(c("", "Duration of exposure"))</span></span>
-<span id="cb10-76"><a href="#cb10-76"></a></span>
-<span id="cb10-77"><a href="#cb10-77"></a><span class="in">result &lt;- build_table(lyt, df = anl, alt_counts_df = adsl_f)</span></span>
-<span id="cb10-78"><a href="#cb10-78"></a><span class="in">result</span></span>
-<span id="cb10-79"><a href="#cb10-79"></a><span class="in">```</span></span>
-<span id="cb10-80"><a href="#cb10-80"></a></span>
-<span id="cb10-81"><a href="#cb10-81"></a>{{&lt; include ../../test-utils/save_results.qmd &gt;}}</span>
-<span id="cb10-82"><a href="#cb10-82"></a></span>
-<span id="cb10-83"><a href="#cb10-83"></a><span class="fu">## `teal` App</span></span>
-<span id="cb10-84"><a href="#cb10-84"></a></span>
-<span id="cb10-85"><a href="#cb10-85"></a><span class="in">```{r teal, opts.label=c('skip_if_testing', 'app')}</span></span>
-<span id="cb10-86"><a href="#cb10-86"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb10-87"><a href="#cb10-87"></a></span>
-<span id="cb10-88"><a href="#cb10-88"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb10-89"><a href="#cb10-89"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb10-90"><a href="#cb10-90"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb10-91"><a href="#cb10-91"></a><span class="in">  library(scda)</span></span>
-<span id="cb10-92"><a href="#cb10-92"></a><span class="in">  library(dplyr)</span></span>
-<span id="cb10-93"><a href="#cb10-93"></a></span>
-<span id="cb10-94"><a href="#cb10-94"></a><span class="in">  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
-<span id="cb10-95"><a href="#cb10-95"></a><span class="in">  ADEX &lt;- synthetic_cdisc_dataset("latest", "adex")</span></span>
-<span id="cb10-96"><a href="#cb10-96"></a></span>
-<span id="cb10-97"><a href="#cb10-97"></a><span class="in">  labels &lt;- col_labels(ADEX)</span></span>
-<span id="cb10-98"><a href="#cb10-98"></a><span class="in">  set.seed(1, kind = "Mersenne-Twister")</span></span>
-<span id="cb10-99"><a href="#cb10-99"></a><span class="in">  ADEX &lt;- ADEX %&gt;%</span></span>
-<span id="cb10-100"><a href="#cb10-100"></a><span class="in">    distinct(USUBJID, .keep_all = TRUE) %&gt;%</span></span>
-<span id="cb10-101"><a href="#cb10-101"></a><span class="in">    mutate(</span></span>
-<span id="cb10-102"><a href="#cb10-102"></a><span class="in">      PARAMCD = "TDURD",</span></span>
-<span id="cb10-103"><a href="#cb10-103"></a><span class="in">      PARAM = "Overall duration (days)",</span></span>
-<span id="cb10-104"><a href="#cb10-104"></a><span class="in">      AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),</span></span>
-<span id="cb10-105"><a href="#cb10-105"></a><span class="in">      AVALU = "Days"</span></span>
-<span id="cb10-106"><a href="#cb10-106"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb10-107"><a href="#cb10-107"></a><span class="in">    bind_rows(ADEX)</span></span>
-<span id="cb10-108"><a href="#cb10-108"></a></span>
-<span id="cb10-109"><a href="#cb10-109"></a><span class="in">  ADEX &lt;- ADEX %&gt;%</span></span>
-<span id="cb10-110"><a href="#cb10-110"></a><span class="in">    mutate(</span></span>
-<span id="cb10-111"><a href="#cb10-111"></a><span class="in">      aval_months = day2month(AVAL),</span></span>
-<span id="cb10-112"><a href="#cb10-112"></a><span class="in">      aval_months_cat = factor(case_when(</span></span>
-<span id="cb10-113"><a href="#cb10-113"></a><span class="in">        aval_months &lt; 1 ~ "&lt; 1 month",</span></span>
-<span id="cb10-114"><a href="#cb10-114"></a><span class="in">        aval_months &gt;= 1 &amp; aval_months &lt; 3 ~ "1 to &lt;3 months",</span></span>
-<span id="cb10-115"><a href="#cb10-115"></a><span class="in">        aval_months &gt;= 3 &amp; aval_months &lt; 6 ~ "3 to &lt;6 months",</span></span>
-<span id="cb10-116"><a href="#cb10-116"></a><span class="in">        TRUE ~ "&gt;=6 months"</span></span>
-<span id="cb10-117"><a href="#cb10-117"></a><span class="in">      ), levels = c("&lt; 1 month", "1 to &lt;3 months", "3 to &lt;6 months", "&gt;=6 months")) %&gt;% with_label("Overall duration")</span></span>
-<span id="cb10-118"><a href="#cb10-118"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb10-119"><a href="#cb10-119"></a><span class="in">    select(-aval_months)</span></span>
-<span id="cb10-120"><a href="#cb10-120"></a><span class="in">})</span></span>
-<span id="cb10-121"><a href="#cb10-121"></a><span class="in">datanames &lt;- c("ADSL", "ADEX")</span></span>
-<span id="cb10-122"><a href="#cb10-122"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb10-123"><a href="#cb10-123"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb10-124"><a href="#cb10-124"></a></span>
-<span id="cb10-125"><a href="#cb10-125"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb10-126"><a href="#cb10-126"></a><span class="in">ADEX &lt;- data[["ADEX"]]</span></span>
-<span id="cb10-127"><a href="#cb10-127"></a></span>
-<span id="cb10-128"><a href="#cb10-128"></a><span class="in">## Setup App</span></span>
-<span id="cb10-129"><a href="#cb10-129"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb10-130"><a href="#cb10-130"></a><span class="in">  data = data,</span></span>
-<span id="cb10-131"><a href="#cb10-131"></a><span class="in">  modules = modules(</span></span>
-<span id="cb10-132"><a href="#cb10-132"></a><span class="in">    tm_t_exposure(</span></span>
-<span id="cb10-133"><a href="#cb10-133"></a><span class="in">      label = "Duration of Exposure Table",</span></span>
-<span id="cb10-134"><a href="#cb10-134"></a><span class="in">      dataname = "ADEX",</span></span>
-<span id="cb10-135"><a href="#cb10-135"></a><span class="in">      paramcd = choices_selected(</span></span>
-<span id="cb10-136"><a href="#cb10-136"></a><span class="in">        choices = value_choices(ADEX, "PARAMCD", "PARAM"),</span></span>
-<span id="cb10-137"><a href="#cb10-137"></a><span class="in">        selected = "TDURD"</span></span>
-<span id="cb10-138"><a href="#cb10-138"></a><span class="in">      ),</span></span>
-<span id="cb10-139"><a href="#cb10-139"></a><span class="in">      col_by_var = choices_selected(</span></span>
-<span id="cb10-140"><a href="#cb10-140"></a><span class="in">        choices = variable_choices(ADEX, subset = c("ARM")),</span></span>
-<span id="cb10-141"><a href="#cb10-141"></a><span class="in">        selected = "ARM"</span></span>
-<span id="cb10-142"><a href="#cb10-142"></a><span class="in">      ),</span></span>
-<span id="cb10-143"><a href="#cb10-143"></a><span class="in">      row_by_var = choices_selected(</span></span>
-<span id="cb10-144"><a href="#cb10-144"></a><span class="in">        choices = variable_choices(ADEX, subset = c("aval_months_cat", "RACE", "STRATA1", "SEX")),</span></span>
-<span id="cb10-145"><a href="#cb10-145"></a><span class="in">        selected = "aval_months_cat"</span></span>
-<span id="cb10-146"><a href="#cb10-146"></a><span class="in">      ),</span></span>
-<span id="cb10-147"><a href="#cb10-147"></a><span class="in">      parcat = choices_selected(</span></span>
-<span id="cb10-148"><a href="#cb10-148"></a><span class="in">        choices = value_choices(ADEX, "PARCAT2"),</span></span>
-<span id="cb10-149"><a href="#cb10-149"></a><span class="in">        selected = "Drug A"</span></span>
-<span id="cb10-150"><a href="#cb10-150"></a><span class="in">      ),</span></span>
-<span id="cb10-151"><a href="#cb10-151"></a><span class="in">      add_total = FALSE</span></span>
-<span id="cb10-152"><a href="#cb10-152"></a><span class="in">    )</span></span>
-<span id="cb10-153"><a href="#cb10-153"></a><span class="in">  ),</span></span>
-<span id="cb10-154"><a href="#cb10-154"></a><span class="in">  filter = teal_slices(teal_slice("ADSL", "SAFFL", selected = "Y"))</span></span>
-<span id="cb10-155"><a href="#cb10-155"></a><span class="in">)</span></span>
-<span id="cb10-156"><a href="#cb10-156"></a></span>
-<span id="cb10-157"><a href="#cb10-157"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb10-158"><a href="#cb10-158"></a><span class="in">```</span></span>
-<span id="cb10-159"><a href="#cb10-159"></a></span>
-<span id="cb10-160"><a href="#cb10-160"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb10-161"><a href="#cb10-161"></a>:::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb11" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">---</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="an">title:</span><span class="co"> RMPT01</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="an">subtitle:</span><span class="co"> Duration of Exposure for Risk Management Plan</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="co">---</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a></span>
+<span id="cb11-6"><a href="#cb11-6"></a>------------------------------------------------------------------------</span>
+<span id="cb11-7"><a href="#cb11-7"></a></span>
+<span id="cb11-8"><a href="#cb11-8"></a>{{&lt; include ../../test-utils/envir_hook.qmd &gt;}}</span>
+<span id="cb11-9"><a href="#cb11-9"></a></span>
+<span id="cb11-10"><a href="#cb11-10"></a>::: panel-tabset</span>
+<span id="cb11-11"><a href="#cb11-11"></a><span class="fu">## Data Setup</span></span>
+<span id="cb11-12"><a href="#cb11-12"></a></span>
+<span id="cb11-13"><a href="#cb11-13"></a><span class="in">```{r setup, message = FALSE}</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb11-15"><a href="#cb11-15"></a></span>
+<span id="cb11-16"><a href="#cb11-16"></a><span class="in">library(tern)</span></span>
+<span id="cb11-17"><a href="#cb11-17"></a><span class="in">library(scda)</span></span>
+<span id="cb11-18"><a href="#cb11-18"></a><span class="in">library(dplyr)</span></span>
+<span id="cb11-19"><a href="#cb11-19"></a></span>
+<span id="cb11-20"><a href="#cb11-20"></a><span class="in">adsl &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
+<span id="cb11-21"><a href="#cb11-21"></a><span class="in">adex &lt;- synthetic_cdisc_dataset("latest", "adex")</span></span>
+<span id="cb11-22"><a href="#cb11-22"></a></span>
+<span id="cb11-23"><a href="#cb11-23"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb11-24"><a href="#cb11-24"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb11-25"><a href="#cb11-25"></a><span class="in">adex &lt;- df_explicit_na(adex)</span></span>
+<span id="cb11-26"><a href="#cb11-26"></a></span>
+<span id="cb11-27"><a href="#cb11-27"></a><span class="in"># Simulate ADEX records with PARAMCD == "TDURD" as they are not in sample scda dataset.</span></span>
+<span id="cb11-28"><a href="#cb11-28"></a><span class="in">set.seed(1, kind = "Mersenne-Twister")</span></span>
+<span id="cb11-29"><a href="#cb11-29"></a><span class="in">adex2 &lt;- adex %&gt;%</span></span>
+<span id="cb11-30"><a href="#cb11-30"></a><span class="in">  distinct(USUBJID, .keep_all = TRUE) %&gt;%</span></span>
+<span id="cb11-31"><a href="#cb11-31"></a><span class="in">  mutate(</span></span>
+<span id="cb11-32"><a href="#cb11-32"></a><span class="in">    PARAMCD = "TDURD",</span></span>
+<span id="cb11-33"><a href="#cb11-33"></a><span class="in">    PARAM = "Overall duration (days)",</span></span>
+<span id="cb11-34"><a href="#cb11-34"></a><span class="in">    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE)</span></span>
+<span id="cb11-35"><a href="#cb11-35"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-36"><a href="#cb11-36"></a><span class="in">  bind_rows(adex)</span></span>
+<span id="cb11-37"><a href="#cb11-37"></a></span>
+<span id="cb11-38"><a href="#cb11-38"></a><span class="in"># Now pre-processing steps are carried out.</span></span>
+<span id="cb11-39"><a href="#cb11-39"></a><span class="in">anl &lt;- adex2 %&gt;%</span></span>
+<span id="cb11-40"><a href="#cb11-40"></a><span class="in">  filter(</span></span>
+<span id="cb11-41"><a href="#cb11-41"></a><span class="in">    PARAMCD == "TDURD",</span></span>
+<span id="cb11-42"><a href="#cb11-42"></a><span class="in">    PARCAT2 == "Drug A",</span></span>
+<span id="cb11-43"><a href="#cb11-43"></a><span class="in">    SAFFL == "Y"</span></span>
+<span id="cb11-44"><a href="#cb11-44"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-45"><a href="#cb11-45"></a><span class="in">  mutate(</span></span>
+<span id="cb11-46"><a href="#cb11-46"></a><span class="in">    aval_months = day2month(AVAL),</span></span>
+<span id="cb11-47"><a href="#cb11-47"></a><span class="in">    aval_months_cat = factor(case_when(</span></span>
+<span id="cb11-48"><a href="#cb11-48"></a><span class="in">      aval_months &lt; 1 ~ "&lt; 1 month",</span></span>
+<span id="cb11-49"><a href="#cb11-49"></a><span class="in">      aval_months &gt;= 1 &amp; aval_months &lt; 3 ~ "1 to &lt;3 months",</span></span>
+<span id="cb11-50"><a href="#cb11-50"></a><span class="in">      aval_months &gt;= 3 &amp; aval_months &lt; 6 ~ "3 to &lt;6 months",</span></span>
+<span id="cb11-51"><a href="#cb11-51"></a><span class="in">      TRUE ~ "&gt;=6 months"</span></span>
+<span id="cb11-52"><a href="#cb11-52"></a><span class="in">    ), levels = c("&lt; 1 month", "1 to &lt;3 months", "3 to &lt;6 months", "&gt;=6 months"))</span></span>
+<span id="cb11-53"><a href="#cb11-53"></a><span class="in">  )</span></span>
+<span id="cb11-54"><a href="#cb11-54"></a></span>
+<span id="cb11-55"><a href="#cb11-55"></a><span class="in">adsl_f &lt;- adsl %&gt;% filter(adsl$SAFFL == "Y")</span></span>
+<span id="cb11-56"><a href="#cb11-56"></a><span class="in">```</span></span>
+<span id="cb11-57"><a href="#cb11-57"></a></span>
+<span id="cb11-58"><a href="#cb11-58"></a><span class="fu">## Standard Table</span></span>
+<span id="cb11-59"><a href="#cb11-59"></a></span>
+<span id="cb11-60"><a href="#cb11-60"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb11-61"><a href="#cb11-61"></a><span class="in">lyt &lt;- basic_table(</span></span>
+<span id="cb11-62"><a href="#cb11-62"></a><span class="in">  title = "Duration of Exposure: Safety-Evaluable Patients",</span></span>
+<span id="cb11-63"><a href="#cb11-63"></a><span class="in">  main_footer = "* Patient Time is the sum of exposure across all patients in days.",</span></span>
+<span id="cb11-64"><a href="#cb11-64"></a><span class="in">  show_colcounts = TRUE</span></span>
+<span id="cb11-65"><a href="#cb11-65"></a><span class="in">) %&gt;%</span></span>
+<span id="cb11-66"><a href="#cb11-66"></a><span class="in">  summarize_patients_exposure_in_cols(</span></span>
+<span id="cb11-67"><a href="#cb11-67"></a><span class="in">    var = "AVAL", col_split = TRUE,</span></span>
+<span id="cb11-68"><a href="#cb11-68"></a><span class="in">    .labels = c(n_patients = "Number of Patients", sum_exposure = "Patient Time*"),</span></span>
+<span id="cb11-69"><a href="#cb11-69"></a><span class="in">    custom_label = "Total Number of Patients and Patient Time"</span></span>
+<span id="cb11-70"><a href="#cb11-70"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-71"><a href="#cb11-71"></a><span class="in">  analyze_patients_exposure_in_cols(</span></span>
+<span id="cb11-72"><a href="#cb11-72"></a><span class="in">    var = "aval_months_cat",</span></span>
+<span id="cb11-73"><a href="#cb11-73"></a><span class="in">    col_split = FALSE</span></span>
+<span id="cb11-74"><a href="#cb11-74"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-75"><a href="#cb11-75"></a><span class="in">  append_topleft(c("", "Duration of exposure"))</span></span>
+<span id="cb11-76"><a href="#cb11-76"></a></span>
+<span id="cb11-77"><a href="#cb11-77"></a><span class="in">result &lt;- build_table(lyt, df = anl, alt_counts_df = adsl_f)</span></span>
+<span id="cb11-78"><a href="#cb11-78"></a><span class="in">result</span></span>
+<span id="cb11-79"><a href="#cb11-79"></a><span class="in">```</span></span>
+<span id="cb11-80"><a href="#cb11-80"></a></span>
+<span id="cb11-81"><a href="#cb11-81"></a>{{&lt; include ../../test-utils/save_results.qmd &gt;}}</span>
+<span id="cb11-82"><a href="#cb11-82"></a></span>
+<span id="cb11-83"><a href="#cb11-83"></a><span class="fu">## `teal` App</span></span>
+<span id="cb11-84"><a href="#cb11-84"></a></span>
+<span id="cb11-85"><a href="#cb11-85"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb11-86"><a href="#cb11-86"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb11-87"><a href="#cb11-87"></a></span>
+<span id="cb11-88"><a href="#cb11-88"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb11-89"><a href="#cb11-89"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb11-90"><a href="#cb11-90"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb11-91"><a href="#cb11-91"></a><span class="in">  library(scda)</span></span>
+<span id="cb11-92"><a href="#cb11-92"></a><span class="in">  library(dplyr)</span></span>
+<span id="cb11-93"><a href="#cb11-93"></a></span>
+<span id="cb11-94"><a href="#cb11-94"></a><span class="in">  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
+<span id="cb11-95"><a href="#cb11-95"></a><span class="in">  ADEX &lt;- synthetic_cdisc_dataset("latest", "adex")</span></span>
+<span id="cb11-96"><a href="#cb11-96"></a></span>
+<span id="cb11-97"><a href="#cb11-97"></a><span class="in">  labels &lt;- col_labels(ADEX)</span></span>
+<span id="cb11-98"><a href="#cb11-98"></a><span class="in">  set.seed(1, kind = "Mersenne-Twister")</span></span>
+<span id="cb11-99"><a href="#cb11-99"></a><span class="in">  ADEX &lt;- ADEX %&gt;%</span></span>
+<span id="cb11-100"><a href="#cb11-100"></a><span class="in">    distinct(USUBJID, .keep_all = TRUE) %&gt;%</span></span>
+<span id="cb11-101"><a href="#cb11-101"></a><span class="in">    mutate(</span></span>
+<span id="cb11-102"><a href="#cb11-102"></a><span class="in">      PARAMCD = "TDURD",</span></span>
+<span id="cb11-103"><a href="#cb11-103"></a><span class="in">      PARAM = "Overall duration (days)",</span></span>
+<span id="cb11-104"><a href="#cb11-104"></a><span class="in">      AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),</span></span>
+<span id="cb11-105"><a href="#cb11-105"></a><span class="in">      AVALU = "Days"</span></span>
+<span id="cb11-106"><a href="#cb11-106"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb11-107"><a href="#cb11-107"></a><span class="in">    bind_rows(ADEX)</span></span>
+<span id="cb11-108"><a href="#cb11-108"></a></span>
+<span id="cb11-109"><a href="#cb11-109"></a><span class="in">  ADEX &lt;- ADEX %&gt;%</span></span>
+<span id="cb11-110"><a href="#cb11-110"></a><span class="in">    mutate(</span></span>
+<span id="cb11-111"><a href="#cb11-111"></a><span class="in">      aval_months = day2month(AVAL),</span></span>
+<span id="cb11-112"><a href="#cb11-112"></a><span class="in">      aval_months_cat = factor(case_when(</span></span>
+<span id="cb11-113"><a href="#cb11-113"></a><span class="in">        aval_months &lt; 1 ~ "&lt; 1 month",</span></span>
+<span id="cb11-114"><a href="#cb11-114"></a><span class="in">        aval_months &gt;= 1 &amp; aval_months &lt; 3 ~ "1 to &lt;3 months",</span></span>
+<span id="cb11-115"><a href="#cb11-115"></a><span class="in">        aval_months &gt;= 3 &amp; aval_months &lt; 6 ~ "3 to &lt;6 months",</span></span>
+<span id="cb11-116"><a href="#cb11-116"></a><span class="in">        TRUE ~ "&gt;=6 months"</span></span>
+<span id="cb11-117"><a href="#cb11-117"></a><span class="in">      ), levels = c("&lt; 1 month", "1 to &lt;3 months", "3 to &lt;6 months", "&gt;=6 months")) %&gt;% with_label("Overall duration")</span></span>
+<span id="cb11-118"><a href="#cb11-118"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb11-119"><a href="#cb11-119"></a><span class="in">    select(-aval_months)</span></span>
+<span id="cb11-120"><a href="#cb11-120"></a><span class="in">})</span></span>
+<span id="cb11-121"><a href="#cb11-121"></a><span class="in">datanames &lt;- c("ADSL", "ADEX")</span></span>
+<span id="cb11-122"><a href="#cb11-122"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb11-123"><a href="#cb11-123"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb11-124"><a href="#cb11-124"></a></span>
+<span id="cb11-125"><a href="#cb11-125"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb11-126"><a href="#cb11-126"></a><span class="in">ADEX &lt;- data[["ADEX"]]</span></span>
+<span id="cb11-127"><a href="#cb11-127"></a></span>
+<span id="cb11-128"><a href="#cb11-128"></a><span class="in">## Setup App</span></span>
+<span id="cb11-129"><a href="#cb11-129"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb11-130"><a href="#cb11-130"></a><span class="in">  data = data,</span></span>
+<span id="cb11-131"><a href="#cb11-131"></a><span class="in">  modules = modules(</span></span>
+<span id="cb11-132"><a href="#cb11-132"></a><span class="in">    tm_t_exposure(</span></span>
+<span id="cb11-133"><a href="#cb11-133"></a><span class="in">      label = "Duration of Exposure Table",</span></span>
+<span id="cb11-134"><a href="#cb11-134"></a><span class="in">      dataname = "ADEX",</span></span>
+<span id="cb11-135"><a href="#cb11-135"></a><span class="in">      paramcd = choices_selected(</span></span>
+<span id="cb11-136"><a href="#cb11-136"></a><span class="in">        choices = value_choices(ADEX, "PARAMCD", "PARAM"),</span></span>
+<span id="cb11-137"><a href="#cb11-137"></a><span class="in">        selected = "TDURD"</span></span>
+<span id="cb11-138"><a href="#cb11-138"></a><span class="in">      ),</span></span>
+<span id="cb11-139"><a href="#cb11-139"></a><span class="in">      col_by_var = choices_selected(</span></span>
+<span id="cb11-140"><a href="#cb11-140"></a><span class="in">        choices = variable_choices(ADEX, subset = c("ARM")),</span></span>
+<span id="cb11-141"><a href="#cb11-141"></a><span class="in">        selected = "ARM"</span></span>
+<span id="cb11-142"><a href="#cb11-142"></a><span class="in">      ),</span></span>
+<span id="cb11-143"><a href="#cb11-143"></a><span class="in">      row_by_var = choices_selected(</span></span>
+<span id="cb11-144"><a href="#cb11-144"></a><span class="in">        choices = variable_choices(ADEX, subset = c("aval_months_cat", "RACE", "STRATA1", "SEX")),</span></span>
+<span id="cb11-145"><a href="#cb11-145"></a><span class="in">        selected = "aval_months_cat"</span></span>
+<span id="cb11-146"><a href="#cb11-146"></a><span class="in">      ),</span></span>
+<span id="cb11-147"><a href="#cb11-147"></a><span class="in">      parcat = choices_selected(</span></span>
+<span id="cb11-148"><a href="#cb11-148"></a><span class="in">        choices = value_choices(ADEX, "PARCAT2"),</span></span>
+<span id="cb11-149"><a href="#cb11-149"></a><span class="in">        selected = "Drug A"</span></span>
+<span id="cb11-150"><a href="#cb11-150"></a><span class="in">      ),</span></span>
+<span id="cb11-151"><a href="#cb11-151"></a><span class="in">      add_total = FALSE</span></span>
+<span id="cb11-152"><a href="#cb11-152"></a><span class="in">    )</span></span>
+<span id="cb11-153"><a href="#cb11-153"></a><span class="in">  ),</span></span>
+<span id="cb11-154"><a href="#cb11-154"></a><span class="in">  filter = teal_slices(teal_slice("ADSL", "SAFFL", selected = "Y"))</span></span>
+<span id="cb11-155"><a href="#cb11-155"></a><span class="in">)</span></span>
+<span id="cb11-156"><a href="#cb11-156"></a></span>
+<span id="cb11-157"><a href="#cb11-157"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb11-158"><a href="#cb11-158"></a><span class="in">```</span></span>
+<span id="cb11-159"><a href="#cb11-159"></a></span>
+<span id="cb11-160"><a href="#cb11-160"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb11-161"><a href="#cb11-161"></a>:::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

@@ -2439,52 +2439,63 @@ cl C.2
   dcd C.2.1.2.1             28 (20.9%)   36 (26.9%)     48 (36.4%)  </code></pre>
 </div>
 </div>
+<div class="cell" data-renv.ignore="true">
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a><span class="cf">if</span> (<span class="fu">exists</span>(<span class="st">"tenv"</span>)) {</span>
+<span id="cb27-2"><a href="#cb27-2"></a>  filename <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>, <span class="st">""</span>, knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)), <span class="st">".rds"</span>)</span>
+<span id="cb27-3"><a href="#cb27-3"></a>  filepath <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="fu">normalizePath</span>(<span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_PROJECT_DIR"</span>)), <span class="fu">file.path</span>(<span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_TESTTHAT_DATA_PATH"</span>), <span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_PROFILE"</span>)), filename)</span>
+<span id="cb27-4"><a href="#cb27-4"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">dirname</span>(filepath))) {</span>
+<span id="cb27-5"><a href="#cb27-5"></a>    <span class="fu">dir.create</span>(<span class="fu">dirname</span>(filepath), <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb27-6"><a href="#cb27-6"></a>  }</span>
+<span id="cb27-7"><a href="#cb27-7"></a>  <span class="fu">saveRDS</span>(tenv, filepath)</span>
+<span id="cb27-8"><a href="#cb27-8"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 </div>
 <div id="tabset-1-14" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-14-tab">
 <div class="cell" data-webshot="webshot2" data-screenshot.force="true" data-screenshot.opts="{&quot;delay&quot;:5}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
-<span id="cb27-2"><a href="#cb27-2"></a></span>
-<span id="cb27-3"><a href="#cb27-3"></a><span class="do">## Data reproducible code</span></span>
-<span id="cb27-4"><a href="#cb27-4"></a>data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
-<span id="cb27-5"><a href="#cb27-5"></a>data <span class="ot">&lt;-</span> <span class="fu">within</span>(data, {</span>
-<span id="cb27-6"><a href="#cb27-6"></a>  <span class="fu">library</span>(scda)</span>
-<span id="cb27-7"><a href="#cb27-7"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
-<span id="cb27-8"><a href="#cb27-8"></a>  ADAE <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adae"</span>)</span>
-<span id="cb27-9"><a href="#cb27-9"></a></span>
-<span id="cb27-10"><a href="#cb27-10"></a>  <span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb27-11"><a href="#cb27-11"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(ADSL)</span>
-<span id="cb27-12"><a href="#cb27-12"></a>  ADAE <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(ADAE)</span>
-<span id="cb27-13"><a href="#cb27-13"></a>})</span>
-<span id="cb27-14"><a href="#cb27-14"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADAE"</span>)</span>
-<span id="cb27-15"><a href="#cb27-15"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
-<span id="cb27-16"><a href="#cb27-16"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
-<span id="cb27-17"><a href="#cb27-17"></a></span>
-<span id="cb27-18"><a href="#cb27-18"></a><span class="do">## Reusable Configuration For Modules</span></span>
-<span id="cb27-19"><a href="#cb27-19"></a>ADAE <span class="ot">&lt;-</span> data[[<span class="st">"ADAE"</span>]]</span>
-<span id="cb27-20"><a href="#cb27-20"></a></span>
-<span id="cb27-21"><a href="#cb27-21"></a><span class="do">## Setup App</span></span>
-<span id="cb27-22"><a href="#cb27-22"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb27-23"><a href="#cb27-23"></a>  <span class="at">data =</span> data,</span>
-<span id="cb27-24"><a href="#cb27-24"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb27-25"><a href="#cb27-25"></a>    <span class="fu">tm_t_events</span>(</span>
-<span id="cb27-26"><a href="#cb27-26"></a>      <span class="at">label =</span> <span class="st">"Adverse Event Table"</span>,</span>
-<span id="cb27-27"><a href="#cb27-27"></a>      <span class="at">dataname =</span> <span class="st">"ADAE"</span>,</span>
-<span id="cb27-28"><a href="#cb27-28"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>), <span class="st">"ARM"</span>),</span>
-<span id="cb27-29"><a href="#cb27-29"></a>      <span class="at">llt =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb27-30"><a href="#cb27-30"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="fu">c</span>(<span class="st">"AETERM"</span>, <span class="st">"AEDECOD"</span>)),</span>
-<span id="cb27-31"><a href="#cb27-31"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">"AEDECOD"</span>)</span>
-<span id="cb27-32"><a href="#cb27-32"></a>      ),</span>
-<span id="cb27-33"><a href="#cb27-33"></a>      <span class="at">hlt =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb27-34"><a href="#cb27-34"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="fu">c</span>(<span class="st">"AEBODSYS"</span>, <span class="st">"AESOC"</span>)),</span>
-<span id="cb27-35"><a href="#cb27-35"></a>        <span class="at">selected =</span> <span class="st">"AEBODSYS"</span></span>
-<span id="cb27-36"><a href="#cb27-36"></a>      ),</span>
-<span id="cb27-37"><a href="#cb27-37"></a>      <span class="at">add_total =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb27-38"><a href="#cb27-38"></a>      <span class="at">event_type =</span> <span class="st">"adverse event"</span></span>
-<span id="cb27-39"><a href="#cb27-39"></a>    )</span>
-<span id="cb27-40"><a href="#cb27-40"></a>  )</span>
-<span id="cb27-41"><a href="#cb27-41"></a>)</span>
-<span id="cb27-42"><a href="#cb27-42"></a></span>
-<span id="cb27-43"><a href="#cb27-43"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
+<span id="cb28-2"><a href="#cb28-2"></a></span>
+<span id="cb28-3"><a href="#cb28-3"></a><span class="do">## Data reproducible code</span></span>
+<span id="cb28-4"><a href="#cb28-4"></a>data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
+<span id="cb28-5"><a href="#cb28-5"></a>data <span class="ot">&lt;-</span> <span class="fu">within</span>(data, {</span>
+<span id="cb28-6"><a href="#cb28-6"></a>  <span class="fu">library</span>(scda)</span>
+<span id="cb28-7"><a href="#cb28-7"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
+<span id="cb28-8"><a href="#cb28-8"></a>  ADAE <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adae"</span>)</span>
+<span id="cb28-9"><a href="#cb28-9"></a></span>
+<span id="cb28-10"><a href="#cb28-10"></a>  <span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb28-11"><a href="#cb28-11"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(ADSL)</span>
+<span id="cb28-12"><a href="#cb28-12"></a>  ADAE <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(ADAE)</span>
+<span id="cb28-13"><a href="#cb28-13"></a>})</span>
+<span id="cb28-14"><a href="#cb28-14"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADAE"</span>)</span>
+<span id="cb28-15"><a href="#cb28-15"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
+<span id="cb28-16"><a href="#cb28-16"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
+<span id="cb28-17"><a href="#cb28-17"></a></span>
+<span id="cb28-18"><a href="#cb28-18"></a><span class="do">## Reusable Configuration For Modules</span></span>
+<span id="cb28-19"><a href="#cb28-19"></a>ADAE <span class="ot">&lt;-</span> data[[<span class="st">"ADAE"</span>]]</span>
+<span id="cb28-20"><a href="#cb28-20"></a></span>
+<span id="cb28-21"><a href="#cb28-21"></a><span class="do">## Setup App</span></span>
+<span id="cb28-22"><a href="#cb28-22"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb28-23"><a href="#cb28-23"></a>  <span class="at">data =</span> data,</span>
+<span id="cb28-24"><a href="#cb28-24"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb28-25"><a href="#cb28-25"></a>    <span class="fu">tm_t_events</span>(</span>
+<span id="cb28-26"><a href="#cb28-26"></a>      <span class="at">label =</span> <span class="st">"Adverse Event Table"</span>,</span>
+<span id="cb28-27"><a href="#cb28-27"></a>      <span class="at">dataname =</span> <span class="st">"ADAE"</span>,</span>
+<span id="cb28-28"><a href="#cb28-28"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>), <span class="st">"ARM"</span>),</span>
+<span id="cb28-29"><a href="#cb28-29"></a>      <span class="at">llt =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb28-30"><a href="#cb28-30"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="fu">c</span>(<span class="st">"AETERM"</span>, <span class="st">"AEDECOD"</span>)),</span>
+<span id="cb28-31"><a href="#cb28-31"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">"AEDECOD"</span>)</span>
+<span id="cb28-32"><a href="#cb28-32"></a>      ),</span>
+<span id="cb28-33"><a href="#cb28-33"></a>      <span class="at">hlt =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb28-34"><a href="#cb28-34"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="fu">c</span>(<span class="st">"AEBODSYS"</span>, <span class="st">"AESOC"</span>)),</span>
+<span id="cb28-35"><a href="#cb28-35"></a>        <span class="at">selected =</span> <span class="st">"AEBODSYS"</span></span>
+<span id="cb28-36"><a href="#cb28-36"></a>      ),</span>
+<span id="cb28-37"><a href="#cb28-37"></a>      <span class="at">add_total =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb28-38"><a href="#cb28-38"></a>      <span class="at">event_type =</span> <span class="st">"adverse event"</span></span>
+<span id="cb28-39"><a href="#cb28-39"></a>    )</span>
+<span id="cb28-40"><a href="#cb28-40"></a>  )</span>
+<span id="cb28-41"><a href="#cb28-41"></a>)</span>
+<span id="cb28-42"><a href="#cb28-42"></a></span>
+<span id="cb28-43"><a href="#cb28-43"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="aet02_files/figure-html/teal-1.png" class="img-fluid figure-img" width="1440"></p>
@@ -2496,14 +2507,14 @@ cl C.2
 <div id="tabset-1-15" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-15-tab">
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-03-11 16:36:35 UTC"</code></pre>
+<pre><code>[1] "2024-03-12 14:27:21 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>R version 4.3.3 (2024-02-29)
 Platform: x86_64-pc-linux-gnu (64-bit)
@@ -2573,31 +2584,31 @@ loaded via a namespace (and not attached):
 <code>.lock</code> file</h3>
 <p>Download the <code>.lock</code> file and use <a href="https://rstudio.github.io/renv/reference/restore.html"><code>renv::restore()</code></a> on it to recreate environment used to generate this website.</p>
 <div class="cell" data-renv.ignore="true">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb32-2"><a href="#cb32-2"></a></span>
-<span id="cb32-3"><a href="#cb32-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
-<span id="cb32-4"><a href="#cb32-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
-<span id="cb32-5"><a href="#cb32-5"></a></span>
-<span id="cb32-6"><a href="#cb32-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
-<span id="cb32-7"><a href="#cb32-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
-<span id="cb32-8"><a href="#cb32-8"></a>  <span class="fu">paste0</span>(</span>
-<span id="cb32-9"><a href="#cb32-9"></a>    <span class="fu">gsub</span>(</span>
-<span id="cb32-10"><a href="#cb32-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
-<span id="cb32-11"><a href="#cb32-11"></a>      <span class="st">""</span>,</span>
-<span id="cb32-12"><a href="#cb32-12"></a>      <span class="fu">gsub</span>(</span>
-<span id="cb32-13"><a href="#cb32-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
-<span id="cb32-14"><a href="#cb32-14"></a>        <span class="st">""</span>,</span>
-<span id="cb32-15"><a href="#cb32-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb32-16"><a href="#cb32-16"></a>      )</span>
-<span id="cb32-17"><a href="#cb32-17"></a>    ),</span>
-<span id="cb32-18"><a href="#cb32-18"></a>    <span class="st">".lock"</span></span>
-<span id="cb32-19"><a href="#cb32-19"></a>  )</span>
-<span id="cb32-20"><a href="#cb32-20"></a>)</span>
-<span id="cb32-21"><a href="#cb32-21"></a></span>
-<span id="cb32-22"><a href="#cb32-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
-<span id="cb32-23"><a href="#cb32-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb32-24"><a href="#cb32-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb32-25"><a href="#cb32-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb33-2"><a href="#cb33-2"></a></span>
+<span id="cb33-3"><a href="#cb33-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
+<span id="cb33-4"><a href="#cb33-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
+<span id="cb33-5"><a href="#cb33-5"></a></span>
+<span id="cb33-6"><a href="#cb33-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
+<span id="cb33-7"><a href="#cb33-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
+<span id="cb33-8"><a href="#cb33-8"></a>  <span class="fu">paste0</span>(</span>
+<span id="cb33-9"><a href="#cb33-9"></a>    <span class="fu">gsub</span>(</span>
+<span id="cb33-10"><a href="#cb33-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
+<span id="cb33-11"><a href="#cb33-11"></a>      <span class="st">""</span>,</span>
+<span id="cb33-12"><a href="#cb33-12"></a>      <span class="fu">gsub</span>(</span>
+<span id="cb33-13"><a href="#cb33-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
+<span id="cb33-14"><a href="#cb33-14"></a>        <span class="st">""</span>,</span>
+<span id="cb33-15"><a href="#cb33-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb33-16"><a href="#cb33-16"></a>      )</span>
+<span id="cb33-17"><a href="#cb33-17"></a>    ),</span>
+<span id="cb33-18"><a href="#cb33-18"></a>    <span class="st">".lock"</span></span>
+<span id="cb33-19"><a href="#cb33-19"></a>  )</span>
+<span id="cb33-20"><a href="#cb33-20"></a>)</span>
+<span id="cb33-21"><a href="#cb33-21"></a></span>
+<span id="cb33-22"><a href="#cb33-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
+<span id="cb33-23"><a href="#cb33-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb33-24"><a href="#cb33-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb33-25"><a href="#cb33-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p><a href="../../assets/www/lock/tables/adverse-events/aet02.lock">Download</a></p>
@@ -3225,696 +3236,696 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb33" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb33-1"><a href="#cb33-1"></a><span class="co">---</span></span>
-<span id="cb33-2"><a href="#cb33-2"></a><span class="an">title:</span><span class="co"> AET02</span></span>
-<span id="cb33-3"><a href="#cb33-3"></a><span class="an">subtitle:</span><span class="co"> Adverse Events</span></span>
-<span id="cb33-4"><a href="#cb33-4"></a><span class="co">---</span></span>
-<span id="cb33-5"><a href="#cb33-5"></a></span>
-<span id="cb33-6"><a href="#cb33-6"></a>------------------------------------------------------------------------</span>
-<span id="cb33-7"><a href="#cb33-7"></a></span>
-<span id="cb33-8"><a href="#cb33-8"></a>{{&lt; include ../../test-utils/envir_hook.qmd &gt;}}</span>
-<span id="cb33-9"><a href="#cb33-9"></a></span>
-<span id="cb33-10"><a href="#cb33-10"></a>::: panel-tabset</span>
-<span id="cb33-11"><a href="#cb33-11"></a><span class="fu">## Data Setup</span></span>
-<span id="cb33-12"><a href="#cb33-12"></a></span>
-<span id="cb33-13"><a href="#cb33-13"></a><span class="in">```{r setup, message=FALSE}</span></span>
-<span id="cb33-14"><a href="#cb33-14"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb33-15"><a href="#cb33-15"></a></span>
-<span id="cb33-16"><a href="#cb33-16"></a><span class="in">library(dplyr)</span></span>
-<span id="cb33-17"><a href="#cb33-17"></a><span class="in">library(tern)</span></span>
-<span id="cb33-18"><a href="#cb33-18"></a><span class="in">library(scda)</span></span>
-<span id="cb33-19"><a href="#cb33-19"></a></span>
-<span id="cb33-20"><a href="#cb33-20"></a><span class="in">adsl &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
-<span id="cb33-21"><a href="#cb33-21"></a><span class="in">adae &lt;- synthetic_cdisc_dataset("latest", "adae")</span></span>
-<span id="cb33-22"><a href="#cb33-22"></a></span>
-<span id="cb33-23"><a href="#cb33-23"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb33-24"><a href="#cb33-24"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb33-25"><a href="#cb33-25"></a><span class="in">adae &lt;- df_explicit_na(adae) %&gt;%</span></span>
-<span id="cb33-26"><a href="#cb33-26"></a><span class="in">  var_relabel(</span></span>
-<span id="cb33-27"><a href="#cb33-27"></a><span class="in">    AEBODSYS = "MedDRA System Organ Class",</span></span>
-<span id="cb33-28"><a href="#cb33-28"></a><span class="in">    AEDECOD = "MedDRA Preferred Term"</span></span>
-<span id="cb33-29"><a href="#cb33-29"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-30"><a href="#cb33-30"></a><span class="in">  filter(ANL01FL == "Y")</span></span>
-<span id="cb33-31"><a href="#cb33-31"></a></span>
-<span id="cb33-32"><a href="#cb33-32"></a><span class="in"># Define the split function</span></span>
-<span id="cb33-33"><a href="#cb33-33"></a><span class="in">split_fun &lt;- drop_split_levels</span></span>
-<span id="cb33-34"><a href="#cb33-34"></a><span class="in">```</span></span>
-<span id="cb33-35"><a href="#cb33-35"></a></span>
-<span id="cb33-36"><a href="#cb33-36"></a><span class="fu">## Standard Table</span></span>
-<span id="cb33-37"><a href="#cb33-37"></a></span>
-<span id="cb33-38"><a href="#cb33-38"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb33-39"><a href="#cb33-39"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb33-40"><a href="#cb33-40"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb33-41"><a href="#cb33-41"></a><span class="in">  add_overall_col(label = "All Patients") %&gt;%</span></span>
-<span id="cb33-42"><a href="#cb33-42"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb33-43"><a href="#cb33-43"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb33-44"><a href="#cb33-44"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb33-45"><a href="#cb33-45"></a><span class="in">    .labels = c(</span></span>
-<span id="cb33-46"><a href="#cb33-46"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
-<span id="cb33-47"><a href="#cb33-47"></a><span class="in">      nonunique = "Overall total number of events"</span></span>
-<span id="cb33-48"><a href="#cb33-48"></a><span class="in">    )</span></span>
-<span id="cb33-49"><a href="#cb33-49"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-50"><a href="#cb33-50"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-51"><a href="#cb33-51"></a><span class="in">    "AEBODSYS",</span></span>
-<span id="cb33-52"><a href="#cb33-52"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-53"><a href="#cb33-53"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb33-54"><a href="#cb33-54"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-55"><a href="#cb33-55"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb33-56"><a href="#cb33-56"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
-<span id="cb33-57"><a href="#cb33-57"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-58"><a href="#cb33-58"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-59"><a href="#cb33-59"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-60"><a href="#cb33-60"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb33-61"><a href="#cb33-61"></a><span class="in">    .labels = c(</span></span>
-<span id="cb33-62"><a href="#cb33-62"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
-<span id="cb33-63"><a href="#cb33-63"></a><span class="in">      nonunique = "Total number of events"</span></span>
-<span id="cb33-64"><a href="#cb33-64"></a><span class="in">    )</span></span>
-<span id="cb33-65"><a href="#cb33-65"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-66"><a href="#cb33-66"></a><span class="in">  count_occurrences(</span></span>
-<span id="cb33-67"><a href="#cb33-67"></a><span class="in">    vars = "AEDECOD",</span></span>
-<span id="cb33-68"><a href="#cb33-68"></a><span class="in">    .indent_mods = -1L</span></span>
-<span id="cb33-69"><a href="#cb33-69"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-70"><a href="#cb33-70"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
-<span id="cb33-71"><a href="#cb33-71"></a></span>
-<span id="cb33-72"><a href="#cb33-72"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl)</span></span>
-<span id="cb33-73"><a href="#cb33-73"></a><span class="in">```</span></span>
-<span id="cb33-74"><a href="#cb33-74"></a></span>
-<span id="cb33-75"><a href="#cb33-75"></a>The variable <span class="in">`result`</span> corresponds to the adverse events table.</span>
-<span id="cb33-76"><a href="#cb33-76"></a>However, it includes many empty rows accounting for events which were not reported.</span>
-<span id="cb33-77"><a href="#cb33-77"></a>The table can be post-processed to prune empty rows and to sort rows, for example by occurrence.</span>
-<span id="cb33-78"><a href="#cb33-78"></a></span>
-<span id="cb33-79"><a href="#cb33-79"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb33-80"><a href="#cb33-80"></a><span class="in">result &lt;- result %&gt;%</span></span>
-<span id="cb33-81"><a href="#cb33-81"></a><span class="in">  prune_table() %&gt;%</span></span>
-<span id="cb33-82"><a href="#cb33-82"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-83"><a href="#cb33-83"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb33-84"><a href="#cb33-84"></a><span class="in">    scorefun = cont_n_allcols</span></span>
-<span id="cb33-85"><a href="#cb33-85"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-86"><a href="#cb33-86"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-87"><a href="#cb33-87"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb33-88"><a href="#cb33-88"></a><span class="in">    scorefun = score_occurrences</span></span>
-<span id="cb33-89"><a href="#cb33-89"></a><span class="in">  )</span></span>
-<span id="cb33-90"><a href="#cb33-90"></a></span>
-<span id="cb33-91"><a href="#cb33-91"></a><span class="in">result</span></span>
-<span id="cb33-92"><a href="#cb33-92"></a><span class="in">```</span></span>
-<span id="cb33-93"><a href="#cb33-93"></a></span>
-<span id="cb33-94"><a href="#cb33-94"></a><span class="fu">## Table with &lt;br/&gt; Event Totals</span></span>
-<span id="cb33-95"><a href="#cb33-95"></a></span>
-<span id="cb33-96"><a href="#cb33-96"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
-<span id="cb33-97"><a href="#cb33-97"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb33-98"><a href="#cb33-98"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb33-99"><a href="#cb33-99"></a><span class="in">  add_overall_col(label = "All Patients") %&gt;%</span></span>
-<span id="cb33-100"><a href="#cb33-100"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb33-101"><a href="#cb33-101"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb33-102"><a href="#cb33-102"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb33-103"><a href="#cb33-103"></a><span class="in">    .labels = c(</span></span>
-<span id="cb33-104"><a href="#cb33-104"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
-<span id="cb33-105"><a href="#cb33-105"></a><span class="in">      nonunique = "Overall total number of events"</span></span>
-<span id="cb33-106"><a href="#cb33-106"></a><span class="in">    )</span></span>
-<span id="cb33-107"><a href="#cb33-107"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-108"><a href="#cb33-108"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-109"><a href="#cb33-109"></a><span class="in">    "AEBODSYS",</span></span>
-<span id="cb33-110"><a href="#cb33-110"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-111"><a href="#cb33-111"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb33-112"><a href="#cb33-112"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-113"><a href="#cb33-113"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb33-114"><a href="#cb33-114"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
-<span id="cb33-115"><a href="#cb33-115"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-116"><a href="#cb33-116"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-117"><a href="#cb33-117"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-118"><a href="#cb33-118"></a><span class="in">    .stats = c("unique"),</span></span>
-<span id="cb33-119"><a href="#cb33-119"></a><span class="in">    .labels = c(</span></span>
-<span id="cb33-120"><a href="#cb33-120"></a><span class="in">      unique = "Total number of patients with at least one adverse event"</span></span>
-<span id="cb33-121"><a href="#cb33-121"></a><span class="in">    )</span></span>
-<span id="cb33-122"><a href="#cb33-122"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-123"><a href="#cb33-123"></a><span class="in">  count_occurrences(vars = "AEDECOD", .indent_mods = -1L) %&gt;%</span></span>
-<span id="cb33-124"><a href="#cb33-124"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L) %&gt;%</span></span>
-<span id="cb33-125"><a href="#cb33-125"></a><span class="in">  count_values(</span></span>
-<span id="cb33-126"><a href="#cb33-126"></a><span class="in">    "STUDYID",</span></span>
-<span id="cb33-127"><a href="#cb33-127"></a><span class="in">    values = as.character(unique(adae$STUDYID)),</span></span>
-<span id="cb33-128"><a href="#cb33-128"></a><span class="in">    .stats = "count",</span></span>
-<span id="cb33-129"><a href="#cb33-129"></a><span class="in">    .labels = c(count = "Total number of events"),</span></span>
-<span id="cb33-130"><a href="#cb33-130"></a><span class="in">    .indent_mods = c(count = -1L)</span></span>
-<span id="cb33-131"><a href="#cb33-131"></a><span class="in">  )</span></span>
-<span id="cb33-132"><a href="#cb33-132"></a></span>
-<span id="cb33-133"><a href="#cb33-133"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb33-134"><a href="#cb33-134"></a><span class="in">  prune_table() %&gt;%</span></span>
-<span id="cb33-135"><a href="#cb33-135"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-136"><a href="#cb33-136"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb33-137"><a href="#cb33-137"></a><span class="in">    scorefun = score_occurrences</span></span>
-<span id="cb33-138"><a href="#cb33-138"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-139"><a href="#cb33-139"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-140"><a href="#cb33-140"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb33-141"><a href="#cb33-141"></a><span class="in">    scorefun = cont_n_allcols</span></span>
-<span id="cb33-142"><a href="#cb33-142"></a><span class="in">  )</span></span>
-<span id="cb33-143"><a href="#cb33-143"></a></span>
-<span id="cb33-144"><a href="#cb33-144"></a><span class="in">result</span></span>
-<span id="cb33-145"><a href="#cb33-145"></a><span class="in">```</span></span>
-<span id="cb33-146"><a href="#cb33-146"></a></span>
-<span id="cb33-147"><a href="#cb33-147"></a><span class="fu">## Table with &lt;br/&gt; High-Level Term</span></span>
-<span id="cb33-148"><a href="#cb33-148"></a></span>
-<span id="cb33-149"><a href="#cb33-149"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
-<span id="cb33-150"><a href="#cb33-150"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb33-151"><a href="#cb33-151"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb33-152"><a href="#cb33-152"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb33-153"><a href="#cb33-153"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb33-154"><a href="#cb33-154"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb33-155"><a href="#cb33-155"></a><span class="in">    .labels = c(</span></span>
-<span id="cb33-156"><a href="#cb33-156"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
-<span id="cb33-157"><a href="#cb33-157"></a><span class="in">      nonunique = "Overall total number of events"</span></span>
-<span id="cb33-158"><a href="#cb33-158"></a><span class="in">    )</span></span>
-<span id="cb33-159"><a href="#cb33-159"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-160"><a href="#cb33-160"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-161"><a href="#cb33-161"></a><span class="in">    "AEBODSYS",</span></span>
-<span id="cb33-162"><a href="#cb33-162"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-163"><a href="#cb33-163"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb33-164"><a href="#cb33-164"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-165"><a href="#cb33-165"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb33-166"><a href="#cb33-166"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
-<span id="cb33-167"><a href="#cb33-167"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-168"><a href="#cb33-168"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-169"><a href="#cb33-169"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-170"><a href="#cb33-170"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb33-171"><a href="#cb33-171"></a><span class="in">    .labels = c(</span></span>
-<span id="cb33-172"><a href="#cb33-172"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
-<span id="cb33-173"><a href="#cb33-173"></a><span class="in">      nonunique = "Total number of events"</span></span>
-<span id="cb33-174"><a href="#cb33-174"></a><span class="in">    )</span></span>
-<span id="cb33-175"><a href="#cb33-175"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-176"><a href="#cb33-176"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-177"><a href="#cb33-177"></a><span class="in">    "AEHLT",</span></span>
-<span id="cb33-178"><a href="#cb33-178"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-179"><a href="#cb33-179"></a><span class="in">    nested = TRUE,</span></span>
-<span id="cb33-180"><a href="#cb33-180"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-181"><a href="#cb33-181"></a><span class="in">    indent_mod = -1L,</span></span>
-<span id="cb33-182"><a href="#cb33-182"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb33-183"><a href="#cb33-183"></a><span class="in">    split_label = obj_label(adae$AEHLT)</span></span>
-<span id="cb33-184"><a href="#cb33-184"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-185"><a href="#cb33-185"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-186"><a href="#cb33-186"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-187"><a href="#cb33-187"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb33-188"><a href="#cb33-188"></a><span class="in">    .labels = c(</span></span>
-<span id="cb33-189"><a href="#cb33-189"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
-<span id="cb33-190"><a href="#cb33-190"></a><span class="in">      nonunique = "Total number of events"</span></span>
-<span id="cb33-191"><a href="#cb33-191"></a><span class="in">    )</span></span>
-<span id="cb33-192"><a href="#cb33-192"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-193"><a href="#cb33-193"></a><span class="in">  count_occurrences(vars = "AEDECOD", .indent_mods = -1L) %&gt;%</span></span>
-<span id="cb33-194"><a href="#cb33-194"></a><span class="in">  append_varlabels(adae, c("AEDECOD"), indent = 2L)</span></span>
-<span id="cb33-195"><a href="#cb33-195"></a></span>
-<span id="cb33-196"><a href="#cb33-196"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb33-197"><a href="#cb33-197"></a><span class="in">  prune_table() %&gt;%</span></span>
-<span id="cb33-198"><a href="#cb33-198"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-199"><a href="#cb33-199"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb33-200"><a href="#cb33-200"></a><span class="in">    scorefun = cont_n_allcols</span></span>
-<span id="cb33-201"><a href="#cb33-201"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-202"><a href="#cb33-202"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-203"><a href="#cb33-203"></a><span class="in">    path = c("AEBODSYS", "*", "AEHLT"),</span></span>
-<span id="cb33-204"><a href="#cb33-204"></a><span class="in">    scorefun = cont_n_allcols</span></span>
-<span id="cb33-205"><a href="#cb33-205"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-206"><a href="#cb33-206"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-207"><a href="#cb33-207"></a><span class="in">    path = c("AEBODSYS", "*", "AEHLT", "*", "AEDECOD"),</span></span>
-<span id="cb33-208"><a href="#cb33-208"></a><span class="in">    scorefun = score_occurrences</span></span>
-<span id="cb33-209"><a href="#cb33-209"></a><span class="in">  )</span></span>
-<span id="cb33-210"><a href="#cb33-210"></a></span>
-<span id="cb33-211"><a href="#cb33-211"></a><span class="in">result</span></span>
-<span id="cb33-212"><a href="#cb33-212"></a><span class="in">```</span></span>
-<span id="cb33-213"><a href="#cb33-213"></a></span>
-<span id="cb33-214"><a href="#cb33-214"></a><span class="fu">## Table with Preferred &lt;br/&gt; Terms Only</span></span>
-<span id="cb33-215"><a href="#cb33-215"></a></span>
-<span id="cb33-216"><a href="#cb33-216"></a><span class="in">```{r variant5, test = list(result_v5 = "result")}</span></span>
-<span id="cb33-217"><a href="#cb33-217"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb33-218"><a href="#cb33-218"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb33-219"><a href="#cb33-219"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb33-220"><a href="#cb33-220"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb33-221"><a href="#cb33-221"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb33-222"><a href="#cb33-222"></a><span class="in">    .labels = c(</span></span>
-<span id="cb33-223"><a href="#cb33-223"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
-<span id="cb33-224"><a href="#cb33-224"></a><span class="in">      nonunique = "Total number of events"</span></span>
-<span id="cb33-225"><a href="#cb33-225"></a><span class="in">    ),</span></span>
-<span id="cb33-226"><a href="#cb33-226"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb33-227"><a href="#cb33-227"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-228"><a href="#cb33-228"></a><span class="in">  count_occurrences(vars = "AEDECOD") %&gt;%</span></span>
-<span id="cb33-229"><a href="#cb33-229"></a><span class="in">  append_varlabels(adae, "AEDECOD")</span></span>
-<span id="cb33-230"><a href="#cb33-230"></a></span>
-<span id="cb33-231"><a href="#cb33-231"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb33-232"><a href="#cb33-232"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-233"><a href="#cb33-233"></a><span class="in">    path = c("AEDECOD"),</span></span>
-<span id="cb33-234"><a href="#cb33-234"></a><span class="in">    scorefun = score_occurrences</span></span>
-<span id="cb33-235"><a href="#cb33-235"></a><span class="in">  )</span></span>
-<span id="cb33-236"><a href="#cb33-236"></a></span>
-<span id="cb33-237"><a href="#cb33-237"></a><span class="in">result</span></span>
-<span id="cb33-238"><a href="#cb33-238"></a><span class="in">```</span></span>
-<span id="cb33-239"><a href="#cb33-239"></a></span>
-<span id="cb33-240"><a href="#cb33-240"></a><span class="fu">## Table with Fill-In of &lt;br/&gt; Treatment Groups</span></span>
-<span id="cb33-241"><a href="#cb33-241"></a></span>
-<span id="cb33-242"><a href="#cb33-242"></a><span class="in">```{r variant6, test = list(result_v6 = "result")}</span></span>
-<span id="cb33-243"><a href="#cb33-243"></a><span class="in">adae_5 &lt;- adae %&gt;% dplyr::filter(ACTARM != "C: Combination")</span></span>
-<span id="cb33-244"><a href="#cb33-244"></a></span>
-<span id="cb33-245"><a href="#cb33-245"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb33-246"><a href="#cb33-246"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb33-247"><a href="#cb33-247"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb33-248"><a href="#cb33-248"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb33-249"><a href="#cb33-249"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb33-250"><a href="#cb33-250"></a><span class="in">    .labels = c(</span></span>
-<span id="cb33-251"><a href="#cb33-251"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
-<span id="cb33-252"><a href="#cb33-252"></a><span class="in">      nonunique = "Overall total number of events"</span></span>
-<span id="cb33-253"><a href="#cb33-253"></a><span class="in">    )</span></span>
-<span id="cb33-254"><a href="#cb33-254"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-255"><a href="#cb33-255"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-256"><a href="#cb33-256"></a><span class="in">    "AEBODSYS",</span></span>
-<span id="cb33-257"><a href="#cb33-257"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-258"><a href="#cb33-258"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb33-259"><a href="#cb33-259"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-260"><a href="#cb33-260"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb33-261"><a href="#cb33-261"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
-<span id="cb33-262"><a href="#cb33-262"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-263"><a href="#cb33-263"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-264"><a href="#cb33-264"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-265"><a href="#cb33-265"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb33-266"><a href="#cb33-266"></a><span class="in">    .labels = c(</span></span>
-<span id="cb33-267"><a href="#cb33-267"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
-<span id="cb33-268"><a href="#cb33-268"></a><span class="in">      nonunique = "Total number of events"</span></span>
-<span id="cb33-269"><a href="#cb33-269"></a><span class="in">    )</span></span>
-<span id="cb33-270"><a href="#cb33-270"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-271"><a href="#cb33-271"></a><span class="in">  count_occurrences(vars = "AEDECOD", .indent_mods = -1L) %&gt;%</span></span>
-<span id="cb33-272"><a href="#cb33-272"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
-<span id="cb33-273"><a href="#cb33-273"></a></span>
-<span id="cb33-274"><a href="#cb33-274"></a><span class="in">result &lt;- build_table(lyt, df = adae_5, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb33-275"><a href="#cb33-275"></a><span class="in">  prune_table() %&gt;%</span></span>
-<span id="cb33-276"><a href="#cb33-276"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-277"><a href="#cb33-277"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb33-278"><a href="#cb33-278"></a><span class="in">    scorefun = cont_n_allcols</span></span>
-<span id="cb33-279"><a href="#cb33-279"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-280"><a href="#cb33-280"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-281"><a href="#cb33-281"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb33-282"><a href="#cb33-282"></a><span class="in">    scorefun = score_occurrences</span></span>
-<span id="cb33-283"><a href="#cb33-283"></a><span class="in">  )</span></span>
-<span id="cb33-284"><a href="#cb33-284"></a></span>
-<span id="cb33-285"><a href="#cb33-285"></a><span class="in">result</span></span>
-<span id="cb33-286"><a href="#cb33-286"></a><span class="in">```</span></span>
-<span id="cb33-287"><a href="#cb33-287"></a></span>
-<span id="cb33-288"><a href="#cb33-288"></a><span class="fu">## Table of AEs with an Incidence Rate &lt;br/&gt; $\geq$ 5% in Any Treatment Group (subsetting &lt;br/&gt; preferred terms based on frequency)</span></span>
-<span id="cb33-289"><a href="#cb33-289"></a></span>
-<span id="cb33-290"><a href="#cb33-290"></a><span class="in">```{r variant7, test = list(result_v7 = "result")}</span></span>
-<span id="cb33-291"><a href="#cb33-291"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb33-292"><a href="#cb33-292"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb33-293"><a href="#cb33-293"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-294"><a href="#cb33-294"></a><span class="in">    "AEBODSYS",</span></span>
-<span id="cb33-295"><a href="#cb33-295"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-296"><a href="#cb33-296"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb33-297"><a href="#cb33-297"></a><span class="in">    indent_mod = -1L,</span></span>
-<span id="cb33-298"><a href="#cb33-298"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-299"><a href="#cb33-299"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb33-300"><a href="#cb33-300"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
-<span id="cb33-301"><a href="#cb33-301"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-302"><a href="#cb33-302"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-303"><a href="#cb33-303"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-304"><a href="#cb33-304"></a><span class="in">    .stats = "unique",</span></span>
-<span id="cb33-305"><a href="#cb33-305"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
-<span id="cb33-306"><a href="#cb33-306"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-307"><a href="#cb33-307"></a><span class="in">  count_occurrences(</span></span>
-<span id="cb33-308"><a href="#cb33-308"></a><span class="in">    vars = "AEDECOD",</span></span>
-<span id="cb33-309"><a href="#cb33-309"></a><span class="in">    .indent_mods = 1L</span></span>
-<span id="cb33-310"><a href="#cb33-310"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-311"><a href="#cb33-311"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
-<span id="cb33-312"><a href="#cb33-312"></a></span>
-<span id="cb33-313"><a href="#cb33-313"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb33-314"><a href="#cb33-314"></a><span class="in">  prune_table() %&gt;%</span></span>
-<span id="cb33-315"><a href="#cb33-315"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-316"><a href="#cb33-316"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb33-317"><a href="#cb33-317"></a><span class="in">    scorefun = cont_n_allcols</span></span>
-<span id="cb33-318"><a href="#cb33-318"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-319"><a href="#cb33-319"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-320"><a href="#cb33-320"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb33-321"><a href="#cb33-321"></a><span class="in">    scorefun = score_occurrences</span></span>
-<span id="cb33-322"><a href="#cb33-322"></a><span class="in">  )</span></span>
-<span id="cb33-323"><a href="#cb33-323"></a></span>
-<span id="cb33-324"><a href="#cb33-324"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
-<span id="cb33-325"><a href="#cb33-325"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
-<span id="cb33-326"><a href="#cb33-326"></a></span>
-<span id="cb33-327"><a href="#cb33-327"></a><span class="in">row_condition &lt;- has_fraction_in_any_col(</span></span>
-<span id="cb33-328"><a href="#cb33-328"></a><span class="in">  atleast = 0.05,</span></span>
-<span id="cb33-329"><a href="#cb33-329"></a><span class="in">  col_names = names(table(adsl$ACTARM))</span></span>
-<span id="cb33-330"><a href="#cb33-330"></a><span class="in">)</span></span>
-<span id="cb33-331"><a href="#cb33-331"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
-<span id="cb33-332"><a href="#cb33-332"></a></span>
-<span id="cb33-333"><a href="#cb33-333"></a><span class="in">result</span></span>
-<span id="cb33-334"><a href="#cb33-334"></a><span class="in">```</span></span>
-<span id="cb33-335"><a href="#cb33-335"></a></span>
-<span id="cb33-336"><a href="#cb33-336"></a><span class="fu">## Table of AEs with an Incidence Rate $\geq$ 5% in &lt;br/&gt; Any Treatment Group (subsetting preferred terms &lt;br/&gt; based on frequency with high-level terms)</span></span>
-<span id="cb33-337"><a href="#cb33-337"></a></span>
-<span id="cb33-338"><a href="#cb33-338"></a><span class="in">```{r variant8, test = list(result_v8 = "result")}</span></span>
-<span id="cb33-339"><a href="#cb33-339"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb33-340"><a href="#cb33-340"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb33-341"><a href="#cb33-341"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-342"><a href="#cb33-342"></a><span class="in">    "AEBODSYS",</span></span>
-<span id="cb33-343"><a href="#cb33-343"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-344"><a href="#cb33-344"></a><span class="in">    nested = TRUE,</span></span>
-<span id="cb33-345"><a href="#cb33-345"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-346"><a href="#cb33-346"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb33-347"><a href="#cb33-347"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
-<span id="cb33-348"><a href="#cb33-348"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-349"><a href="#cb33-349"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-350"><a href="#cb33-350"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-351"><a href="#cb33-351"></a><span class="in">    .stats = "unique",</span></span>
-<span id="cb33-352"><a href="#cb33-352"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
-<span id="cb33-353"><a href="#cb33-353"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-354"><a href="#cb33-354"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-355"><a href="#cb33-355"></a><span class="in">    "AEHLT",</span></span>
-<span id="cb33-356"><a href="#cb33-356"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-357"><a href="#cb33-357"></a><span class="in">    nested = TRUE,</span></span>
-<span id="cb33-358"><a href="#cb33-358"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-359"><a href="#cb33-359"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb33-360"><a href="#cb33-360"></a><span class="in">    split_label = obj_label(adae$AEHLT)</span></span>
-<span id="cb33-361"><a href="#cb33-361"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-362"><a href="#cb33-362"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-363"><a href="#cb33-363"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-364"><a href="#cb33-364"></a><span class="in">    .stats = "unique",</span></span>
-<span id="cb33-365"><a href="#cb33-365"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
-<span id="cb33-366"><a href="#cb33-366"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-367"><a href="#cb33-367"></a><span class="in">  count_occurrences(vars = "AEDECOD") %&gt;%</span></span>
-<span id="cb33-368"><a href="#cb33-368"></a><span class="in">  append_varlabels(adae, c("AEDECOD"), indent = 2L)</span></span>
-<span id="cb33-369"><a href="#cb33-369"></a></span>
-<span id="cb33-370"><a href="#cb33-370"></a><span class="in">result &lt;- build_table(lyt, adae, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb33-371"><a href="#cb33-371"></a><span class="in">  prune_table() %&gt;%</span></span>
-<span id="cb33-372"><a href="#cb33-372"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-373"><a href="#cb33-373"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb33-374"><a href="#cb33-374"></a><span class="in">    scorefun = cont_n_allcols,</span></span>
-<span id="cb33-375"><a href="#cb33-375"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb33-376"><a href="#cb33-376"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-377"><a href="#cb33-377"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-378"><a href="#cb33-378"></a><span class="in">    path = c("AEBODSYS", "*", "AEHLT"),</span></span>
-<span id="cb33-379"><a href="#cb33-379"></a><span class="in">    scorefun = cont_n_allcols,</span></span>
-<span id="cb33-380"><a href="#cb33-380"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb33-381"><a href="#cb33-381"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-382"><a href="#cb33-382"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-383"><a href="#cb33-383"></a><span class="in">    path = c("AEBODSYS", "*", "AEHLT", "*", "AEDECOD"),</span></span>
-<span id="cb33-384"><a href="#cb33-384"></a><span class="in">    scorefun = score_occurrences,</span></span>
-<span id="cb33-385"><a href="#cb33-385"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb33-386"><a href="#cb33-386"></a><span class="in">  )</span></span>
-<span id="cb33-387"><a href="#cb33-387"></a></span>
-<span id="cb33-388"><a href="#cb33-388"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
-<span id="cb33-389"><a href="#cb33-389"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
-<span id="cb33-390"><a href="#cb33-390"></a></span>
-<span id="cb33-391"><a href="#cb33-391"></a><span class="in">row_condition &lt;- has_fraction_in_any_col(</span></span>
-<span id="cb33-392"><a href="#cb33-392"></a><span class="in">  atleast = 0.05,</span></span>
-<span id="cb33-393"><a href="#cb33-393"></a><span class="in">  col_names = names(table(adsl$ACTARM))</span></span>
-<span id="cb33-394"><a href="#cb33-394"></a><span class="in">)</span></span>
-<span id="cb33-395"><a href="#cb33-395"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
-<span id="cb33-396"><a href="#cb33-396"></a></span>
-<span id="cb33-397"><a href="#cb33-397"></a><span class="in">result</span></span>
-<span id="cb33-398"><a href="#cb33-398"></a><span class="in">```</span></span>
-<span id="cb33-399"><a href="#cb33-399"></a></span>
-<span id="cb33-400"><a href="#cb33-400"></a><span class="fu">## Table of AEs with an Incidence Rate $\geq$ 10% &lt;br/&gt; in Any Treatment Group (subsetting &lt;br/&gt; preferred terms based on frequency)</span></span>
-<span id="cb33-401"><a href="#cb33-401"></a></span>
-<span id="cb33-402"><a href="#cb33-402"></a><span class="in">```{r variant9, test = list(result_v9 = "result")}</span></span>
-<span id="cb33-403"><a href="#cb33-403"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb33-404"><a href="#cb33-404"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb33-405"><a href="#cb33-405"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-406"><a href="#cb33-406"></a><span class="in">    "AEBODSYS",</span></span>
-<span id="cb33-407"><a href="#cb33-407"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-408"><a href="#cb33-408"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb33-409"><a href="#cb33-409"></a><span class="in">    indent_mod = -1L,</span></span>
-<span id="cb33-410"><a href="#cb33-410"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-411"><a href="#cb33-411"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb33-412"><a href="#cb33-412"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
-<span id="cb33-413"><a href="#cb33-413"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-414"><a href="#cb33-414"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-415"><a href="#cb33-415"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-416"><a href="#cb33-416"></a><span class="in">    .stats = "unique",</span></span>
-<span id="cb33-417"><a href="#cb33-417"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
-<span id="cb33-418"><a href="#cb33-418"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-419"><a href="#cb33-419"></a><span class="in">  count_occurrences(</span></span>
-<span id="cb33-420"><a href="#cb33-420"></a><span class="in">    vars = "AEDECOD",</span></span>
-<span id="cb33-421"><a href="#cb33-421"></a><span class="in">    .indent_mods = 1L</span></span>
-<span id="cb33-422"><a href="#cb33-422"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-423"><a href="#cb33-423"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
-<span id="cb33-424"><a href="#cb33-424"></a></span>
-<span id="cb33-425"><a href="#cb33-425"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb33-426"><a href="#cb33-426"></a><span class="in">  prune_table() %&gt;%</span></span>
-<span id="cb33-427"><a href="#cb33-427"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-428"><a href="#cb33-428"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb33-429"><a href="#cb33-429"></a><span class="in">    scorefun = cont_n_allcols</span></span>
-<span id="cb33-430"><a href="#cb33-430"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-431"><a href="#cb33-431"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-432"><a href="#cb33-432"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb33-433"><a href="#cb33-433"></a><span class="in">    scorefun = score_occurrences</span></span>
-<span id="cb33-434"><a href="#cb33-434"></a><span class="in">  )</span></span>
-<span id="cb33-435"><a href="#cb33-435"></a></span>
-<span id="cb33-436"><a href="#cb33-436"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
-<span id="cb33-437"><a href="#cb33-437"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
-<span id="cb33-438"><a href="#cb33-438"></a></span>
-<span id="cb33-439"><a href="#cb33-439"></a><span class="in">row_condition &lt;- has_fraction_in_any_col(</span></span>
-<span id="cb33-440"><a href="#cb33-440"></a><span class="in">  atleast = 0.10,</span></span>
-<span id="cb33-441"><a href="#cb33-441"></a><span class="in">  col_names = names(table(adsl$ACTARM))</span></span>
-<span id="cb33-442"><a href="#cb33-442"></a><span class="in">)</span></span>
-<span id="cb33-443"><a href="#cb33-443"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
-<span id="cb33-444"><a href="#cb33-444"></a></span>
-<span id="cb33-445"><a href="#cb33-445"></a><span class="in">result</span></span>
-<span id="cb33-446"><a href="#cb33-446"></a><span class="in">```</span></span>
-<span id="cb33-447"><a href="#cb33-447"></a></span>
-<span id="cb33-448"><a href="#cb33-448"></a><span class="fu">## Table of AEs with an Incidence Rate $\geq$ 3 &lt;br/&gt; Patients in Any Treatment Group (subsetting &lt;br/&gt; preferred terms based on number of patients)</span></span>
-<span id="cb33-449"><a href="#cb33-449"></a></span>
-<span id="cb33-450"><a href="#cb33-450"></a><span class="in">```{r variant10, test = list(result_v10 = "result")}</span></span>
-<span id="cb33-451"><a href="#cb33-451"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb33-452"><a href="#cb33-452"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb33-453"><a href="#cb33-453"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-454"><a href="#cb33-454"></a><span class="in">    "AEBODSYS",</span></span>
-<span id="cb33-455"><a href="#cb33-455"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-456"><a href="#cb33-456"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb33-457"><a href="#cb33-457"></a><span class="in">    indent_mod = -1L,</span></span>
-<span id="cb33-458"><a href="#cb33-458"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-459"><a href="#cb33-459"></a><span class="in">    split_label = obj_label(adae$AEBODSYS),</span></span>
-<span id="cb33-460"><a href="#cb33-460"></a><span class="in">    label_pos = "topleft"</span></span>
-<span id="cb33-461"><a href="#cb33-461"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-462"><a href="#cb33-462"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-463"><a href="#cb33-463"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-464"><a href="#cb33-464"></a><span class="in">    .stats = "unique",</span></span>
-<span id="cb33-465"><a href="#cb33-465"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
-<span id="cb33-466"><a href="#cb33-466"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-467"><a href="#cb33-467"></a><span class="in">  count_occurrences(</span></span>
-<span id="cb33-468"><a href="#cb33-468"></a><span class="in">    vars = "AEDECOD",</span></span>
-<span id="cb33-469"><a href="#cb33-469"></a><span class="in">    .indent_mods = 1L</span></span>
-<span id="cb33-470"><a href="#cb33-470"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-471"><a href="#cb33-471"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
-<span id="cb33-472"><a href="#cb33-472"></a></span>
-<span id="cb33-473"><a href="#cb33-473"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb33-474"><a href="#cb33-474"></a><span class="in">  prune_table() %&gt;%</span></span>
-<span id="cb33-475"><a href="#cb33-475"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-476"><a href="#cb33-476"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb33-477"><a href="#cb33-477"></a><span class="in">    scorefun = cont_n_allcols</span></span>
-<span id="cb33-478"><a href="#cb33-478"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-479"><a href="#cb33-479"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-480"><a href="#cb33-480"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb33-481"><a href="#cb33-481"></a><span class="in">    scorefun = score_occurrences</span></span>
-<span id="cb33-482"><a href="#cb33-482"></a><span class="in">  )</span></span>
-<span id="cb33-483"><a href="#cb33-483"></a></span>
-<span id="cb33-484"><a href="#cb33-484"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
-<span id="cb33-485"><a href="#cb33-485"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
-<span id="cb33-486"><a href="#cb33-486"></a></span>
-<span id="cb33-487"><a href="#cb33-487"></a><span class="in">row_condition &lt;- has_count_in_any_col(</span></span>
-<span id="cb33-488"><a href="#cb33-488"></a><span class="in">  atleast = 3,</span></span>
-<span id="cb33-489"><a href="#cb33-489"></a><span class="in">  col_names = names(table(adsl$ACTARM))</span></span>
-<span id="cb33-490"><a href="#cb33-490"></a><span class="in">)</span></span>
-<span id="cb33-491"><a href="#cb33-491"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
-<span id="cb33-492"><a href="#cb33-492"></a></span>
-<span id="cb33-493"><a href="#cb33-493"></a><span class="in">result</span></span>
-<span id="cb33-494"><a href="#cb33-494"></a><span class="in">```</span></span>
-<span id="cb33-495"><a href="#cb33-495"></a></span>
-<span id="cb33-496"><a href="#cb33-496"></a><span class="fu">## Table of AEs with a Difference in Incidence Rate $\geq$ 5% &lt;br/&gt; Between Any Treatment (subsetting preferred terms based &lt;br/&gt; on difference in percentage between treatment groups)</span></span>
-<span id="cb33-497"><a href="#cb33-497"></a></span>
-<span id="cb33-498"><a href="#cb33-498"></a><span class="in">```{r variant11, test = list(result_v11 = "result")}</span></span>
-<span id="cb33-499"><a href="#cb33-499"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb33-500"><a href="#cb33-500"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb33-501"><a href="#cb33-501"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-502"><a href="#cb33-502"></a><span class="in">    "AEBODSYS",</span></span>
-<span id="cb33-503"><a href="#cb33-503"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-504"><a href="#cb33-504"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb33-505"><a href="#cb33-505"></a><span class="in">    indent_mod = -1L,</span></span>
-<span id="cb33-506"><a href="#cb33-506"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-507"><a href="#cb33-507"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb33-508"><a href="#cb33-508"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
-<span id="cb33-509"><a href="#cb33-509"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-510"><a href="#cb33-510"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-511"><a href="#cb33-511"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-512"><a href="#cb33-512"></a><span class="in">    .stats = "unique",</span></span>
-<span id="cb33-513"><a href="#cb33-513"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
-<span id="cb33-514"><a href="#cb33-514"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-515"><a href="#cb33-515"></a><span class="in">  count_occurrences(</span></span>
-<span id="cb33-516"><a href="#cb33-516"></a><span class="in">    vars = "AEDECOD",</span></span>
-<span id="cb33-517"><a href="#cb33-517"></a><span class="in">    .indent_mods = 1L</span></span>
-<span id="cb33-518"><a href="#cb33-518"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-519"><a href="#cb33-519"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
-<span id="cb33-520"><a href="#cb33-520"></a></span>
-<span id="cb33-521"><a href="#cb33-521"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb33-522"><a href="#cb33-522"></a><span class="in">  prune_table() %&gt;%</span></span>
-<span id="cb33-523"><a href="#cb33-523"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-524"><a href="#cb33-524"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb33-525"><a href="#cb33-525"></a><span class="in">    scorefun = cont_n_allcols</span></span>
-<span id="cb33-526"><a href="#cb33-526"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-527"><a href="#cb33-527"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-528"><a href="#cb33-528"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb33-529"><a href="#cb33-529"></a><span class="in">    scorefun = score_occurrences</span></span>
-<span id="cb33-530"><a href="#cb33-530"></a><span class="in">  )</span></span>
-<span id="cb33-531"><a href="#cb33-531"></a></span>
-<span id="cb33-532"><a href="#cb33-532"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
-<span id="cb33-533"><a href="#cb33-533"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
-<span id="cb33-534"><a href="#cb33-534"></a></span>
-<span id="cb33-535"><a href="#cb33-535"></a><span class="in">row_condition &lt;- has_fractions_difference(</span></span>
-<span id="cb33-536"><a href="#cb33-536"></a><span class="in">  atleast = 0.05,</span></span>
-<span id="cb33-537"><a href="#cb33-537"></a><span class="in">  col_names = levels(adsl$ACTARM)</span></span>
-<span id="cb33-538"><a href="#cb33-538"></a><span class="in">)</span></span>
-<span id="cb33-539"><a href="#cb33-539"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
-<span id="cb33-540"><a href="#cb33-540"></a></span>
-<span id="cb33-541"><a href="#cb33-541"></a><span class="in">result</span></span>
-<span id="cb33-542"><a href="#cb33-542"></a><span class="in">```</span></span>
-<span id="cb33-543"><a href="#cb33-543"></a></span>
-<span id="cb33-544"><a href="#cb33-544"></a><span class="fu">## Table of AEs with an Incidence Rate $\geq$ 5% &lt;br/&gt; in B: Placebo (subsetting preferred terms based &lt;br/&gt; on frequency for a particular treatment group)</span></span>
-<span id="cb33-545"><a href="#cb33-545"></a></span>
-<span id="cb33-546"><a href="#cb33-546"></a><span class="in">```{r variant12, test = list(result_v12 = "result")}</span></span>
-<span id="cb33-547"><a href="#cb33-547"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb33-548"><a href="#cb33-548"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb33-549"><a href="#cb33-549"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-550"><a href="#cb33-550"></a><span class="in">    "AEBODSYS",</span></span>
-<span id="cb33-551"><a href="#cb33-551"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-552"><a href="#cb33-552"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb33-553"><a href="#cb33-553"></a><span class="in">    indent_mod = -1L,</span></span>
-<span id="cb33-554"><a href="#cb33-554"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-555"><a href="#cb33-555"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb33-556"><a href="#cb33-556"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
-<span id="cb33-557"><a href="#cb33-557"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-558"><a href="#cb33-558"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-559"><a href="#cb33-559"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-560"><a href="#cb33-560"></a><span class="in">    .stats = "unique",</span></span>
-<span id="cb33-561"><a href="#cb33-561"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
-<span id="cb33-562"><a href="#cb33-562"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-563"><a href="#cb33-563"></a><span class="in">  count_occurrences(</span></span>
-<span id="cb33-564"><a href="#cb33-564"></a><span class="in">    vars = "AEDECOD",</span></span>
-<span id="cb33-565"><a href="#cb33-565"></a><span class="in">    .indent_mods = 1L</span></span>
-<span id="cb33-566"><a href="#cb33-566"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-567"><a href="#cb33-567"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
-<span id="cb33-568"><a href="#cb33-568"></a></span>
-<span id="cb33-569"><a href="#cb33-569"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb33-570"><a href="#cb33-570"></a><span class="in">  prune_table() %&gt;%</span></span>
-<span id="cb33-571"><a href="#cb33-571"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-572"><a href="#cb33-572"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb33-573"><a href="#cb33-573"></a><span class="in">    scorefun = cont_n_allcols</span></span>
-<span id="cb33-574"><a href="#cb33-574"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-575"><a href="#cb33-575"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-576"><a href="#cb33-576"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb33-577"><a href="#cb33-577"></a><span class="in">    scorefun = score_occurrences</span></span>
-<span id="cb33-578"><a href="#cb33-578"></a><span class="in">  )</span></span>
-<span id="cb33-579"><a href="#cb33-579"></a></span>
-<span id="cb33-580"><a href="#cb33-580"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
-<span id="cb33-581"><a href="#cb33-581"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
-<span id="cb33-582"><a href="#cb33-582"></a></span>
-<span id="cb33-583"><a href="#cb33-583"></a><span class="in">row_condition &lt;- has_fraction_in_cols(</span></span>
-<span id="cb33-584"><a href="#cb33-584"></a><span class="in">  atleast = 0.05,</span></span>
-<span id="cb33-585"><a href="#cb33-585"></a><span class="in">  col_names = c("B: Placebo")</span></span>
-<span id="cb33-586"><a href="#cb33-586"></a><span class="in">)</span></span>
-<span id="cb33-587"><a href="#cb33-587"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
-<span id="cb33-588"><a href="#cb33-588"></a></span>
-<span id="cb33-589"><a href="#cb33-589"></a><span class="in">result</span></span>
-<span id="cb33-590"><a href="#cb33-590"></a><span class="in">```</span></span>
-<span id="cb33-591"><a href="#cb33-591"></a></span>
-<span id="cb33-592"><a href="#cb33-592"></a><span class="fu">## Table of AEs with a Difference in Incidence Rate $\geq$ 5% Between &lt;br/&gt; Arm A and Arm B or Arm C (displaying preferred terms with a &lt;br/&gt; difference of at least x% between selected treatment groups)</span></span>
-<span id="cb33-593"><a href="#cb33-593"></a></span>
-<span id="cb33-594"><a href="#cb33-594"></a><span class="in">```{r variant13, test = list(result_v13 = "result")}</span></span>
-<span id="cb33-595"><a href="#cb33-595"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb33-596"><a href="#cb33-596"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb33-597"><a href="#cb33-597"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb33-598"><a href="#cb33-598"></a><span class="in">    "AEBODSYS",</span></span>
-<span id="cb33-599"><a href="#cb33-599"></a><span class="in">    child_labels = "visible",</span></span>
-<span id="cb33-600"><a href="#cb33-600"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb33-601"><a href="#cb33-601"></a><span class="in">    indent_mod = -1L,</span></span>
-<span id="cb33-602"><a href="#cb33-602"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb33-603"><a href="#cb33-603"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb33-604"><a href="#cb33-604"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
-<span id="cb33-605"><a href="#cb33-605"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-606"><a href="#cb33-606"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb33-607"><a href="#cb33-607"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb33-608"><a href="#cb33-608"></a><span class="in">    .stats = "unique",</span></span>
-<span id="cb33-609"><a href="#cb33-609"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
-<span id="cb33-610"><a href="#cb33-610"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-611"><a href="#cb33-611"></a><span class="in">  count_occurrences(</span></span>
-<span id="cb33-612"><a href="#cb33-612"></a><span class="in">    vars = "AEDECOD",</span></span>
-<span id="cb33-613"><a href="#cb33-613"></a><span class="in">    .indent_mods = 1L</span></span>
-<span id="cb33-614"><a href="#cb33-614"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-615"><a href="#cb33-615"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
-<span id="cb33-616"><a href="#cb33-616"></a></span>
-<span id="cb33-617"><a href="#cb33-617"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb33-618"><a href="#cb33-618"></a><span class="in">  prune_table() %&gt;%</span></span>
-<span id="cb33-619"><a href="#cb33-619"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-620"><a href="#cb33-620"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb33-621"><a href="#cb33-621"></a><span class="in">    scorefun = cont_n_allcols</span></span>
-<span id="cb33-622"><a href="#cb33-622"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb33-623"><a href="#cb33-623"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb33-624"><a href="#cb33-624"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb33-625"><a href="#cb33-625"></a><span class="in">    scorefun = score_occurrences</span></span>
-<span id="cb33-626"><a href="#cb33-626"></a><span class="in">  )</span></span>
-<span id="cb33-627"><a href="#cb33-627"></a></span>
-<span id="cb33-628"><a href="#cb33-628"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
-<span id="cb33-629"><a href="#cb33-629"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
-<span id="cb33-630"><a href="#cb33-630"></a></span>
-<span id="cb33-631"><a href="#cb33-631"></a><span class="in">row_condition1 &lt;- has_fractions_difference(atleast = 0.05, col_names = c("A: Drug X", "B: Placebo"))</span></span>
-<span id="cb33-632"><a href="#cb33-632"></a><span class="in">row_condition2 &lt;- has_fractions_difference(atleast = 0.05, col_names = c("A: Drug X", "C: Combination"))</span></span>
-<span id="cb33-633"><a href="#cb33-633"></a><span class="in">row_condition &lt;- row_condition1 | row_condition2</span></span>
-<span id="cb33-634"><a href="#cb33-634"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
-<span id="cb33-635"><a href="#cb33-635"></a></span>
-<span id="cb33-636"><a href="#cb33-636"></a><span class="in">result</span></span>
-<span id="cb33-637"><a href="#cb33-637"></a><span class="in">```</span></span>
-<span id="cb33-638"><a href="#cb33-638"></a></span>
-<span id="cb33-639"><a href="#cb33-639"></a>{{&lt; include ../../test-utils/save_results.qmd &gt;}}</span>
-<span id="cb33-640"><a href="#cb33-640"></a></span>
-<span id="cb33-641"><a href="#cb33-641"></a><span class="fu">## `teal` App</span></span>
-<span id="cb33-642"><a href="#cb33-642"></a></span>
-<span id="cb33-643"><a href="#cb33-643"></a><span class="in">```{r teal, opts.label=c('skip_if_testing', 'app')}</span></span>
-<span id="cb33-644"><a href="#cb33-644"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb33-645"><a href="#cb33-645"></a></span>
-<span id="cb33-646"><a href="#cb33-646"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb33-647"><a href="#cb33-647"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb33-648"><a href="#cb33-648"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb33-649"><a href="#cb33-649"></a><span class="in">  library(scda)</span></span>
-<span id="cb33-650"><a href="#cb33-650"></a><span class="in">  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
-<span id="cb33-651"><a href="#cb33-651"></a><span class="in">  ADAE &lt;- synthetic_cdisc_dataset("latest", "adae")</span></span>
-<span id="cb33-652"><a href="#cb33-652"></a></span>
-<span id="cb33-653"><a href="#cb33-653"></a><span class="in">  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb33-654"><a href="#cb33-654"></a><span class="in">  ADSL &lt;- df_explicit_na(ADSL)</span></span>
-<span id="cb33-655"><a href="#cb33-655"></a><span class="in">  ADAE &lt;- df_explicit_na(ADAE)</span></span>
-<span id="cb33-656"><a href="#cb33-656"></a><span class="in">})</span></span>
-<span id="cb33-657"><a href="#cb33-657"></a><span class="in">datanames &lt;- c("ADSL", "ADAE")</span></span>
-<span id="cb33-658"><a href="#cb33-658"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb33-659"><a href="#cb33-659"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb33-660"><a href="#cb33-660"></a></span>
-<span id="cb33-661"><a href="#cb33-661"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb33-662"><a href="#cb33-662"></a><span class="in">ADAE &lt;- data[["ADAE"]]</span></span>
-<span id="cb33-663"><a href="#cb33-663"></a></span>
-<span id="cb33-664"><a href="#cb33-664"></a><span class="in">## Setup App</span></span>
-<span id="cb33-665"><a href="#cb33-665"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb33-666"><a href="#cb33-666"></a><span class="in">  data = data,</span></span>
-<span id="cb33-667"><a href="#cb33-667"></a><span class="in">  modules = modules(</span></span>
-<span id="cb33-668"><a href="#cb33-668"></a><span class="in">    tm_t_events(</span></span>
-<span id="cb33-669"><a href="#cb33-669"></a><span class="in">      label = "Adverse Event Table",</span></span>
-<span id="cb33-670"><a href="#cb33-670"></a><span class="in">      dataname = "ADAE",</span></span>
-<span id="cb33-671"><a href="#cb33-671"></a><span class="in">      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span></span>
-<span id="cb33-672"><a href="#cb33-672"></a><span class="in">      llt = choices_selected(</span></span>
-<span id="cb33-673"><a href="#cb33-673"></a><span class="in">        choices = variable_choices(ADAE, c("AETERM", "AEDECOD")),</span></span>
-<span id="cb33-674"><a href="#cb33-674"></a><span class="in">        selected = c("AEDECOD")</span></span>
-<span id="cb33-675"><a href="#cb33-675"></a><span class="in">      ),</span></span>
-<span id="cb33-676"><a href="#cb33-676"></a><span class="in">      hlt = choices_selected(</span></span>
-<span id="cb33-677"><a href="#cb33-677"></a><span class="in">        choices = variable_choices(ADAE, c("AEBODSYS", "AESOC")),</span></span>
-<span id="cb33-678"><a href="#cb33-678"></a><span class="in">        selected = "AEBODSYS"</span></span>
-<span id="cb33-679"><a href="#cb33-679"></a><span class="in">      ),</span></span>
-<span id="cb33-680"><a href="#cb33-680"></a><span class="in">      add_total = TRUE,</span></span>
-<span id="cb33-681"><a href="#cb33-681"></a><span class="in">      event_type = "adverse event"</span></span>
-<span id="cb33-682"><a href="#cb33-682"></a><span class="in">    )</span></span>
-<span id="cb33-683"><a href="#cb33-683"></a><span class="in">  )</span></span>
-<span id="cb33-684"><a href="#cb33-684"></a><span class="in">)</span></span>
-<span id="cb33-685"><a href="#cb33-685"></a></span>
-<span id="cb33-686"><a href="#cb33-686"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb33-687"><a href="#cb33-687"></a><span class="in">```</span></span>
-<span id="cb33-688"><a href="#cb33-688"></a></span>
-<span id="cb33-689"><a href="#cb33-689"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb33-690"><a href="#cb33-690"></a>:::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb34" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb34-1"><a href="#cb34-1"></a><span class="co">---</span></span>
+<span id="cb34-2"><a href="#cb34-2"></a><span class="an">title:</span><span class="co"> AET02</span></span>
+<span id="cb34-3"><a href="#cb34-3"></a><span class="an">subtitle:</span><span class="co"> Adverse Events</span></span>
+<span id="cb34-4"><a href="#cb34-4"></a><span class="co">---</span></span>
+<span id="cb34-5"><a href="#cb34-5"></a></span>
+<span id="cb34-6"><a href="#cb34-6"></a>------------------------------------------------------------------------</span>
+<span id="cb34-7"><a href="#cb34-7"></a></span>
+<span id="cb34-8"><a href="#cb34-8"></a>{{&lt; include ../../test-utils/envir_hook.qmd &gt;}}</span>
+<span id="cb34-9"><a href="#cb34-9"></a></span>
+<span id="cb34-10"><a href="#cb34-10"></a>::: panel-tabset</span>
+<span id="cb34-11"><a href="#cb34-11"></a><span class="fu">## Data Setup</span></span>
+<span id="cb34-12"><a href="#cb34-12"></a></span>
+<span id="cb34-13"><a href="#cb34-13"></a><span class="in">```{r setup, message = FALSE}</span></span>
+<span id="cb34-14"><a href="#cb34-14"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb34-15"><a href="#cb34-15"></a></span>
+<span id="cb34-16"><a href="#cb34-16"></a><span class="in">library(dplyr)</span></span>
+<span id="cb34-17"><a href="#cb34-17"></a><span class="in">library(tern)</span></span>
+<span id="cb34-18"><a href="#cb34-18"></a><span class="in">library(scda)</span></span>
+<span id="cb34-19"><a href="#cb34-19"></a></span>
+<span id="cb34-20"><a href="#cb34-20"></a><span class="in">adsl &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
+<span id="cb34-21"><a href="#cb34-21"></a><span class="in">adae &lt;- synthetic_cdisc_dataset("latest", "adae")</span></span>
+<span id="cb34-22"><a href="#cb34-22"></a></span>
+<span id="cb34-23"><a href="#cb34-23"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb34-24"><a href="#cb34-24"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb34-25"><a href="#cb34-25"></a><span class="in">adae &lt;- df_explicit_na(adae) %&gt;%</span></span>
+<span id="cb34-26"><a href="#cb34-26"></a><span class="in">  var_relabel(</span></span>
+<span id="cb34-27"><a href="#cb34-27"></a><span class="in">    AEBODSYS = "MedDRA System Organ Class",</span></span>
+<span id="cb34-28"><a href="#cb34-28"></a><span class="in">    AEDECOD = "MedDRA Preferred Term"</span></span>
+<span id="cb34-29"><a href="#cb34-29"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-30"><a href="#cb34-30"></a><span class="in">  filter(ANL01FL == "Y")</span></span>
+<span id="cb34-31"><a href="#cb34-31"></a></span>
+<span id="cb34-32"><a href="#cb34-32"></a><span class="in"># Define the split function</span></span>
+<span id="cb34-33"><a href="#cb34-33"></a><span class="in">split_fun &lt;- drop_split_levels</span></span>
+<span id="cb34-34"><a href="#cb34-34"></a><span class="in">```</span></span>
+<span id="cb34-35"><a href="#cb34-35"></a></span>
+<span id="cb34-36"><a href="#cb34-36"></a><span class="fu">## Standard Table</span></span>
+<span id="cb34-37"><a href="#cb34-37"></a></span>
+<span id="cb34-38"><a href="#cb34-38"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb34-39"><a href="#cb34-39"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb34-40"><a href="#cb34-40"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb34-41"><a href="#cb34-41"></a><span class="in">  add_overall_col(label = "All Patients") %&gt;%</span></span>
+<span id="cb34-42"><a href="#cb34-42"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb34-43"><a href="#cb34-43"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb34-44"><a href="#cb34-44"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb34-45"><a href="#cb34-45"></a><span class="in">    .labels = c(</span></span>
+<span id="cb34-46"><a href="#cb34-46"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
+<span id="cb34-47"><a href="#cb34-47"></a><span class="in">      nonunique = "Overall total number of events"</span></span>
+<span id="cb34-48"><a href="#cb34-48"></a><span class="in">    )</span></span>
+<span id="cb34-49"><a href="#cb34-49"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-50"><a href="#cb34-50"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-51"><a href="#cb34-51"></a><span class="in">    "AEBODSYS",</span></span>
+<span id="cb34-52"><a href="#cb34-52"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-53"><a href="#cb34-53"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb34-54"><a href="#cb34-54"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-55"><a href="#cb34-55"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb34-56"><a href="#cb34-56"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
+<span id="cb34-57"><a href="#cb34-57"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-58"><a href="#cb34-58"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-59"><a href="#cb34-59"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-60"><a href="#cb34-60"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb34-61"><a href="#cb34-61"></a><span class="in">    .labels = c(</span></span>
+<span id="cb34-62"><a href="#cb34-62"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
+<span id="cb34-63"><a href="#cb34-63"></a><span class="in">      nonunique = "Total number of events"</span></span>
+<span id="cb34-64"><a href="#cb34-64"></a><span class="in">    )</span></span>
+<span id="cb34-65"><a href="#cb34-65"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-66"><a href="#cb34-66"></a><span class="in">  count_occurrences(</span></span>
+<span id="cb34-67"><a href="#cb34-67"></a><span class="in">    vars = "AEDECOD",</span></span>
+<span id="cb34-68"><a href="#cb34-68"></a><span class="in">    .indent_mods = -1L</span></span>
+<span id="cb34-69"><a href="#cb34-69"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-70"><a href="#cb34-70"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
+<span id="cb34-71"><a href="#cb34-71"></a></span>
+<span id="cb34-72"><a href="#cb34-72"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl)</span></span>
+<span id="cb34-73"><a href="#cb34-73"></a><span class="in">```</span></span>
+<span id="cb34-74"><a href="#cb34-74"></a></span>
+<span id="cb34-75"><a href="#cb34-75"></a>The variable <span class="in">`result`</span> corresponds to the adverse events table.</span>
+<span id="cb34-76"><a href="#cb34-76"></a>However, it includes many empty rows accounting for events which were not reported.</span>
+<span id="cb34-77"><a href="#cb34-77"></a>The table can be post-processed to prune empty rows and to sort rows, for example by occurrence.</span>
+<span id="cb34-78"><a href="#cb34-78"></a></span>
+<span id="cb34-79"><a href="#cb34-79"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb34-80"><a href="#cb34-80"></a><span class="in">result &lt;- result %&gt;%</span></span>
+<span id="cb34-81"><a href="#cb34-81"></a><span class="in">  prune_table() %&gt;%</span></span>
+<span id="cb34-82"><a href="#cb34-82"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-83"><a href="#cb34-83"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb34-84"><a href="#cb34-84"></a><span class="in">    scorefun = cont_n_allcols</span></span>
+<span id="cb34-85"><a href="#cb34-85"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-86"><a href="#cb34-86"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-87"><a href="#cb34-87"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb34-88"><a href="#cb34-88"></a><span class="in">    scorefun = score_occurrences</span></span>
+<span id="cb34-89"><a href="#cb34-89"></a><span class="in">  )</span></span>
+<span id="cb34-90"><a href="#cb34-90"></a></span>
+<span id="cb34-91"><a href="#cb34-91"></a><span class="in">result</span></span>
+<span id="cb34-92"><a href="#cb34-92"></a><span class="in">```</span></span>
+<span id="cb34-93"><a href="#cb34-93"></a></span>
+<span id="cb34-94"><a href="#cb34-94"></a><span class="fu">## Table with &lt;br/&gt; Event Totals</span></span>
+<span id="cb34-95"><a href="#cb34-95"></a></span>
+<span id="cb34-96"><a href="#cb34-96"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
+<span id="cb34-97"><a href="#cb34-97"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb34-98"><a href="#cb34-98"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb34-99"><a href="#cb34-99"></a><span class="in">  add_overall_col(label = "All Patients") %&gt;%</span></span>
+<span id="cb34-100"><a href="#cb34-100"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb34-101"><a href="#cb34-101"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb34-102"><a href="#cb34-102"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb34-103"><a href="#cb34-103"></a><span class="in">    .labels = c(</span></span>
+<span id="cb34-104"><a href="#cb34-104"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
+<span id="cb34-105"><a href="#cb34-105"></a><span class="in">      nonunique = "Overall total number of events"</span></span>
+<span id="cb34-106"><a href="#cb34-106"></a><span class="in">    )</span></span>
+<span id="cb34-107"><a href="#cb34-107"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-108"><a href="#cb34-108"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-109"><a href="#cb34-109"></a><span class="in">    "AEBODSYS",</span></span>
+<span id="cb34-110"><a href="#cb34-110"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-111"><a href="#cb34-111"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb34-112"><a href="#cb34-112"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-113"><a href="#cb34-113"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb34-114"><a href="#cb34-114"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
+<span id="cb34-115"><a href="#cb34-115"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-116"><a href="#cb34-116"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-117"><a href="#cb34-117"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-118"><a href="#cb34-118"></a><span class="in">    .stats = c("unique"),</span></span>
+<span id="cb34-119"><a href="#cb34-119"></a><span class="in">    .labels = c(</span></span>
+<span id="cb34-120"><a href="#cb34-120"></a><span class="in">      unique = "Total number of patients with at least one adverse event"</span></span>
+<span id="cb34-121"><a href="#cb34-121"></a><span class="in">    )</span></span>
+<span id="cb34-122"><a href="#cb34-122"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-123"><a href="#cb34-123"></a><span class="in">  count_occurrences(vars = "AEDECOD", .indent_mods = -1L) %&gt;%</span></span>
+<span id="cb34-124"><a href="#cb34-124"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L) %&gt;%</span></span>
+<span id="cb34-125"><a href="#cb34-125"></a><span class="in">  count_values(</span></span>
+<span id="cb34-126"><a href="#cb34-126"></a><span class="in">    "STUDYID",</span></span>
+<span id="cb34-127"><a href="#cb34-127"></a><span class="in">    values = as.character(unique(adae$STUDYID)),</span></span>
+<span id="cb34-128"><a href="#cb34-128"></a><span class="in">    .stats = "count",</span></span>
+<span id="cb34-129"><a href="#cb34-129"></a><span class="in">    .labels = c(count = "Total number of events"),</span></span>
+<span id="cb34-130"><a href="#cb34-130"></a><span class="in">    .indent_mods = c(count = -1L)</span></span>
+<span id="cb34-131"><a href="#cb34-131"></a><span class="in">  )</span></span>
+<span id="cb34-132"><a href="#cb34-132"></a></span>
+<span id="cb34-133"><a href="#cb34-133"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb34-134"><a href="#cb34-134"></a><span class="in">  prune_table() %&gt;%</span></span>
+<span id="cb34-135"><a href="#cb34-135"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-136"><a href="#cb34-136"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb34-137"><a href="#cb34-137"></a><span class="in">    scorefun = score_occurrences</span></span>
+<span id="cb34-138"><a href="#cb34-138"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-139"><a href="#cb34-139"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-140"><a href="#cb34-140"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb34-141"><a href="#cb34-141"></a><span class="in">    scorefun = cont_n_allcols</span></span>
+<span id="cb34-142"><a href="#cb34-142"></a><span class="in">  )</span></span>
+<span id="cb34-143"><a href="#cb34-143"></a></span>
+<span id="cb34-144"><a href="#cb34-144"></a><span class="in">result</span></span>
+<span id="cb34-145"><a href="#cb34-145"></a><span class="in">```</span></span>
+<span id="cb34-146"><a href="#cb34-146"></a></span>
+<span id="cb34-147"><a href="#cb34-147"></a><span class="fu">## Table with &lt;br/&gt; High-Level Term</span></span>
+<span id="cb34-148"><a href="#cb34-148"></a></span>
+<span id="cb34-149"><a href="#cb34-149"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
+<span id="cb34-150"><a href="#cb34-150"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb34-151"><a href="#cb34-151"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb34-152"><a href="#cb34-152"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb34-153"><a href="#cb34-153"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb34-154"><a href="#cb34-154"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb34-155"><a href="#cb34-155"></a><span class="in">    .labels = c(</span></span>
+<span id="cb34-156"><a href="#cb34-156"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
+<span id="cb34-157"><a href="#cb34-157"></a><span class="in">      nonunique = "Overall total number of events"</span></span>
+<span id="cb34-158"><a href="#cb34-158"></a><span class="in">    )</span></span>
+<span id="cb34-159"><a href="#cb34-159"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-160"><a href="#cb34-160"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-161"><a href="#cb34-161"></a><span class="in">    "AEBODSYS",</span></span>
+<span id="cb34-162"><a href="#cb34-162"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-163"><a href="#cb34-163"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb34-164"><a href="#cb34-164"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-165"><a href="#cb34-165"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb34-166"><a href="#cb34-166"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
+<span id="cb34-167"><a href="#cb34-167"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-168"><a href="#cb34-168"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-169"><a href="#cb34-169"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-170"><a href="#cb34-170"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb34-171"><a href="#cb34-171"></a><span class="in">    .labels = c(</span></span>
+<span id="cb34-172"><a href="#cb34-172"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
+<span id="cb34-173"><a href="#cb34-173"></a><span class="in">      nonunique = "Total number of events"</span></span>
+<span id="cb34-174"><a href="#cb34-174"></a><span class="in">    )</span></span>
+<span id="cb34-175"><a href="#cb34-175"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-176"><a href="#cb34-176"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-177"><a href="#cb34-177"></a><span class="in">    "AEHLT",</span></span>
+<span id="cb34-178"><a href="#cb34-178"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-179"><a href="#cb34-179"></a><span class="in">    nested = TRUE,</span></span>
+<span id="cb34-180"><a href="#cb34-180"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-181"><a href="#cb34-181"></a><span class="in">    indent_mod = -1L,</span></span>
+<span id="cb34-182"><a href="#cb34-182"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb34-183"><a href="#cb34-183"></a><span class="in">    split_label = obj_label(adae$AEHLT)</span></span>
+<span id="cb34-184"><a href="#cb34-184"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-185"><a href="#cb34-185"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-186"><a href="#cb34-186"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-187"><a href="#cb34-187"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb34-188"><a href="#cb34-188"></a><span class="in">    .labels = c(</span></span>
+<span id="cb34-189"><a href="#cb34-189"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
+<span id="cb34-190"><a href="#cb34-190"></a><span class="in">      nonunique = "Total number of events"</span></span>
+<span id="cb34-191"><a href="#cb34-191"></a><span class="in">    )</span></span>
+<span id="cb34-192"><a href="#cb34-192"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-193"><a href="#cb34-193"></a><span class="in">  count_occurrences(vars = "AEDECOD", .indent_mods = -1L) %&gt;%</span></span>
+<span id="cb34-194"><a href="#cb34-194"></a><span class="in">  append_varlabels(adae, c("AEDECOD"), indent = 2L)</span></span>
+<span id="cb34-195"><a href="#cb34-195"></a></span>
+<span id="cb34-196"><a href="#cb34-196"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb34-197"><a href="#cb34-197"></a><span class="in">  prune_table() %&gt;%</span></span>
+<span id="cb34-198"><a href="#cb34-198"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-199"><a href="#cb34-199"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb34-200"><a href="#cb34-200"></a><span class="in">    scorefun = cont_n_allcols</span></span>
+<span id="cb34-201"><a href="#cb34-201"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-202"><a href="#cb34-202"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-203"><a href="#cb34-203"></a><span class="in">    path = c("AEBODSYS", "*", "AEHLT"),</span></span>
+<span id="cb34-204"><a href="#cb34-204"></a><span class="in">    scorefun = cont_n_allcols</span></span>
+<span id="cb34-205"><a href="#cb34-205"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-206"><a href="#cb34-206"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-207"><a href="#cb34-207"></a><span class="in">    path = c("AEBODSYS", "*", "AEHLT", "*", "AEDECOD"),</span></span>
+<span id="cb34-208"><a href="#cb34-208"></a><span class="in">    scorefun = score_occurrences</span></span>
+<span id="cb34-209"><a href="#cb34-209"></a><span class="in">  )</span></span>
+<span id="cb34-210"><a href="#cb34-210"></a></span>
+<span id="cb34-211"><a href="#cb34-211"></a><span class="in">result</span></span>
+<span id="cb34-212"><a href="#cb34-212"></a><span class="in">```</span></span>
+<span id="cb34-213"><a href="#cb34-213"></a></span>
+<span id="cb34-214"><a href="#cb34-214"></a><span class="fu">## Table with Preferred &lt;br/&gt; Terms Only</span></span>
+<span id="cb34-215"><a href="#cb34-215"></a></span>
+<span id="cb34-216"><a href="#cb34-216"></a><span class="in">```{r variant5, test = list(result_v5 = "result")}</span></span>
+<span id="cb34-217"><a href="#cb34-217"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb34-218"><a href="#cb34-218"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb34-219"><a href="#cb34-219"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb34-220"><a href="#cb34-220"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb34-221"><a href="#cb34-221"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb34-222"><a href="#cb34-222"></a><span class="in">    .labels = c(</span></span>
+<span id="cb34-223"><a href="#cb34-223"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
+<span id="cb34-224"><a href="#cb34-224"></a><span class="in">      nonunique = "Total number of events"</span></span>
+<span id="cb34-225"><a href="#cb34-225"></a><span class="in">    ),</span></span>
+<span id="cb34-226"><a href="#cb34-226"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb34-227"><a href="#cb34-227"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-228"><a href="#cb34-228"></a><span class="in">  count_occurrences(vars = "AEDECOD") %&gt;%</span></span>
+<span id="cb34-229"><a href="#cb34-229"></a><span class="in">  append_varlabels(adae, "AEDECOD")</span></span>
+<span id="cb34-230"><a href="#cb34-230"></a></span>
+<span id="cb34-231"><a href="#cb34-231"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb34-232"><a href="#cb34-232"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-233"><a href="#cb34-233"></a><span class="in">    path = c("AEDECOD"),</span></span>
+<span id="cb34-234"><a href="#cb34-234"></a><span class="in">    scorefun = score_occurrences</span></span>
+<span id="cb34-235"><a href="#cb34-235"></a><span class="in">  )</span></span>
+<span id="cb34-236"><a href="#cb34-236"></a></span>
+<span id="cb34-237"><a href="#cb34-237"></a><span class="in">result</span></span>
+<span id="cb34-238"><a href="#cb34-238"></a><span class="in">```</span></span>
+<span id="cb34-239"><a href="#cb34-239"></a></span>
+<span id="cb34-240"><a href="#cb34-240"></a><span class="fu">## Table with Fill-In of &lt;br/&gt; Treatment Groups</span></span>
+<span id="cb34-241"><a href="#cb34-241"></a></span>
+<span id="cb34-242"><a href="#cb34-242"></a><span class="in">```{r variant6, test = list(result_v6 = "result")}</span></span>
+<span id="cb34-243"><a href="#cb34-243"></a><span class="in">adae_5 &lt;- adae %&gt;% dplyr::filter(ACTARM != "C: Combination")</span></span>
+<span id="cb34-244"><a href="#cb34-244"></a></span>
+<span id="cb34-245"><a href="#cb34-245"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb34-246"><a href="#cb34-246"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb34-247"><a href="#cb34-247"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb34-248"><a href="#cb34-248"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb34-249"><a href="#cb34-249"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb34-250"><a href="#cb34-250"></a><span class="in">    .labels = c(</span></span>
+<span id="cb34-251"><a href="#cb34-251"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
+<span id="cb34-252"><a href="#cb34-252"></a><span class="in">      nonunique = "Overall total number of events"</span></span>
+<span id="cb34-253"><a href="#cb34-253"></a><span class="in">    )</span></span>
+<span id="cb34-254"><a href="#cb34-254"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-255"><a href="#cb34-255"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-256"><a href="#cb34-256"></a><span class="in">    "AEBODSYS",</span></span>
+<span id="cb34-257"><a href="#cb34-257"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-258"><a href="#cb34-258"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb34-259"><a href="#cb34-259"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-260"><a href="#cb34-260"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb34-261"><a href="#cb34-261"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
+<span id="cb34-262"><a href="#cb34-262"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-263"><a href="#cb34-263"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-264"><a href="#cb34-264"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-265"><a href="#cb34-265"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb34-266"><a href="#cb34-266"></a><span class="in">    .labels = c(</span></span>
+<span id="cb34-267"><a href="#cb34-267"></a><span class="in">      unique = "Total number of patients with at least one adverse event",</span></span>
+<span id="cb34-268"><a href="#cb34-268"></a><span class="in">      nonunique = "Total number of events"</span></span>
+<span id="cb34-269"><a href="#cb34-269"></a><span class="in">    )</span></span>
+<span id="cb34-270"><a href="#cb34-270"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-271"><a href="#cb34-271"></a><span class="in">  count_occurrences(vars = "AEDECOD", .indent_mods = -1L) %&gt;%</span></span>
+<span id="cb34-272"><a href="#cb34-272"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
+<span id="cb34-273"><a href="#cb34-273"></a></span>
+<span id="cb34-274"><a href="#cb34-274"></a><span class="in">result &lt;- build_table(lyt, df = adae_5, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb34-275"><a href="#cb34-275"></a><span class="in">  prune_table() %&gt;%</span></span>
+<span id="cb34-276"><a href="#cb34-276"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-277"><a href="#cb34-277"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb34-278"><a href="#cb34-278"></a><span class="in">    scorefun = cont_n_allcols</span></span>
+<span id="cb34-279"><a href="#cb34-279"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-280"><a href="#cb34-280"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-281"><a href="#cb34-281"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb34-282"><a href="#cb34-282"></a><span class="in">    scorefun = score_occurrences</span></span>
+<span id="cb34-283"><a href="#cb34-283"></a><span class="in">  )</span></span>
+<span id="cb34-284"><a href="#cb34-284"></a></span>
+<span id="cb34-285"><a href="#cb34-285"></a><span class="in">result</span></span>
+<span id="cb34-286"><a href="#cb34-286"></a><span class="in">```</span></span>
+<span id="cb34-287"><a href="#cb34-287"></a></span>
+<span id="cb34-288"><a href="#cb34-288"></a><span class="fu">## Table of AEs with an Incidence Rate &lt;br/&gt; $\geq$ 5% in Any Treatment Group (subsetting &lt;br/&gt; preferred terms based on frequency)</span></span>
+<span id="cb34-289"><a href="#cb34-289"></a></span>
+<span id="cb34-290"><a href="#cb34-290"></a><span class="in">```{r variant7, test = list(result_v7 = "result")}</span></span>
+<span id="cb34-291"><a href="#cb34-291"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb34-292"><a href="#cb34-292"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb34-293"><a href="#cb34-293"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-294"><a href="#cb34-294"></a><span class="in">    "AEBODSYS",</span></span>
+<span id="cb34-295"><a href="#cb34-295"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-296"><a href="#cb34-296"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb34-297"><a href="#cb34-297"></a><span class="in">    indent_mod = -1L,</span></span>
+<span id="cb34-298"><a href="#cb34-298"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-299"><a href="#cb34-299"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb34-300"><a href="#cb34-300"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
+<span id="cb34-301"><a href="#cb34-301"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-302"><a href="#cb34-302"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-303"><a href="#cb34-303"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-304"><a href="#cb34-304"></a><span class="in">    .stats = "unique",</span></span>
+<span id="cb34-305"><a href="#cb34-305"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
+<span id="cb34-306"><a href="#cb34-306"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-307"><a href="#cb34-307"></a><span class="in">  count_occurrences(</span></span>
+<span id="cb34-308"><a href="#cb34-308"></a><span class="in">    vars = "AEDECOD",</span></span>
+<span id="cb34-309"><a href="#cb34-309"></a><span class="in">    .indent_mods = 1L</span></span>
+<span id="cb34-310"><a href="#cb34-310"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-311"><a href="#cb34-311"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
+<span id="cb34-312"><a href="#cb34-312"></a></span>
+<span id="cb34-313"><a href="#cb34-313"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb34-314"><a href="#cb34-314"></a><span class="in">  prune_table() %&gt;%</span></span>
+<span id="cb34-315"><a href="#cb34-315"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-316"><a href="#cb34-316"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb34-317"><a href="#cb34-317"></a><span class="in">    scorefun = cont_n_allcols</span></span>
+<span id="cb34-318"><a href="#cb34-318"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-319"><a href="#cb34-319"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-320"><a href="#cb34-320"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb34-321"><a href="#cb34-321"></a><span class="in">    scorefun = score_occurrences</span></span>
+<span id="cb34-322"><a href="#cb34-322"></a><span class="in">  )</span></span>
+<span id="cb34-323"><a href="#cb34-323"></a></span>
+<span id="cb34-324"><a href="#cb34-324"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
+<span id="cb34-325"><a href="#cb34-325"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
+<span id="cb34-326"><a href="#cb34-326"></a></span>
+<span id="cb34-327"><a href="#cb34-327"></a><span class="in">row_condition &lt;- has_fraction_in_any_col(</span></span>
+<span id="cb34-328"><a href="#cb34-328"></a><span class="in">  atleast = 0.05,</span></span>
+<span id="cb34-329"><a href="#cb34-329"></a><span class="in">  col_names = names(table(adsl$ACTARM))</span></span>
+<span id="cb34-330"><a href="#cb34-330"></a><span class="in">)</span></span>
+<span id="cb34-331"><a href="#cb34-331"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
+<span id="cb34-332"><a href="#cb34-332"></a></span>
+<span id="cb34-333"><a href="#cb34-333"></a><span class="in">result</span></span>
+<span id="cb34-334"><a href="#cb34-334"></a><span class="in">```</span></span>
+<span id="cb34-335"><a href="#cb34-335"></a></span>
+<span id="cb34-336"><a href="#cb34-336"></a><span class="fu">## Table of AEs with an Incidence Rate $\geq$ 5% in &lt;br/&gt; Any Treatment Group (subsetting preferred terms &lt;br/&gt; based on frequency with high-level terms)</span></span>
+<span id="cb34-337"><a href="#cb34-337"></a></span>
+<span id="cb34-338"><a href="#cb34-338"></a><span class="in">```{r variant8, test = list(result_v8 = "result")}</span></span>
+<span id="cb34-339"><a href="#cb34-339"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb34-340"><a href="#cb34-340"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb34-341"><a href="#cb34-341"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-342"><a href="#cb34-342"></a><span class="in">    "AEBODSYS",</span></span>
+<span id="cb34-343"><a href="#cb34-343"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-344"><a href="#cb34-344"></a><span class="in">    nested = TRUE,</span></span>
+<span id="cb34-345"><a href="#cb34-345"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-346"><a href="#cb34-346"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb34-347"><a href="#cb34-347"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
+<span id="cb34-348"><a href="#cb34-348"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-349"><a href="#cb34-349"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-350"><a href="#cb34-350"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-351"><a href="#cb34-351"></a><span class="in">    .stats = "unique",</span></span>
+<span id="cb34-352"><a href="#cb34-352"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
+<span id="cb34-353"><a href="#cb34-353"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-354"><a href="#cb34-354"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-355"><a href="#cb34-355"></a><span class="in">    "AEHLT",</span></span>
+<span id="cb34-356"><a href="#cb34-356"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-357"><a href="#cb34-357"></a><span class="in">    nested = TRUE,</span></span>
+<span id="cb34-358"><a href="#cb34-358"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-359"><a href="#cb34-359"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb34-360"><a href="#cb34-360"></a><span class="in">    split_label = obj_label(adae$AEHLT)</span></span>
+<span id="cb34-361"><a href="#cb34-361"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-362"><a href="#cb34-362"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-363"><a href="#cb34-363"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-364"><a href="#cb34-364"></a><span class="in">    .stats = "unique",</span></span>
+<span id="cb34-365"><a href="#cb34-365"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
+<span id="cb34-366"><a href="#cb34-366"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-367"><a href="#cb34-367"></a><span class="in">  count_occurrences(vars = "AEDECOD") %&gt;%</span></span>
+<span id="cb34-368"><a href="#cb34-368"></a><span class="in">  append_varlabels(adae, c("AEDECOD"), indent = 2L)</span></span>
+<span id="cb34-369"><a href="#cb34-369"></a></span>
+<span id="cb34-370"><a href="#cb34-370"></a><span class="in">result &lt;- build_table(lyt, adae, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb34-371"><a href="#cb34-371"></a><span class="in">  prune_table() %&gt;%</span></span>
+<span id="cb34-372"><a href="#cb34-372"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-373"><a href="#cb34-373"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb34-374"><a href="#cb34-374"></a><span class="in">    scorefun = cont_n_allcols,</span></span>
+<span id="cb34-375"><a href="#cb34-375"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb34-376"><a href="#cb34-376"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-377"><a href="#cb34-377"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-378"><a href="#cb34-378"></a><span class="in">    path = c("AEBODSYS", "*", "AEHLT"),</span></span>
+<span id="cb34-379"><a href="#cb34-379"></a><span class="in">    scorefun = cont_n_allcols,</span></span>
+<span id="cb34-380"><a href="#cb34-380"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb34-381"><a href="#cb34-381"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-382"><a href="#cb34-382"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-383"><a href="#cb34-383"></a><span class="in">    path = c("AEBODSYS", "*", "AEHLT", "*", "AEDECOD"),</span></span>
+<span id="cb34-384"><a href="#cb34-384"></a><span class="in">    scorefun = score_occurrences,</span></span>
+<span id="cb34-385"><a href="#cb34-385"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb34-386"><a href="#cb34-386"></a><span class="in">  )</span></span>
+<span id="cb34-387"><a href="#cb34-387"></a></span>
+<span id="cb34-388"><a href="#cb34-388"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
+<span id="cb34-389"><a href="#cb34-389"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
+<span id="cb34-390"><a href="#cb34-390"></a></span>
+<span id="cb34-391"><a href="#cb34-391"></a><span class="in">row_condition &lt;- has_fraction_in_any_col(</span></span>
+<span id="cb34-392"><a href="#cb34-392"></a><span class="in">  atleast = 0.05,</span></span>
+<span id="cb34-393"><a href="#cb34-393"></a><span class="in">  col_names = names(table(adsl$ACTARM))</span></span>
+<span id="cb34-394"><a href="#cb34-394"></a><span class="in">)</span></span>
+<span id="cb34-395"><a href="#cb34-395"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
+<span id="cb34-396"><a href="#cb34-396"></a></span>
+<span id="cb34-397"><a href="#cb34-397"></a><span class="in">result</span></span>
+<span id="cb34-398"><a href="#cb34-398"></a><span class="in">```</span></span>
+<span id="cb34-399"><a href="#cb34-399"></a></span>
+<span id="cb34-400"><a href="#cb34-400"></a><span class="fu">## Table of AEs with an Incidence Rate $\geq$ 10% &lt;br/&gt; in Any Treatment Group (subsetting &lt;br/&gt; preferred terms based on frequency)</span></span>
+<span id="cb34-401"><a href="#cb34-401"></a></span>
+<span id="cb34-402"><a href="#cb34-402"></a><span class="in">```{r variant9, test = list(result_v9 = "result")}</span></span>
+<span id="cb34-403"><a href="#cb34-403"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb34-404"><a href="#cb34-404"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb34-405"><a href="#cb34-405"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-406"><a href="#cb34-406"></a><span class="in">    "AEBODSYS",</span></span>
+<span id="cb34-407"><a href="#cb34-407"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-408"><a href="#cb34-408"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb34-409"><a href="#cb34-409"></a><span class="in">    indent_mod = -1L,</span></span>
+<span id="cb34-410"><a href="#cb34-410"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-411"><a href="#cb34-411"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb34-412"><a href="#cb34-412"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
+<span id="cb34-413"><a href="#cb34-413"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-414"><a href="#cb34-414"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-415"><a href="#cb34-415"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-416"><a href="#cb34-416"></a><span class="in">    .stats = "unique",</span></span>
+<span id="cb34-417"><a href="#cb34-417"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
+<span id="cb34-418"><a href="#cb34-418"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-419"><a href="#cb34-419"></a><span class="in">  count_occurrences(</span></span>
+<span id="cb34-420"><a href="#cb34-420"></a><span class="in">    vars = "AEDECOD",</span></span>
+<span id="cb34-421"><a href="#cb34-421"></a><span class="in">    .indent_mods = 1L</span></span>
+<span id="cb34-422"><a href="#cb34-422"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-423"><a href="#cb34-423"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
+<span id="cb34-424"><a href="#cb34-424"></a></span>
+<span id="cb34-425"><a href="#cb34-425"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb34-426"><a href="#cb34-426"></a><span class="in">  prune_table() %&gt;%</span></span>
+<span id="cb34-427"><a href="#cb34-427"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-428"><a href="#cb34-428"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb34-429"><a href="#cb34-429"></a><span class="in">    scorefun = cont_n_allcols</span></span>
+<span id="cb34-430"><a href="#cb34-430"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-431"><a href="#cb34-431"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-432"><a href="#cb34-432"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb34-433"><a href="#cb34-433"></a><span class="in">    scorefun = score_occurrences</span></span>
+<span id="cb34-434"><a href="#cb34-434"></a><span class="in">  )</span></span>
+<span id="cb34-435"><a href="#cb34-435"></a></span>
+<span id="cb34-436"><a href="#cb34-436"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
+<span id="cb34-437"><a href="#cb34-437"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
+<span id="cb34-438"><a href="#cb34-438"></a></span>
+<span id="cb34-439"><a href="#cb34-439"></a><span class="in">row_condition &lt;- has_fraction_in_any_col(</span></span>
+<span id="cb34-440"><a href="#cb34-440"></a><span class="in">  atleast = 0.10,</span></span>
+<span id="cb34-441"><a href="#cb34-441"></a><span class="in">  col_names = names(table(adsl$ACTARM))</span></span>
+<span id="cb34-442"><a href="#cb34-442"></a><span class="in">)</span></span>
+<span id="cb34-443"><a href="#cb34-443"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
+<span id="cb34-444"><a href="#cb34-444"></a></span>
+<span id="cb34-445"><a href="#cb34-445"></a><span class="in">result</span></span>
+<span id="cb34-446"><a href="#cb34-446"></a><span class="in">```</span></span>
+<span id="cb34-447"><a href="#cb34-447"></a></span>
+<span id="cb34-448"><a href="#cb34-448"></a><span class="fu">## Table of AEs with an Incidence Rate $\geq$ 3 &lt;br/&gt; Patients in Any Treatment Group (subsetting &lt;br/&gt; preferred terms based on number of patients)</span></span>
+<span id="cb34-449"><a href="#cb34-449"></a></span>
+<span id="cb34-450"><a href="#cb34-450"></a><span class="in">```{r variant10, test = list(result_v10 = "result")}</span></span>
+<span id="cb34-451"><a href="#cb34-451"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb34-452"><a href="#cb34-452"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb34-453"><a href="#cb34-453"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-454"><a href="#cb34-454"></a><span class="in">    "AEBODSYS",</span></span>
+<span id="cb34-455"><a href="#cb34-455"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-456"><a href="#cb34-456"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb34-457"><a href="#cb34-457"></a><span class="in">    indent_mod = -1L,</span></span>
+<span id="cb34-458"><a href="#cb34-458"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-459"><a href="#cb34-459"></a><span class="in">    split_label = obj_label(adae$AEBODSYS),</span></span>
+<span id="cb34-460"><a href="#cb34-460"></a><span class="in">    label_pos = "topleft"</span></span>
+<span id="cb34-461"><a href="#cb34-461"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-462"><a href="#cb34-462"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-463"><a href="#cb34-463"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-464"><a href="#cb34-464"></a><span class="in">    .stats = "unique",</span></span>
+<span id="cb34-465"><a href="#cb34-465"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
+<span id="cb34-466"><a href="#cb34-466"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-467"><a href="#cb34-467"></a><span class="in">  count_occurrences(</span></span>
+<span id="cb34-468"><a href="#cb34-468"></a><span class="in">    vars = "AEDECOD",</span></span>
+<span id="cb34-469"><a href="#cb34-469"></a><span class="in">    .indent_mods = 1L</span></span>
+<span id="cb34-470"><a href="#cb34-470"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-471"><a href="#cb34-471"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
+<span id="cb34-472"><a href="#cb34-472"></a></span>
+<span id="cb34-473"><a href="#cb34-473"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb34-474"><a href="#cb34-474"></a><span class="in">  prune_table() %&gt;%</span></span>
+<span id="cb34-475"><a href="#cb34-475"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-476"><a href="#cb34-476"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb34-477"><a href="#cb34-477"></a><span class="in">    scorefun = cont_n_allcols</span></span>
+<span id="cb34-478"><a href="#cb34-478"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-479"><a href="#cb34-479"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-480"><a href="#cb34-480"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb34-481"><a href="#cb34-481"></a><span class="in">    scorefun = score_occurrences</span></span>
+<span id="cb34-482"><a href="#cb34-482"></a><span class="in">  )</span></span>
+<span id="cb34-483"><a href="#cb34-483"></a></span>
+<span id="cb34-484"><a href="#cb34-484"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
+<span id="cb34-485"><a href="#cb34-485"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
+<span id="cb34-486"><a href="#cb34-486"></a></span>
+<span id="cb34-487"><a href="#cb34-487"></a><span class="in">row_condition &lt;- has_count_in_any_col(</span></span>
+<span id="cb34-488"><a href="#cb34-488"></a><span class="in">  atleast = 3,</span></span>
+<span id="cb34-489"><a href="#cb34-489"></a><span class="in">  col_names = names(table(adsl$ACTARM))</span></span>
+<span id="cb34-490"><a href="#cb34-490"></a><span class="in">)</span></span>
+<span id="cb34-491"><a href="#cb34-491"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
+<span id="cb34-492"><a href="#cb34-492"></a></span>
+<span id="cb34-493"><a href="#cb34-493"></a><span class="in">result</span></span>
+<span id="cb34-494"><a href="#cb34-494"></a><span class="in">```</span></span>
+<span id="cb34-495"><a href="#cb34-495"></a></span>
+<span id="cb34-496"><a href="#cb34-496"></a><span class="fu">## Table of AEs with a Difference in Incidence Rate $\geq$ 5% &lt;br/&gt; Between Any Treatment (subsetting preferred terms based &lt;br/&gt; on difference in percentage between treatment groups)</span></span>
+<span id="cb34-497"><a href="#cb34-497"></a></span>
+<span id="cb34-498"><a href="#cb34-498"></a><span class="in">```{r variant11, test = list(result_v11 = "result")}</span></span>
+<span id="cb34-499"><a href="#cb34-499"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb34-500"><a href="#cb34-500"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb34-501"><a href="#cb34-501"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-502"><a href="#cb34-502"></a><span class="in">    "AEBODSYS",</span></span>
+<span id="cb34-503"><a href="#cb34-503"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-504"><a href="#cb34-504"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb34-505"><a href="#cb34-505"></a><span class="in">    indent_mod = -1L,</span></span>
+<span id="cb34-506"><a href="#cb34-506"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-507"><a href="#cb34-507"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb34-508"><a href="#cb34-508"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
+<span id="cb34-509"><a href="#cb34-509"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-510"><a href="#cb34-510"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-511"><a href="#cb34-511"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-512"><a href="#cb34-512"></a><span class="in">    .stats = "unique",</span></span>
+<span id="cb34-513"><a href="#cb34-513"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
+<span id="cb34-514"><a href="#cb34-514"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-515"><a href="#cb34-515"></a><span class="in">  count_occurrences(</span></span>
+<span id="cb34-516"><a href="#cb34-516"></a><span class="in">    vars = "AEDECOD",</span></span>
+<span id="cb34-517"><a href="#cb34-517"></a><span class="in">    .indent_mods = 1L</span></span>
+<span id="cb34-518"><a href="#cb34-518"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-519"><a href="#cb34-519"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
+<span id="cb34-520"><a href="#cb34-520"></a></span>
+<span id="cb34-521"><a href="#cb34-521"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb34-522"><a href="#cb34-522"></a><span class="in">  prune_table() %&gt;%</span></span>
+<span id="cb34-523"><a href="#cb34-523"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-524"><a href="#cb34-524"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb34-525"><a href="#cb34-525"></a><span class="in">    scorefun = cont_n_allcols</span></span>
+<span id="cb34-526"><a href="#cb34-526"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-527"><a href="#cb34-527"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-528"><a href="#cb34-528"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb34-529"><a href="#cb34-529"></a><span class="in">    scorefun = score_occurrences</span></span>
+<span id="cb34-530"><a href="#cb34-530"></a><span class="in">  )</span></span>
+<span id="cb34-531"><a href="#cb34-531"></a></span>
+<span id="cb34-532"><a href="#cb34-532"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
+<span id="cb34-533"><a href="#cb34-533"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
+<span id="cb34-534"><a href="#cb34-534"></a></span>
+<span id="cb34-535"><a href="#cb34-535"></a><span class="in">row_condition &lt;- has_fractions_difference(</span></span>
+<span id="cb34-536"><a href="#cb34-536"></a><span class="in">  atleast = 0.05,</span></span>
+<span id="cb34-537"><a href="#cb34-537"></a><span class="in">  col_names = levels(adsl$ACTARM)</span></span>
+<span id="cb34-538"><a href="#cb34-538"></a><span class="in">)</span></span>
+<span id="cb34-539"><a href="#cb34-539"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
+<span id="cb34-540"><a href="#cb34-540"></a></span>
+<span id="cb34-541"><a href="#cb34-541"></a><span class="in">result</span></span>
+<span id="cb34-542"><a href="#cb34-542"></a><span class="in">```</span></span>
+<span id="cb34-543"><a href="#cb34-543"></a></span>
+<span id="cb34-544"><a href="#cb34-544"></a><span class="fu">## Table of AEs with an Incidence Rate $\geq$ 5% &lt;br/&gt; in B: Placebo (subsetting preferred terms based &lt;br/&gt; on frequency for a particular treatment group)</span></span>
+<span id="cb34-545"><a href="#cb34-545"></a></span>
+<span id="cb34-546"><a href="#cb34-546"></a><span class="in">```{r variant12, test = list(result_v12 = "result")}</span></span>
+<span id="cb34-547"><a href="#cb34-547"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb34-548"><a href="#cb34-548"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb34-549"><a href="#cb34-549"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-550"><a href="#cb34-550"></a><span class="in">    "AEBODSYS",</span></span>
+<span id="cb34-551"><a href="#cb34-551"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-552"><a href="#cb34-552"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb34-553"><a href="#cb34-553"></a><span class="in">    indent_mod = -1L,</span></span>
+<span id="cb34-554"><a href="#cb34-554"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-555"><a href="#cb34-555"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb34-556"><a href="#cb34-556"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
+<span id="cb34-557"><a href="#cb34-557"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-558"><a href="#cb34-558"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-559"><a href="#cb34-559"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-560"><a href="#cb34-560"></a><span class="in">    .stats = "unique",</span></span>
+<span id="cb34-561"><a href="#cb34-561"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
+<span id="cb34-562"><a href="#cb34-562"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-563"><a href="#cb34-563"></a><span class="in">  count_occurrences(</span></span>
+<span id="cb34-564"><a href="#cb34-564"></a><span class="in">    vars = "AEDECOD",</span></span>
+<span id="cb34-565"><a href="#cb34-565"></a><span class="in">    .indent_mods = 1L</span></span>
+<span id="cb34-566"><a href="#cb34-566"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-567"><a href="#cb34-567"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
+<span id="cb34-568"><a href="#cb34-568"></a></span>
+<span id="cb34-569"><a href="#cb34-569"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb34-570"><a href="#cb34-570"></a><span class="in">  prune_table() %&gt;%</span></span>
+<span id="cb34-571"><a href="#cb34-571"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-572"><a href="#cb34-572"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb34-573"><a href="#cb34-573"></a><span class="in">    scorefun = cont_n_allcols</span></span>
+<span id="cb34-574"><a href="#cb34-574"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-575"><a href="#cb34-575"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-576"><a href="#cb34-576"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb34-577"><a href="#cb34-577"></a><span class="in">    scorefun = score_occurrences</span></span>
+<span id="cb34-578"><a href="#cb34-578"></a><span class="in">  )</span></span>
+<span id="cb34-579"><a href="#cb34-579"></a></span>
+<span id="cb34-580"><a href="#cb34-580"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
+<span id="cb34-581"><a href="#cb34-581"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
+<span id="cb34-582"><a href="#cb34-582"></a></span>
+<span id="cb34-583"><a href="#cb34-583"></a><span class="in">row_condition &lt;- has_fraction_in_cols(</span></span>
+<span id="cb34-584"><a href="#cb34-584"></a><span class="in">  atleast = 0.05,</span></span>
+<span id="cb34-585"><a href="#cb34-585"></a><span class="in">  col_names = c("B: Placebo")</span></span>
+<span id="cb34-586"><a href="#cb34-586"></a><span class="in">)</span></span>
+<span id="cb34-587"><a href="#cb34-587"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
+<span id="cb34-588"><a href="#cb34-588"></a></span>
+<span id="cb34-589"><a href="#cb34-589"></a><span class="in">result</span></span>
+<span id="cb34-590"><a href="#cb34-590"></a><span class="in">```</span></span>
+<span id="cb34-591"><a href="#cb34-591"></a></span>
+<span id="cb34-592"><a href="#cb34-592"></a><span class="fu">## Table of AEs with a Difference in Incidence Rate $\geq$ 5% Between &lt;br/&gt; Arm A and Arm B or Arm C (displaying preferred terms with a &lt;br/&gt; difference of at least x% between selected treatment groups)</span></span>
+<span id="cb34-593"><a href="#cb34-593"></a></span>
+<span id="cb34-594"><a href="#cb34-594"></a><span class="in">```{r variant13, test = list(result_v13 = "result")}</span></span>
+<span id="cb34-595"><a href="#cb34-595"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb34-596"><a href="#cb34-596"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb34-597"><a href="#cb34-597"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb34-598"><a href="#cb34-598"></a><span class="in">    "AEBODSYS",</span></span>
+<span id="cb34-599"><a href="#cb34-599"></a><span class="in">    child_labels = "visible",</span></span>
+<span id="cb34-600"><a href="#cb34-600"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb34-601"><a href="#cb34-601"></a><span class="in">    indent_mod = -1L,</span></span>
+<span id="cb34-602"><a href="#cb34-602"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb34-603"><a href="#cb34-603"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb34-604"><a href="#cb34-604"></a><span class="in">    split_label = obj_label(adae$AEBODSYS)</span></span>
+<span id="cb34-605"><a href="#cb34-605"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-606"><a href="#cb34-606"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb34-607"><a href="#cb34-607"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb34-608"><a href="#cb34-608"></a><span class="in">    .stats = "unique",</span></span>
+<span id="cb34-609"><a href="#cb34-609"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
+<span id="cb34-610"><a href="#cb34-610"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-611"><a href="#cb34-611"></a><span class="in">  count_occurrences(</span></span>
+<span id="cb34-612"><a href="#cb34-612"></a><span class="in">    vars = "AEDECOD",</span></span>
+<span id="cb34-613"><a href="#cb34-613"></a><span class="in">    .indent_mods = 1L</span></span>
+<span id="cb34-614"><a href="#cb34-614"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-615"><a href="#cb34-615"></a><span class="in">  append_varlabels(adae, "AEDECOD", indent = 1L)</span></span>
+<span id="cb34-616"><a href="#cb34-616"></a></span>
+<span id="cb34-617"><a href="#cb34-617"></a><span class="in">result &lt;- build_table(lyt, df = adae, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb34-618"><a href="#cb34-618"></a><span class="in">  prune_table() %&gt;%</span></span>
+<span id="cb34-619"><a href="#cb34-619"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-620"><a href="#cb34-620"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb34-621"><a href="#cb34-621"></a><span class="in">    scorefun = cont_n_allcols</span></span>
+<span id="cb34-622"><a href="#cb34-622"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb34-623"><a href="#cb34-623"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb34-624"><a href="#cb34-624"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb34-625"><a href="#cb34-625"></a><span class="in">    scorefun = score_occurrences</span></span>
+<span id="cb34-626"><a href="#cb34-626"></a><span class="in">  )</span></span>
+<span id="cb34-627"><a href="#cb34-627"></a></span>
+<span id="cb34-628"><a href="#cb34-628"></a><span class="in">criteria_fun &lt;- function(tr) is(tr, "ContentRow")</span></span>
+<span id="cb34-629"><a href="#cb34-629"></a><span class="in">result &lt;- trim_rows(result, criteria = criteria_fun)</span></span>
+<span id="cb34-630"><a href="#cb34-630"></a></span>
+<span id="cb34-631"><a href="#cb34-631"></a><span class="in">row_condition1 &lt;- has_fractions_difference(atleast = 0.05, col_names = c("A: Drug X", "B: Placebo"))</span></span>
+<span id="cb34-632"><a href="#cb34-632"></a><span class="in">row_condition2 &lt;- has_fractions_difference(atleast = 0.05, col_names = c("A: Drug X", "C: Combination"))</span></span>
+<span id="cb34-633"><a href="#cb34-633"></a><span class="in">row_condition &lt;- row_condition1 | row_condition2</span></span>
+<span id="cb34-634"><a href="#cb34-634"></a><span class="in">result &lt;- prune_table(result, keep_rows(row_condition))</span></span>
+<span id="cb34-635"><a href="#cb34-635"></a></span>
+<span id="cb34-636"><a href="#cb34-636"></a><span class="in">result</span></span>
+<span id="cb34-637"><a href="#cb34-637"></a><span class="in">```</span></span>
+<span id="cb34-638"><a href="#cb34-638"></a></span>
+<span id="cb34-639"><a href="#cb34-639"></a>{{&lt; include ../../test-utils/save_results.qmd &gt;}}</span>
+<span id="cb34-640"><a href="#cb34-640"></a></span>
+<span id="cb34-641"><a href="#cb34-641"></a><span class="fu">## `teal` App</span></span>
+<span id="cb34-642"><a href="#cb34-642"></a></span>
+<span id="cb34-643"><a href="#cb34-643"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb34-644"><a href="#cb34-644"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb34-645"><a href="#cb34-645"></a></span>
+<span id="cb34-646"><a href="#cb34-646"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb34-647"><a href="#cb34-647"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb34-648"><a href="#cb34-648"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb34-649"><a href="#cb34-649"></a><span class="in">  library(scda)</span></span>
+<span id="cb34-650"><a href="#cb34-650"></a><span class="in">  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
+<span id="cb34-651"><a href="#cb34-651"></a><span class="in">  ADAE &lt;- synthetic_cdisc_dataset("latest", "adae")</span></span>
+<span id="cb34-652"><a href="#cb34-652"></a></span>
+<span id="cb34-653"><a href="#cb34-653"></a><span class="in">  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb34-654"><a href="#cb34-654"></a><span class="in">  ADSL &lt;- df_explicit_na(ADSL)</span></span>
+<span id="cb34-655"><a href="#cb34-655"></a><span class="in">  ADAE &lt;- df_explicit_na(ADAE)</span></span>
+<span id="cb34-656"><a href="#cb34-656"></a><span class="in">})</span></span>
+<span id="cb34-657"><a href="#cb34-657"></a><span class="in">datanames &lt;- c("ADSL", "ADAE")</span></span>
+<span id="cb34-658"><a href="#cb34-658"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb34-659"><a href="#cb34-659"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb34-660"><a href="#cb34-660"></a></span>
+<span id="cb34-661"><a href="#cb34-661"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb34-662"><a href="#cb34-662"></a><span class="in">ADAE &lt;- data[["ADAE"]]</span></span>
+<span id="cb34-663"><a href="#cb34-663"></a></span>
+<span id="cb34-664"><a href="#cb34-664"></a><span class="in">## Setup App</span></span>
+<span id="cb34-665"><a href="#cb34-665"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb34-666"><a href="#cb34-666"></a><span class="in">  data = data,</span></span>
+<span id="cb34-667"><a href="#cb34-667"></a><span class="in">  modules = modules(</span></span>
+<span id="cb34-668"><a href="#cb34-668"></a><span class="in">    tm_t_events(</span></span>
+<span id="cb34-669"><a href="#cb34-669"></a><span class="in">      label = "Adverse Event Table",</span></span>
+<span id="cb34-670"><a href="#cb34-670"></a><span class="in">      dataname = "ADAE",</span></span>
+<span id="cb34-671"><a href="#cb34-671"></a><span class="in">      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span></span>
+<span id="cb34-672"><a href="#cb34-672"></a><span class="in">      llt = choices_selected(</span></span>
+<span id="cb34-673"><a href="#cb34-673"></a><span class="in">        choices = variable_choices(ADAE, c("AETERM", "AEDECOD")),</span></span>
+<span id="cb34-674"><a href="#cb34-674"></a><span class="in">        selected = c("AEDECOD")</span></span>
+<span id="cb34-675"><a href="#cb34-675"></a><span class="in">      ),</span></span>
+<span id="cb34-676"><a href="#cb34-676"></a><span class="in">      hlt = choices_selected(</span></span>
+<span id="cb34-677"><a href="#cb34-677"></a><span class="in">        choices = variable_choices(ADAE, c("AEBODSYS", "AESOC")),</span></span>
+<span id="cb34-678"><a href="#cb34-678"></a><span class="in">        selected = "AEBODSYS"</span></span>
+<span id="cb34-679"><a href="#cb34-679"></a><span class="in">      ),</span></span>
+<span id="cb34-680"><a href="#cb34-680"></a><span class="in">      add_total = TRUE,</span></span>
+<span id="cb34-681"><a href="#cb34-681"></a><span class="in">      event_type = "adverse event"</span></span>
+<span id="cb34-682"><a href="#cb34-682"></a><span class="in">    )</span></span>
+<span id="cb34-683"><a href="#cb34-683"></a><span class="in">  )</span></span>
+<span id="cb34-684"><a href="#cb34-684"></a><span class="in">)</span></span>
+<span id="cb34-685"><a href="#cb34-685"></a></span>
+<span id="cb34-686"><a href="#cb34-686"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb34-687"><a href="#cb34-687"></a><span class="in">```</span></span>
+<span id="cb34-688"><a href="#cb34-688"></a></span>
+<span id="cb34-689"><a href="#cb34-689"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb34-690"><a href="#cb34-690"></a>:::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
