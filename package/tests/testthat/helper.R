@@ -1,6 +1,13 @@
 test_article <- function(article_path) {
   if (isTRUE(if_render_articles)) {
-    quarto::quarto_render(file.path(test_book_path, article_path), as_job = FALSE, quiet = TRUE, cache = FALSE, metadata = list(execute = list(freeze = FALSE)))
+    quarto::quarto_render(
+      file.path(test_book_path, article_path),
+      as_job = FALSE,
+      quiet = TRUE,
+      cache = FALSE,
+      profile = test_profile,
+      metadata = list(execute = list(freeze = FALSE))
+    )
   }
 
   data_file <- file.path(test_data_path, test_profile, paste0(tools::file_path_sans_ext(article_path), ".rds"))

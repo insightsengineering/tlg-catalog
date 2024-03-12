@@ -24,10 +24,12 @@ if (isTRUE(if_render_book)) {
     as_job = FALSE,
     quiet = FALSE,
     cache = FALSE,
+    profile = test_profile,
     metadata = list(execute = list(freeze = FALSE))
   )
   cat("Render finished!\n")
 }
 
 # clean up
+withr::defer(Sys.unsetenv("QUARTO_PROFILE"), testthat::teardown_env())
 withr::defer(Sys.unsetenv("QUARTO_TESTTHAT_DATA_PATH"), testthat::teardown_env())
