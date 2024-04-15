@@ -1,0 +1,43 @@
+<!--
+This shortcode will include chunk returning WebR instance.
+
+Global shinylive configuration is available in the `_quarto.yaml` file.
+-->
+
+## WebR
+
+::: {.callout-warning appearance="simple"}
+## Experimental use!
+:::
+
+Modify the code below and run it to see the results.
+
+```{r shinylive-constructor, echo=FALSE, results='asis'}
+text <- unlist(c(
+  "```{shinylive-r}",
+  "#| standalone: true",
+  "#| viewerHeight: 800",
+  "#| components: [viewer, editor]",
+  "#| layout: vertical",
+  "",
+  "# -- WEBR HELPERS --",
+  "options(webr_pkg_repos = c(\"r-universe\" = \"https://pharmaverse.r-universe.dev\", getOption(\"webr_pkg_repos\")))",
+  "if (packageVersion(\"webr\") < \"0.3.0\") {",
+  "  .e <- as.environment(\"webr_shims\")",
+  "  .e[[\"library\"]] <- function(pkg, ...) {",
+  "    # https://github.com/quarto-ext/shinylive/issues/48",
+  "    # simplified copy of webr::library_shim from the higher version of webr package",
+  "    package <- as.character(substitute(pkg))",
+  "    if (length(find.package(package, quiet = TRUE)) == 0) {",
+  "      webr::install(package)",
+  "    }",
+  "    base::library(package, character.only = TRUE, ...)",
+  "  }",
+  "}",
+  "",
+  "# -- APP CODE --",
+  knitr::knit_code$get(c("teal")),
+  "```"
+))
+cat(text, sep = "\n")
+```
