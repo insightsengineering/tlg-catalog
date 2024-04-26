@@ -7,7 +7,7 @@ subtitle: Laboratory Test Results Change from Baseline by Visit
 
 {{< include ../../test-utils/envir_hook.qmd >}}
 
-::: panel-tabset
+:::: {.panel-tabset}
 ## Data Setup
 
 For illustration purposes, this example focuses on "C-Reactive Protein Measurement" starting from baseline, while excluding visit at week 1 for subjects who were randomized to the placebo group.
@@ -16,6 +16,7 @@ For illustration purposes, this example focuses on "C-Reactive Protein Measureme
 #| code-fold: show
 
 library(scda)
+library(scda.2022)
 library(dplyr)
 library(tern)
 
@@ -47,6 +48,9 @@ var_labels(adlb_f) <- c(saved_labels, "")
 The `LBT03` template is the result of a junction between the analysis of `AVAL` at baseline and `CHG` at visit time.
 `AVAL` is summarized for baseline visits and and `CHG` is summarized for post-baseline visits.
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant1, test = list(result_v1 = "result")}
 # Define the split function
 split_fun <- drop_split_levels
@@ -69,7 +73,14 @@ result <- build_table(
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../webr-utils/webr.qmd >}}
+:::
+
 In the final step, a new variable is derived from `AVISIT` that can specify the method of estimation of the evaluated change.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 adlb_f <- adlb_f %>% mutate(AVISIT_header = recode(AVISIT,
@@ -106,9 +117,16 @@ result <- build_table(
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../webr-utils/webr.qmd >}}
+:::
+
 {{< include ../../test-utils/save_results.qmd >}}
 
 ## `teal` App
+
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
 
 Here, we pre-process and manually define the variable "Baseline or Absolute Change from Baseline".
 
@@ -119,7 +137,7 @@ library(teal.modules.clinical)
 data <- teal_data()
 data <- within(data, {
   library(scda)
-  library(dplyr)
+  library(scda.2022)
 
   ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))
   ADLB <- df_explicit_na(synthetic_cdisc_dataset("latest", "adlb")) %>%
@@ -190,5 +208,9 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../webr-utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}
+
+::::
