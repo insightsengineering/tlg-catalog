@@ -23,7 +23,7 @@ As an article author, you need to (i) register the hooks, (ii) use them where ap
 
 (i) Register the hooks
 
-* At the beggining of the article, add the following: `{{< include ../../test-utils/envir_hook.qmd >}}`.
+* At the beggining of the article, add the following: `{{< include ../../_utils/envir_hook.qmd >}}`.
 It will register the `knitr` hooks for further use and will not produce any visible changes to the content.
 
 (ii) Use the hooks
@@ -41,7 +41,7 @@ It will register the `knitr` hooks for further use and will not produce any visi
 
 (iii) Save the results
 
-* At the end of the article (after all chunks with outputs), add `{{< include ../../test-utils/save_results.qmd >}}` to save all objects as `.Rds` files.
+* At the end of the article (after all chunks with outputs), add `{{< include ../../_utils/save_results.qmd >}}` to save all objects as `.Rds` files.
 
 This logic has been implemented in many articles already. Please refer to the existing ones for examples.
 
