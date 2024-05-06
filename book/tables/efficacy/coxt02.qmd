@@ -5,7 +5,7 @@ subtitle: Multivariable Cox Regression
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
 Analysis based on multivariable Cox models is usually not performed for the Clinical Study Report (CSR) or regulatory documents, serving exploratory purposes only (e.g. for publication).
 In practice, the model usually includes only the main effects (without interaction terms).
@@ -13,13 +13,14 @@ It produces the estimates for each of the covariates included in the model.
 The analysis follows the same principles (i.e. stratified vs. unstratified analysis and tie handling) as the general Cox model analysis also used in `COXT01`.
 Since there is usually no pre-specified hypothesis testing for such analysis, the p-values must be interpreted with caution.
 
-::: panel-tabset
+:::: {.panel-tabset}
 ## Data Setup
 
 ```{r setup, message = FALSE}
 #| code-fold: show
 
 library(scda)
+library(scda.2022)
 library(dplyr)
 library(tern)
 library(broom)
@@ -58,6 +59,9 @@ All variables specified within `variables` must be present in the data used when
 
 To see the same model as a `data.frame` object, these two arguments (as well as the data) can be passed to the `fit_coxreg_multivar` function, and the resulting list tidied using `broom::tidy()`.
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant1, test = list(result_v1 = "result")}
 variables <- list(
   time = "AVAL",
@@ -73,6 +77,10 @@ lyt <- basic_table() %>%
 result <- build_table(lyt = lyt, df = anl)
 result
 ```
+
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
 ## Multivariable Cox Regression <br/> with Interaction Term
 
@@ -101,6 +109,9 @@ See the *Multivariable Cox Regression with Interaction Term* tab for more detail
 Additional controls can be customized using `control_coxreg` (see `?control_coxreg`) such as the ties calculation method and the confidence level.
 Stratification variables can be added via the `strata` element of the `variables` list.
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant2, test = list(result_v2 = "result")}
 variables <- list(
   time = "AVAL",
@@ -128,13 +139,20 @@ result <- build_table(lyt = lyt, df = anl)
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Multivariable Cox Regression <br/> with Selection Process for Covariates
 
 See the *Multivariable Cox Regression with Interaction Term* tab.
 
-{{< include ../../test-utils/save_results.qmd >}}
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
+
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
 
 ```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
@@ -143,6 +161,8 @@ library(teal.modules.clinical)
 data <- teal_data()
 data <- within(data, {
   library(scda)
+  library(scda.2022)
+
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
 })
@@ -188,5 +208,9 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}
+
+::::

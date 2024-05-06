@@ -5,9 +5,9 @@ subtitle: Time-To-Event Summary
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::::: panel-tabset
+:::::: {.panel-tabset}
 ## Data Setup
 
 ```{r setup, message = FALSE}
@@ -15,6 +15,7 @@ subtitle: Time-To-Event Summary
 
 library(tern)
 library(scda)
+library(scda.2022)
 library(dplyr)
 
 adsl <- synthetic_cdisc_dataset("latest", "adsl")
@@ -42,6 +43,9 @@ adtte_f <- adtte %>%
 ```
 
 ## Standard Table
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant1, test = list(result_v1 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -97,7 +101,14 @@ result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table Selecting <br/> Sections to Display
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -139,7 +150,14 @@ result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl)
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table Modifying Analysis Details <br/> like Conf. Type, Ties, Alpha Level
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant3, test = list(result_v3 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -207,69 +225,16 @@ result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%
 result
 ```
 
-## Table with <br/> Stratified Analysis
-
-::: {.content-visible when-profile="stable"}
-```{r variant4-stable}
-lyt <- basic_table(show_colcounts = TRUE) %>%
-  split_cols_by("ARM", ref_group = "A: Drug X") %>%
-  analyze_vars(
-    vars = "is_event",
-    .stats = "count_fraction",
-    .labels = c(count_fraction = "Patients with event (%)")
-  ) %>%
-  split_rows_by(
-    "EVNT1",
-    split_label = "Earliest contributing event",
-    split_fun = keep_split_levels("Patients with event (%)"),
-    label_pos = "visible",
-    child_labels = "hidden",
-    indent_mod = 1L,
-  ) %>%
-  analyze("EVNTDESC") %>%
-  analyze_vars(
-    vars = "is_not_event",
-    .stats = "count_fraction",
-    .labels = c(count_fraction = "Patients without event (%)"),
-    nested = FALSE,
-    show_labels = "hidden"
-  ) %>%
-  surv_time(
-    vars = "AVAL",
-    var_labels = "Time to Event (Months)",
-    is_event = "is_event",
-    table_names = "time_to_event"
-  ) %>%
-  coxph_pairwise(
-    vars = "AVAL",
-    is_event = "is_event",
-    var_labels = "Unstratified Analysis",
-    table_names = "coxph_unstratified"
-  ) %>%
-  coxph_pairwise(
-    vars = "AVAL",
-    is_event = "is_event",
-    var_labels = "Stratified Analysis",
-    strata = "SEX",
-    table_names = "coxph_stratified"
-  ) %>%
-  surv_timepoint(
-    vars = "AVAL",
-    var_labels = "Months",
-    is_event = "is_event",
-    method = "both",
-    time_point = 12
-  )
-
-result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%
-  prune_table()
-
-result
-```
+`r webr_code_labels <- c("setup", "variant3")`
+{{< include ../../_utils/webr.qmd >}}
 :::
 
-::: {.content-visible when-profile="development"}
-```{r variant4-devel, test = list(result_v4 = "result")}
+## Table with <br/> Stratified Analysis
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+```{r variant4, test = list(result_v4 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ARM", ref_group = "A: Drug X") %>%
   analyze_vars(
@@ -325,9 +290,15 @@ result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%
 
 result
 ```
+
+`r webr_code_labels <- c("setup", "variant4")`
+{{< include ../../_utils/webr.qmd >}}
 :::
 
 ## Table Modifying Time Point for <br/> the "XX Months" Analysis
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant5, test = list(result_v5 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -380,7 +351,14 @@ result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant5")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table Requesting <br/> \> 1 p-value
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant6, test = list(result_v6 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -451,9 +429,16 @@ result <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant6")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
+
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
 
 ```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
@@ -462,6 +447,7 @@ library(teal.modules.clinical)
 data <- teal_data()
 data <- within(data, {
   library(scda)
+  library(scda.2022)
 
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
@@ -521,5 +507,9 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
+{{< include ../../_utils/shinylive.qmd >}}
+:::
+
 {{< include ../../repro.qmd >}}
+
 :::::

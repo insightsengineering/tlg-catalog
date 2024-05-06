@@ -1,0 +1,35 @@
+<!--
+This shortcode will include chunk returning WebR instance.
+It requires pre-set `webr_code_labels` variable (character vector) containing labels of chunks to be included.
+
+Global WebR configuration is available in the `_quarto.yaml` file.
+-->
+
+## {{< fa regular terminal sm fw >}} Try this using `WebR`
+
+::: {.callout-warning appearance="simple" collapse="true"}
+## Experimental use!
+
+[`WebR`](https://docs.r-wasm.org/webr/latest/) is a tool allowing you to run R code in the web browser. Modify the code below and click run to see the results. Altenatively, copy the code and click [here](https://webr.r-wasm.org/latest/) to open `WebR` in a new tab.
+:::
+
+```{r, echo = FALSE, results = "asis", opts.label = "skip_if_testing"}
+if (!exists("webr_code_labels")) {
+  webr_code_labels <- character(0L)
+}
+if (!all(webr_code_labels %in% knitr::all_labels())) {
+  stop(sprintf(
+    "Not all of provided labels exist in the current document!\nNot found labels are: %s.",
+    paste0(setdiff(webr_code_labels, knitr::all_labels()), collapse = ", ")
+  ))
+}
+
+text <- unlist(c(
+  "```{webr-r}",
+  "#| editor-max-height: 500",
+  "#| autorun: true",
+  lapply(webr_code_labels, knitr::knit_code$get),
+  "```"
+))
+cat(text, sep = "\n")
+```

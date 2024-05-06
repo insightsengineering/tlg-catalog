@@ -5,9 +5,9 @@ subtitle: NCI CTCAE Grade Laboratory Abnormalities by Visit and Baseline Grade
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
+:::: {.panel-tabset}
 ## Data Setup
 
 Please note that for each variant, the `adlb` dataset needs to be filtered on correct flags like `WGRLOVFL`, `WGRHIVFL`, et al., otherwise the layout function will not return the correct counts.
@@ -19,6 +19,7 @@ Otherwise please follow the pre-processing steps below before applying the layou
 #| code-fold: show
 
 library(scda)
+library(scda.2022)
 library(dplyr)
 library(tern)
 
@@ -38,6 +39,9 @@ adlb <- adlb %>% filter(PARAMCD == "CRP" & SAFFL == "Y")
 
 Note that the worst laboratory flag (below `WGRLOVFL`) must be selected appropriately to match the direction of abnormality (here `Low`).
 New grouping variables `ATOXGR_GP` and `BTOXGR_GP` are created to display the correct output.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant1, test = list(result_v1 = "result")}
 adlb_f <- adlb %>% filter(WGRLOVFL == "Y")
@@ -110,10 +114,17 @@ result <- basic_table(show_colcounts = TRUE) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Standard Table (High)
 
 Note that the worst laboratory flag (below `WGRHIVFL`) must be selected appropriately to match the direction of abnormality (here `High`).
 New grouping variables `ATOXGR_GP` and `BTOXGR_GP` are created to display the correct output.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 adlb_f <- adlb %>% filter(WGRHIVFL == "Y")
@@ -186,9 +197,16 @@ result <- basic_table(show_colcounts = TRUE) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table Without Patients with <br/> Missing Baseline (Low)
 
 Note that missing baseline values are filtered out in the pre-processing step.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant3, test = list(result_v3 = "result")}
 adlb_f <- adlb %>% filter(WGRLOVFL == "Y")
@@ -261,9 +279,16 @@ result <- basic_table(show_colcounts = TRUE) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with Missing Baseline <br/> Considered as Grade 0 (High)
 
 Note that when `BTOXGR` is missing, the grouping variable `BTOXGR_GP` is now `"Not High"` instead of `"Missing"` compared to *Standard Table (High)*.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant4, test = list(result_v4 = "result")}
 adlb_f <- adlb %>% filter(WGRHIVFL == "Y")
@@ -335,9 +360,16 @@ result <- basic_table(show_colcounts = TRUE) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant4")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with Fill-In <br/> of Grades (High)
 
 Pre-processing is the same as for *Standard Table (High)*, but in order to keep all levels, the `drop` argument in `count_occurrences` is set to `FALSE`.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant5, test = list(result_v5 = "result")}
 adlb_f <- adlb %>% filter(WGRHIVFL == "Y")
@@ -412,9 +444,16 @@ result <- basic_table(show_colcounts = TRUE) %>%
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant5")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
+
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
 
 ```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
@@ -423,7 +462,7 @@ library(teal.modules.clinical)
 data <- teal_data()
 data <- within(data, {
   library(scda)
-  library(dplyr)
+  library(scda.2022)
 
   ADSL <- synthetic_cdisc_dataset("latest", "adsl")
   ADLB <- synthetic_cdisc_dataset("latest", "adlb")
@@ -478,5 +517,9 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}
+
+::::
