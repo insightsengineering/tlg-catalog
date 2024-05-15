@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"options":{"context":"interactive","fig-height":5,"results":"markup","message":"true","fig-width":7,"fig-cap":"","comment":"","classes":"","output":"true","out-width":"700px","autorun":"true","label":"unnamed-chunk-1","read-only":"false","editor-max-height":"500","out-height":"","dpi":72,"editor-quick-suggestions":"false","warning":"true","editor-font-scale":1},"code":"library(scda)\nlibrary(scda.2022)\nlibrary(dplyr)\nlibrary(tern)\n\nadsl <- synthetic_cdisc_dataset(\"latest\", \"adsl\")\nadhy <- synthetic_cdisc_dataset(\"latest\", \"adhy\")\n\nadhy_liver <- adhy %>%\n  filter(PARAMCD %in% c(\n    \"BL2AL2CU\", \"BL2AS2CU\", \"BG2AL2CU\", \"BG2AS2CU\", \"B2A2L2CU\", \"B2A2S2CU\", \"B2A5L2CU\", \"B2A5S2CU\"\n  )) %>%\n  mutate(PARAMCAT = case_when(\n    PARAMCD %in% c(\"BL2AL2CU\", \"BL2AS2CU\") ~ \"Total Bilirubin <= 2xULN\",\n    PARAMCD %in% c(\"BG2AL2CU\", \"BG2AS2CU\") ~ \"Total Bilirubin > 2xULN\",\n    PARAMCD %in% c(\"B2A2L2CU\", \"B2A2S2CU\") ~ \"Total Bilirubin > 2xULN and Alkaline Phosphatase <= 2xULN\",\n    PARAMCD %in% c(\"B2A5L2CU\", \"B2A5S2CU\") ~ \"Total Bilirubin > 2xULN and Alkaline Phosphatase <= 5xULN\"\n  )) %>%\n  mutate(AVALC_FORMAT = case_when(\n    PARAMCD %in% c(\"BL2AL2CU\", \"BG2AL2CU\", \"B2A2L2CU\", \"B2A5L2CU\") & AVALC == \"Y\" ~ \"ALT >3xULN at 2 Visits\",\n    PARAMCD %in% c(\"BL2AS2CU\", \"BG2AS2CU\", \"B2A2S2CU\", \"B2A5S2CU\") & AVALC == \"Y\" ~ \"AST >3xULN at 2 Visits\",\n    TRUE ~ \"Criteria not met\"\n  ))\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nanl <- df_explicit_na(adhy_liver)\ntbl <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARMCD\") %>%\n  split_rows_by(\"PARAMCAT\") %>%\n  split_rows_by(\"PARAM\", split_fun = drop_split_levels, child_labels = \"hidden\") %>%\n  count_occurrences(\n    vars = \"AVALC_FORMAT\",\n    .stats = c(\"fraction\"),\n    denom = \"n\",\n    drop = TRUE\n  ) %>%\n  build_table(anl, alt_counts_df = adsl)\n\ncriteria_fun <- function(tr) {\n  row_label <- obj_label(tr)\n  ifelse(row_label == \"Criteria not met\", TRUE, FALSE)\n}\n\nresult <- tbl %>% trim_rows(criteria = criteria_fun)\nresult"},{"id":2,"options":{"context":"interactive","fig-height":5,"results":"markup","message":"true","fig-width":7,"fig-cap":"","comment":"","classes":"","output":"true","out-width":"700px","autorun":"true","label":"unnamed-chunk-2","read-only":"false","editor-max-height":"500","out-height":"","dpi":72,"editor-quick-suggestions":"false","warning":"true","editor-font-scale":1},"code":"library(scda)\nlibrary(scda.2022)\nlibrary(dplyr)\nlibrary(tern)\n\nadsl <- synthetic_cdisc_dataset(\"latest\", \"adsl\")\nadhy <- synthetic_cdisc_dataset(\"latest\", \"adhy\")\n\nadhy_liver <- adhy %>%\n  filter(PARAMCD %in% c(\n    \"BL2AL2CU\", \"BL2AS2CU\", \"BG2AL2CU\", \"BG2AS2CU\", \"B2A2L2CU\", \"B2A2S2CU\", \"B2A5L2CU\", \"B2A5S2CU\"\n  )) %>%\n  mutate(PARAMCAT = case_when(\n    PARAMCD %in% c(\"BL2AL2CU\", \"BL2AS2CU\") ~ \"Total Bilirubin <= 2xULN\",\n    PARAMCD %in% c(\"BG2AL2CU\", \"BG2AS2CU\") ~ \"Total Bilirubin > 2xULN\",\n    PARAMCD %in% c(\"B2A2L2CU\", \"B2A2S2CU\") ~ \"Total Bilirubin > 2xULN and Alkaline Phosphatase <= 2xULN\",\n    PARAMCD %in% c(\"B2A5L2CU\", \"B2A5S2CU\") ~ \"Total Bilirubin > 2xULN and Alkaline Phosphatase <= 5xULN\"\n  )) %>%\n  mutate(AVALC_FORMAT = case_when(\n    PARAMCD %in% c(\"BL2AL2CU\", \"BG2AL2CU\", \"B2A2L2CU\", \"B2A5L2CU\") & AVALC == \"Y\" ~ \"ALT >3xULN at 2 Visits\",\n    PARAMCD %in% c(\"BL2AS2CU\", \"BG2AS2CU\", \"B2A2S2CU\", \"B2A5S2CU\") & AVALC == \"Y\" ~ \"AST >3xULN at 2 Visits\",\n    TRUE ~ \"Criteria not met\"\n  ))\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nanl <- df_explicit_na(adhy_liver)\ntbl2 <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARMCD\") %>%\n  split_rows_by(\"PARAMCAT\", split_fun = remove_split_levels(\"Total Bilirubin > 2xULN\")) %>%\n  split_rows_by(\"PARAM\", split_fun = drop_split_levels, child_labels = \"hidden\") %>%\n  count_occurrences(\n    vars = \"AVALC_FORMAT\",\n    .stats = c(\"fraction\"),\n    denom = \"n\",\n    drop = TRUE\n  ) %>%\n  build_table(anl, alt_counts_df = adsl)\n\ncriteria_fun <- function(tr) {\n  row_label <- obj_label(tr)\n  ifelse(row_label == \"Criteria not met\", TRUE, FALSE)\n}\n\nresult <- tbl2 %>% trim_rows(criteria = criteria_fun)\nresult"}];
+globalThis.qwebrCellDetails = [{"id":1,"code":"library(dplyr)\nlibrary(tern)\n\nadsl <- random.cdisc.data::cadsl\nadhy <- random.cdisc.data::cadhy\n\nadhy_liver <- adhy %>%\n  filter(PARAMCD %in% c(\n    \"BL2AL2CU\", \"BL2AS2CU\", \"BG2AL2CU\", \"BG2AS2CU\", \"B2A2L2CU\", \"B2A2S2CU\", \"B2A5L2CU\", \"B2A5S2CU\"\n  )) %>%\n  mutate(PARAMCAT = case_when(\n    PARAMCD %in% c(\"BL2AL2CU\", \"BL2AS2CU\") ~ \"Total Bilirubin <= 2xULN\",\n    PARAMCD %in% c(\"BG2AL2CU\", \"BG2AS2CU\") ~ \"Total Bilirubin > 2xULN\",\n    PARAMCD %in% c(\"B2A2L2CU\", \"B2A2S2CU\") ~ \"Total Bilirubin > 2xULN and Alkaline Phosphatase <= 2xULN\",\n    PARAMCD %in% c(\"B2A5L2CU\", \"B2A5S2CU\") ~ \"Total Bilirubin > 2xULN and Alkaline Phosphatase <= 5xULN\"\n  )) %>%\n  mutate(AVALC_FORMAT = case_when(\n    PARAMCD %in% c(\"BL2AL2CU\", \"BG2AL2CU\", \"B2A2L2CU\", \"B2A5L2CU\") & AVALC == \"Y\" ~ \"ALT >3xULN at 2 Visits\",\n    PARAMCD %in% c(\"BL2AS2CU\", \"BG2AS2CU\", \"B2A2S2CU\", \"B2A5S2CU\") & AVALC == \"Y\" ~ \"AST >3xULN at 2 Visits\",\n    TRUE ~ \"Criteria not met\"\n  ))\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nanl <- df_explicit_na(adhy_liver)\ntbl <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARMCD\") %>%\n  split_rows_by(\"PARAMCAT\") %>%\n  split_rows_by(\"PARAM\", split_fun = drop_split_levels, child_labels = \"hidden\") %>%\n  count_occurrences(\n    vars = \"AVALC_FORMAT\",\n    .stats = c(\"fraction\"),\n    denom = \"n\",\n    drop = TRUE\n  ) %>%\n  build_table(anl, alt_counts_df = adsl)\n\ncriteria_fun <- function(tr) {\n  row_label <- obj_label(tr)\n  ifelse(row_label == \"Criteria not met\", TRUE, FALSE)\n}\n\nresult <- tbl %>% trim_rows(criteria = criteria_fun)\nresult","options":{"context":"interactive","classes":"","results":"markup","editor-max-height":"500","fig-cap":"","fig-width":7,"label":"unnamed-chunk-1","message":"true","fig-height":5,"editor-quick-suggestions":"false","editor-font-scale":1,"read-only":"false","autorun":"true","warning":"true","out-width":"700px","dpi":72,"out-height":"","output":"true","comment":""}},{"id":2,"code":"library(dplyr)\nlibrary(tern)\n\nadsl <- random.cdisc.data::cadsl\nadhy <- random.cdisc.data::cadhy\n\nadhy_liver <- adhy %>%\n  filter(PARAMCD %in% c(\n    \"BL2AL2CU\", \"BL2AS2CU\", \"BG2AL2CU\", \"BG2AS2CU\", \"B2A2L2CU\", \"B2A2S2CU\", \"B2A5L2CU\", \"B2A5S2CU\"\n  )) %>%\n  mutate(PARAMCAT = case_when(\n    PARAMCD %in% c(\"BL2AL2CU\", \"BL2AS2CU\") ~ \"Total Bilirubin <= 2xULN\",\n    PARAMCD %in% c(\"BG2AL2CU\", \"BG2AS2CU\") ~ \"Total Bilirubin > 2xULN\",\n    PARAMCD %in% c(\"B2A2L2CU\", \"B2A2S2CU\") ~ \"Total Bilirubin > 2xULN and Alkaline Phosphatase <= 2xULN\",\n    PARAMCD %in% c(\"B2A5L2CU\", \"B2A5S2CU\") ~ \"Total Bilirubin > 2xULN and Alkaline Phosphatase <= 5xULN\"\n  )) %>%\n  mutate(AVALC_FORMAT = case_when(\n    PARAMCD %in% c(\"BL2AL2CU\", \"BG2AL2CU\", \"B2A2L2CU\", \"B2A5L2CU\") & AVALC == \"Y\" ~ \"ALT >3xULN at 2 Visits\",\n    PARAMCD %in% c(\"BL2AS2CU\", \"BG2AS2CU\", \"B2A2S2CU\", \"B2A5S2CU\") & AVALC == \"Y\" ~ \"AST >3xULN at 2 Visits\",\n    TRUE ~ \"Criteria not met\"\n  ))\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nanl <- df_explicit_na(adhy_liver)\ntbl2 <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARMCD\") %>%\n  split_rows_by(\"PARAMCAT\", split_fun = remove_split_levels(\"Total Bilirubin > 2xULN\")) %>%\n  split_rows_by(\"PARAM\", split_fun = drop_split_levels, child_labels = \"hidden\") %>%\n  count_occurrences(\n    vars = \"AVALC_FORMAT\",\n    .stats = c(\"fraction\"),\n    denom = \"n\",\n    drop = TRUE\n  ) %>%\n  build_table(anl, alt_counts_df = adsl)\n\ncriteria_fun <- function(tr) {\n  row_label <- obj_label(tr)\n  ifelse(row_label == \"Criteria not met\", TRUE, FALSE)\n}\n\nresult <- tbl2 %>% trim_rows(criteria = criteria_fun)\nresult","options":{"context":"interactive","classes":"","results":"markup","editor-max-height":"500","fig-cap":"","fig-width":7,"label":"unnamed-chunk-2","message":"true","fig-height":5,"editor-quick-suggestions":"false","editor-font-scale":1,"read-only":"false","autorun":"true","warning":"true","out-width":"700px","dpi":72,"out-height":"","output":"true","comment":""}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2623,33 +2623,31 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <div class="tab-content">
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(scda)</span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(scda<span class="fl">.2022</span>)</span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(tern)</span>
-<span id="cb1-5"><a href="#cb1-5"></a></span>
-<span id="cb1-6"><a href="#cb1-6"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
-<span id="cb1-7"><a href="#cb1-7"></a>adhy <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adhy"</span>)</span>
-<span id="cb1-8"><a href="#cb1-8"></a></span>
-<span id="cb1-9"><a href="#cb1-9"></a>adhy_liver <span class="ot">&lt;-</span> adhy <span class="sc">%&gt;%</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>  <span class="fu">filter</span>(PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(</span>
-<span id="cb1-11"><a href="#cb1-11"></a>    <span class="st">"BL2AL2CU"</span>, <span class="st">"BL2AS2CU"</span>, <span class="st">"BG2AL2CU"</span>, <span class="st">"BG2AS2CU"</span>, <span class="st">"B2A2L2CU"</span>, <span class="st">"B2A2S2CU"</span>, <span class="st">"B2A5L2CU"</span>, <span class="st">"B2A5S2CU"</span></span>
-<span id="cb1-12"><a href="#cb1-12"></a>  )) <span class="sc">%&gt;%</span></span>
-<span id="cb1-13"><a href="#cb1-13"></a>  <span class="fu">mutate</span>(<span class="at">PARAMCAT =</span> <span class="fu">case_when</span>(</span>
-<span id="cb1-14"><a href="#cb1-14"></a>    PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"BL2AL2CU"</span>, <span class="st">"BL2AS2CU"</span>) <span class="sc">~</span> <span class="st">"Total Bilirubin &lt;= 2xULN"</span>,</span>
-<span id="cb1-15"><a href="#cb1-15"></a>    PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"BG2AL2CU"</span>, <span class="st">"BG2AS2CU"</span>) <span class="sc">~</span> <span class="st">"Total Bilirubin &gt; 2xULN"</span>,</span>
-<span id="cb1-16"><a href="#cb1-16"></a>    PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"B2A2L2CU"</span>, <span class="st">"B2A2S2CU"</span>) <span class="sc">~</span> <span class="st">"Total Bilirubin &gt; 2xULN and Alkaline Phosphatase &lt;= 2xULN"</span>,</span>
-<span id="cb1-17"><a href="#cb1-17"></a>    PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"B2A5L2CU"</span>, <span class="st">"B2A5S2CU"</span>) <span class="sc">~</span> <span class="st">"Total Bilirubin &gt; 2xULN and Alkaline Phosphatase &lt;= 5xULN"</span></span>
-<span id="cb1-18"><a href="#cb1-18"></a>  )) <span class="sc">%&gt;%</span></span>
-<span id="cb1-19"><a href="#cb1-19"></a>  <span class="fu">mutate</span>(<span class="at">AVALC_FORMAT =</span> <span class="fu">case_when</span>(</span>
-<span id="cb1-20"><a href="#cb1-20"></a>    PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"BL2AL2CU"</span>, <span class="st">"BG2AL2CU"</span>, <span class="st">"B2A2L2CU"</span>, <span class="st">"B2A5L2CU"</span>) <span class="sc">&amp;</span> AVALC <span class="sc">==</span> <span class="st">"Y"</span> <span class="sc">~</span> <span class="st">"ALT &gt;3xULN at 2 Visits"</span>,</span>
-<span id="cb1-21"><a href="#cb1-21"></a>    PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"BL2AS2CU"</span>, <span class="st">"BG2AS2CU"</span>, <span class="st">"B2A2S2CU"</span>, <span class="st">"B2A5S2CU"</span>) <span class="sc">&amp;</span> AVALC <span class="sc">==</span> <span class="st">"Y"</span> <span class="sc">~</span> <span class="st">"AST &gt;3xULN at 2 Visits"</span>,</span>
-<span id="cb1-22"><a href="#cb1-22"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Criteria not met"</span></span>
-<span id="cb1-23"><a href="#cb1-23"></a>  ))</span>
-<span id="cb1-24"><a href="#cb1-24"></a></span>
-<span id="cb1-25"><a href="#cb1-25"></a><span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb1-26"><a href="#cb1-26"></a>adsl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adsl)</span>
-<span id="cb1-27"><a href="#cb1-27"></a>anl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adhy_liver)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(tern)</span>
+<span id="cb1-3"><a href="#cb1-3"></a></span>
+<span id="cb1-4"><a href="#cb1-4"></a>adsl <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadsl</span>
+<span id="cb1-5"><a href="#cb1-5"></a>adhy <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadhy</span>
+<span id="cb1-6"><a href="#cb1-6"></a></span>
+<span id="cb1-7"><a href="#cb1-7"></a>adhy_liver <span class="ot">&lt;-</span> adhy <span class="sc">%&gt;%</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>  <span class="fu">filter</span>(PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(</span>
+<span id="cb1-9"><a href="#cb1-9"></a>    <span class="st">"BL2AL2CU"</span>, <span class="st">"BL2AS2CU"</span>, <span class="st">"BG2AL2CU"</span>, <span class="st">"BG2AS2CU"</span>, <span class="st">"B2A2L2CU"</span>, <span class="st">"B2A2S2CU"</span>, <span class="st">"B2A5L2CU"</span>, <span class="st">"B2A5S2CU"</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a>  )) <span class="sc">%&gt;%</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>  <span class="fu">mutate</span>(<span class="at">PARAMCAT =</span> <span class="fu">case_when</span>(</span>
+<span id="cb1-12"><a href="#cb1-12"></a>    PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"BL2AL2CU"</span>, <span class="st">"BL2AS2CU"</span>) <span class="sc">~</span> <span class="st">"Total Bilirubin &lt;= 2xULN"</span>,</span>
+<span id="cb1-13"><a href="#cb1-13"></a>    PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"BG2AL2CU"</span>, <span class="st">"BG2AS2CU"</span>) <span class="sc">~</span> <span class="st">"Total Bilirubin &gt; 2xULN"</span>,</span>
+<span id="cb1-14"><a href="#cb1-14"></a>    PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"B2A2L2CU"</span>, <span class="st">"B2A2S2CU"</span>) <span class="sc">~</span> <span class="st">"Total Bilirubin &gt; 2xULN and Alkaline Phosphatase &lt;= 2xULN"</span>,</span>
+<span id="cb1-15"><a href="#cb1-15"></a>    PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"B2A5L2CU"</span>, <span class="st">"B2A5S2CU"</span>) <span class="sc">~</span> <span class="st">"Total Bilirubin &gt; 2xULN and Alkaline Phosphatase &lt;= 5xULN"</span></span>
+<span id="cb1-16"><a href="#cb1-16"></a>  )) <span class="sc">%&gt;%</span></span>
+<span id="cb1-17"><a href="#cb1-17"></a>  <span class="fu">mutate</span>(<span class="at">AVALC_FORMAT =</span> <span class="fu">case_when</span>(</span>
+<span id="cb1-18"><a href="#cb1-18"></a>    PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"BL2AL2CU"</span>, <span class="st">"BG2AL2CU"</span>, <span class="st">"B2A2L2CU"</span>, <span class="st">"B2A5L2CU"</span>) <span class="sc">&amp;</span> AVALC <span class="sc">==</span> <span class="st">"Y"</span> <span class="sc">~</span> <span class="st">"ALT &gt;3xULN at 2 Visits"</span>,</span>
+<span id="cb1-19"><a href="#cb1-19"></a>    PARAMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"BL2AS2CU"</span>, <span class="st">"BG2AS2CU"</span>, <span class="st">"B2A2S2CU"</span>, <span class="st">"B2A5S2CU"</span>) <span class="sc">&amp;</span> AVALC <span class="sc">==</span> <span class="st">"Y"</span> <span class="sc">~</span> <span class="st">"AST &gt;3xULN at 2 Visits"</span>,</span>
+<span id="cb1-20"><a href="#cb1-20"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Criteria not met"</span></span>
+<span id="cb1-21"><a href="#cb1-21"></a>  ))</span>
+<span id="cb1-22"><a href="#cb1-22"></a></span>
+<span id="cb1-23"><a href="#cb1-23"></a><span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb1-24"><a href="#cb1-24"></a>adsl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adsl)</span>
+<span id="cb1-25"><a href="#cb1-25"></a>anl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adhy_liver)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
@@ -2801,7 +2799,7 @@ Experimental use!
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-05-11 17:37:22 UTC"</code></pre>
+<pre><code>[1] "2024-05-15 12:58:46 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2826,23 +2824,35 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] tern_0.9.4.9006       rtables_0.6.7.9001    magrittr_2.0.3       
-[4] formatters_0.5.6.9004 dplyr_1.1.4           scda.2022_0.1.5.9006 
-[7] scda_0.1.6.9019      
+[1] tern_0.9.4.9007       rtables_0.6.7.9002    magrittr_2.0.3       
+[4] formatters_0.5.6.9004 dplyr_1.1.4          
 
 loaded via a namespace (and not attached):
- [1] Matrix_1.7-0      gtable_0.3.5      jsonlite_1.8.8    compiler_4.4.0   
- [5] brio_1.1.5        tidyselect_1.2.1  tidyr_1.3.1       splines_4.4.0    
- [9] scales_1.3.0      yaml_2.3.8        fastmap_1.1.1     lattice_0.22-6   
-[13] ggplot2_3.5.1     R6_2.5.1          generics_0.1.3    knitr_1.46       
-[17] forcats_1.0.0     rbibutils_2.2.16  htmlwidgets_1.6.4 backports_1.4.1  
-[21] checkmate_2.3.1   tibble_3.2.1      munsell_0.5.1     pillar_1.9.0     
-[25] rlang_1.1.3       utf8_1.2.4        testthat_3.2.1.1  stringi_1.8.3    
-[29] broom_1.0.5       xfun_0.43         cli_3.6.2         Rdpack_2.6       
-[33] digest_0.6.35     grid_4.4.0        lifecycle_1.0.4   vctrs_0.6.5      
-[37] evaluate_0.23     glue_1.7.0        codetools_0.2-20  survival_3.6-4   
-[41] colorspace_2.1-0  fansi_1.0.6       purrr_1.0.2       rmarkdown_2.26   
-[45] tools_4.4.0       pkgconfig_2.0.3   htmltools_0.5.8.1</code></pre>
+ [1] Matrix_1.7-0                  gtable_0.3.5                 
+ [3] jsonlite_1.8.8                compiler_4.4.0               
+ [5] brio_1.1.5                    tidyselect_1.2.1             
+ [7] stringr_1.5.1                 tidyr_1.3.1                  
+ [9] splines_4.4.0                 scales_1.3.0                 
+[11] yaml_2.3.8                    fastmap_1.1.1                
+[13] lattice_0.22-6                ggplot2_3.5.1                
+[15] R6_2.5.1                      generics_0.1.3               
+[17] knitr_1.46                    forcats_1.0.0                
+[19] rbibutils_2.2.16              htmlwidgets_1.6.4            
+[21] backports_1.4.1               checkmate_2.3.1              
+[23] tibble_3.2.1                  munsell_0.5.1                
+[25] pillar_1.9.0                  rlang_1.1.3                  
+[27] utf8_1.2.4                    testthat_3.2.1.1             
+[29] stringi_1.8.3                 broom_1.0.5                  
+[31] xfun_0.43                     cli_3.6.2                    
+[33] Rdpack_2.6                    digest_0.6.35                
+[35] grid_4.4.0                    lifecycle_1.0.4              
+[37] vctrs_0.6.5                   evaluate_0.23                
+[39] glue_1.7.0                    codetools_0.2-20             
+[41] survival_3.6-4                random.cdisc.data_0.3.15.9003
+[43] fansi_1.0.6                   colorspace_2.1-0             
+[45] purrr_1.0.2                   rmarkdown_2.26               
+[47] tools_4.4.0                   pkgconfig_2.0.3              
+[49] htmltools_0.5.8.1            </code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
@@ -3516,110 +3526,108 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb12-13"><a href="#cb12-13"></a><span class="in">```{r setup, message = FALSE}</span></span>
 <span id="cb12-14"><a href="#cb12-14"></a><span class="in">#| code-fold: show</span></span>
 <span id="cb12-15"><a href="#cb12-15"></a></span>
-<span id="cb12-16"><a href="#cb12-16"></a><span class="in">library(scda)</span></span>
-<span id="cb12-17"><a href="#cb12-17"></a><span class="in">library(scda.2022)</span></span>
-<span id="cb12-18"><a href="#cb12-18"></a><span class="in">library(dplyr)</span></span>
-<span id="cb12-19"><a href="#cb12-19"></a><span class="in">library(tern)</span></span>
-<span id="cb12-20"><a href="#cb12-20"></a></span>
-<span id="cb12-21"><a href="#cb12-21"></a><span class="in">adsl &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
-<span id="cb12-22"><a href="#cb12-22"></a><span class="in">adhy &lt;- synthetic_cdisc_dataset("latest", "adhy")</span></span>
-<span id="cb12-23"><a href="#cb12-23"></a></span>
-<span id="cb12-24"><a href="#cb12-24"></a><span class="in">adhy_liver &lt;- adhy %&gt;%</span></span>
-<span id="cb12-25"><a href="#cb12-25"></a><span class="in">  filter(PARAMCD %in% c(</span></span>
-<span id="cb12-26"><a href="#cb12-26"></a><span class="in">    "BL2AL2CU", "BL2AS2CU", "BG2AL2CU", "BG2AS2CU", "B2A2L2CU", "B2A2S2CU", "B2A5L2CU", "B2A5S2CU"</span></span>
-<span id="cb12-27"><a href="#cb12-27"></a><span class="in">  )) %&gt;%</span></span>
-<span id="cb12-28"><a href="#cb12-28"></a><span class="in">  mutate(PARAMCAT = case_when(</span></span>
-<span id="cb12-29"><a href="#cb12-29"></a><span class="in">    PARAMCD %in% c("BL2AL2CU", "BL2AS2CU") ~ "Total Bilirubin &lt;= 2xULN",</span></span>
-<span id="cb12-30"><a href="#cb12-30"></a><span class="in">    PARAMCD %in% c("BG2AL2CU", "BG2AS2CU") ~ "Total Bilirubin &gt; 2xULN",</span></span>
-<span id="cb12-31"><a href="#cb12-31"></a><span class="in">    PARAMCD %in% c("B2A2L2CU", "B2A2S2CU") ~ "Total Bilirubin &gt; 2xULN and Alkaline Phosphatase &lt;= 2xULN",</span></span>
-<span id="cb12-32"><a href="#cb12-32"></a><span class="in">    PARAMCD %in% c("B2A5L2CU", "B2A5S2CU") ~ "Total Bilirubin &gt; 2xULN and Alkaline Phosphatase &lt;= 5xULN"</span></span>
-<span id="cb12-33"><a href="#cb12-33"></a><span class="in">  )) %&gt;%</span></span>
-<span id="cb12-34"><a href="#cb12-34"></a><span class="in">  mutate(AVALC_FORMAT = case_when(</span></span>
-<span id="cb12-35"><a href="#cb12-35"></a><span class="in">    PARAMCD %in% c("BL2AL2CU", "BG2AL2CU", "B2A2L2CU", "B2A5L2CU") &amp; AVALC == "Y" ~ "ALT &gt;3xULN at 2 Visits",</span></span>
-<span id="cb12-36"><a href="#cb12-36"></a><span class="in">    PARAMCD %in% c("BL2AS2CU", "BG2AS2CU", "B2A2S2CU", "B2A5S2CU") &amp; AVALC == "Y" ~ "AST &gt;3xULN at 2 Visits",</span></span>
-<span id="cb12-37"><a href="#cb12-37"></a><span class="in">    TRUE ~ "Criteria not met"</span></span>
-<span id="cb12-38"><a href="#cb12-38"></a><span class="in">  ))</span></span>
-<span id="cb12-39"><a href="#cb12-39"></a></span>
-<span id="cb12-40"><a href="#cb12-40"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb12-41"><a href="#cb12-41"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb12-42"><a href="#cb12-42"></a><span class="in">anl &lt;- df_explicit_na(adhy_liver)</span></span>
-<span id="cb12-43"><a href="#cb12-43"></a><span class="in">```</span></span>
+<span id="cb12-16"><a href="#cb12-16"></a><span class="in">library(dplyr)</span></span>
+<span id="cb12-17"><a href="#cb12-17"></a><span class="in">library(tern)</span></span>
+<span id="cb12-18"><a href="#cb12-18"></a></span>
+<span id="cb12-19"><a href="#cb12-19"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb12-20"><a href="#cb12-20"></a><span class="in">adhy &lt;- random.cdisc.data::cadhy</span></span>
+<span id="cb12-21"><a href="#cb12-21"></a></span>
+<span id="cb12-22"><a href="#cb12-22"></a><span class="in">adhy_liver &lt;- adhy %&gt;%</span></span>
+<span id="cb12-23"><a href="#cb12-23"></a><span class="in">  filter(PARAMCD %in% c(</span></span>
+<span id="cb12-24"><a href="#cb12-24"></a><span class="in">    "BL2AL2CU", "BL2AS2CU", "BG2AL2CU", "BG2AS2CU", "B2A2L2CU", "B2A2S2CU", "B2A5L2CU", "B2A5S2CU"</span></span>
+<span id="cb12-25"><a href="#cb12-25"></a><span class="in">  )) %&gt;%</span></span>
+<span id="cb12-26"><a href="#cb12-26"></a><span class="in">  mutate(PARAMCAT = case_when(</span></span>
+<span id="cb12-27"><a href="#cb12-27"></a><span class="in">    PARAMCD %in% c("BL2AL2CU", "BL2AS2CU") ~ "Total Bilirubin &lt;= 2xULN",</span></span>
+<span id="cb12-28"><a href="#cb12-28"></a><span class="in">    PARAMCD %in% c("BG2AL2CU", "BG2AS2CU") ~ "Total Bilirubin &gt; 2xULN",</span></span>
+<span id="cb12-29"><a href="#cb12-29"></a><span class="in">    PARAMCD %in% c("B2A2L2CU", "B2A2S2CU") ~ "Total Bilirubin &gt; 2xULN and Alkaline Phosphatase &lt;= 2xULN",</span></span>
+<span id="cb12-30"><a href="#cb12-30"></a><span class="in">    PARAMCD %in% c("B2A5L2CU", "B2A5S2CU") ~ "Total Bilirubin &gt; 2xULN and Alkaline Phosphatase &lt;= 5xULN"</span></span>
+<span id="cb12-31"><a href="#cb12-31"></a><span class="in">  )) %&gt;%</span></span>
+<span id="cb12-32"><a href="#cb12-32"></a><span class="in">  mutate(AVALC_FORMAT = case_when(</span></span>
+<span id="cb12-33"><a href="#cb12-33"></a><span class="in">    PARAMCD %in% c("BL2AL2CU", "BG2AL2CU", "B2A2L2CU", "B2A5L2CU") &amp; AVALC == "Y" ~ "ALT &gt;3xULN at 2 Visits",</span></span>
+<span id="cb12-34"><a href="#cb12-34"></a><span class="in">    PARAMCD %in% c("BL2AS2CU", "BG2AS2CU", "B2A2S2CU", "B2A5S2CU") &amp; AVALC == "Y" ~ "AST &gt;3xULN at 2 Visits",</span></span>
+<span id="cb12-35"><a href="#cb12-35"></a><span class="in">    TRUE ~ "Criteria not met"</span></span>
+<span id="cb12-36"><a href="#cb12-36"></a><span class="in">  ))</span></span>
+<span id="cb12-37"><a href="#cb12-37"></a></span>
+<span id="cb12-38"><a href="#cb12-38"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb12-39"><a href="#cb12-39"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb12-40"><a href="#cb12-40"></a><span class="in">anl &lt;- df_explicit_na(adhy_liver)</span></span>
+<span id="cb12-41"><a href="#cb12-41"></a><span class="in">```</span></span>
+<span id="cb12-42"><a href="#cb12-42"></a></span>
+<span id="cb12-43"><a href="#cb12-43"></a><span class="fu">## Standard Table</span></span>
 <span id="cb12-44"><a href="#cb12-44"></a></span>
-<span id="cb12-45"><a href="#cb12-45"></a><span class="fu">## Standard Table</span></span>
-<span id="cb12-46"><a href="#cb12-46"></a></span>
-<span id="cb12-47"><a href="#cb12-47"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb12-48"><a href="#cb12-48"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb12-49"><a href="#cb12-49"></a></span>
-<span id="cb12-50"><a href="#cb12-50"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb12-51"><a href="#cb12-51"></a><span class="in">tbl &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb12-52"><a href="#cb12-52"></a><span class="in">  split_cols_by("ACTARMCD") %&gt;%</span></span>
-<span id="cb12-53"><a href="#cb12-53"></a><span class="in">  split_rows_by("PARAMCAT") %&gt;%</span></span>
-<span id="cb12-54"><a href="#cb12-54"></a><span class="in">  split_rows_by("PARAM", split_fun = drop_split_levels, child_labels = "hidden") %&gt;%</span></span>
-<span id="cb12-55"><a href="#cb12-55"></a><span class="in">  count_occurrences(</span></span>
-<span id="cb12-56"><a href="#cb12-56"></a><span class="in">    vars = "AVALC_FORMAT",</span></span>
-<span id="cb12-57"><a href="#cb12-57"></a><span class="in">    .stats = c("fraction"),</span></span>
-<span id="cb12-58"><a href="#cb12-58"></a><span class="in">    denom = "n",</span></span>
-<span id="cb12-59"><a href="#cb12-59"></a><span class="in">    drop = TRUE</span></span>
-<span id="cb12-60"><a href="#cb12-60"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-61"><a href="#cb12-61"></a><span class="in">  build_table(anl, alt_counts_df = adsl)</span></span>
-<span id="cb12-62"><a href="#cb12-62"></a></span>
-<span id="cb12-63"><a href="#cb12-63"></a><span class="in">criteria_fun &lt;- function(tr) {</span></span>
-<span id="cb12-64"><a href="#cb12-64"></a><span class="in">  row_label &lt;- obj_label(tr)</span></span>
-<span id="cb12-65"><a href="#cb12-65"></a><span class="in">  ifelse(row_label == "Criteria not met", TRUE, FALSE)</span></span>
-<span id="cb12-66"><a href="#cb12-66"></a><span class="in">}</span></span>
-<span id="cb12-67"><a href="#cb12-67"></a></span>
-<span id="cb12-68"><a href="#cb12-68"></a><span class="in">result &lt;- tbl %&gt;% trim_rows(criteria = criteria_fun)</span></span>
-<span id="cb12-69"><a href="#cb12-69"></a><span class="in">result</span></span>
-<span id="cb12-70"><a href="#cb12-70"></a><span class="in">```</span></span>
-<span id="cb12-71"><a href="#cb12-71"></a></span>
-<span id="cb12-72"><a href="#cb12-72"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
-<span id="cb12-73"><a href="#cb12-73"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb12-74"><a href="#cb12-74"></a>:::</span>
+<span id="cb12-45"><a href="#cb12-45"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb12-46"><a href="#cb12-46"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb12-47"><a href="#cb12-47"></a></span>
+<span id="cb12-48"><a href="#cb12-48"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb12-49"><a href="#cb12-49"></a><span class="in">tbl &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb12-50"><a href="#cb12-50"></a><span class="in">  split_cols_by("ACTARMCD") %&gt;%</span></span>
+<span id="cb12-51"><a href="#cb12-51"></a><span class="in">  split_rows_by("PARAMCAT") %&gt;%</span></span>
+<span id="cb12-52"><a href="#cb12-52"></a><span class="in">  split_rows_by("PARAM", split_fun = drop_split_levels, child_labels = "hidden") %&gt;%</span></span>
+<span id="cb12-53"><a href="#cb12-53"></a><span class="in">  count_occurrences(</span></span>
+<span id="cb12-54"><a href="#cb12-54"></a><span class="in">    vars = "AVALC_FORMAT",</span></span>
+<span id="cb12-55"><a href="#cb12-55"></a><span class="in">    .stats = c("fraction"),</span></span>
+<span id="cb12-56"><a href="#cb12-56"></a><span class="in">    denom = "n",</span></span>
+<span id="cb12-57"><a href="#cb12-57"></a><span class="in">    drop = TRUE</span></span>
+<span id="cb12-58"><a href="#cb12-58"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb12-59"><a href="#cb12-59"></a><span class="in">  build_table(anl, alt_counts_df = adsl)</span></span>
+<span id="cb12-60"><a href="#cb12-60"></a></span>
+<span id="cb12-61"><a href="#cb12-61"></a><span class="in">criteria_fun &lt;- function(tr) {</span></span>
+<span id="cb12-62"><a href="#cb12-62"></a><span class="in">  row_label &lt;- obj_label(tr)</span></span>
+<span id="cb12-63"><a href="#cb12-63"></a><span class="in">  ifelse(row_label == "Criteria not met", TRUE, FALSE)</span></span>
+<span id="cb12-64"><a href="#cb12-64"></a><span class="in">}</span></span>
+<span id="cb12-65"><a href="#cb12-65"></a></span>
+<span id="cb12-66"><a href="#cb12-66"></a><span class="in">result &lt;- tbl %&gt;% trim_rows(criteria = criteria_fun)</span></span>
+<span id="cb12-67"><a href="#cb12-67"></a><span class="in">result</span></span>
+<span id="cb12-68"><a href="#cb12-68"></a><span class="in">```</span></span>
+<span id="cb12-69"><a href="#cb12-69"></a></span>
+<span id="cb12-70"><a href="#cb12-70"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
+<span id="cb12-71"><a href="#cb12-71"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb12-72"><a href="#cb12-72"></a>:::</span>
+<span id="cb12-73"><a href="#cb12-73"></a></span>
+<span id="cb12-74"><a href="#cb12-74"></a><span class="fu">## Table Selecting Sections</span></span>
 <span id="cb12-75"><a href="#cb12-75"></a></span>
-<span id="cb12-76"><a href="#cb12-76"></a><span class="fu">## Table Selecting Sections</span></span>
-<span id="cb12-77"><a href="#cb12-77"></a></span>
-<span id="cb12-78"><a href="#cb12-78"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb12-79"><a href="#cb12-79"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb12-80"><a href="#cb12-80"></a></span>
-<span id="cb12-81"><a href="#cb12-81"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb12-82"><a href="#cb12-82"></a><span class="in">tbl2 &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb12-83"><a href="#cb12-83"></a><span class="in">  split_cols_by("ACTARMCD") %&gt;%</span></span>
-<span id="cb12-84"><a href="#cb12-84"></a><span class="in">  split_rows_by("PARAMCAT", split_fun = remove_split_levels("Total Bilirubin &gt; 2xULN")) %&gt;%</span></span>
-<span id="cb12-85"><a href="#cb12-85"></a><span class="in">  split_rows_by("PARAM", split_fun = drop_split_levels, child_labels = "hidden") %&gt;%</span></span>
-<span id="cb12-86"><a href="#cb12-86"></a><span class="in">  count_occurrences(</span></span>
-<span id="cb12-87"><a href="#cb12-87"></a><span class="in">    vars = "AVALC_FORMAT",</span></span>
-<span id="cb12-88"><a href="#cb12-88"></a><span class="in">    .stats = c("fraction"),</span></span>
-<span id="cb12-89"><a href="#cb12-89"></a><span class="in">    denom = "n",</span></span>
-<span id="cb12-90"><a href="#cb12-90"></a><span class="in">    drop = TRUE</span></span>
-<span id="cb12-91"><a href="#cb12-91"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-92"><a href="#cb12-92"></a><span class="in">  build_table(anl, alt_counts_df = adsl)</span></span>
-<span id="cb12-93"><a href="#cb12-93"></a></span>
-<span id="cb12-94"><a href="#cb12-94"></a><span class="in">criteria_fun &lt;- function(tr) {</span></span>
-<span id="cb12-95"><a href="#cb12-95"></a><span class="in">  row_label &lt;- obj_label(tr)</span></span>
-<span id="cb12-96"><a href="#cb12-96"></a><span class="in">  ifelse(row_label == "Criteria not met", TRUE, FALSE)</span></span>
-<span id="cb12-97"><a href="#cb12-97"></a><span class="in">}</span></span>
-<span id="cb12-98"><a href="#cb12-98"></a></span>
-<span id="cb12-99"><a href="#cb12-99"></a><span class="in">result &lt;- tbl2 %&gt;% trim_rows(criteria = criteria_fun)</span></span>
-<span id="cb12-100"><a href="#cb12-100"></a><span class="in">result</span></span>
-<span id="cb12-101"><a href="#cb12-101"></a><span class="in">```</span></span>
-<span id="cb12-102"><a href="#cb12-102"></a></span>
-<span id="cb12-103"><a href="#cb12-103"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
-<span id="cb12-104"><a href="#cb12-104"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb12-105"><a href="#cb12-105"></a>:::</span>
+<span id="cb12-76"><a href="#cb12-76"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb12-77"><a href="#cb12-77"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb12-78"><a href="#cb12-78"></a></span>
+<span id="cb12-79"><a href="#cb12-79"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb12-80"><a href="#cb12-80"></a><span class="in">tbl2 &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb12-81"><a href="#cb12-81"></a><span class="in">  split_cols_by("ACTARMCD") %&gt;%</span></span>
+<span id="cb12-82"><a href="#cb12-82"></a><span class="in">  split_rows_by("PARAMCAT", split_fun = remove_split_levels("Total Bilirubin &gt; 2xULN")) %&gt;%</span></span>
+<span id="cb12-83"><a href="#cb12-83"></a><span class="in">  split_rows_by("PARAM", split_fun = drop_split_levels, child_labels = "hidden") %&gt;%</span></span>
+<span id="cb12-84"><a href="#cb12-84"></a><span class="in">  count_occurrences(</span></span>
+<span id="cb12-85"><a href="#cb12-85"></a><span class="in">    vars = "AVALC_FORMAT",</span></span>
+<span id="cb12-86"><a href="#cb12-86"></a><span class="in">    .stats = c("fraction"),</span></span>
+<span id="cb12-87"><a href="#cb12-87"></a><span class="in">    denom = "n",</span></span>
+<span id="cb12-88"><a href="#cb12-88"></a><span class="in">    drop = TRUE</span></span>
+<span id="cb12-89"><a href="#cb12-89"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb12-90"><a href="#cb12-90"></a><span class="in">  build_table(anl, alt_counts_df = adsl)</span></span>
+<span id="cb12-91"><a href="#cb12-91"></a></span>
+<span id="cb12-92"><a href="#cb12-92"></a><span class="in">criteria_fun &lt;- function(tr) {</span></span>
+<span id="cb12-93"><a href="#cb12-93"></a><span class="in">  row_label &lt;- obj_label(tr)</span></span>
+<span id="cb12-94"><a href="#cb12-94"></a><span class="in">  ifelse(row_label == "Criteria not met", TRUE, FALSE)</span></span>
+<span id="cb12-95"><a href="#cb12-95"></a><span class="in">}</span></span>
+<span id="cb12-96"><a href="#cb12-96"></a></span>
+<span id="cb12-97"><a href="#cb12-97"></a><span class="in">result &lt;- tbl2 %&gt;% trim_rows(criteria = criteria_fun)</span></span>
+<span id="cb12-98"><a href="#cb12-98"></a><span class="in">result</span></span>
+<span id="cb12-99"><a href="#cb12-99"></a><span class="in">```</span></span>
+<span id="cb12-100"><a href="#cb12-100"></a></span>
+<span id="cb12-101"><a href="#cb12-101"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
+<span id="cb12-102"><a href="#cb12-102"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb12-103"><a href="#cb12-103"></a>:::</span>
+<span id="cb12-104"><a href="#cb12-104"></a></span>
+<span id="cb12-105"><a href="#cb12-105"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
 <span id="cb12-106"><a href="#cb12-106"></a></span>
-<span id="cb12-107"><a href="#cb12-107"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb12-107"><a href="#cb12-107"></a><span class="fu">## `teal` App</span></span>
 <span id="cb12-108"><a href="#cb12-108"></a></span>
-<span id="cb12-109"><a href="#cb12-109"></a><span class="fu">## `teal` App</span></span>
-<span id="cb12-110"><a href="#cb12-110"></a></span>
-<span id="cb12-111"><a href="#cb12-111"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb12-112"><a href="#cb12-112"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb12-113"><a href="#cb12-113"></a></span>
-<span id="cb12-114"><a href="#cb12-114"></a><span class="in"># In progress</span></span>
-<span id="cb12-115"><a href="#cb12-115"></a><span class="in">```</span></span>
+<span id="cb12-109"><a href="#cb12-109"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb12-110"><a href="#cb12-110"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb12-111"><a href="#cb12-111"></a></span>
+<span id="cb12-112"><a href="#cb12-112"></a><span class="in"># In progress</span></span>
+<span id="cb12-113"><a href="#cb12-113"></a><span class="in">```</span></span>
+<span id="cb12-114"><a href="#cb12-114"></a></span>
+<span id="cb12-115"><a href="#cb12-115"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
 <span id="cb12-116"><a href="#cb12-116"></a></span>
-<span id="cb12-117"><a href="#cb12-117"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb12-118"><a href="#cb12-118"></a></span>
-<span id="cb12-119"><a href="#cb12-119"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-117"><a href="#cb12-117"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

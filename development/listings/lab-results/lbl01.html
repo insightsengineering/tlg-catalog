@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"comment":"","fig-width":7,"results":"markup","editor-max-height":"500","warning":"true","label":"unnamed-chunk-1","read-only":"false","classes":"","autorun":"true","context":"interactive","dpi":72,"fig-cap":"","editor-font-scale":1,"out-height":"","editor-quick-suggestions":"false","output":"true","fig-height":5,"message":"true","out-width":"700px"},"code":"library(dplyr)\nlibrary(scda)\nlibrary(scda.2022)\nlibrary(rlistings)\n\nadlb <- synthetic_cdisc_dataset(\"latest\", \"adlb\")\n\nadlb_x <- adlb %>%\n  filter(!is.na(AVAL) & !is.na(LBSEQ) & !is.na(ADY) & ANRIND != \"\") %>%\n  mutate(\n    CPID = paste(SITEID, SUBJID, sep = \"/\"),\n    PARAM_U = paste0(PARAMCD, \"\\n(\", AVALU, \" / NCI CTCAE grade)\"),\n    ANRIND = factor(\n      case_when(\n        ANRIND == \"LOW\" ~ \"L\",\n        ANRIND == \"HIGH\" ~ \"H\",\n        TRUE ~ as.character(ANRIND)\n      ),\n      levels = c(\"\", \"H\", \"L\", \"NORMAL\")\n    ),\n    AVALC = as.character(format(round(AVAL, 2), nsmall = 2))\n  ) %>%\n  mutate(AVAL_GR = ifelse(\n    !ANRIND %in% c(\"H\", \"L\"),\n    AVALC,\n    paste(AVALC, paste0(ANRIND, sub(\"-\", \"\", ATOXGR)), sep = \" / \")\n  )) %>%\n  select(CPID, TRT01A, ADY, LBSEQ, PARAM_U, AVAL_GR) %>%\n  unique()\n\nout <- adlb_x %>%\n  arrange(CPID, ADY, PARAM_U, LBSEQ) %>%\n  tidyr::pivot_wider(\n    id_cols = c(TRT01A, CPID, ADY),\n    names_from = PARAM_U,\n    values_from = AVAL_GR\n  ) %>%\n  group_by(CPID) %>%\n  mutate(DLD = ADY - lag(ADY)) %>%\n  ungroup() %>%\n  select(CPID, TRT01A, ADY, DLD, unique(adlb_x$PARAM_U))\n\nvar_labels(out) <- names(out)\nout <- out %>%\n  var_relabel(\n    TRT01A = \"Treatment\",\n    CPID = \"Center/Patient ID\",\n    ADY = \"Study\\nDay\",\n    DLD = \"Days Since\\nLast Dose of\\nStudy Drug\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"CPID\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Laboratory Test Results\",\n  main_footer = \"NCI CTCAE grade is displayed as abnormal high (H) or low (L) followed by the grade.\"\n)\n\nhead(lsting, 20)","id":1}];
+globalThis.qwebrCellDetails = [{"id":1,"code":"library(dplyr)\nlibrary(rlistings)\n\nadlb <- random.cdisc.data::cadlb\n\nadlb_x <- adlb %>%\n  filter(!is.na(AVAL) & !is.na(LBSEQ) & !is.na(ADY) & ANRIND != \"\") %>%\n  mutate(\n    CPID = paste(SITEID, SUBJID, sep = \"/\"),\n    PARAM_U = paste0(PARAMCD, \"\\n(\", AVALU, \" / NCI CTCAE grade)\"),\n    ANRIND = factor(\n      case_when(\n        ANRIND == \"LOW\" ~ \"L\",\n        ANRIND == \"HIGH\" ~ \"H\",\n        TRUE ~ as.character(ANRIND)\n      ),\n      levels = c(\"\", \"H\", \"L\", \"NORMAL\")\n    ),\n    AVALC = as.character(format(round(AVAL, 2), nsmall = 2))\n  ) %>%\n  mutate(AVAL_GR = ifelse(\n    !ANRIND %in% c(\"H\", \"L\"),\n    AVALC,\n    paste(AVALC, paste0(ANRIND, sub(\"-\", \"\", ATOXGR)), sep = \" / \")\n  )) %>%\n  select(CPID, TRT01A, ADY, LBSEQ, PARAM_U, AVAL_GR) %>%\n  unique()\n\nout <- adlb_x %>%\n  arrange(CPID, ADY, PARAM_U, LBSEQ) %>%\n  tidyr::pivot_wider(\n    id_cols = c(TRT01A, CPID, ADY),\n    names_from = PARAM_U,\n    values_from = AVAL_GR\n  ) %>%\n  group_by(CPID) %>%\n  mutate(DLD = ADY - lag(ADY)) %>%\n  ungroup() %>%\n  select(CPID, TRT01A, ADY, DLD, unique(adlb_x$PARAM_U))\n\nvar_labels(out) <- names(out)\nout <- out %>%\n  var_relabel(\n    TRT01A = \"Treatment\",\n    CPID = \"Center/Patient ID\",\n    ADY = \"Study\\nDay\",\n    DLD = \"Days Since\\nLast Dose of\\nStudy Drug\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"CPID\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Laboratory Test Results\",\n  main_footer = \"NCI CTCAE grade is displayed as abnormal high (H) or low (L) followed by the grade.\"\n)\n\nhead(lsting, 20)","options":{"fig-width":7,"comment":"","autorun":"true","output":"true","warning":"true","fig-height":5,"message":"true","editor-max-height":"500","read-only":"false","out-width":"700px","fig-cap":"","editor-font-scale":1,"out-height":"","results":"markup","classes":"","dpi":72,"label":"unnamed-chunk-1","context":"interactive","editor-quick-suggestions":"false"}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2622,55 +2622,53 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <div class="cell">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(scda)</span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(scda<span class="fl">.2022</span>)</span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(rlistings)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(rlistings)</span>
+<span id="cb1-3"><a href="#cb1-3"></a></span>
+<span id="cb1-4"><a href="#cb1-4"></a>adlb <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadlb</span>
 <span id="cb1-5"><a href="#cb1-5"></a></span>
-<span id="cb1-6"><a href="#cb1-6"></a>adlb <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adlb"</span>)</span>
-<span id="cb1-7"><a href="#cb1-7"></a></span>
-<span id="cb1-8"><a href="#cb1-8"></a>adlb_x <span class="ot">&lt;-</span> adlb <span class="sc">%&gt;%</span></span>
-<span id="cb1-9"><a href="#cb1-9"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(AVAL) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(LBSEQ) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(ADY) <span class="sc">&amp;</span> ANRIND <span class="sc">!=</span> <span class="st">""</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-11"><a href="#cb1-11"></a>    <span class="at">CPID =</span> <span class="fu">paste</span>(SITEID, SUBJID, <span class="at">sep =</span> <span class="st">"/"</span>),</span>
-<span id="cb1-12"><a href="#cb1-12"></a>    <span class="at">PARAM_U =</span> <span class="fu">paste0</span>(PARAMCD, <span class="st">"</span><span class="sc">\n</span><span class="st">("</span>, AVALU, <span class="st">" / NCI CTCAE grade)"</span>),</span>
-<span id="cb1-13"><a href="#cb1-13"></a>    <span class="at">ANRIND =</span> <span class="fu">factor</span>(</span>
-<span id="cb1-14"><a href="#cb1-14"></a>      <span class="fu">case_when</span>(</span>
-<span id="cb1-15"><a href="#cb1-15"></a>        ANRIND <span class="sc">==</span> <span class="st">"LOW"</span> <span class="sc">~</span> <span class="st">"L"</span>,</span>
-<span id="cb1-16"><a href="#cb1-16"></a>        ANRIND <span class="sc">==</span> <span class="st">"HIGH"</span> <span class="sc">~</span> <span class="st">"H"</span>,</span>
-<span id="cb1-17"><a href="#cb1-17"></a>        <span class="cn">TRUE</span> <span class="sc">~</span> <span class="fu">as.character</span>(ANRIND)</span>
-<span id="cb1-18"><a href="#cb1-18"></a>      ),</span>
-<span id="cb1-19"><a href="#cb1-19"></a>      <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"H"</span>, <span class="st">"L"</span>, <span class="st">"NORMAL"</span>)</span>
-<span id="cb1-20"><a href="#cb1-20"></a>    ),</span>
-<span id="cb1-21"><a href="#cb1-21"></a>    <span class="at">AVALC =</span> <span class="fu">as.character</span>(<span class="fu">format</span>(<span class="fu">round</span>(AVAL, <span class="dv">2</span>), <span class="at">nsmall =</span> <span class="dv">2</span>))</span>
-<span id="cb1-22"><a href="#cb1-22"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-23"><a href="#cb1-23"></a>  <span class="fu">mutate</span>(<span class="at">AVAL_GR =</span> <span class="fu">ifelse</span>(</span>
-<span id="cb1-24"><a href="#cb1-24"></a>    <span class="sc">!</span>ANRIND <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"H"</span>, <span class="st">"L"</span>),</span>
-<span id="cb1-25"><a href="#cb1-25"></a>    AVALC,</span>
-<span id="cb1-26"><a href="#cb1-26"></a>    <span class="fu">paste</span>(AVALC, <span class="fu">paste0</span>(ANRIND, <span class="fu">sub</span>(<span class="st">"-"</span>, <span class="st">""</span>, ATOXGR)), <span class="at">sep =</span> <span class="st">" / "</span>)</span>
-<span id="cb1-27"><a href="#cb1-27"></a>  )) <span class="sc">%&gt;%</span></span>
-<span id="cb1-28"><a href="#cb1-28"></a>  <span class="fu">select</span>(CPID, TRT01A, ADY, LBSEQ, PARAM_U, AVAL_GR) <span class="sc">%&gt;%</span></span>
-<span id="cb1-29"><a href="#cb1-29"></a>  <span class="fu">unique</span>()</span>
-<span id="cb1-30"><a href="#cb1-30"></a></span>
-<span id="cb1-31"><a href="#cb1-31"></a>out <span class="ot">&lt;-</span> adlb_x <span class="sc">%&gt;%</span></span>
-<span id="cb1-32"><a href="#cb1-32"></a>  <span class="fu">arrange</span>(CPID, ADY, PARAM_U, LBSEQ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-33"><a href="#cb1-33"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(</span>
-<span id="cb1-34"><a href="#cb1-34"></a>    <span class="at">id_cols =</span> <span class="fu">c</span>(TRT01A, CPID, ADY),</span>
-<span id="cb1-35"><a href="#cb1-35"></a>    <span class="at">names_from =</span> PARAM_U,</span>
-<span id="cb1-36"><a href="#cb1-36"></a>    <span class="at">values_from =</span> AVAL_GR</span>
-<span id="cb1-37"><a href="#cb1-37"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-38"><a href="#cb1-38"></a>  <span class="fu">group_by</span>(CPID) <span class="sc">%&gt;%</span></span>
-<span id="cb1-39"><a href="#cb1-39"></a>  <span class="fu">mutate</span>(<span class="at">DLD =</span> ADY <span class="sc">-</span> <span class="fu">lag</span>(ADY)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-40"><a href="#cb1-40"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb1-41"><a href="#cb1-41"></a>  <span class="fu">select</span>(CPID, TRT01A, ADY, DLD, <span class="fu">unique</span>(adlb_x<span class="sc">$</span>PARAM_U))</span>
-<span id="cb1-42"><a href="#cb1-42"></a></span>
-<span id="cb1-43"><a href="#cb1-43"></a><span class="fu">var_labels</span>(out) <span class="ot">&lt;-</span> <span class="fu">names</span>(out)</span>
-<span id="cb1-44"><a href="#cb1-44"></a>out <span class="ot">&lt;-</span> out <span class="sc">%&gt;%</span></span>
-<span id="cb1-45"><a href="#cb1-45"></a>  <span class="fu">var_relabel</span>(</span>
-<span id="cb1-46"><a href="#cb1-46"></a>    <span class="at">TRT01A =</span> <span class="st">"Treatment"</span>,</span>
-<span id="cb1-47"><a href="#cb1-47"></a>    <span class="at">CPID =</span> <span class="st">"Center/Patient ID"</span>,</span>
-<span id="cb1-48"><a href="#cb1-48"></a>    <span class="at">ADY =</span> <span class="st">"Study</span><span class="sc">\n</span><span class="st">Day"</span>,</span>
-<span id="cb1-49"><a href="#cb1-49"></a>    <span class="at">DLD =</span> <span class="st">"Days Since</span><span class="sc">\n</span><span class="st">Last Dose of</span><span class="sc">\n</span><span class="st">Study Drug"</span></span>
-<span id="cb1-50"><a href="#cb1-50"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-6"><a href="#cb1-6"></a>adlb_x <span class="ot">&lt;-</span> adlb <span class="sc">%&gt;%</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(AVAL) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(LBSEQ) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(ADY) <span class="sc">&amp;</span> ANRIND <span class="sc">!=</span> <span class="st">""</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-9"><a href="#cb1-9"></a>    <span class="at">CPID =</span> <span class="fu">paste</span>(SITEID, SUBJID, <span class="at">sep =</span> <span class="st">"/"</span>),</span>
+<span id="cb1-10"><a href="#cb1-10"></a>    <span class="at">PARAM_U =</span> <span class="fu">paste0</span>(PARAMCD, <span class="st">"</span><span class="sc">\n</span><span class="st">("</span>, AVALU, <span class="st">" / NCI CTCAE grade)"</span>),</span>
+<span id="cb1-11"><a href="#cb1-11"></a>    <span class="at">ANRIND =</span> <span class="fu">factor</span>(</span>
+<span id="cb1-12"><a href="#cb1-12"></a>      <span class="fu">case_when</span>(</span>
+<span id="cb1-13"><a href="#cb1-13"></a>        ANRIND <span class="sc">==</span> <span class="st">"LOW"</span> <span class="sc">~</span> <span class="st">"L"</span>,</span>
+<span id="cb1-14"><a href="#cb1-14"></a>        ANRIND <span class="sc">==</span> <span class="st">"HIGH"</span> <span class="sc">~</span> <span class="st">"H"</span>,</span>
+<span id="cb1-15"><a href="#cb1-15"></a>        <span class="cn">TRUE</span> <span class="sc">~</span> <span class="fu">as.character</span>(ANRIND)</span>
+<span id="cb1-16"><a href="#cb1-16"></a>      ),</span>
+<span id="cb1-17"><a href="#cb1-17"></a>      <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"H"</span>, <span class="st">"L"</span>, <span class="st">"NORMAL"</span>)</span>
+<span id="cb1-18"><a href="#cb1-18"></a>    ),</span>
+<span id="cb1-19"><a href="#cb1-19"></a>    <span class="at">AVALC =</span> <span class="fu">as.character</span>(<span class="fu">format</span>(<span class="fu">round</span>(AVAL, <span class="dv">2</span>), <span class="at">nsmall =</span> <span class="dv">2</span>))</span>
+<span id="cb1-20"><a href="#cb1-20"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-21"><a href="#cb1-21"></a>  <span class="fu">mutate</span>(<span class="at">AVAL_GR =</span> <span class="fu">ifelse</span>(</span>
+<span id="cb1-22"><a href="#cb1-22"></a>    <span class="sc">!</span>ANRIND <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"H"</span>, <span class="st">"L"</span>),</span>
+<span id="cb1-23"><a href="#cb1-23"></a>    AVALC,</span>
+<span id="cb1-24"><a href="#cb1-24"></a>    <span class="fu">paste</span>(AVALC, <span class="fu">paste0</span>(ANRIND, <span class="fu">sub</span>(<span class="st">"-"</span>, <span class="st">""</span>, ATOXGR)), <span class="at">sep =</span> <span class="st">" / "</span>)</span>
+<span id="cb1-25"><a href="#cb1-25"></a>  )) <span class="sc">%&gt;%</span></span>
+<span id="cb1-26"><a href="#cb1-26"></a>  <span class="fu">select</span>(CPID, TRT01A, ADY, LBSEQ, PARAM_U, AVAL_GR) <span class="sc">%&gt;%</span></span>
+<span id="cb1-27"><a href="#cb1-27"></a>  <span class="fu">unique</span>()</span>
+<span id="cb1-28"><a href="#cb1-28"></a></span>
+<span id="cb1-29"><a href="#cb1-29"></a>out <span class="ot">&lt;-</span> adlb_x <span class="sc">%&gt;%</span></span>
+<span id="cb1-30"><a href="#cb1-30"></a>  <span class="fu">arrange</span>(CPID, ADY, PARAM_U, LBSEQ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-31"><a href="#cb1-31"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(</span>
+<span id="cb1-32"><a href="#cb1-32"></a>    <span class="at">id_cols =</span> <span class="fu">c</span>(TRT01A, CPID, ADY),</span>
+<span id="cb1-33"><a href="#cb1-33"></a>    <span class="at">names_from =</span> PARAM_U,</span>
+<span id="cb1-34"><a href="#cb1-34"></a>    <span class="at">values_from =</span> AVAL_GR</span>
+<span id="cb1-35"><a href="#cb1-35"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-36"><a href="#cb1-36"></a>  <span class="fu">group_by</span>(CPID) <span class="sc">%&gt;%</span></span>
+<span id="cb1-37"><a href="#cb1-37"></a>  <span class="fu">mutate</span>(<span class="at">DLD =</span> ADY <span class="sc">-</span> <span class="fu">lag</span>(ADY)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-38"><a href="#cb1-38"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-39"><a href="#cb1-39"></a>  <span class="fu">select</span>(CPID, TRT01A, ADY, DLD, <span class="fu">unique</span>(adlb_x<span class="sc">$</span>PARAM_U))</span>
+<span id="cb1-40"><a href="#cb1-40"></a></span>
+<span id="cb1-41"><a href="#cb1-41"></a><span class="fu">var_labels</span>(out) <span class="ot">&lt;-</span> <span class="fu">names</span>(out)</span>
+<span id="cb1-42"><a href="#cb1-42"></a>out <span class="ot">&lt;-</span> out <span class="sc">%&gt;%</span></span>
+<span id="cb1-43"><a href="#cb1-43"></a>  <span class="fu">var_relabel</span>(</span>
+<span id="cb1-44"><a href="#cb1-44"></a>    <span class="at">TRT01A =</span> <span class="st">"Treatment"</span>,</span>
+<span id="cb1-45"><a href="#cb1-45"></a>    <span class="at">CPID =</span> <span class="st">"Center/Patient ID"</span>,</span>
+<span id="cb1-46"><a href="#cb1-46"></a>    <span class="at">ADY =</span> <span class="st">"Study</span><span class="sc">\n</span><span class="st">Day"</span>,</span>
+<span id="cb1-47"><a href="#cb1-47"></a>    <span class="at">DLD =</span> <span class="st">"Days Since</span><span class="sc">\n</span><span class="st">Last Dose of</span><span class="sc">\n</span><span class="st">Study Drug"</span></span>
+<span id="cb1-48"><a href="#cb1-48"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
@@ -2760,7 +2758,7 @@ Experimental use!
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-05-11 18:00:14 UTC"</code></pre>
+<pre><code>[1] "2024-05-15 13:21:35 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2786,18 +2784,28 @@ attached base packages:
 
 other attached packages:
 [1] rlistings_0.2.8.9001  tibble_3.2.1          formatters_0.5.6.9004
-[4] scda.2022_0.1.5.9006  scda_0.1.6.9019       dplyr_1.1.4          
+[4] dplyr_1.1.4          
 
 loaded via a namespace (and not attached):
- [1] vctrs_0.6.5       cli_3.6.2         knitr_1.46        rlang_1.1.3      
- [5] xfun_0.43         stringi_1.8.3     purrr_1.0.2       generics_0.1.3   
- [9] jsonlite_1.8.8    glue_1.7.0        backports_1.4.1   htmltools_0.5.8.1
-[13] brio_1.1.5        fansi_1.0.6       rmarkdown_2.26    grid_4.4.0       
-[17] evaluate_0.23     fastmap_1.1.1     yaml_2.3.8        lifecycle_1.0.4  
-[21] compiler_4.4.0    codetools_0.2-20  htmlwidgets_1.6.4 testthat_3.2.1.1 
-[25] pkgconfig_2.0.3   tidyr_1.3.1       digest_0.6.35     R6_2.5.1         
-[29] tidyselect_1.2.1  utf8_1.2.4        pillar_1.9.0      magrittr_2.0.3   
-[33] checkmate_2.3.1   withr_3.0.0       tools_4.4.0      </code></pre>
+ [1] vctrs_0.6.5                   cli_3.6.2                    
+ [3] knitr_1.46                    rlang_1.1.3                  
+ [5] xfun_0.43                     stringi_1.8.3                
+ [7] purrr_1.0.2                   generics_0.1.3               
+ [9] jsonlite_1.8.8                glue_1.7.0                   
+[11] backports_1.4.1               htmltools_0.5.8.1            
+[13] brio_1.1.5                    fansi_1.0.6                  
+[15] rmarkdown_2.26                grid_4.4.0                   
+[17] evaluate_0.23                 fastmap_1.1.1                
+[19] yaml_2.3.8                    lifecycle_1.0.4              
+[21] stringr_1.5.1                 compiler_4.4.0               
+[23] codetools_0.2-20              htmlwidgets_1.6.4            
+[25] testthat_3.2.1.1              pkgconfig_2.0.3              
+[27] tidyr_1.3.1                   random.cdisc.data_0.3.15.9003
+[29] digest_0.6.35                 R6_2.5.1                     
+[31] tidyselect_1.2.1              utf8_1.2.4                   
+[33] pillar_1.9.0                  magrittr_2.0.3               
+[35] checkmate_2.3.1               withr_3.0.0                  
+[37] tools_4.4.0                  </code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
@@ -3472,83 +3480,81 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb9-14"><a href="#cb9-14"></a><span class="in">#| code-fold: show</span></span>
 <span id="cb9-15"><a href="#cb9-15"></a></span>
 <span id="cb9-16"><a href="#cb9-16"></a><span class="in">library(dplyr)</span></span>
-<span id="cb9-17"><a href="#cb9-17"></a><span class="in">library(scda)</span></span>
-<span id="cb9-18"><a href="#cb9-18"></a><span class="in">library(scda.2022)</span></span>
-<span id="cb9-19"><a href="#cb9-19"></a><span class="in">library(rlistings)</span></span>
+<span id="cb9-17"><a href="#cb9-17"></a><span class="in">library(rlistings)</span></span>
+<span id="cb9-18"><a href="#cb9-18"></a></span>
+<span id="cb9-19"><a href="#cb9-19"></a><span class="in">adlb &lt;- random.cdisc.data::cadlb</span></span>
 <span id="cb9-20"><a href="#cb9-20"></a></span>
-<span id="cb9-21"><a href="#cb9-21"></a><span class="in">adlb &lt;- synthetic_cdisc_dataset("latest", "adlb")</span></span>
-<span id="cb9-22"><a href="#cb9-22"></a></span>
-<span id="cb9-23"><a href="#cb9-23"></a><span class="in">adlb_x &lt;- adlb %&gt;%</span></span>
-<span id="cb9-24"><a href="#cb9-24"></a><span class="in">  filter(!is.na(AVAL) &amp; !is.na(LBSEQ) &amp; !is.na(ADY) &amp; ANRIND != "") %&gt;%</span></span>
-<span id="cb9-25"><a href="#cb9-25"></a><span class="in">  mutate(</span></span>
-<span id="cb9-26"><a href="#cb9-26"></a><span class="in">    CPID = paste(SITEID, SUBJID, sep = "/"),</span></span>
-<span id="cb9-27"><a href="#cb9-27"></a><span class="in">    PARAM_U = paste0(PARAMCD, "\n(", AVALU, " / NCI CTCAE grade)"),</span></span>
-<span id="cb9-28"><a href="#cb9-28"></a><span class="in">    ANRIND = factor(</span></span>
-<span id="cb9-29"><a href="#cb9-29"></a><span class="in">      case_when(</span></span>
-<span id="cb9-30"><a href="#cb9-30"></a><span class="in">        ANRIND == "LOW" ~ "L",</span></span>
-<span id="cb9-31"><a href="#cb9-31"></a><span class="in">        ANRIND == "HIGH" ~ "H",</span></span>
-<span id="cb9-32"><a href="#cb9-32"></a><span class="in">        TRUE ~ as.character(ANRIND)</span></span>
-<span id="cb9-33"><a href="#cb9-33"></a><span class="in">      ),</span></span>
-<span id="cb9-34"><a href="#cb9-34"></a><span class="in">      levels = c("", "H", "L", "NORMAL")</span></span>
-<span id="cb9-35"><a href="#cb9-35"></a><span class="in">    ),</span></span>
-<span id="cb9-36"><a href="#cb9-36"></a><span class="in">    AVALC = as.character(format(round(AVAL, 2), nsmall = 2))</span></span>
-<span id="cb9-37"><a href="#cb9-37"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb9-38"><a href="#cb9-38"></a><span class="in">  mutate(AVAL_GR = ifelse(</span></span>
-<span id="cb9-39"><a href="#cb9-39"></a><span class="in">    !ANRIND %in% c("H", "L"),</span></span>
-<span id="cb9-40"><a href="#cb9-40"></a><span class="in">    AVALC,</span></span>
-<span id="cb9-41"><a href="#cb9-41"></a><span class="in">    paste(AVALC, paste0(ANRIND, sub("-", "", ATOXGR)), sep = " / ")</span></span>
-<span id="cb9-42"><a href="#cb9-42"></a><span class="in">  )) %&gt;%</span></span>
-<span id="cb9-43"><a href="#cb9-43"></a><span class="in">  select(CPID, TRT01A, ADY, LBSEQ, PARAM_U, AVAL_GR) %&gt;%</span></span>
-<span id="cb9-44"><a href="#cb9-44"></a><span class="in">  unique()</span></span>
-<span id="cb9-45"><a href="#cb9-45"></a></span>
-<span id="cb9-46"><a href="#cb9-46"></a><span class="in">out &lt;- adlb_x %&gt;%</span></span>
-<span id="cb9-47"><a href="#cb9-47"></a><span class="in">  arrange(CPID, ADY, PARAM_U, LBSEQ) %&gt;%</span></span>
-<span id="cb9-48"><a href="#cb9-48"></a><span class="in">  tidyr::pivot_wider(</span></span>
-<span id="cb9-49"><a href="#cb9-49"></a><span class="in">    id_cols = c(TRT01A, CPID, ADY),</span></span>
-<span id="cb9-50"><a href="#cb9-50"></a><span class="in">    names_from = PARAM_U,</span></span>
-<span id="cb9-51"><a href="#cb9-51"></a><span class="in">    values_from = AVAL_GR</span></span>
-<span id="cb9-52"><a href="#cb9-52"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb9-53"><a href="#cb9-53"></a><span class="in">  group_by(CPID) %&gt;%</span></span>
-<span id="cb9-54"><a href="#cb9-54"></a><span class="in">  mutate(DLD = ADY - lag(ADY)) %&gt;%</span></span>
-<span id="cb9-55"><a href="#cb9-55"></a><span class="in">  ungroup() %&gt;%</span></span>
-<span id="cb9-56"><a href="#cb9-56"></a><span class="in">  select(CPID, TRT01A, ADY, DLD, unique(adlb_x$PARAM_U))</span></span>
-<span id="cb9-57"><a href="#cb9-57"></a></span>
-<span id="cb9-58"><a href="#cb9-58"></a><span class="in">var_labels(out) &lt;- names(out)</span></span>
-<span id="cb9-59"><a href="#cb9-59"></a><span class="in">out &lt;- out %&gt;%</span></span>
-<span id="cb9-60"><a href="#cb9-60"></a><span class="in">  var_relabel(</span></span>
-<span id="cb9-61"><a href="#cb9-61"></a><span class="in">    TRT01A = "Treatment",</span></span>
-<span id="cb9-62"><a href="#cb9-62"></a><span class="in">    CPID = "Center/Patient ID",</span></span>
-<span id="cb9-63"><a href="#cb9-63"></a><span class="in">    ADY = "Study\nDay",</span></span>
-<span id="cb9-64"><a href="#cb9-64"></a><span class="in">    DLD = "Days Since\nLast Dose of\nStudy Drug"</span></span>
-<span id="cb9-65"><a href="#cb9-65"></a><span class="in">  )</span></span>
-<span id="cb9-66"><a href="#cb9-66"></a><span class="in">```</span></span>
+<span id="cb9-21"><a href="#cb9-21"></a><span class="in">adlb_x &lt;- adlb %&gt;%</span></span>
+<span id="cb9-22"><a href="#cb9-22"></a><span class="in">  filter(!is.na(AVAL) &amp; !is.na(LBSEQ) &amp; !is.na(ADY) &amp; ANRIND != "") %&gt;%</span></span>
+<span id="cb9-23"><a href="#cb9-23"></a><span class="in">  mutate(</span></span>
+<span id="cb9-24"><a href="#cb9-24"></a><span class="in">    CPID = paste(SITEID, SUBJID, sep = "/"),</span></span>
+<span id="cb9-25"><a href="#cb9-25"></a><span class="in">    PARAM_U = paste0(PARAMCD, "\n(", AVALU, " / NCI CTCAE grade)"),</span></span>
+<span id="cb9-26"><a href="#cb9-26"></a><span class="in">    ANRIND = factor(</span></span>
+<span id="cb9-27"><a href="#cb9-27"></a><span class="in">      case_when(</span></span>
+<span id="cb9-28"><a href="#cb9-28"></a><span class="in">        ANRIND == "LOW" ~ "L",</span></span>
+<span id="cb9-29"><a href="#cb9-29"></a><span class="in">        ANRIND == "HIGH" ~ "H",</span></span>
+<span id="cb9-30"><a href="#cb9-30"></a><span class="in">        TRUE ~ as.character(ANRIND)</span></span>
+<span id="cb9-31"><a href="#cb9-31"></a><span class="in">      ),</span></span>
+<span id="cb9-32"><a href="#cb9-32"></a><span class="in">      levels = c("", "H", "L", "NORMAL")</span></span>
+<span id="cb9-33"><a href="#cb9-33"></a><span class="in">    ),</span></span>
+<span id="cb9-34"><a href="#cb9-34"></a><span class="in">    AVALC = as.character(format(round(AVAL, 2), nsmall = 2))</span></span>
+<span id="cb9-35"><a href="#cb9-35"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb9-36"><a href="#cb9-36"></a><span class="in">  mutate(AVAL_GR = ifelse(</span></span>
+<span id="cb9-37"><a href="#cb9-37"></a><span class="in">    !ANRIND %in% c("H", "L"),</span></span>
+<span id="cb9-38"><a href="#cb9-38"></a><span class="in">    AVALC,</span></span>
+<span id="cb9-39"><a href="#cb9-39"></a><span class="in">    paste(AVALC, paste0(ANRIND, sub("-", "", ATOXGR)), sep = " / ")</span></span>
+<span id="cb9-40"><a href="#cb9-40"></a><span class="in">  )) %&gt;%</span></span>
+<span id="cb9-41"><a href="#cb9-41"></a><span class="in">  select(CPID, TRT01A, ADY, LBSEQ, PARAM_U, AVAL_GR) %&gt;%</span></span>
+<span id="cb9-42"><a href="#cb9-42"></a><span class="in">  unique()</span></span>
+<span id="cb9-43"><a href="#cb9-43"></a></span>
+<span id="cb9-44"><a href="#cb9-44"></a><span class="in">out &lt;- adlb_x %&gt;%</span></span>
+<span id="cb9-45"><a href="#cb9-45"></a><span class="in">  arrange(CPID, ADY, PARAM_U, LBSEQ) %&gt;%</span></span>
+<span id="cb9-46"><a href="#cb9-46"></a><span class="in">  tidyr::pivot_wider(</span></span>
+<span id="cb9-47"><a href="#cb9-47"></a><span class="in">    id_cols = c(TRT01A, CPID, ADY),</span></span>
+<span id="cb9-48"><a href="#cb9-48"></a><span class="in">    names_from = PARAM_U,</span></span>
+<span id="cb9-49"><a href="#cb9-49"></a><span class="in">    values_from = AVAL_GR</span></span>
+<span id="cb9-50"><a href="#cb9-50"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb9-51"><a href="#cb9-51"></a><span class="in">  group_by(CPID) %&gt;%</span></span>
+<span id="cb9-52"><a href="#cb9-52"></a><span class="in">  mutate(DLD = ADY - lag(ADY)) %&gt;%</span></span>
+<span id="cb9-53"><a href="#cb9-53"></a><span class="in">  ungroup() %&gt;%</span></span>
+<span id="cb9-54"><a href="#cb9-54"></a><span class="in">  select(CPID, TRT01A, ADY, DLD, unique(adlb_x$PARAM_U))</span></span>
+<span id="cb9-55"><a href="#cb9-55"></a></span>
+<span id="cb9-56"><a href="#cb9-56"></a><span class="in">var_labels(out) &lt;- names(out)</span></span>
+<span id="cb9-57"><a href="#cb9-57"></a><span class="in">out &lt;- out %&gt;%</span></span>
+<span id="cb9-58"><a href="#cb9-58"></a><span class="in">  var_relabel(</span></span>
+<span id="cb9-59"><a href="#cb9-59"></a><span class="in">    TRT01A = "Treatment",</span></span>
+<span id="cb9-60"><a href="#cb9-60"></a><span class="in">    CPID = "Center/Patient ID",</span></span>
+<span id="cb9-61"><a href="#cb9-61"></a><span class="in">    ADY = "Study\nDay",</span></span>
+<span id="cb9-62"><a href="#cb9-62"></a><span class="in">    DLD = "Days Since\nLast Dose of\nStudy Drug"</span></span>
+<span id="cb9-63"><a href="#cb9-63"></a><span class="in">  )</span></span>
+<span id="cb9-64"><a href="#cb9-64"></a><span class="in">```</span></span>
+<span id="cb9-65"><a href="#cb9-65"></a></span>
+<span id="cb9-66"><a href="#cb9-66"></a><span class="fu">## Standard Listing</span></span>
 <span id="cb9-67"><a href="#cb9-67"></a></span>
-<span id="cb9-68"><a href="#cb9-68"></a><span class="fu">## Standard Listing</span></span>
-<span id="cb9-69"><a href="#cb9-69"></a></span>
-<span id="cb9-70"><a href="#cb9-70"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb9-71"><a href="#cb9-71"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb9-72"><a href="#cb9-72"></a></span>
-<span id="cb9-73"><a href="#cb9-73"></a><span class="in">```{r lsting, test = list(lsting = "lsting")}</span></span>
-<span id="cb9-74"><a href="#cb9-74"></a><span class="in">lsting &lt;- as_listing(</span></span>
-<span id="cb9-75"><a href="#cb9-75"></a><span class="in">  out,</span></span>
-<span id="cb9-76"><a href="#cb9-76"></a><span class="in">  key_cols = c("TRT01A", "CPID"),</span></span>
-<span id="cb9-77"><a href="#cb9-77"></a><span class="in">  disp_cols = names(out),</span></span>
-<span id="cb9-78"><a href="#cb9-78"></a><span class="in">  main_title = "Listing of Laboratory Test Results",</span></span>
-<span id="cb9-79"><a href="#cb9-79"></a><span class="in">  main_footer = "NCI CTCAE grade is displayed as abnormal high (H) or low (L) followed by the grade."</span></span>
-<span id="cb9-80"><a href="#cb9-80"></a><span class="in">)</span></span>
-<span id="cb9-81"><a href="#cb9-81"></a></span>
-<span id="cb9-82"><a href="#cb9-82"></a><span class="in">head(lsting, 20)</span></span>
-<span id="cb9-83"><a href="#cb9-83"></a><span class="in">```</span></span>
-<span id="cb9-84"><a href="#cb9-84"></a></span>
-<span id="cb9-85"><a href="#cb9-85"></a><span class="in">`r webr_code_labels &lt;- c("setup", "lsting")`</span></span>
-<span id="cb9-86"><a href="#cb9-86"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb9-87"><a href="#cb9-87"></a>:::</span>
+<span id="cb9-68"><a href="#cb9-68"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb9-69"><a href="#cb9-69"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb9-70"><a href="#cb9-70"></a></span>
+<span id="cb9-71"><a href="#cb9-71"></a><span class="in">```{r lsting, test = list(lsting = "lsting")}</span></span>
+<span id="cb9-72"><a href="#cb9-72"></a><span class="in">lsting &lt;- as_listing(</span></span>
+<span id="cb9-73"><a href="#cb9-73"></a><span class="in">  out,</span></span>
+<span id="cb9-74"><a href="#cb9-74"></a><span class="in">  key_cols = c("TRT01A", "CPID"),</span></span>
+<span id="cb9-75"><a href="#cb9-75"></a><span class="in">  disp_cols = names(out),</span></span>
+<span id="cb9-76"><a href="#cb9-76"></a><span class="in">  main_title = "Listing of Laboratory Test Results",</span></span>
+<span id="cb9-77"><a href="#cb9-77"></a><span class="in">  main_footer = "NCI CTCAE grade is displayed as abnormal high (H) or low (L) followed by the grade."</span></span>
+<span id="cb9-78"><a href="#cb9-78"></a><span class="in">)</span></span>
+<span id="cb9-79"><a href="#cb9-79"></a></span>
+<span id="cb9-80"><a href="#cb9-80"></a><span class="in">head(lsting, 20)</span></span>
+<span id="cb9-81"><a href="#cb9-81"></a><span class="in">```</span></span>
+<span id="cb9-82"><a href="#cb9-82"></a></span>
+<span id="cb9-83"><a href="#cb9-83"></a><span class="in">`r webr_code_labels &lt;- c("setup", "lsting")`</span></span>
+<span id="cb9-84"><a href="#cb9-84"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb9-85"><a href="#cb9-85"></a>:::</span>
+<span id="cb9-86"><a href="#cb9-86"></a></span>
+<span id="cb9-87"><a href="#cb9-87"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
 <span id="cb9-88"><a href="#cb9-88"></a></span>
-<span id="cb9-89"><a href="#cb9-89"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb9-89"><a href="#cb9-89"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
 <span id="cb9-90"><a href="#cb9-90"></a></span>
-<span id="cb9-91"><a href="#cb9-91"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb9-92"><a href="#cb9-92"></a></span>
-<span id="cb9-93"><a href="#cb9-93"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-91"><a href="#cb9-91"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

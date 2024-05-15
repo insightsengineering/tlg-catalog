@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"code":"library(dplyr)\nlibrary(scda)\nlibrary(scda.2022)\nlibrary(rlistings)\n\nadeg <- synthetic_cdisc_dataset(\"latest\", \"adeg\")\n\nget_param_unit_range <- function(dataset) {\n  u_rng <- lapply(unique(dataset$PARAMCD), function(p) {\n    dat <- dataset %>% filter(PARAMCD == p)\n    list(\n      unit = unique(dat$AVALU),\n      range = paste0(unique(dat$ANRLO), \"-\", unique(dat$ANRHI))\n    )\n  })\n  names(u_rng) <- unique(dataset$PARAMCD)\n  u_rng\n}\n\neg_u_rng <- get_param_unit_range(adeg)\n\nadeg_sub <- adeg %>%\n  filter(!is.na(AVAL) & SAFFL == \"Y\" & ANL01FL == \"Y\" & !is.na(EGSEQ) & PARAMCD != \"ECGINTP\") %>%\n  mutate(\n    CRTNPT = paste(SITEID, sub(\"^.*-([[:alnum:]]+)$\", \"\\\\1\", SUBJID), sep = \"/\"),\n    AGSXRC = paste(AGE, SEX, RACE, sep = \"/\"),\n    AVAL = format(round(AVAL, 2), nsmall = 2),\n    AVAL_ANRIND = ifelse(ANRIND %in% c(\"NORMAL\", \"\"), AVAL, paste(AVAL, substr(ANRIND, 1, 1), sep = \"/\")),\n    CHG = format(round(CHG, 2), nsmall = 2)\n  )\n\nanl_eg <- adeg_sub %>%\n  select(SUBJID, CRTNPT, AGSXRC, TRT01A, PARAMCD, AVAL_ANRIND, CHG, ADY, AVISIT, ADTM) %>%\n  tidyr::pivot_wider(\n    id_cols = c(SUBJID, CRTNPT, AGSXRC, TRT01A, ADY, AVISIT, ADTM),\n    names_from = PARAMCD,\n    values_from = c(AVAL_ANRIND, CHG)\n  )\n\nout <- anl_eg %>%\n  select(\n    CRTNPT,\n    AGSXRC,\n    TRT01A,\n    AVISIT,\n    ADY,\n    AVAL_ANRIND_HR,\n    CHG_HR,\n    AVAL_ANRIND_QT,\n    CHG_QT,\n    AVAL_ANRIND_RR,\n    CHG_RR\n  ) %>%\n  var_relabel(\n    CRTNPT = \"Center/Subject ID\",\n    AGSXRC = \"Age/Sex/Race\",\n    TRT01A = \"Treatment\",\n    AVISIT = \"Visit\",\n    ADY = \"Study\\nDay\",\n    AVAL_ANRIND_HR = paste0(\"Heart Rate Result\\n(\", eg_u_rng$HR$unit, \");\\nRange:(\", eg_u_rng$HR$range, \")\"),\n    CHG_HR = \"Heart Rate\\nChange from BL\",\n    AVAL_ANRIND_QT = paste0(\"QT Duration Result\\n(\", eg_u_rng$QT$unit, \");\\nRange:(\", eg_u_rng$QT$range, \")\"),\n    CHG_QT = \"QT Duration\\nChange from BL\",\n    AVAL_ANRIND_RR = paste0(\"RR Duration Result\\n(\", eg_u_rng$RR$unit, \");\\nRange:(\", eg_u_rng$RR$range, \")\"),\n    CHG_RR = \"RR Duration\\nChange from BL\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"CRTNPT\", \"AGSXRC\", \"AVISIT\", \"ADY\"),\n  disp_cols = names(out),\n  main_title = \"Listing of ECG Data: Safety-Evaluable Patients\",\n  main_footer = \"Baseline is the patient's last observation prior to initiation of study drug. Abnormalities are flagged as high (H) or low (L) if outside the Roche standard reference range.\" # nolint: line_length.\n)\n\nhead(lsting, 20)","options":{"autorun":"true","classes":"","editor-font-scale":1,"editor-max-height":"500","fig-width":7,"out-height":"","warning":"true","context":"interactive","comment":"","fig-cap":"","editor-quick-suggestions":"false","message":"true","fig-height":5,"out-width":"700px","output":"true","dpi":72,"results":"markup","label":"unnamed-chunk-1","read-only":"false"},"id":1}];
+globalThis.qwebrCellDetails = [{"options":{"warning":"true","output":"true","editor-font-scale":1,"context":"interactive","classes":"","fig-width":7,"comment":"","fig-height":5,"editor-max-height":"500","message":"true","out-width":"700px","dpi":72,"label":"unnamed-chunk-1","fig-cap":"","results":"markup","editor-quick-suggestions":"false","autorun":"true","out-height":"","read-only":"false"},"id":1,"code":"library(dplyr)\nlibrary(rlistings)\n\nadeg <- random.cdisc.data::cadeg\n\nget_param_unit_range <- function(dataset) {\n  u_rng <- lapply(unique(dataset$PARAMCD), function(p) {\n    dat <- dataset %>% filter(PARAMCD == p)\n    list(\n      unit = unique(dat$AVALU),\n      range = paste0(unique(dat$ANRLO), \"-\", unique(dat$ANRHI))\n    )\n  })\n  names(u_rng) <- unique(dataset$PARAMCD)\n  u_rng\n}\n\neg_u_rng <- get_param_unit_range(adeg)\n\nadeg_sub <- adeg %>%\n  filter(!is.na(AVAL) & SAFFL == \"Y\" & ANL01FL == \"Y\" & !is.na(EGSEQ) & PARAMCD != \"ECGINTP\") %>%\n  mutate(\n    CRTNPT = paste(SITEID, sub(\"^.*-([[:alnum:]]+)$\", \"\\\\1\", SUBJID), sep = \"/\"),\n    AGSXRC = paste(AGE, SEX, RACE, sep = \"/\"),\n    AVAL = format(round(AVAL, 2), nsmall = 2),\n    AVAL_ANRIND = ifelse(ANRIND %in% c(\"NORMAL\", \"\"), AVAL, paste(AVAL, substr(ANRIND, 1, 1), sep = \"/\")),\n    CHG = format(round(CHG, 2), nsmall = 2)\n  )\n\nanl_eg <- adeg_sub %>%\n  select(SUBJID, CRTNPT, AGSXRC, TRT01A, PARAMCD, AVAL_ANRIND, CHG, ADY, AVISIT, ADTM) %>%\n  tidyr::pivot_wider(\n    id_cols = c(SUBJID, CRTNPT, AGSXRC, TRT01A, ADY, AVISIT, ADTM),\n    names_from = PARAMCD,\n    values_from = c(AVAL_ANRIND, CHG)\n  )\n\nout <- anl_eg %>%\n  select(\n    CRTNPT,\n    AGSXRC,\n    TRT01A,\n    AVISIT,\n    ADY,\n    AVAL_ANRIND_HR,\n    CHG_HR,\n    AVAL_ANRIND_QT,\n    CHG_QT,\n    AVAL_ANRIND_RR,\n    CHG_RR\n  ) %>%\n  var_relabel(\n    CRTNPT = \"Center/Subject ID\",\n    AGSXRC = \"Age/Sex/Race\",\n    TRT01A = \"Treatment\",\n    AVISIT = \"Visit\",\n    ADY = \"Study\\nDay\",\n    AVAL_ANRIND_HR = paste0(\"Heart Rate Result\\n(\", eg_u_rng$HR$unit, \");\\nRange:(\", eg_u_rng$HR$range, \")\"),\n    CHG_HR = \"Heart Rate\\nChange from BL\",\n    AVAL_ANRIND_QT = paste0(\"QT Duration Result\\n(\", eg_u_rng$QT$unit, \");\\nRange:(\", eg_u_rng$QT$range, \")\"),\n    CHG_QT = \"QT Duration\\nChange from BL\",\n    AVAL_ANRIND_RR = paste0(\"RR Duration Result\\n(\", eg_u_rng$RR$unit, \");\\nRange:(\", eg_u_rng$RR$range, \")\"),\n    CHG_RR = \"RR Duration\\nChange from BL\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"CRTNPT\", \"AGSXRC\", \"AVISIT\", \"ADY\"),\n  disp_cols = names(out),\n  main_title = \"Listing of ECG Data: Safety-Evaluable Patients\",\n  main_footer = \"Baseline is the patient's last observation prior to initiation of study drug. Abnormalities are flagged as high (H) or low (L) if outside the Roche standard reference range.\" # nolint: line_length.\n)\n\nhead(lsting, 20)"}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2622,71 +2622,69 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <div class="cell">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(scda)</span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(scda<span class="fl">.2022</span>)</span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(rlistings)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(rlistings)</span>
+<span id="cb1-3"><a href="#cb1-3"></a></span>
+<span id="cb1-4"><a href="#cb1-4"></a>adeg <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadeg</span>
 <span id="cb1-5"><a href="#cb1-5"></a></span>
-<span id="cb1-6"><a href="#cb1-6"></a>adeg <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adeg"</span>)</span>
-<span id="cb1-7"><a href="#cb1-7"></a></span>
-<span id="cb1-8"><a href="#cb1-8"></a>get_param_unit_range <span class="ot">&lt;-</span> <span class="cf">function</span>(dataset) {</span>
-<span id="cb1-9"><a href="#cb1-9"></a>  u_rng <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">unique</span>(dataset<span class="sc">$</span>PARAMCD), <span class="cf">function</span>(p) {</span>
-<span id="cb1-10"><a href="#cb1-10"></a>    dat <span class="ot">&lt;-</span> dataset <span class="sc">%&gt;%</span> <span class="fu">filter</span>(PARAMCD <span class="sc">==</span> p)</span>
-<span id="cb1-11"><a href="#cb1-11"></a>    <span class="fu">list</span>(</span>
-<span id="cb1-12"><a href="#cb1-12"></a>      <span class="at">unit =</span> <span class="fu">unique</span>(dat<span class="sc">$</span>AVALU),</span>
-<span id="cb1-13"><a href="#cb1-13"></a>      <span class="at">range =</span> <span class="fu">paste0</span>(<span class="fu">unique</span>(dat<span class="sc">$</span>ANRLO), <span class="st">"-"</span>, <span class="fu">unique</span>(dat<span class="sc">$</span>ANRHI))</span>
-<span id="cb1-14"><a href="#cb1-14"></a>    )</span>
-<span id="cb1-15"><a href="#cb1-15"></a>  })</span>
-<span id="cb1-16"><a href="#cb1-16"></a>  <span class="fu">names</span>(u_rng) <span class="ot">&lt;-</span> <span class="fu">unique</span>(dataset<span class="sc">$</span>PARAMCD)</span>
-<span id="cb1-17"><a href="#cb1-17"></a>  u_rng</span>
-<span id="cb1-18"><a href="#cb1-18"></a>}</span>
+<span id="cb1-6"><a href="#cb1-6"></a>get_param_unit_range <span class="ot">&lt;-</span> <span class="cf">function</span>(dataset) {</span>
+<span id="cb1-7"><a href="#cb1-7"></a>  u_rng <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">unique</span>(dataset<span class="sc">$</span>PARAMCD), <span class="cf">function</span>(p) {</span>
+<span id="cb1-8"><a href="#cb1-8"></a>    dat <span class="ot">&lt;-</span> dataset <span class="sc">%&gt;%</span> <span class="fu">filter</span>(PARAMCD <span class="sc">==</span> p)</span>
+<span id="cb1-9"><a href="#cb1-9"></a>    <span class="fu">list</span>(</span>
+<span id="cb1-10"><a href="#cb1-10"></a>      <span class="at">unit =</span> <span class="fu">unique</span>(dat<span class="sc">$</span>AVALU),</span>
+<span id="cb1-11"><a href="#cb1-11"></a>      <span class="at">range =</span> <span class="fu">paste0</span>(<span class="fu">unique</span>(dat<span class="sc">$</span>ANRLO), <span class="st">"-"</span>, <span class="fu">unique</span>(dat<span class="sc">$</span>ANRHI))</span>
+<span id="cb1-12"><a href="#cb1-12"></a>    )</span>
+<span id="cb1-13"><a href="#cb1-13"></a>  })</span>
+<span id="cb1-14"><a href="#cb1-14"></a>  <span class="fu">names</span>(u_rng) <span class="ot">&lt;-</span> <span class="fu">unique</span>(dataset<span class="sc">$</span>PARAMCD)</span>
+<span id="cb1-15"><a href="#cb1-15"></a>  u_rng</span>
+<span id="cb1-16"><a href="#cb1-16"></a>}</span>
+<span id="cb1-17"><a href="#cb1-17"></a></span>
+<span id="cb1-18"><a href="#cb1-18"></a>eg_u_rng <span class="ot">&lt;-</span> <span class="fu">get_param_unit_range</span>(adeg)</span>
 <span id="cb1-19"><a href="#cb1-19"></a></span>
-<span id="cb1-20"><a href="#cb1-20"></a>eg_u_rng <span class="ot">&lt;-</span> <span class="fu">get_param_unit_range</span>(adeg)</span>
-<span id="cb1-21"><a href="#cb1-21"></a></span>
-<span id="cb1-22"><a href="#cb1-22"></a>adeg_sub <span class="ot">&lt;-</span> adeg <span class="sc">%&gt;%</span></span>
-<span id="cb1-23"><a href="#cb1-23"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(AVAL) <span class="sc">&amp;</span> SAFFL <span class="sc">==</span> <span class="st">"Y"</span> <span class="sc">&amp;</span> ANL01FL <span class="sc">==</span> <span class="st">"Y"</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(EGSEQ) <span class="sc">&amp;</span> PARAMCD <span class="sc">!=</span> <span class="st">"ECGINTP"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-24"><a href="#cb1-24"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-25"><a href="#cb1-25"></a>    <span class="at">CRTNPT =</span> <span class="fu">paste</span>(SITEID, <span class="fu">sub</span>(<span class="st">"^.*-([[:alnum:]]+)$"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, SUBJID), <span class="at">sep =</span> <span class="st">"/"</span>),</span>
-<span id="cb1-26"><a href="#cb1-26"></a>    <span class="at">AGSXRC =</span> <span class="fu">paste</span>(AGE, SEX, RACE, <span class="at">sep =</span> <span class="st">"/"</span>),</span>
-<span id="cb1-27"><a href="#cb1-27"></a>    <span class="at">AVAL =</span> <span class="fu">format</span>(<span class="fu">round</span>(AVAL, <span class="dv">2</span>), <span class="at">nsmall =</span> <span class="dv">2</span>),</span>
-<span id="cb1-28"><a href="#cb1-28"></a>    <span class="at">AVAL_ANRIND =</span> <span class="fu">ifelse</span>(ANRIND <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"NORMAL"</span>, <span class="st">""</span>), AVAL, <span class="fu">paste</span>(AVAL, <span class="fu">substr</span>(ANRIND, <span class="dv">1</span>, <span class="dv">1</span>), <span class="at">sep =</span> <span class="st">"/"</span>)),</span>
-<span id="cb1-29"><a href="#cb1-29"></a>    <span class="at">CHG =</span> <span class="fu">format</span>(<span class="fu">round</span>(CHG, <span class="dv">2</span>), <span class="at">nsmall =</span> <span class="dv">2</span>)</span>
-<span id="cb1-30"><a href="#cb1-30"></a>  )</span>
-<span id="cb1-31"><a href="#cb1-31"></a></span>
-<span id="cb1-32"><a href="#cb1-32"></a>anl_eg <span class="ot">&lt;-</span> adeg_sub <span class="sc">%&gt;%</span></span>
-<span id="cb1-33"><a href="#cb1-33"></a>  <span class="fu">select</span>(SUBJID, CRTNPT, AGSXRC, TRT01A, PARAMCD, AVAL_ANRIND, CHG, ADY, AVISIT, ADTM) <span class="sc">%&gt;%</span></span>
-<span id="cb1-34"><a href="#cb1-34"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(</span>
-<span id="cb1-35"><a href="#cb1-35"></a>    <span class="at">id_cols =</span> <span class="fu">c</span>(SUBJID, CRTNPT, AGSXRC, TRT01A, ADY, AVISIT, ADTM),</span>
-<span id="cb1-36"><a href="#cb1-36"></a>    <span class="at">names_from =</span> PARAMCD,</span>
-<span id="cb1-37"><a href="#cb1-37"></a>    <span class="at">values_from =</span> <span class="fu">c</span>(AVAL_ANRIND, CHG)</span>
-<span id="cb1-38"><a href="#cb1-38"></a>  )</span>
-<span id="cb1-39"><a href="#cb1-39"></a></span>
-<span id="cb1-40"><a href="#cb1-40"></a>out <span class="ot">&lt;-</span> anl_eg <span class="sc">%&gt;%</span></span>
-<span id="cb1-41"><a href="#cb1-41"></a>  <span class="fu">select</span>(</span>
-<span id="cb1-42"><a href="#cb1-42"></a>    CRTNPT,</span>
-<span id="cb1-43"><a href="#cb1-43"></a>    AGSXRC,</span>
-<span id="cb1-44"><a href="#cb1-44"></a>    TRT01A,</span>
-<span id="cb1-45"><a href="#cb1-45"></a>    AVISIT,</span>
-<span id="cb1-46"><a href="#cb1-46"></a>    ADY,</span>
-<span id="cb1-47"><a href="#cb1-47"></a>    AVAL_ANRIND_HR,</span>
-<span id="cb1-48"><a href="#cb1-48"></a>    CHG_HR,</span>
-<span id="cb1-49"><a href="#cb1-49"></a>    AVAL_ANRIND_QT,</span>
-<span id="cb1-50"><a href="#cb1-50"></a>    CHG_QT,</span>
-<span id="cb1-51"><a href="#cb1-51"></a>    AVAL_ANRIND_RR,</span>
-<span id="cb1-52"><a href="#cb1-52"></a>    CHG_RR</span>
-<span id="cb1-53"><a href="#cb1-53"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-54"><a href="#cb1-54"></a>  <span class="fu">var_relabel</span>(</span>
-<span id="cb1-55"><a href="#cb1-55"></a>    <span class="at">CRTNPT =</span> <span class="st">"Center/Subject ID"</span>,</span>
-<span id="cb1-56"><a href="#cb1-56"></a>    <span class="at">AGSXRC =</span> <span class="st">"Age/Sex/Race"</span>,</span>
-<span id="cb1-57"><a href="#cb1-57"></a>    <span class="at">TRT01A =</span> <span class="st">"Treatment"</span>,</span>
-<span id="cb1-58"><a href="#cb1-58"></a>    <span class="at">AVISIT =</span> <span class="st">"Visit"</span>,</span>
-<span id="cb1-59"><a href="#cb1-59"></a>    <span class="at">ADY =</span> <span class="st">"Study</span><span class="sc">\n</span><span class="st">Day"</span>,</span>
-<span id="cb1-60"><a href="#cb1-60"></a>    <span class="at">AVAL_ANRIND_HR =</span> <span class="fu">paste0</span>(<span class="st">"Heart Rate Result</span><span class="sc">\n</span><span class="st">("</span>, eg_u_rng<span class="sc">$</span>HR<span class="sc">$</span>unit, <span class="st">");</span><span class="sc">\n</span><span class="st">Range:("</span>, eg_u_rng<span class="sc">$</span>HR<span class="sc">$</span>range, <span class="st">")"</span>),</span>
-<span id="cb1-61"><a href="#cb1-61"></a>    <span class="at">CHG_HR =</span> <span class="st">"Heart Rate</span><span class="sc">\n</span><span class="st">Change from BL"</span>,</span>
-<span id="cb1-62"><a href="#cb1-62"></a>    <span class="at">AVAL_ANRIND_QT =</span> <span class="fu">paste0</span>(<span class="st">"QT Duration Result</span><span class="sc">\n</span><span class="st">("</span>, eg_u_rng<span class="sc">$</span>QT<span class="sc">$</span>unit, <span class="st">");</span><span class="sc">\n</span><span class="st">Range:("</span>, eg_u_rng<span class="sc">$</span>QT<span class="sc">$</span>range, <span class="st">")"</span>),</span>
-<span id="cb1-63"><a href="#cb1-63"></a>    <span class="at">CHG_QT =</span> <span class="st">"QT Duration</span><span class="sc">\n</span><span class="st">Change from BL"</span>,</span>
-<span id="cb1-64"><a href="#cb1-64"></a>    <span class="at">AVAL_ANRIND_RR =</span> <span class="fu">paste0</span>(<span class="st">"RR Duration Result</span><span class="sc">\n</span><span class="st">("</span>, eg_u_rng<span class="sc">$</span>RR<span class="sc">$</span>unit, <span class="st">");</span><span class="sc">\n</span><span class="st">Range:("</span>, eg_u_rng<span class="sc">$</span>RR<span class="sc">$</span>range, <span class="st">")"</span>),</span>
-<span id="cb1-65"><a href="#cb1-65"></a>    <span class="at">CHG_RR =</span> <span class="st">"RR Duration</span><span class="sc">\n</span><span class="st">Change from BL"</span></span>
-<span id="cb1-66"><a href="#cb1-66"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-20"><a href="#cb1-20"></a>adeg_sub <span class="ot">&lt;-</span> adeg <span class="sc">%&gt;%</span></span>
+<span id="cb1-21"><a href="#cb1-21"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(AVAL) <span class="sc">&amp;</span> SAFFL <span class="sc">==</span> <span class="st">"Y"</span> <span class="sc">&amp;</span> ANL01FL <span class="sc">==</span> <span class="st">"Y"</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(EGSEQ) <span class="sc">&amp;</span> PARAMCD <span class="sc">!=</span> <span class="st">"ECGINTP"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-22"><a href="#cb1-22"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-23"><a href="#cb1-23"></a>    <span class="at">CRTNPT =</span> <span class="fu">paste</span>(SITEID, <span class="fu">sub</span>(<span class="st">"^.*-([[:alnum:]]+)$"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, SUBJID), <span class="at">sep =</span> <span class="st">"/"</span>),</span>
+<span id="cb1-24"><a href="#cb1-24"></a>    <span class="at">AGSXRC =</span> <span class="fu">paste</span>(AGE, SEX, RACE, <span class="at">sep =</span> <span class="st">"/"</span>),</span>
+<span id="cb1-25"><a href="#cb1-25"></a>    <span class="at">AVAL =</span> <span class="fu">format</span>(<span class="fu">round</span>(AVAL, <span class="dv">2</span>), <span class="at">nsmall =</span> <span class="dv">2</span>),</span>
+<span id="cb1-26"><a href="#cb1-26"></a>    <span class="at">AVAL_ANRIND =</span> <span class="fu">ifelse</span>(ANRIND <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"NORMAL"</span>, <span class="st">""</span>), AVAL, <span class="fu">paste</span>(AVAL, <span class="fu">substr</span>(ANRIND, <span class="dv">1</span>, <span class="dv">1</span>), <span class="at">sep =</span> <span class="st">"/"</span>)),</span>
+<span id="cb1-27"><a href="#cb1-27"></a>    <span class="at">CHG =</span> <span class="fu">format</span>(<span class="fu">round</span>(CHG, <span class="dv">2</span>), <span class="at">nsmall =</span> <span class="dv">2</span>)</span>
+<span id="cb1-28"><a href="#cb1-28"></a>  )</span>
+<span id="cb1-29"><a href="#cb1-29"></a></span>
+<span id="cb1-30"><a href="#cb1-30"></a>anl_eg <span class="ot">&lt;-</span> adeg_sub <span class="sc">%&gt;%</span></span>
+<span id="cb1-31"><a href="#cb1-31"></a>  <span class="fu">select</span>(SUBJID, CRTNPT, AGSXRC, TRT01A, PARAMCD, AVAL_ANRIND, CHG, ADY, AVISIT, ADTM) <span class="sc">%&gt;%</span></span>
+<span id="cb1-32"><a href="#cb1-32"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(</span>
+<span id="cb1-33"><a href="#cb1-33"></a>    <span class="at">id_cols =</span> <span class="fu">c</span>(SUBJID, CRTNPT, AGSXRC, TRT01A, ADY, AVISIT, ADTM),</span>
+<span id="cb1-34"><a href="#cb1-34"></a>    <span class="at">names_from =</span> PARAMCD,</span>
+<span id="cb1-35"><a href="#cb1-35"></a>    <span class="at">values_from =</span> <span class="fu">c</span>(AVAL_ANRIND, CHG)</span>
+<span id="cb1-36"><a href="#cb1-36"></a>  )</span>
+<span id="cb1-37"><a href="#cb1-37"></a></span>
+<span id="cb1-38"><a href="#cb1-38"></a>out <span class="ot">&lt;-</span> anl_eg <span class="sc">%&gt;%</span></span>
+<span id="cb1-39"><a href="#cb1-39"></a>  <span class="fu">select</span>(</span>
+<span id="cb1-40"><a href="#cb1-40"></a>    CRTNPT,</span>
+<span id="cb1-41"><a href="#cb1-41"></a>    AGSXRC,</span>
+<span id="cb1-42"><a href="#cb1-42"></a>    TRT01A,</span>
+<span id="cb1-43"><a href="#cb1-43"></a>    AVISIT,</span>
+<span id="cb1-44"><a href="#cb1-44"></a>    ADY,</span>
+<span id="cb1-45"><a href="#cb1-45"></a>    AVAL_ANRIND_HR,</span>
+<span id="cb1-46"><a href="#cb1-46"></a>    CHG_HR,</span>
+<span id="cb1-47"><a href="#cb1-47"></a>    AVAL_ANRIND_QT,</span>
+<span id="cb1-48"><a href="#cb1-48"></a>    CHG_QT,</span>
+<span id="cb1-49"><a href="#cb1-49"></a>    AVAL_ANRIND_RR,</span>
+<span id="cb1-50"><a href="#cb1-50"></a>    CHG_RR</span>
+<span id="cb1-51"><a href="#cb1-51"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-52"><a href="#cb1-52"></a>  <span class="fu">var_relabel</span>(</span>
+<span id="cb1-53"><a href="#cb1-53"></a>    <span class="at">CRTNPT =</span> <span class="st">"Center/Subject ID"</span>,</span>
+<span id="cb1-54"><a href="#cb1-54"></a>    <span class="at">AGSXRC =</span> <span class="st">"Age/Sex/Race"</span>,</span>
+<span id="cb1-55"><a href="#cb1-55"></a>    <span class="at">TRT01A =</span> <span class="st">"Treatment"</span>,</span>
+<span id="cb1-56"><a href="#cb1-56"></a>    <span class="at">AVISIT =</span> <span class="st">"Visit"</span>,</span>
+<span id="cb1-57"><a href="#cb1-57"></a>    <span class="at">ADY =</span> <span class="st">"Study</span><span class="sc">\n</span><span class="st">Day"</span>,</span>
+<span id="cb1-58"><a href="#cb1-58"></a>    <span class="at">AVAL_ANRIND_HR =</span> <span class="fu">paste0</span>(<span class="st">"Heart Rate Result</span><span class="sc">\n</span><span class="st">("</span>, eg_u_rng<span class="sc">$</span>HR<span class="sc">$</span>unit, <span class="st">");</span><span class="sc">\n</span><span class="st">Range:("</span>, eg_u_rng<span class="sc">$</span>HR<span class="sc">$</span>range, <span class="st">")"</span>),</span>
+<span id="cb1-59"><a href="#cb1-59"></a>    <span class="at">CHG_HR =</span> <span class="st">"Heart Rate</span><span class="sc">\n</span><span class="st">Change from BL"</span>,</span>
+<span id="cb1-60"><a href="#cb1-60"></a>    <span class="at">AVAL_ANRIND_QT =</span> <span class="fu">paste0</span>(<span class="st">"QT Duration Result</span><span class="sc">\n</span><span class="st">("</span>, eg_u_rng<span class="sc">$</span>QT<span class="sc">$</span>unit, <span class="st">");</span><span class="sc">\n</span><span class="st">Range:("</span>, eg_u_rng<span class="sc">$</span>QT<span class="sc">$</span>range, <span class="st">")"</span>),</span>
+<span id="cb1-61"><a href="#cb1-61"></a>    <span class="at">CHG_QT =</span> <span class="st">"QT Duration</span><span class="sc">\n</span><span class="st">Change from BL"</span>,</span>
+<span id="cb1-62"><a href="#cb1-62"></a>    <span class="at">AVAL_ANRIND_RR =</span> <span class="fu">paste0</span>(<span class="st">"RR Duration Result</span><span class="sc">\n</span><span class="st">("</span>, eg_u_rng<span class="sc">$</span>RR<span class="sc">$</span>unit, <span class="st">");</span><span class="sc">\n</span><span class="st">Range:("</span>, eg_u_rng<span class="sc">$</span>RR<span class="sc">$</span>range, <span class="st">")"</span>),</span>
+<span id="cb1-63"><a href="#cb1-63"></a>    <span class="at">CHG_RR =</span> <span class="st">"RR Duration</span><span class="sc">\n</span><span class="st">Change from BL"</span></span>
+<span id="cb1-64"><a href="#cb1-64"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
@@ -2776,7 +2774,7 @@ Experimental use!
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-05-11 18:00:28 UTC"</code></pre>
+<pre><code>[1] "2024-05-15 13:21:49 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2802,18 +2800,28 @@ attached base packages:
 
 other attached packages:
 [1] rlistings_0.2.8.9001  tibble_3.2.1          formatters_0.5.6.9004
-[4] scda.2022_0.1.5.9006  scda_0.1.6.9019       dplyr_1.1.4          
+[4] dplyr_1.1.4          
 
 loaded via a namespace (and not attached):
- [1] vctrs_0.6.5       cli_3.6.2         knitr_1.46        rlang_1.1.3      
- [5] xfun_0.43         stringi_1.8.3     purrr_1.0.2       generics_0.1.3   
- [9] jsonlite_1.8.8    glue_1.7.0        backports_1.4.1   htmltools_0.5.8.1
-[13] brio_1.1.5        fansi_1.0.6       rmarkdown_2.26    grid_4.4.0       
-[17] evaluate_0.23     fastmap_1.1.1     yaml_2.3.8        lifecycle_1.0.4  
-[21] compiler_4.4.0    codetools_0.2-20  htmlwidgets_1.6.4 testthat_3.2.1.1 
-[25] pkgconfig_2.0.3   tidyr_1.3.1       digest_0.6.35     R6_2.5.1         
-[29] tidyselect_1.2.1  utf8_1.2.4        pillar_1.9.0      magrittr_2.0.3   
-[33] checkmate_2.3.1   withr_3.0.0       tools_4.4.0      </code></pre>
+ [1] vctrs_0.6.5                   cli_3.6.2                    
+ [3] knitr_1.46                    rlang_1.1.3                  
+ [5] xfun_0.43                     stringi_1.8.3                
+ [7] purrr_1.0.2                   generics_0.1.3               
+ [9] jsonlite_1.8.8                glue_1.7.0                   
+[11] backports_1.4.1               htmltools_0.5.8.1            
+[13] brio_1.1.5                    fansi_1.0.6                  
+[15] rmarkdown_2.26                grid_4.4.0                   
+[17] evaluate_0.23                 fastmap_1.1.1                
+[19] yaml_2.3.8                    lifecycle_1.0.4              
+[21] stringr_1.5.1                 compiler_4.4.0               
+[23] codetools_0.2-20              htmlwidgets_1.6.4            
+[25] testthat_3.2.1.1              pkgconfig_2.0.3              
+[27] tidyr_1.3.1                   random.cdisc.data_0.3.15.9003
+[29] digest_0.6.35                 R6_2.5.1                     
+[31] tidyselect_1.2.1              utf8_1.2.4                   
+[33] pillar_1.9.0                  magrittr_2.0.3               
+[35] checkmate_2.3.1               withr_3.0.0                  
+[37] tools_4.4.0                  </code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
@@ -3488,99 +3496,97 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb9-14"><a href="#cb9-14"></a><span class="in">#| code-fold: show</span></span>
 <span id="cb9-15"><a href="#cb9-15"></a></span>
 <span id="cb9-16"><a href="#cb9-16"></a><span class="in">library(dplyr)</span></span>
-<span id="cb9-17"><a href="#cb9-17"></a><span class="in">library(scda)</span></span>
-<span id="cb9-18"><a href="#cb9-18"></a><span class="in">library(scda.2022)</span></span>
-<span id="cb9-19"><a href="#cb9-19"></a><span class="in">library(rlistings)</span></span>
+<span id="cb9-17"><a href="#cb9-17"></a><span class="in">library(rlistings)</span></span>
+<span id="cb9-18"><a href="#cb9-18"></a></span>
+<span id="cb9-19"><a href="#cb9-19"></a><span class="in">adeg &lt;- random.cdisc.data::cadeg</span></span>
 <span id="cb9-20"><a href="#cb9-20"></a></span>
-<span id="cb9-21"><a href="#cb9-21"></a><span class="in">adeg &lt;- synthetic_cdisc_dataset("latest", "adeg")</span></span>
-<span id="cb9-22"><a href="#cb9-22"></a></span>
-<span id="cb9-23"><a href="#cb9-23"></a><span class="in">get_param_unit_range &lt;- function(dataset) {</span></span>
-<span id="cb9-24"><a href="#cb9-24"></a><span class="in">  u_rng &lt;- lapply(unique(dataset$PARAMCD), function(p) {</span></span>
-<span id="cb9-25"><a href="#cb9-25"></a><span class="in">    dat &lt;- dataset %&gt;% filter(PARAMCD == p)</span></span>
-<span id="cb9-26"><a href="#cb9-26"></a><span class="in">    list(</span></span>
-<span id="cb9-27"><a href="#cb9-27"></a><span class="in">      unit = unique(dat$AVALU),</span></span>
-<span id="cb9-28"><a href="#cb9-28"></a><span class="in">      range = paste0(unique(dat$ANRLO), "-", unique(dat$ANRHI))</span></span>
-<span id="cb9-29"><a href="#cb9-29"></a><span class="in">    )</span></span>
-<span id="cb9-30"><a href="#cb9-30"></a><span class="in">  })</span></span>
-<span id="cb9-31"><a href="#cb9-31"></a><span class="in">  names(u_rng) &lt;- unique(dataset$PARAMCD)</span></span>
-<span id="cb9-32"><a href="#cb9-32"></a><span class="in">  u_rng</span></span>
-<span id="cb9-33"><a href="#cb9-33"></a><span class="in">}</span></span>
+<span id="cb9-21"><a href="#cb9-21"></a><span class="in">get_param_unit_range &lt;- function(dataset) {</span></span>
+<span id="cb9-22"><a href="#cb9-22"></a><span class="in">  u_rng &lt;- lapply(unique(dataset$PARAMCD), function(p) {</span></span>
+<span id="cb9-23"><a href="#cb9-23"></a><span class="in">    dat &lt;- dataset %&gt;% filter(PARAMCD == p)</span></span>
+<span id="cb9-24"><a href="#cb9-24"></a><span class="in">    list(</span></span>
+<span id="cb9-25"><a href="#cb9-25"></a><span class="in">      unit = unique(dat$AVALU),</span></span>
+<span id="cb9-26"><a href="#cb9-26"></a><span class="in">      range = paste0(unique(dat$ANRLO), "-", unique(dat$ANRHI))</span></span>
+<span id="cb9-27"><a href="#cb9-27"></a><span class="in">    )</span></span>
+<span id="cb9-28"><a href="#cb9-28"></a><span class="in">  })</span></span>
+<span id="cb9-29"><a href="#cb9-29"></a><span class="in">  names(u_rng) &lt;- unique(dataset$PARAMCD)</span></span>
+<span id="cb9-30"><a href="#cb9-30"></a><span class="in">  u_rng</span></span>
+<span id="cb9-31"><a href="#cb9-31"></a><span class="in">}</span></span>
+<span id="cb9-32"><a href="#cb9-32"></a></span>
+<span id="cb9-33"><a href="#cb9-33"></a><span class="in">eg_u_rng &lt;- get_param_unit_range(adeg)</span></span>
 <span id="cb9-34"><a href="#cb9-34"></a></span>
-<span id="cb9-35"><a href="#cb9-35"></a><span class="in">eg_u_rng &lt;- get_param_unit_range(adeg)</span></span>
-<span id="cb9-36"><a href="#cb9-36"></a></span>
-<span id="cb9-37"><a href="#cb9-37"></a><span class="in">adeg_sub &lt;- adeg %&gt;%</span></span>
-<span id="cb9-38"><a href="#cb9-38"></a><span class="in">  filter(!is.na(AVAL) &amp; SAFFL == "Y" &amp; ANL01FL == "Y" &amp; !is.na(EGSEQ) &amp; PARAMCD != "ECGINTP") %&gt;%</span></span>
-<span id="cb9-39"><a href="#cb9-39"></a><span class="in">  mutate(</span></span>
-<span id="cb9-40"><a href="#cb9-40"></a><span class="in">    CRTNPT = paste(SITEID, sub("^.*-([[:alnum:]]+)$", "\\1", SUBJID), sep = "/"),</span></span>
-<span id="cb9-41"><a href="#cb9-41"></a><span class="in">    AGSXRC = paste(AGE, SEX, RACE, sep = "/"),</span></span>
-<span id="cb9-42"><a href="#cb9-42"></a><span class="in">    AVAL = format(round(AVAL, 2), nsmall = 2),</span></span>
-<span id="cb9-43"><a href="#cb9-43"></a><span class="in">    AVAL_ANRIND = ifelse(ANRIND %in% c("NORMAL", ""), AVAL, paste(AVAL, substr(ANRIND, 1, 1), sep = "/")),</span></span>
-<span id="cb9-44"><a href="#cb9-44"></a><span class="in">    CHG = format(round(CHG, 2), nsmall = 2)</span></span>
-<span id="cb9-45"><a href="#cb9-45"></a><span class="in">  )</span></span>
-<span id="cb9-46"><a href="#cb9-46"></a></span>
-<span id="cb9-47"><a href="#cb9-47"></a><span class="in">anl_eg &lt;- adeg_sub %&gt;%</span></span>
-<span id="cb9-48"><a href="#cb9-48"></a><span class="in">  select(SUBJID, CRTNPT, AGSXRC, TRT01A, PARAMCD, AVAL_ANRIND, CHG, ADY, AVISIT, ADTM) %&gt;%</span></span>
-<span id="cb9-49"><a href="#cb9-49"></a><span class="in">  tidyr::pivot_wider(</span></span>
-<span id="cb9-50"><a href="#cb9-50"></a><span class="in">    id_cols = c(SUBJID, CRTNPT, AGSXRC, TRT01A, ADY, AVISIT, ADTM),</span></span>
-<span id="cb9-51"><a href="#cb9-51"></a><span class="in">    names_from = PARAMCD,</span></span>
-<span id="cb9-52"><a href="#cb9-52"></a><span class="in">    values_from = c(AVAL_ANRIND, CHG)</span></span>
-<span id="cb9-53"><a href="#cb9-53"></a><span class="in">  )</span></span>
-<span id="cb9-54"><a href="#cb9-54"></a></span>
-<span id="cb9-55"><a href="#cb9-55"></a><span class="in">out &lt;- anl_eg %&gt;%</span></span>
-<span id="cb9-56"><a href="#cb9-56"></a><span class="in">  select(</span></span>
-<span id="cb9-57"><a href="#cb9-57"></a><span class="in">    CRTNPT,</span></span>
-<span id="cb9-58"><a href="#cb9-58"></a><span class="in">    AGSXRC,</span></span>
-<span id="cb9-59"><a href="#cb9-59"></a><span class="in">    TRT01A,</span></span>
-<span id="cb9-60"><a href="#cb9-60"></a><span class="in">    AVISIT,</span></span>
-<span id="cb9-61"><a href="#cb9-61"></a><span class="in">    ADY,</span></span>
-<span id="cb9-62"><a href="#cb9-62"></a><span class="in">    AVAL_ANRIND_HR,</span></span>
-<span id="cb9-63"><a href="#cb9-63"></a><span class="in">    CHG_HR,</span></span>
-<span id="cb9-64"><a href="#cb9-64"></a><span class="in">    AVAL_ANRIND_QT,</span></span>
-<span id="cb9-65"><a href="#cb9-65"></a><span class="in">    CHG_QT,</span></span>
-<span id="cb9-66"><a href="#cb9-66"></a><span class="in">    AVAL_ANRIND_RR,</span></span>
-<span id="cb9-67"><a href="#cb9-67"></a><span class="in">    CHG_RR</span></span>
-<span id="cb9-68"><a href="#cb9-68"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb9-69"><a href="#cb9-69"></a><span class="in">  var_relabel(</span></span>
-<span id="cb9-70"><a href="#cb9-70"></a><span class="in">    CRTNPT = "Center/Subject ID",</span></span>
-<span id="cb9-71"><a href="#cb9-71"></a><span class="in">    AGSXRC = "Age/Sex/Race",</span></span>
-<span id="cb9-72"><a href="#cb9-72"></a><span class="in">    TRT01A = "Treatment",</span></span>
-<span id="cb9-73"><a href="#cb9-73"></a><span class="in">    AVISIT = "Visit",</span></span>
-<span id="cb9-74"><a href="#cb9-74"></a><span class="in">    ADY = "Study\nDay",</span></span>
-<span id="cb9-75"><a href="#cb9-75"></a><span class="in">    AVAL_ANRIND_HR = paste0("Heart Rate Result\n(", eg_u_rng$HR$unit, ");\nRange:(", eg_u_rng$HR$range, ")"),</span></span>
-<span id="cb9-76"><a href="#cb9-76"></a><span class="in">    CHG_HR = "Heart Rate\nChange from BL",</span></span>
-<span id="cb9-77"><a href="#cb9-77"></a><span class="in">    AVAL_ANRIND_QT = paste0("QT Duration Result\n(", eg_u_rng$QT$unit, ");\nRange:(", eg_u_rng$QT$range, ")"),</span></span>
-<span id="cb9-78"><a href="#cb9-78"></a><span class="in">    CHG_QT = "QT Duration\nChange from BL",</span></span>
-<span id="cb9-79"><a href="#cb9-79"></a><span class="in">    AVAL_ANRIND_RR = paste0("RR Duration Result\n(", eg_u_rng$RR$unit, ");\nRange:(", eg_u_rng$RR$range, ")"),</span></span>
-<span id="cb9-80"><a href="#cb9-80"></a><span class="in">    CHG_RR = "RR Duration\nChange from BL"</span></span>
-<span id="cb9-81"><a href="#cb9-81"></a><span class="in">  )</span></span>
-<span id="cb9-82"><a href="#cb9-82"></a><span class="in">```</span></span>
+<span id="cb9-35"><a href="#cb9-35"></a><span class="in">adeg_sub &lt;- adeg %&gt;%</span></span>
+<span id="cb9-36"><a href="#cb9-36"></a><span class="in">  filter(!is.na(AVAL) &amp; SAFFL == "Y" &amp; ANL01FL == "Y" &amp; !is.na(EGSEQ) &amp; PARAMCD != "ECGINTP") %&gt;%</span></span>
+<span id="cb9-37"><a href="#cb9-37"></a><span class="in">  mutate(</span></span>
+<span id="cb9-38"><a href="#cb9-38"></a><span class="in">    CRTNPT = paste(SITEID, sub("^.*-([[:alnum:]]+)$", "\\1", SUBJID), sep = "/"),</span></span>
+<span id="cb9-39"><a href="#cb9-39"></a><span class="in">    AGSXRC = paste(AGE, SEX, RACE, sep = "/"),</span></span>
+<span id="cb9-40"><a href="#cb9-40"></a><span class="in">    AVAL = format(round(AVAL, 2), nsmall = 2),</span></span>
+<span id="cb9-41"><a href="#cb9-41"></a><span class="in">    AVAL_ANRIND = ifelse(ANRIND %in% c("NORMAL", ""), AVAL, paste(AVAL, substr(ANRIND, 1, 1), sep = "/")),</span></span>
+<span id="cb9-42"><a href="#cb9-42"></a><span class="in">    CHG = format(round(CHG, 2), nsmall = 2)</span></span>
+<span id="cb9-43"><a href="#cb9-43"></a><span class="in">  )</span></span>
+<span id="cb9-44"><a href="#cb9-44"></a></span>
+<span id="cb9-45"><a href="#cb9-45"></a><span class="in">anl_eg &lt;- adeg_sub %&gt;%</span></span>
+<span id="cb9-46"><a href="#cb9-46"></a><span class="in">  select(SUBJID, CRTNPT, AGSXRC, TRT01A, PARAMCD, AVAL_ANRIND, CHG, ADY, AVISIT, ADTM) %&gt;%</span></span>
+<span id="cb9-47"><a href="#cb9-47"></a><span class="in">  tidyr::pivot_wider(</span></span>
+<span id="cb9-48"><a href="#cb9-48"></a><span class="in">    id_cols = c(SUBJID, CRTNPT, AGSXRC, TRT01A, ADY, AVISIT, ADTM),</span></span>
+<span id="cb9-49"><a href="#cb9-49"></a><span class="in">    names_from = PARAMCD,</span></span>
+<span id="cb9-50"><a href="#cb9-50"></a><span class="in">    values_from = c(AVAL_ANRIND, CHG)</span></span>
+<span id="cb9-51"><a href="#cb9-51"></a><span class="in">  )</span></span>
+<span id="cb9-52"><a href="#cb9-52"></a></span>
+<span id="cb9-53"><a href="#cb9-53"></a><span class="in">out &lt;- anl_eg %&gt;%</span></span>
+<span id="cb9-54"><a href="#cb9-54"></a><span class="in">  select(</span></span>
+<span id="cb9-55"><a href="#cb9-55"></a><span class="in">    CRTNPT,</span></span>
+<span id="cb9-56"><a href="#cb9-56"></a><span class="in">    AGSXRC,</span></span>
+<span id="cb9-57"><a href="#cb9-57"></a><span class="in">    TRT01A,</span></span>
+<span id="cb9-58"><a href="#cb9-58"></a><span class="in">    AVISIT,</span></span>
+<span id="cb9-59"><a href="#cb9-59"></a><span class="in">    ADY,</span></span>
+<span id="cb9-60"><a href="#cb9-60"></a><span class="in">    AVAL_ANRIND_HR,</span></span>
+<span id="cb9-61"><a href="#cb9-61"></a><span class="in">    CHG_HR,</span></span>
+<span id="cb9-62"><a href="#cb9-62"></a><span class="in">    AVAL_ANRIND_QT,</span></span>
+<span id="cb9-63"><a href="#cb9-63"></a><span class="in">    CHG_QT,</span></span>
+<span id="cb9-64"><a href="#cb9-64"></a><span class="in">    AVAL_ANRIND_RR,</span></span>
+<span id="cb9-65"><a href="#cb9-65"></a><span class="in">    CHG_RR</span></span>
+<span id="cb9-66"><a href="#cb9-66"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb9-67"><a href="#cb9-67"></a><span class="in">  var_relabel(</span></span>
+<span id="cb9-68"><a href="#cb9-68"></a><span class="in">    CRTNPT = "Center/Subject ID",</span></span>
+<span id="cb9-69"><a href="#cb9-69"></a><span class="in">    AGSXRC = "Age/Sex/Race",</span></span>
+<span id="cb9-70"><a href="#cb9-70"></a><span class="in">    TRT01A = "Treatment",</span></span>
+<span id="cb9-71"><a href="#cb9-71"></a><span class="in">    AVISIT = "Visit",</span></span>
+<span id="cb9-72"><a href="#cb9-72"></a><span class="in">    ADY = "Study\nDay",</span></span>
+<span id="cb9-73"><a href="#cb9-73"></a><span class="in">    AVAL_ANRIND_HR = paste0("Heart Rate Result\n(", eg_u_rng$HR$unit, ");\nRange:(", eg_u_rng$HR$range, ")"),</span></span>
+<span id="cb9-74"><a href="#cb9-74"></a><span class="in">    CHG_HR = "Heart Rate\nChange from BL",</span></span>
+<span id="cb9-75"><a href="#cb9-75"></a><span class="in">    AVAL_ANRIND_QT = paste0("QT Duration Result\n(", eg_u_rng$QT$unit, ");\nRange:(", eg_u_rng$QT$range, ")"),</span></span>
+<span id="cb9-76"><a href="#cb9-76"></a><span class="in">    CHG_QT = "QT Duration\nChange from BL",</span></span>
+<span id="cb9-77"><a href="#cb9-77"></a><span class="in">    AVAL_ANRIND_RR = paste0("RR Duration Result\n(", eg_u_rng$RR$unit, ");\nRange:(", eg_u_rng$RR$range, ")"),</span></span>
+<span id="cb9-78"><a href="#cb9-78"></a><span class="in">    CHG_RR = "RR Duration\nChange from BL"</span></span>
+<span id="cb9-79"><a href="#cb9-79"></a><span class="in">  )</span></span>
+<span id="cb9-80"><a href="#cb9-80"></a><span class="in">```</span></span>
+<span id="cb9-81"><a href="#cb9-81"></a></span>
+<span id="cb9-82"><a href="#cb9-82"></a><span class="fu">## Standard Listing</span></span>
 <span id="cb9-83"><a href="#cb9-83"></a></span>
-<span id="cb9-84"><a href="#cb9-84"></a><span class="fu">## Standard Listing</span></span>
-<span id="cb9-85"><a href="#cb9-85"></a></span>
-<span id="cb9-86"><a href="#cb9-86"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb9-87"><a href="#cb9-87"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb9-88"><a href="#cb9-88"></a></span>
-<span id="cb9-89"><a href="#cb9-89"></a><span class="in">```{r lsting, test = list(lsting = "lsting")}</span></span>
-<span id="cb9-90"><a href="#cb9-90"></a><span class="in">lsting &lt;- as_listing(</span></span>
-<span id="cb9-91"><a href="#cb9-91"></a><span class="in">  out,</span></span>
-<span id="cb9-92"><a href="#cb9-92"></a><span class="in">  key_cols = c("TRT01A", "CRTNPT", "AGSXRC", "AVISIT", "ADY"),</span></span>
-<span id="cb9-93"><a href="#cb9-93"></a><span class="in">  disp_cols = names(out),</span></span>
-<span id="cb9-94"><a href="#cb9-94"></a><span class="in">  main_title = "Listing of ECG Data: Safety-Evaluable Patients",</span></span>
-<span id="cb9-95"><a href="#cb9-95"></a><span class="in">  main_footer = "Baseline is the patient's last observation prior to initiation of study drug. Abnormalities are flagged as high (H) or low (L) if outside the Roche standard reference range." # nolint: line_length.</span></span>
-<span id="cb9-96"><a href="#cb9-96"></a><span class="in">)</span></span>
-<span id="cb9-97"><a href="#cb9-97"></a></span>
-<span id="cb9-98"><a href="#cb9-98"></a><span class="in">head(lsting, 20)</span></span>
-<span id="cb9-99"><a href="#cb9-99"></a><span class="in">```</span></span>
-<span id="cb9-100"><a href="#cb9-100"></a></span>
-<span id="cb9-101"><a href="#cb9-101"></a><span class="in">`r webr_code_labels &lt;- c("setup", "lsting")`</span></span>
-<span id="cb9-102"><a href="#cb9-102"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb9-103"><a href="#cb9-103"></a>:::</span>
+<span id="cb9-84"><a href="#cb9-84"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb9-85"><a href="#cb9-85"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb9-86"><a href="#cb9-86"></a></span>
+<span id="cb9-87"><a href="#cb9-87"></a><span class="in">```{r lsting, test = list(lsting = "lsting")}</span></span>
+<span id="cb9-88"><a href="#cb9-88"></a><span class="in">lsting &lt;- as_listing(</span></span>
+<span id="cb9-89"><a href="#cb9-89"></a><span class="in">  out,</span></span>
+<span id="cb9-90"><a href="#cb9-90"></a><span class="in">  key_cols = c("TRT01A", "CRTNPT", "AGSXRC", "AVISIT", "ADY"),</span></span>
+<span id="cb9-91"><a href="#cb9-91"></a><span class="in">  disp_cols = names(out),</span></span>
+<span id="cb9-92"><a href="#cb9-92"></a><span class="in">  main_title = "Listing of ECG Data: Safety-Evaluable Patients",</span></span>
+<span id="cb9-93"><a href="#cb9-93"></a><span class="in">  main_footer = "Baseline is the patient's last observation prior to initiation of study drug. Abnormalities are flagged as high (H) or low (L) if outside the Roche standard reference range." # nolint: line_length.</span></span>
+<span id="cb9-94"><a href="#cb9-94"></a><span class="in">)</span></span>
+<span id="cb9-95"><a href="#cb9-95"></a></span>
+<span id="cb9-96"><a href="#cb9-96"></a><span class="in">head(lsting, 20)</span></span>
+<span id="cb9-97"><a href="#cb9-97"></a><span class="in">```</span></span>
+<span id="cb9-98"><a href="#cb9-98"></a></span>
+<span id="cb9-99"><a href="#cb9-99"></a><span class="in">`r webr_code_labels &lt;- c("setup", "lsting")`</span></span>
+<span id="cb9-100"><a href="#cb9-100"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb9-101"><a href="#cb9-101"></a>:::</span>
+<span id="cb9-102"><a href="#cb9-102"></a></span>
+<span id="cb9-103"><a href="#cb9-103"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
 <span id="cb9-104"><a href="#cb9-104"></a></span>
-<span id="cb9-105"><a href="#cb9-105"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb9-105"><a href="#cb9-105"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
 <span id="cb9-106"><a href="#cb9-106"></a></span>
-<span id="cb9-107"><a href="#cb9-107"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb9-108"><a href="#cb9-108"></a></span>
-<span id="cb9-109"><a href="#cb9-109"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-107"><a href="#cb9-107"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
