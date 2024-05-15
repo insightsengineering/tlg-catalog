@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"autorun":"true","results":"markup","fig-cap":"","message":"true","read-only":"false","out-height":"","fig-height":5,"label":"unnamed-chunk-1","output":"true","warning":"true","editor-quick-suggestions":"false","classes":"","dpi":72,"editor-max-height":"500","comment":"","context":"interactive","fig-width":7,"editor-font-scale":1,"out-width":"700px"},"id":1,"code":"library(dplyr)\nlibrary(scda)\nlibrary(scda.2022)\nlibrary(rlistings)\nlibrary(lubridate)\n\nadae <- synthetic_cdisc_dataset(\"latest\", \"adae\")\n\nadae_anl <- adae %>%\n  filter(SAFFL == \"Y\") %>%\n  mutate(\n    DHM = as.period(LDOSEDTM %--% ASTDTM),\n    TMOM = minute(DHM) + ifelse(second(DHM) >= 30, 1, 0),\n    TMOH = hour(DHM) + ifelse(TMOM == 60, 1, 0),\n    TMOD = day(DHM) + ifelse(TMOH == 24, 1, 0)\n  ) %>%\n  mutate(\n    TMOM = TMOM %% 60,\n    TMOH = TMOH %% 24\n  )\n\nout <- adae_anl %>%\n  mutate(\n    ADURN = AENDY - ASTDY + 1,\n    cent_subj = paste(SITEID, SUBJID, sep = \"/\"),\n    ASR = paste(AGE, SEX, RACE, sep = \"/\"),\n    AESER_F = if_else(AESER == \"Y\", \"Yes\", \"No\", \"\"),\n    AEREL_F = if_else(AEREL == \"Y\", \"Yes\", \"No\", \"\"),\n    AECONTRT_F = if_else(AECONTRT == \"Y\", \"Yes\", \"No\", \"\"),\n    AEOUT_F = case_when(\n      AEOUT == \"FATAL\" ~ 1,\n      AEOUT == \"NOT RECOVERED/NOT RESOLVED\" ~ 2,\n      AEOUT == \"RECOVERED/RESOLVED\" ~ 3,\n      AEOUT == \"RECOVERED/RESOLVED WITH SEQUELAE\" ~ 4,\n      AEOUT == \"RECOVERING/RESOLVING\" ~ 5,\n      AEOUT == \"UNKNOWN\" ~ 6\n    ),\n    AEACN_F = case_when(\n      AEACN == \"DOSE INCREASED\" ~ 1,\n      AEACN == \"DOSE NOT CHANGED\" ~ 2,\n      AEACN == \"DOSE REDUCED\" | AEACN == \"DOSE RATE REDUCED\" ~ 3,\n      AEACN == \"DRUG INTERRUPTED\" ~ 4,\n      AEACN == \"DRUG WITHDRAWN\" ~ 5,\n      AEACN == \"NOT APPLICABLE\" | AEACN == \"NOT EVALUABLE\" ~ 6,\n      AEACN == \"UNKNOWN\" ~ 7\n    )\n  ) %>%\n  select(\n    cent_subj, ASR, TRT01A, AEDECOD, ASTDY, TMOD, TMOH, TMOM,\n    ADURN, AESER_F, AESEV, AEREL_F, AEOUT_F, AECONTRT_F, AEACN_F\n  )\n\nout <- out %>% var_relabel(\n  cent_subj  = \"Center/Patient ID\",\n  ASR        = \"Age/Sex/Race\",\n  TRT01A     = \"Treatment\",\n  AEDECOD    = \"Adverse\\nEvent MedDRA\\nPreferred Term\",\n  ASTDY      = \"Study\\nDay of\\nOnset\",\n  TMOD       = \"Time from\\nLast Dose\\nto Onset\\ndays\",\n  TMOH       = \"Time from\\nLast Dose\\nto Onset\\nhrs\",\n  TMOM       = \"Time from\\nLast Dose\\nto Onset\\nmins\",\n  ADURN      = \"AE\\nDuration\\nin Days\",\n  AESER_F    = \"Serious\",\n  AESEV      = \"Most\\nExtreme\\nIntensity\",\n  AEREL_F    = \"Caused by\\nStudy\\nDrug\",\n  AEOUT_F    = \"Outcome\\n(1)\",\n  AECONTRT_F = \"Treatment\\nfor AE\",\n  AEACN_F    = \"Action\\nTaken\\n(2)\"\n)\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"cent_subj\", \"ASR\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Adverse Events (for early development studies)\",\n  main_footer = \"\n(1) Outcome: 1 = fatal; 2 = not recovered/not resolved; 3 = recovered/resolved;\n    4 = recovered/resolved with sequelae; 5 = recovering/resolving; 6 = unknown.\n(2) Action taken with study drug: 1 = dose increased; 2 = dose not changed;\n    3 = dose reduced; 4 = drug interrupted; 5 = drug withdrawn; 6 = not applicable;\n    7 = unknown.\n*  Study day derived from imputed onset date.\n** Duration derived from imputed onset date and/or end date.\"\n)\n\nhead(lsting, 20)"}];
+globalThis.qwebrCellDetails = [{"id":1,"options":{"out-width":"700px","output":"true","autorun":"true","comment":"","fig-cap":"","warning":"true","fig-width":7,"editor-quick-suggestions":"false","editor-max-height":"500","out-height":"","context":"interactive","results":"markup","editor-font-scale":1,"read-only":"false","dpi":72,"message":"true","label":"unnamed-chunk-1","classes":"","fig-height":5},"code":"library(dplyr)\nlibrary(rlistings)\nlibrary(lubridate)\n\nadae <- random.cdisc.data::cadae\n\nadae_anl <- adae %>%\n  filter(SAFFL == \"Y\") %>%\n  mutate(\n    DHM = as.period(LDOSEDTM %--% ASTDTM),\n    TMOM = minute(DHM) + ifelse(second(DHM) >= 30, 1, 0),\n    TMOH = hour(DHM) + ifelse(TMOM == 60, 1, 0),\n    TMOD = day(DHM) + ifelse(TMOH == 24, 1, 0)\n  ) %>%\n  mutate(\n    TMOM = TMOM %% 60,\n    TMOH = TMOH %% 24\n  )\n\nout <- adae_anl %>%\n  mutate(\n    ADURN = AENDY - ASTDY + 1,\n    cent_subj = paste(SITEID, SUBJID, sep = \"/\"),\n    ASR = paste(AGE, SEX, RACE, sep = \"/\"),\n    AESER_F = if_else(AESER == \"Y\", \"Yes\", \"No\", \"\"),\n    AEREL_F = if_else(AEREL == \"Y\", \"Yes\", \"No\", \"\"),\n    AECONTRT_F = if_else(AECONTRT == \"Y\", \"Yes\", \"No\", \"\"),\n    AEOUT_F = case_when(\n      AEOUT == \"FATAL\" ~ 1,\n      AEOUT == \"NOT RECOVERED/NOT RESOLVED\" ~ 2,\n      AEOUT == \"RECOVERED/RESOLVED\" ~ 3,\n      AEOUT == \"RECOVERED/RESOLVED WITH SEQUELAE\" ~ 4,\n      AEOUT == \"RECOVERING/RESOLVING\" ~ 5,\n      AEOUT == \"UNKNOWN\" ~ 6\n    ),\n    AEACN_F = case_when(\n      AEACN == \"DOSE INCREASED\" ~ 1,\n      AEACN == \"DOSE NOT CHANGED\" ~ 2,\n      AEACN == \"DOSE REDUCED\" | AEACN == \"DOSE RATE REDUCED\" ~ 3,\n      AEACN == \"DRUG INTERRUPTED\" ~ 4,\n      AEACN == \"DRUG WITHDRAWN\" ~ 5,\n      AEACN == \"NOT APPLICABLE\" | AEACN == \"NOT EVALUABLE\" ~ 6,\n      AEACN == \"UNKNOWN\" ~ 7\n    )\n  ) %>%\n  select(\n    cent_subj, ASR, TRT01A, AEDECOD, ASTDY, TMOD, TMOH, TMOM,\n    ADURN, AESER_F, AESEV, AEREL_F, AEOUT_F, AECONTRT_F, AEACN_F\n  )\n\nout <- out %>% var_relabel(\n  cent_subj  = \"Center/Patient ID\",\n  ASR        = \"Age/Sex/Race\",\n  TRT01A     = \"Treatment\",\n  AEDECOD    = \"Adverse\\nEvent MedDRA\\nPreferred Term\",\n  ASTDY      = \"Study\\nDay of\\nOnset\",\n  TMOD       = \"Time from\\nLast Dose\\nto Onset\\ndays\",\n  TMOH       = \"Time from\\nLast Dose\\nto Onset\\nhrs\",\n  TMOM       = \"Time from\\nLast Dose\\nto Onset\\nmins\",\n  ADURN      = \"AE\\nDuration\\nin Days\",\n  AESER_F    = \"Serious\",\n  AESEV      = \"Most\\nExtreme\\nIntensity\",\n  AEREL_F    = \"Caused by\\nStudy\\nDrug\",\n  AEOUT_F    = \"Outcome\\n(1)\",\n  AECONTRT_F = \"Treatment\\nfor AE\",\n  AEACN_F    = \"Action\\nTaken\\n(2)\"\n)\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"cent_subj\", \"ASR\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Adverse Events (for early development studies)\",\n  main_footer = \"\n(1) Outcome: 1 = fatal; 2 = not recovered/not resolved; 3 = recovered/resolved;\n    4 = recovered/resolved with sequelae; 5 = recovering/resolving; 6 = unknown.\n(2) Action taken with study drug: 1 = dose increased; 2 = dose not changed;\n    3 = dose reduced; 4 = drug interrupted; 5 = drug withdrawn; 6 = not applicable;\n    7 = unknown.\n*  Study day derived from imputed onset date.\n** Duration derived from imputed onset date and/or end date.\"\n)\n\nhead(lsting, 20)"}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2622,74 +2622,72 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <div class="cell">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(scda)</span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(scda<span class="fl">.2022</span>)</span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(rlistings)</span>
-<span id="cb1-5"><a href="#cb1-5"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(rlistings)</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb1-4"><a href="#cb1-4"></a></span>
+<span id="cb1-5"><a href="#cb1-5"></a>adae <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadae</span>
 <span id="cb1-6"><a href="#cb1-6"></a></span>
-<span id="cb1-7"><a href="#cb1-7"></a>adae <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adae"</span>)</span>
-<span id="cb1-8"><a href="#cb1-8"></a></span>
-<span id="cb1-9"><a href="#cb1-9"></a>adae_anl <span class="ot">&lt;-</span> adae <span class="sc">%&gt;%</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>  <span class="fu">filter</span>(SAFFL <span class="sc">==</span> <span class="st">"Y"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-11"><a href="#cb1-11"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-12"><a href="#cb1-12"></a>    <span class="at">DHM =</span> <span class="fu">as.period</span>(LDOSEDTM <span class="sc">%--%</span> ASTDTM),</span>
-<span id="cb1-13"><a href="#cb1-13"></a>    <span class="at">TMOM =</span> <span class="fu">minute</span>(DHM) <span class="sc">+</span> <span class="fu">ifelse</span>(<span class="fu">second</span>(DHM) <span class="sc">&gt;=</span> <span class="dv">30</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
-<span id="cb1-14"><a href="#cb1-14"></a>    <span class="at">TMOH =</span> <span class="fu">hour</span>(DHM) <span class="sc">+</span> <span class="fu">ifelse</span>(TMOM <span class="sc">==</span> <span class="dv">60</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
-<span id="cb1-15"><a href="#cb1-15"></a>    <span class="at">TMOD =</span> <span class="fu">day</span>(DHM) <span class="sc">+</span> <span class="fu">ifelse</span>(TMOH <span class="sc">==</span> <span class="dv">24</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb1-16"><a href="#cb1-16"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-17"><a href="#cb1-17"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-18"><a href="#cb1-18"></a>    <span class="at">TMOM =</span> TMOM <span class="sc">%%</span> <span class="dv">60</span>,</span>
-<span id="cb1-19"><a href="#cb1-19"></a>    <span class="at">TMOH =</span> TMOH <span class="sc">%%</span> <span class="dv">24</span></span>
-<span id="cb1-20"><a href="#cb1-20"></a>  )</span>
-<span id="cb1-21"><a href="#cb1-21"></a></span>
-<span id="cb1-22"><a href="#cb1-22"></a>out <span class="ot">&lt;-</span> adae_anl <span class="sc">%&gt;%</span></span>
-<span id="cb1-23"><a href="#cb1-23"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-24"><a href="#cb1-24"></a>    <span class="at">ADURN =</span> AENDY <span class="sc">-</span> ASTDY <span class="sc">+</span> <span class="dv">1</span>,</span>
-<span id="cb1-25"><a href="#cb1-25"></a>    <span class="at">cent_subj =</span> <span class="fu">paste</span>(SITEID, SUBJID, <span class="at">sep =</span> <span class="st">"/"</span>),</span>
-<span id="cb1-26"><a href="#cb1-26"></a>    <span class="at">ASR =</span> <span class="fu">paste</span>(AGE, SEX, RACE, <span class="at">sep =</span> <span class="st">"/"</span>),</span>
-<span id="cb1-27"><a href="#cb1-27"></a>    <span class="at">AESER_F =</span> <span class="fu">if_else</span>(AESER <span class="sc">==</span> <span class="st">"Y"</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>, <span class="st">""</span>),</span>
-<span id="cb1-28"><a href="#cb1-28"></a>    <span class="at">AEREL_F =</span> <span class="fu">if_else</span>(AEREL <span class="sc">==</span> <span class="st">"Y"</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>, <span class="st">""</span>),</span>
-<span id="cb1-29"><a href="#cb1-29"></a>    <span class="at">AECONTRT_F =</span> <span class="fu">if_else</span>(AECONTRT <span class="sc">==</span> <span class="st">"Y"</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>, <span class="st">""</span>),</span>
-<span id="cb1-30"><a href="#cb1-30"></a>    <span class="at">AEOUT_F =</span> <span class="fu">case_when</span>(</span>
-<span id="cb1-31"><a href="#cb1-31"></a>      AEOUT <span class="sc">==</span> <span class="st">"FATAL"</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
-<span id="cb1-32"><a href="#cb1-32"></a>      AEOUT <span class="sc">==</span> <span class="st">"NOT RECOVERED/NOT RESOLVED"</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
-<span id="cb1-33"><a href="#cb1-33"></a>      AEOUT <span class="sc">==</span> <span class="st">"RECOVERED/RESOLVED"</span> <span class="sc">~</span> <span class="dv">3</span>,</span>
-<span id="cb1-34"><a href="#cb1-34"></a>      AEOUT <span class="sc">==</span> <span class="st">"RECOVERED/RESOLVED WITH SEQUELAE"</span> <span class="sc">~</span> <span class="dv">4</span>,</span>
-<span id="cb1-35"><a href="#cb1-35"></a>      AEOUT <span class="sc">==</span> <span class="st">"RECOVERING/RESOLVING"</span> <span class="sc">~</span> <span class="dv">5</span>,</span>
-<span id="cb1-36"><a href="#cb1-36"></a>      AEOUT <span class="sc">==</span> <span class="st">"UNKNOWN"</span> <span class="sc">~</span> <span class="dv">6</span></span>
-<span id="cb1-37"><a href="#cb1-37"></a>    ),</span>
-<span id="cb1-38"><a href="#cb1-38"></a>    <span class="at">AEACN_F =</span> <span class="fu">case_when</span>(</span>
-<span id="cb1-39"><a href="#cb1-39"></a>      AEACN <span class="sc">==</span> <span class="st">"DOSE INCREASED"</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
-<span id="cb1-40"><a href="#cb1-40"></a>      AEACN <span class="sc">==</span> <span class="st">"DOSE NOT CHANGED"</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
-<span id="cb1-41"><a href="#cb1-41"></a>      AEACN <span class="sc">==</span> <span class="st">"DOSE REDUCED"</span> <span class="sc">|</span> AEACN <span class="sc">==</span> <span class="st">"DOSE RATE REDUCED"</span> <span class="sc">~</span> <span class="dv">3</span>,</span>
-<span id="cb1-42"><a href="#cb1-42"></a>      AEACN <span class="sc">==</span> <span class="st">"DRUG INTERRUPTED"</span> <span class="sc">~</span> <span class="dv">4</span>,</span>
-<span id="cb1-43"><a href="#cb1-43"></a>      AEACN <span class="sc">==</span> <span class="st">"DRUG WITHDRAWN"</span> <span class="sc">~</span> <span class="dv">5</span>,</span>
-<span id="cb1-44"><a href="#cb1-44"></a>      AEACN <span class="sc">==</span> <span class="st">"NOT APPLICABLE"</span> <span class="sc">|</span> AEACN <span class="sc">==</span> <span class="st">"NOT EVALUABLE"</span> <span class="sc">~</span> <span class="dv">6</span>,</span>
-<span id="cb1-45"><a href="#cb1-45"></a>      AEACN <span class="sc">==</span> <span class="st">"UNKNOWN"</span> <span class="sc">~</span> <span class="dv">7</span></span>
-<span id="cb1-46"><a href="#cb1-46"></a>    )</span>
-<span id="cb1-47"><a href="#cb1-47"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-48"><a href="#cb1-48"></a>  <span class="fu">select</span>(</span>
-<span id="cb1-49"><a href="#cb1-49"></a>    cent_subj, ASR, TRT01A, AEDECOD, ASTDY, TMOD, TMOH, TMOM,</span>
-<span id="cb1-50"><a href="#cb1-50"></a>    ADURN, AESER_F, AESEV, AEREL_F, AEOUT_F, AECONTRT_F, AEACN_F</span>
-<span id="cb1-51"><a href="#cb1-51"></a>  )</span>
-<span id="cb1-52"><a href="#cb1-52"></a></span>
-<span id="cb1-53"><a href="#cb1-53"></a>out <span class="ot">&lt;-</span> out <span class="sc">%&gt;%</span> <span class="fu">var_relabel</span>(</span>
-<span id="cb1-54"><a href="#cb1-54"></a>  <span class="at">cent_subj  =</span> <span class="st">"Center/Patient ID"</span>,</span>
-<span id="cb1-55"><a href="#cb1-55"></a>  <span class="at">ASR        =</span> <span class="st">"Age/Sex/Race"</span>,</span>
-<span id="cb1-56"><a href="#cb1-56"></a>  <span class="at">TRT01A     =</span> <span class="st">"Treatment"</span>,</span>
-<span id="cb1-57"><a href="#cb1-57"></a>  <span class="at">AEDECOD    =</span> <span class="st">"Adverse</span><span class="sc">\n</span><span class="st">Event MedDRA</span><span class="sc">\n</span><span class="st">Preferred Term"</span>,</span>
-<span id="cb1-58"><a href="#cb1-58"></a>  <span class="at">ASTDY      =</span> <span class="st">"Study</span><span class="sc">\n</span><span class="st">Day of</span><span class="sc">\n</span><span class="st">Onset"</span>,</span>
-<span id="cb1-59"><a href="#cb1-59"></a>  <span class="at">TMOD       =</span> <span class="st">"Time from</span><span class="sc">\n</span><span class="st">Last Dose</span><span class="sc">\n</span><span class="st">to Onset</span><span class="sc">\n</span><span class="st">days"</span>,</span>
-<span id="cb1-60"><a href="#cb1-60"></a>  <span class="at">TMOH       =</span> <span class="st">"Time from</span><span class="sc">\n</span><span class="st">Last Dose</span><span class="sc">\n</span><span class="st">to Onset</span><span class="sc">\n</span><span class="st">hrs"</span>,</span>
-<span id="cb1-61"><a href="#cb1-61"></a>  <span class="at">TMOM       =</span> <span class="st">"Time from</span><span class="sc">\n</span><span class="st">Last Dose</span><span class="sc">\n</span><span class="st">to Onset</span><span class="sc">\n</span><span class="st">mins"</span>,</span>
-<span id="cb1-62"><a href="#cb1-62"></a>  <span class="at">ADURN      =</span> <span class="st">"AE</span><span class="sc">\n</span><span class="st">Duration</span><span class="sc">\n</span><span class="st">in Days"</span>,</span>
-<span id="cb1-63"><a href="#cb1-63"></a>  <span class="at">AESER_F    =</span> <span class="st">"Serious"</span>,</span>
-<span id="cb1-64"><a href="#cb1-64"></a>  <span class="at">AESEV      =</span> <span class="st">"Most</span><span class="sc">\n</span><span class="st">Extreme</span><span class="sc">\n</span><span class="st">Intensity"</span>,</span>
-<span id="cb1-65"><a href="#cb1-65"></a>  <span class="at">AEREL_F    =</span> <span class="st">"Caused by</span><span class="sc">\n</span><span class="st">Study</span><span class="sc">\n</span><span class="st">Drug"</span>,</span>
-<span id="cb1-66"><a href="#cb1-66"></a>  <span class="at">AEOUT_F    =</span> <span class="st">"Outcome</span><span class="sc">\n</span><span class="st">(1)"</span>,</span>
-<span id="cb1-67"><a href="#cb1-67"></a>  <span class="at">AECONTRT_F =</span> <span class="st">"Treatment</span><span class="sc">\n</span><span class="st">for AE"</span>,</span>
-<span id="cb1-68"><a href="#cb1-68"></a>  <span class="at">AEACN_F    =</span> <span class="st">"Action</span><span class="sc">\n</span><span class="st">Taken</span><span class="sc">\n</span><span class="st">(2)"</span></span>
-<span id="cb1-69"><a href="#cb1-69"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-7"><a href="#cb1-7"></a>adae_anl <span class="ot">&lt;-</span> adae <span class="sc">%&gt;%</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>  <span class="fu">filter</span>(SAFFL <span class="sc">==</span> <span class="st">"Y"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-10"><a href="#cb1-10"></a>    <span class="at">DHM =</span> <span class="fu">as.period</span>(LDOSEDTM <span class="sc">%--%</span> ASTDTM),</span>
+<span id="cb1-11"><a href="#cb1-11"></a>    <span class="at">TMOM =</span> <span class="fu">minute</span>(DHM) <span class="sc">+</span> <span class="fu">ifelse</span>(<span class="fu">second</span>(DHM) <span class="sc">&gt;=</span> <span class="dv">30</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb1-12"><a href="#cb1-12"></a>    <span class="at">TMOH =</span> <span class="fu">hour</span>(DHM) <span class="sc">+</span> <span class="fu">ifelse</span>(TMOM <span class="sc">==</span> <span class="dv">60</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb1-13"><a href="#cb1-13"></a>    <span class="at">TMOD =</span> <span class="fu">day</span>(DHM) <span class="sc">+</span> <span class="fu">ifelse</span>(TMOH <span class="sc">==</span> <span class="dv">24</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb1-14"><a href="#cb1-14"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-16"><a href="#cb1-16"></a>    <span class="at">TMOM =</span> TMOM <span class="sc">%%</span> <span class="dv">60</span>,</span>
+<span id="cb1-17"><a href="#cb1-17"></a>    <span class="at">TMOH =</span> TMOH <span class="sc">%%</span> <span class="dv">24</span></span>
+<span id="cb1-18"><a href="#cb1-18"></a>  )</span>
+<span id="cb1-19"><a href="#cb1-19"></a></span>
+<span id="cb1-20"><a href="#cb1-20"></a>out <span class="ot">&lt;-</span> adae_anl <span class="sc">%&gt;%</span></span>
+<span id="cb1-21"><a href="#cb1-21"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-22"><a href="#cb1-22"></a>    <span class="at">ADURN =</span> AENDY <span class="sc">-</span> ASTDY <span class="sc">+</span> <span class="dv">1</span>,</span>
+<span id="cb1-23"><a href="#cb1-23"></a>    <span class="at">cent_subj =</span> <span class="fu">paste</span>(SITEID, SUBJID, <span class="at">sep =</span> <span class="st">"/"</span>),</span>
+<span id="cb1-24"><a href="#cb1-24"></a>    <span class="at">ASR =</span> <span class="fu">paste</span>(AGE, SEX, RACE, <span class="at">sep =</span> <span class="st">"/"</span>),</span>
+<span id="cb1-25"><a href="#cb1-25"></a>    <span class="at">AESER_F =</span> <span class="fu">if_else</span>(AESER <span class="sc">==</span> <span class="st">"Y"</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>, <span class="st">""</span>),</span>
+<span id="cb1-26"><a href="#cb1-26"></a>    <span class="at">AEREL_F =</span> <span class="fu">if_else</span>(AEREL <span class="sc">==</span> <span class="st">"Y"</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>, <span class="st">""</span>),</span>
+<span id="cb1-27"><a href="#cb1-27"></a>    <span class="at">AECONTRT_F =</span> <span class="fu">if_else</span>(AECONTRT <span class="sc">==</span> <span class="st">"Y"</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>, <span class="st">""</span>),</span>
+<span id="cb1-28"><a href="#cb1-28"></a>    <span class="at">AEOUT_F =</span> <span class="fu">case_when</span>(</span>
+<span id="cb1-29"><a href="#cb1-29"></a>      AEOUT <span class="sc">==</span> <span class="st">"FATAL"</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb1-30"><a href="#cb1-30"></a>      AEOUT <span class="sc">==</span> <span class="st">"NOT RECOVERED/NOT RESOLVED"</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb1-31"><a href="#cb1-31"></a>      AEOUT <span class="sc">==</span> <span class="st">"RECOVERED/RESOLVED"</span> <span class="sc">~</span> <span class="dv">3</span>,</span>
+<span id="cb1-32"><a href="#cb1-32"></a>      AEOUT <span class="sc">==</span> <span class="st">"RECOVERED/RESOLVED WITH SEQUELAE"</span> <span class="sc">~</span> <span class="dv">4</span>,</span>
+<span id="cb1-33"><a href="#cb1-33"></a>      AEOUT <span class="sc">==</span> <span class="st">"RECOVERING/RESOLVING"</span> <span class="sc">~</span> <span class="dv">5</span>,</span>
+<span id="cb1-34"><a href="#cb1-34"></a>      AEOUT <span class="sc">==</span> <span class="st">"UNKNOWN"</span> <span class="sc">~</span> <span class="dv">6</span></span>
+<span id="cb1-35"><a href="#cb1-35"></a>    ),</span>
+<span id="cb1-36"><a href="#cb1-36"></a>    <span class="at">AEACN_F =</span> <span class="fu">case_when</span>(</span>
+<span id="cb1-37"><a href="#cb1-37"></a>      AEACN <span class="sc">==</span> <span class="st">"DOSE INCREASED"</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb1-38"><a href="#cb1-38"></a>      AEACN <span class="sc">==</span> <span class="st">"DOSE NOT CHANGED"</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb1-39"><a href="#cb1-39"></a>      AEACN <span class="sc">==</span> <span class="st">"DOSE REDUCED"</span> <span class="sc">|</span> AEACN <span class="sc">==</span> <span class="st">"DOSE RATE REDUCED"</span> <span class="sc">~</span> <span class="dv">3</span>,</span>
+<span id="cb1-40"><a href="#cb1-40"></a>      AEACN <span class="sc">==</span> <span class="st">"DRUG INTERRUPTED"</span> <span class="sc">~</span> <span class="dv">4</span>,</span>
+<span id="cb1-41"><a href="#cb1-41"></a>      AEACN <span class="sc">==</span> <span class="st">"DRUG WITHDRAWN"</span> <span class="sc">~</span> <span class="dv">5</span>,</span>
+<span id="cb1-42"><a href="#cb1-42"></a>      AEACN <span class="sc">==</span> <span class="st">"NOT APPLICABLE"</span> <span class="sc">|</span> AEACN <span class="sc">==</span> <span class="st">"NOT EVALUABLE"</span> <span class="sc">~</span> <span class="dv">6</span>,</span>
+<span id="cb1-43"><a href="#cb1-43"></a>      AEACN <span class="sc">==</span> <span class="st">"UNKNOWN"</span> <span class="sc">~</span> <span class="dv">7</span></span>
+<span id="cb1-44"><a href="#cb1-44"></a>    )</span>
+<span id="cb1-45"><a href="#cb1-45"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-46"><a href="#cb1-46"></a>  <span class="fu">select</span>(</span>
+<span id="cb1-47"><a href="#cb1-47"></a>    cent_subj, ASR, TRT01A, AEDECOD, ASTDY, TMOD, TMOH, TMOM,</span>
+<span id="cb1-48"><a href="#cb1-48"></a>    ADURN, AESER_F, AESEV, AEREL_F, AEOUT_F, AECONTRT_F, AEACN_F</span>
+<span id="cb1-49"><a href="#cb1-49"></a>  )</span>
+<span id="cb1-50"><a href="#cb1-50"></a></span>
+<span id="cb1-51"><a href="#cb1-51"></a>out <span class="ot">&lt;-</span> out <span class="sc">%&gt;%</span> <span class="fu">var_relabel</span>(</span>
+<span id="cb1-52"><a href="#cb1-52"></a>  <span class="at">cent_subj  =</span> <span class="st">"Center/Patient ID"</span>,</span>
+<span id="cb1-53"><a href="#cb1-53"></a>  <span class="at">ASR        =</span> <span class="st">"Age/Sex/Race"</span>,</span>
+<span id="cb1-54"><a href="#cb1-54"></a>  <span class="at">TRT01A     =</span> <span class="st">"Treatment"</span>,</span>
+<span id="cb1-55"><a href="#cb1-55"></a>  <span class="at">AEDECOD    =</span> <span class="st">"Adverse</span><span class="sc">\n</span><span class="st">Event MedDRA</span><span class="sc">\n</span><span class="st">Preferred Term"</span>,</span>
+<span id="cb1-56"><a href="#cb1-56"></a>  <span class="at">ASTDY      =</span> <span class="st">"Study</span><span class="sc">\n</span><span class="st">Day of</span><span class="sc">\n</span><span class="st">Onset"</span>,</span>
+<span id="cb1-57"><a href="#cb1-57"></a>  <span class="at">TMOD       =</span> <span class="st">"Time from</span><span class="sc">\n</span><span class="st">Last Dose</span><span class="sc">\n</span><span class="st">to Onset</span><span class="sc">\n</span><span class="st">days"</span>,</span>
+<span id="cb1-58"><a href="#cb1-58"></a>  <span class="at">TMOH       =</span> <span class="st">"Time from</span><span class="sc">\n</span><span class="st">Last Dose</span><span class="sc">\n</span><span class="st">to Onset</span><span class="sc">\n</span><span class="st">hrs"</span>,</span>
+<span id="cb1-59"><a href="#cb1-59"></a>  <span class="at">TMOM       =</span> <span class="st">"Time from</span><span class="sc">\n</span><span class="st">Last Dose</span><span class="sc">\n</span><span class="st">to Onset</span><span class="sc">\n</span><span class="st">mins"</span>,</span>
+<span id="cb1-60"><a href="#cb1-60"></a>  <span class="at">ADURN      =</span> <span class="st">"AE</span><span class="sc">\n</span><span class="st">Duration</span><span class="sc">\n</span><span class="st">in Days"</span>,</span>
+<span id="cb1-61"><a href="#cb1-61"></a>  <span class="at">AESER_F    =</span> <span class="st">"Serious"</span>,</span>
+<span id="cb1-62"><a href="#cb1-62"></a>  <span class="at">AESEV      =</span> <span class="st">"Most</span><span class="sc">\n</span><span class="st">Extreme</span><span class="sc">\n</span><span class="st">Intensity"</span>,</span>
+<span id="cb1-63"><a href="#cb1-63"></a>  <span class="at">AEREL_F    =</span> <span class="st">"Caused by</span><span class="sc">\n</span><span class="st">Study</span><span class="sc">\n</span><span class="st">Drug"</span>,</span>
+<span id="cb1-64"><a href="#cb1-64"></a>  <span class="at">AEOUT_F    =</span> <span class="st">"Outcome</span><span class="sc">\n</span><span class="st">(1)"</span>,</span>
+<span id="cb1-65"><a href="#cb1-65"></a>  <span class="at">AECONTRT_F =</span> <span class="st">"Treatment</span><span class="sc">\n</span><span class="st">for AE"</span>,</span>
+<span id="cb1-66"><a href="#cb1-66"></a>  <span class="at">AEACN_F    =</span> <span class="st">"Action</span><span class="sc">\n</span><span class="st">Taken</span><span class="sc">\n</span><span class="st">(2)"</span></span>
+<span id="cb1-67"><a href="#cb1-67"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
@@ -2794,7 +2792,7 @@ Experimental use!
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-05-11 17:59:00 UTC"</code></pre>
+<pre><code>[1] "2024-05-15 17:56:45 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2820,18 +2818,21 @@ attached base packages:
 
 other attached packages:
 [1] lubridate_1.9.3  rlistings_0.2.8  tibble_3.2.1     formatters_0.5.6
-[5] scda.2022_0.1.5  scda_0.1.6       dplyr_1.1.4     
+[5] dplyr_1.1.4     
 
 loaded via a namespace (and not attached):
- [1] vctrs_0.6.5       cli_3.6.2         knitr_1.46        rlang_1.1.3      
- [5] xfun_0.43         stringi_1.8.4     generics_0.1.3    jsonlite_1.8.8   
- [9] glue_1.7.0        backports_1.4.1   htmltools_0.5.8.1 brio_1.1.5       
-[13] fansi_1.0.6       rmarkdown_2.26    grid_4.4.0        evaluate_0.23    
-[17] fastmap_1.1.1     yaml_2.3.8        lifecycle_1.0.4   compiler_4.4.0   
-[21] codetools_0.2-20  timechange_0.3.0  htmlwidgets_1.6.4 testthat_3.2.1.1 
-[25] pkgconfig_2.0.3   digest_0.6.35     R6_2.5.1          tidyselect_1.2.1 
-[29] utf8_1.2.4        pillar_1.9.0      magrittr_2.0.3    checkmate_2.3.1  
-[33] withr_3.0.0       tools_4.4.0      </code></pre>
+ [1] vctrs_0.6.5              cli_3.6.2                knitr_1.46              
+ [4] rlang_1.1.3              xfun_0.44                stringi_1.8.4           
+ [7] generics_0.1.3           jsonlite_1.8.8           glue_1.7.0              
+[10] backports_1.4.1          htmltools_0.5.8.1        brio_1.1.5              
+[13] fansi_1.0.6              rmarkdown_2.26           grid_4.4.0              
+[16] evaluate_0.23            fastmap_1.2.0            yaml_2.3.8              
+[19] lifecycle_1.0.4          stringr_1.5.1            compiler_4.4.0          
+[22] codetools_0.2-20         timechange_0.3.0         htmlwidgets_1.6.4       
+[25] testthat_3.2.1.1         pkgconfig_2.0.3          random.cdisc.data_0.3.15
+[28] digest_0.6.35            R6_2.5.1                 tidyselect_1.2.1        
+[31] utf8_1.2.4               pillar_1.9.0             magrittr_2.0.3          
+[34] checkmate_2.3.1          withr_3.0.0              tools_4.4.0             </code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
@@ -3506,109 +3507,107 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb9-14"><a href="#cb9-14"></a><span class="in">#| code-fold: show</span></span>
 <span id="cb9-15"><a href="#cb9-15"></a></span>
 <span id="cb9-16"><a href="#cb9-16"></a><span class="in">library(dplyr)</span></span>
-<span id="cb9-17"><a href="#cb9-17"></a><span class="in">library(scda)</span></span>
-<span id="cb9-18"><a href="#cb9-18"></a><span class="in">library(scda.2022)</span></span>
-<span id="cb9-19"><a href="#cb9-19"></a><span class="in">library(rlistings)</span></span>
-<span id="cb9-20"><a href="#cb9-20"></a><span class="in">library(lubridate)</span></span>
+<span id="cb9-17"><a href="#cb9-17"></a><span class="in">library(rlistings)</span></span>
+<span id="cb9-18"><a href="#cb9-18"></a><span class="in">library(lubridate)</span></span>
+<span id="cb9-19"><a href="#cb9-19"></a></span>
+<span id="cb9-20"><a href="#cb9-20"></a><span class="in">adae &lt;- random.cdisc.data::cadae</span></span>
 <span id="cb9-21"><a href="#cb9-21"></a></span>
-<span id="cb9-22"><a href="#cb9-22"></a><span class="in">adae &lt;- synthetic_cdisc_dataset("latest", "adae")</span></span>
-<span id="cb9-23"><a href="#cb9-23"></a></span>
-<span id="cb9-24"><a href="#cb9-24"></a><span class="in">adae_anl &lt;- adae %&gt;%</span></span>
-<span id="cb9-25"><a href="#cb9-25"></a><span class="in">  filter(SAFFL == "Y") %&gt;%</span></span>
-<span id="cb9-26"><a href="#cb9-26"></a><span class="in">  mutate(</span></span>
-<span id="cb9-27"><a href="#cb9-27"></a><span class="in">    DHM = as.period(LDOSEDTM %--% ASTDTM),</span></span>
-<span id="cb9-28"><a href="#cb9-28"></a><span class="in">    TMOM = minute(DHM) + ifelse(second(DHM) &gt;= 30, 1, 0),</span></span>
-<span id="cb9-29"><a href="#cb9-29"></a><span class="in">    TMOH = hour(DHM) + ifelse(TMOM == 60, 1, 0),</span></span>
-<span id="cb9-30"><a href="#cb9-30"></a><span class="in">    TMOD = day(DHM) + ifelse(TMOH == 24, 1, 0)</span></span>
-<span id="cb9-31"><a href="#cb9-31"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb9-32"><a href="#cb9-32"></a><span class="in">  mutate(</span></span>
-<span id="cb9-33"><a href="#cb9-33"></a><span class="in">    TMOM = TMOM %% 60,</span></span>
-<span id="cb9-34"><a href="#cb9-34"></a><span class="in">    TMOH = TMOH %% 24</span></span>
-<span id="cb9-35"><a href="#cb9-35"></a><span class="in">  )</span></span>
-<span id="cb9-36"><a href="#cb9-36"></a></span>
-<span id="cb9-37"><a href="#cb9-37"></a><span class="in">out &lt;- adae_anl %&gt;%</span></span>
-<span id="cb9-38"><a href="#cb9-38"></a><span class="in">  mutate(</span></span>
-<span id="cb9-39"><a href="#cb9-39"></a><span class="in">    ADURN = AENDY - ASTDY + 1,</span></span>
-<span id="cb9-40"><a href="#cb9-40"></a><span class="in">    cent_subj = paste(SITEID, SUBJID, sep = "/"),</span></span>
-<span id="cb9-41"><a href="#cb9-41"></a><span class="in">    ASR = paste(AGE, SEX, RACE, sep = "/"),</span></span>
-<span id="cb9-42"><a href="#cb9-42"></a><span class="in">    AESER_F = if_else(AESER == "Y", "Yes", "No", ""),</span></span>
-<span id="cb9-43"><a href="#cb9-43"></a><span class="in">    AEREL_F = if_else(AEREL == "Y", "Yes", "No", ""),</span></span>
-<span id="cb9-44"><a href="#cb9-44"></a><span class="in">    AECONTRT_F = if_else(AECONTRT == "Y", "Yes", "No", ""),</span></span>
-<span id="cb9-45"><a href="#cb9-45"></a><span class="in">    AEOUT_F = case_when(</span></span>
-<span id="cb9-46"><a href="#cb9-46"></a><span class="in">      AEOUT == "FATAL" ~ 1,</span></span>
-<span id="cb9-47"><a href="#cb9-47"></a><span class="in">      AEOUT == "NOT RECOVERED/NOT RESOLVED" ~ 2,</span></span>
-<span id="cb9-48"><a href="#cb9-48"></a><span class="in">      AEOUT == "RECOVERED/RESOLVED" ~ 3,</span></span>
-<span id="cb9-49"><a href="#cb9-49"></a><span class="in">      AEOUT == "RECOVERED/RESOLVED WITH SEQUELAE" ~ 4,</span></span>
-<span id="cb9-50"><a href="#cb9-50"></a><span class="in">      AEOUT == "RECOVERING/RESOLVING" ~ 5,</span></span>
-<span id="cb9-51"><a href="#cb9-51"></a><span class="in">      AEOUT == "UNKNOWN" ~ 6</span></span>
-<span id="cb9-52"><a href="#cb9-52"></a><span class="in">    ),</span></span>
-<span id="cb9-53"><a href="#cb9-53"></a><span class="in">    AEACN_F = case_when(</span></span>
-<span id="cb9-54"><a href="#cb9-54"></a><span class="in">      AEACN == "DOSE INCREASED" ~ 1,</span></span>
-<span id="cb9-55"><a href="#cb9-55"></a><span class="in">      AEACN == "DOSE NOT CHANGED" ~ 2,</span></span>
-<span id="cb9-56"><a href="#cb9-56"></a><span class="in">      AEACN == "DOSE REDUCED" | AEACN == "DOSE RATE REDUCED" ~ 3,</span></span>
-<span id="cb9-57"><a href="#cb9-57"></a><span class="in">      AEACN == "DRUG INTERRUPTED" ~ 4,</span></span>
-<span id="cb9-58"><a href="#cb9-58"></a><span class="in">      AEACN == "DRUG WITHDRAWN" ~ 5,</span></span>
-<span id="cb9-59"><a href="#cb9-59"></a><span class="in">      AEACN == "NOT APPLICABLE" | AEACN == "NOT EVALUABLE" ~ 6,</span></span>
-<span id="cb9-60"><a href="#cb9-60"></a><span class="in">      AEACN == "UNKNOWN" ~ 7</span></span>
-<span id="cb9-61"><a href="#cb9-61"></a><span class="in">    )</span></span>
-<span id="cb9-62"><a href="#cb9-62"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb9-63"><a href="#cb9-63"></a><span class="in">  select(</span></span>
-<span id="cb9-64"><a href="#cb9-64"></a><span class="in">    cent_subj, ASR, TRT01A, AEDECOD, ASTDY, TMOD, TMOH, TMOM,</span></span>
-<span id="cb9-65"><a href="#cb9-65"></a><span class="in">    ADURN, AESER_F, AESEV, AEREL_F, AEOUT_F, AECONTRT_F, AEACN_F</span></span>
-<span id="cb9-66"><a href="#cb9-66"></a><span class="in">  )</span></span>
-<span id="cb9-67"><a href="#cb9-67"></a></span>
-<span id="cb9-68"><a href="#cb9-68"></a><span class="in">out &lt;- out %&gt;% var_relabel(</span></span>
-<span id="cb9-69"><a href="#cb9-69"></a><span class="in">  cent_subj  = "Center/Patient ID",</span></span>
-<span id="cb9-70"><a href="#cb9-70"></a><span class="in">  ASR        = "Age/Sex/Race",</span></span>
-<span id="cb9-71"><a href="#cb9-71"></a><span class="in">  TRT01A     = "Treatment",</span></span>
-<span id="cb9-72"><a href="#cb9-72"></a><span class="in">  AEDECOD    = "Adverse\nEvent MedDRA\nPreferred Term",</span></span>
-<span id="cb9-73"><a href="#cb9-73"></a><span class="in">  ASTDY      = "Study\nDay of\nOnset",</span></span>
-<span id="cb9-74"><a href="#cb9-74"></a><span class="in">  TMOD       = "Time from\nLast Dose\nto Onset\ndays",</span></span>
-<span id="cb9-75"><a href="#cb9-75"></a><span class="in">  TMOH       = "Time from\nLast Dose\nto Onset\nhrs",</span></span>
-<span id="cb9-76"><a href="#cb9-76"></a><span class="in">  TMOM       = "Time from\nLast Dose\nto Onset\nmins",</span></span>
-<span id="cb9-77"><a href="#cb9-77"></a><span class="in">  ADURN      = "AE\nDuration\nin Days",</span></span>
-<span id="cb9-78"><a href="#cb9-78"></a><span class="in">  AESER_F    = "Serious",</span></span>
-<span id="cb9-79"><a href="#cb9-79"></a><span class="in">  AESEV      = "Most\nExtreme\nIntensity",</span></span>
-<span id="cb9-80"><a href="#cb9-80"></a><span class="in">  AEREL_F    = "Caused by\nStudy\nDrug",</span></span>
-<span id="cb9-81"><a href="#cb9-81"></a><span class="in">  AEOUT_F    = "Outcome\n(1)",</span></span>
-<span id="cb9-82"><a href="#cb9-82"></a><span class="in">  AECONTRT_F = "Treatment\nfor AE",</span></span>
-<span id="cb9-83"><a href="#cb9-83"></a><span class="in">  AEACN_F    = "Action\nTaken\n(2)"</span></span>
-<span id="cb9-84"><a href="#cb9-84"></a><span class="in">)</span></span>
-<span id="cb9-85"><a href="#cb9-85"></a><span class="in">```</span></span>
+<span id="cb9-22"><a href="#cb9-22"></a><span class="in">adae_anl &lt;- adae %&gt;%</span></span>
+<span id="cb9-23"><a href="#cb9-23"></a><span class="in">  filter(SAFFL == "Y") %&gt;%</span></span>
+<span id="cb9-24"><a href="#cb9-24"></a><span class="in">  mutate(</span></span>
+<span id="cb9-25"><a href="#cb9-25"></a><span class="in">    DHM = as.period(LDOSEDTM %--% ASTDTM),</span></span>
+<span id="cb9-26"><a href="#cb9-26"></a><span class="in">    TMOM = minute(DHM) + ifelse(second(DHM) &gt;= 30, 1, 0),</span></span>
+<span id="cb9-27"><a href="#cb9-27"></a><span class="in">    TMOH = hour(DHM) + ifelse(TMOM == 60, 1, 0),</span></span>
+<span id="cb9-28"><a href="#cb9-28"></a><span class="in">    TMOD = day(DHM) + ifelse(TMOH == 24, 1, 0)</span></span>
+<span id="cb9-29"><a href="#cb9-29"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb9-30"><a href="#cb9-30"></a><span class="in">  mutate(</span></span>
+<span id="cb9-31"><a href="#cb9-31"></a><span class="in">    TMOM = TMOM %% 60,</span></span>
+<span id="cb9-32"><a href="#cb9-32"></a><span class="in">    TMOH = TMOH %% 24</span></span>
+<span id="cb9-33"><a href="#cb9-33"></a><span class="in">  )</span></span>
+<span id="cb9-34"><a href="#cb9-34"></a></span>
+<span id="cb9-35"><a href="#cb9-35"></a><span class="in">out &lt;- adae_anl %&gt;%</span></span>
+<span id="cb9-36"><a href="#cb9-36"></a><span class="in">  mutate(</span></span>
+<span id="cb9-37"><a href="#cb9-37"></a><span class="in">    ADURN = AENDY - ASTDY + 1,</span></span>
+<span id="cb9-38"><a href="#cb9-38"></a><span class="in">    cent_subj = paste(SITEID, SUBJID, sep = "/"),</span></span>
+<span id="cb9-39"><a href="#cb9-39"></a><span class="in">    ASR = paste(AGE, SEX, RACE, sep = "/"),</span></span>
+<span id="cb9-40"><a href="#cb9-40"></a><span class="in">    AESER_F = if_else(AESER == "Y", "Yes", "No", ""),</span></span>
+<span id="cb9-41"><a href="#cb9-41"></a><span class="in">    AEREL_F = if_else(AEREL == "Y", "Yes", "No", ""),</span></span>
+<span id="cb9-42"><a href="#cb9-42"></a><span class="in">    AECONTRT_F = if_else(AECONTRT == "Y", "Yes", "No", ""),</span></span>
+<span id="cb9-43"><a href="#cb9-43"></a><span class="in">    AEOUT_F = case_when(</span></span>
+<span id="cb9-44"><a href="#cb9-44"></a><span class="in">      AEOUT == "FATAL" ~ 1,</span></span>
+<span id="cb9-45"><a href="#cb9-45"></a><span class="in">      AEOUT == "NOT RECOVERED/NOT RESOLVED" ~ 2,</span></span>
+<span id="cb9-46"><a href="#cb9-46"></a><span class="in">      AEOUT == "RECOVERED/RESOLVED" ~ 3,</span></span>
+<span id="cb9-47"><a href="#cb9-47"></a><span class="in">      AEOUT == "RECOVERED/RESOLVED WITH SEQUELAE" ~ 4,</span></span>
+<span id="cb9-48"><a href="#cb9-48"></a><span class="in">      AEOUT == "RECOVERING/RESOLVING" ~ 5,</span></span>
+<span id="cb9-49"><a href="#cb9-49"></a><span class="in">      AEOUT == "UNKNOWN" ~ 6</span></span>
+<span id="cb9-50"><a href="#cb9-50"></a><span class="in">    ),</span></span>
+<span id="cb9-51"><a href="#cb9-51"></a><span class="in">    AEACN_F = case_when(</span></span>
+<span id="cb9-52"><a href="#cb9-52"></a><span class="in">      AEACN == "DOSE INCREASED" ~ 1,</span></span>
+<span id="cb9-53"><a href="#cb9-53"></a><span class="in">      AEACN == "DOSE NOT CHANGED" ~ 2,</span></span>
+<span id="cb9-54"><a href="#cb9-54"></a><span class="in">      AEACN == "DOSE REDUCED" | AEACN == "DOSE RATE REDUCED" ~ 3,</span></span>
+<span id="cb9-55"><a href="#cb9-55"></a><span class="in">      AEACN == "DRUG INTERRUPTED" ~ 4,</span></span>
+<span id="cb9-56"><a href="#cb9-56"></a><span class="in">      AEACN == "DRUG WITHDRAWN" ~ 5,</span></span>
+<span id="cb9-57"><a href="#cb9-57"></a><span class="in">      AEACN == "NOT APPLICABLE" | AEACN == "NOT EVALUABLE" ~ 6,</span></span>
+<span id="cb9-58"><a href="#cb9-58"></a><span class="in">      AEACN == "UNKNOWN" ~ 7</span></span>
+<span id="cb9-59"><a href="#cb9-59"></a><span class="in">    )</span></span>
+<span id="cb9-60"><a href="#cb9-60"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb9-61"><a href="#cb9-61"></a><span class="in">  select(</span></span>
+<span id="cb9-62"><a href="#cb9-62"></a><span class="in">    cent_subj, ASR, TRT01A, AEDECOD, ASTDY, TMOD, TMOH, TMOM,</span></span>
+<span id="cb9-63"><a href="#cb9-63"></a><span class="in">    ADURN, AESER_F, AESEV, AEREL_F, AEOUT_F, AECONTRT_F, AEACN_F</span></span>
+<span id="cb9-64"><a href="#cb9-64"></a><span class="in">  )</span></span>
+<span id="cb9-65"><a href="#cb9-65"></a></span>
+<span id="cb9-66"><a href="#cb9-66"></a><span class="in">out &lt;- out %&gt;% var_relabel(</span></span>
+<span id="cb9-67"><a href="#cb9-67"></a><span class="in">  cent_subj  = "Center/Patient ID",</span></span>
+<span id="cb9-68"><a href="#cb9-68"></a><span class="in">  ASR        = "Age/Sex/Race",</span></span>
+<span id="cb9-69"><a href="#cb9-69"></a><span class="in">  TRT01A     = "Treatment",</span></span>
+<span id="cb9-70"><a href="#cb9-70"></a><span class="in">  AEDECOD    = "Adverse\nEvent MedDRA\nPreferred Term",</span></span>
+<span id="cb9-71"><a href="#cb9-71"></a><span class="in">  ASTDY      = "Study\nDay of\nOnset",</span></span>
+<span id="cb9-72"><a href="#cb9-72"></a><span class="in">  TMOD       = "Time from\nLast Dose\nto Onset\ndays",</span></span>
+<span id="cb9-73"><a href="#cb9-73"></a><span class="in">  TMOH       = "Time from\nLast Dose\nto Onset\nhrs",</span></span>
+<span id="cb9-74"><a href="#cb9-74"></a><span class="in">  TMOM       = "Time from\nLast Dose\nto Onset\nmins",</span></span>
+<span id="cb9-75"><a href="#cb9-75"></a><span class="in">  ADURN      = "AE\nDuration\nin Days",</span></span>
+<span id="cb9-76"><a href="#cb9-76"></a><span class="in">  AESER_F    = "Serious",</span></span>
+<span id="cb9-77"><a href="#cb9-77"></a><span class="in">  AESEV      = "Most\nExtreme\nIntensity",</span></span>
+<span id="cb9-78"><a href="#cb9-78"></a><span class="in">  AEREL_F    = "Caused by\nStudy\nDrug",</span></span>
+<span id="cb9-79"><a href="#cb9-79"></a><span class="in">  AEOUT_F    = "Outcome\n(1)",</span></span>
+<span id="cb9-80"><a href="#cb9-80"></a><span class="in">  AECONTRT_F = "Treatment\nfor AE",</span></span>
+<span id="cb9-81"><a href="#cb9-81"></a><span class="in">  AEACN_F    = "Action\nTaken\n(2)"</span></span>
+<span id="cb9-82"><a href="#cb9-82"></a><span class="in">)</span></span>
+<span id="cb9-83"><a href="#cb9-83"></a><span class="in">```</span></span>
+<span id="cb9-84"><a href="#cb9-84"></a></span>
+<span id="cb9-85"><a href="#cb9-85"></a><span class="fu">## Standard Listing</span></span>
 <span id="cb9-86"><a href="#cb9-86"></a></span>
-<span id="cb9-87"><a href="#cb9-87"></a><span class="fu">## Standard Listing</span></span>
-<span id="cb9-88"><a href="#cb9-88"></a></span>
-<span id="cb9-89"><a href="#cb9-89"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb9-90"><a href="#cb9-90"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb9-91"><a href="#cb9-91"></a></span>
-<span id="cb9-92"><a href="#cb9-92"></a><span class="in">```{r lsting, test = list(lsting = "lsting")}</span></span>
-<span id="cb9-93"><a href="#cb9-93"></a><span class="in">lsting &lt;- as_listing(</span></span>
-<span id="cb9-94"><a href="#cb9-94"></a><span class="in">  out,</span></span>
-<span id="cb9-95"><a href="#cb9-95"></a><span class="in">  key_cols = c("TRT01A", "cent_subj", "ASR"),</span></span>
-<span id="cb9-96"><a href="#cb9-96"></a><span class="in">  disp_cols = names(out),</span></span>
-<span id="cb9-97"><a href="#cb9-97"></a><span class="in">  main_title = "Listing of Adverse Events (for early development studies)",</span></span>
-<span id="cb9-98"><a href="#cb9-98"></a><span class="in">  main_footer = "</span></span>
-<span id="cb9-99"><a href="#cb9-99"></a><span class="in">(1) Outcome: 1 = fatal; 2 = not recovered/not resolved; 3 = recovered/resolved;</span></span>
-<span id="cb9-100"><a href="#cb9-100"></a><span class="in">    4 = recovered/resolved with sequelae; 5 = recovering/resolving; 6 = unknown.</span></span>
-<span id="cb9-101"><a href="#cb9-101"></a><span class="in">(2) Action taken with study drug: 1 = dose increased; 2 = dose not changed;</span></span>
-<span id="cb9-102"><a href="#cb9-102"></a><span class="in">    3 = dose reduced; 4 = drug interrupted; 5 = drug withdrawn; 6 = not applicable;</span></span>
-<span id="cb9-103"><a href="#cb9-103"></a><span class="in">    7 = unknown.</span></span>
-<span id="cb9-104"><a href="#cb9-104"></a><span class="in">*  Study day derived from imputed onset date.</span></span>
-<span id="cb9-105"><a href="#cb9-105"></a><span class="in">** Duration derived from imputed onset date and/or end date."</span></span>
-<span id="cb9-106"><a href="#cb9-106"></a><span class="in">)</span></span>
-<span id="cb9-107"><a href="#cb9-107"></a></span>
-<span id="cb9-108"><a href="#cb9-108"></a><span class="in">head(lsting, 20)</span></span>
-<span id="cb9-109"><a href="#cb9-109"></a><span class="in">```</span></span>
-<span id="cb9-110"><a href="#cb9-110"></a></span>
-<span id="cb9-111"><a href="#cb9-111"></a><span class="in">`r webr_code_labels &lt;- c("setup", "lsting")`</span></span>
-<span id="cb9-112"><a href="#cb9-112"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb9-113"><a href="#cb9-113"></a>:::</span>
+<span id="cb9-87"><a href="#cb9-87"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb9-88"><a href="#cb9-88"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb9-89"><a href="#cb9-89"></a></span>
+<span id="cb9-90"><a href="#cb9-90"></a><span class="in">```{r lsting, test = list(lsting = "lsting")}</span></span>
+<span id="cb9-91"><a href="#cb9-91"></a><span class="in">lsting &lt;- as_listing(</span></span>
+<span id="cb9-92"><a href="#cb9-92"></a><span class="in">  out,</span></span>
+<span id="cb9-93"><a href="#cb9-93"></a><span class="in">  key_cols = c("TRT01A", "cent_subj", "ASR"),</span></span>
+<span id="cb9-94"><a href="#cb9-94"></a><span class="in">  disp_cols = names(out),</span></span>
+<span id="cb9-95"><a href="#cb9-95"></a><span class="in">  main_title = "Listing of Adverse Events (for early development studies)",</span></span>
+<span id="cb9-96"><a href="#cb9-96"></a><span class="in">  main_footer = "</span></span>
+<span id="cb9-97"><a href="#cb9-97"></a><span class="in">(1) Outcome: 1 = fatal; 2 = not recovered/not resolved; 3 = recovered/resolved;</span></span>
+<span id="cb9-98"><a href="#cb9-98"></a><span class="in">    4 = recovered/resolved with sequelae; 5 = recovering/resolving; 6 = unknown.</span></span>
+<span id="cb9-99"><a href="#cb9-99"></a><span class="in">(2) Action taken with study drug: 1 = dose increased; 2 = dose not changed;</span></span>
+<span id="cb9-100"><a href="#cb9-100"></a><span class="in">    3 = dose reduced; 4 = drug interrupted; 5 = drug withdrawn; 6 = not applicable;</span></span>
+<span id="cb9-101"><a href="#cb9-101"></a><span class="in">    7 = unknown.</span></span>
+<span id="cb9-102"><a href="#cb9-102"></a><span class="in">*  Study day derived from imputed onset date.</span></span>
+<span id="cb9-103"><a href="#cb9-103"></a><span class="in">** Duration derived from imputed onset date and/or end date."</span></span>
+<span id="cb9-104"><a href="#cb9-104"></a><span class="in">)</span></span>
+<span id="cb9-105"><a href="#cb9-105"></a></span>
+<span id="cb9-106"><a href="#cb9-106"></a><span class="in">head(lsting, 20)</span></span>
+<span id="cb9-107"><a href="#cb9-107"></a><span class="in">```</span></span>
+<span id="cb9-108"><a href="#cb9-108"></a></span>
+<span id="cb9-109"><a href="#cb9-109"></a><span class="in">`r webr_code_labels &lt;- c("setup", "lsting")`</span></span>
+<span id="cb9-110"><a href="#cb9-110"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb9-111"><a href="#cb9-111"></a>:::</span>
+<span id="cb9-112"><a href="#cb9-112"></a></span>
+<span id="cb9-113"><a href="#cb9-113"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
 <span id="cb9-114"><a href="#cb9-114"></a></span>
-<span id="cb9-115"><a href="#cb9-115"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb9-115"><a href="#cb9-115"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
 <span id="cb9-116"><a href="#cb9-116"></a></span>
-<span id="cb9-117"><a href="#cb9-117"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb9-118"><a href="#cb9-118"></a></span>
-<span id="cb9-119"><a href="#cb9-119"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-117"><a href="#cb9-117"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

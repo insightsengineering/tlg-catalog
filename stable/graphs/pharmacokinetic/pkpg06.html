@@ -331,7 +331,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"label":"unnamed-chunk-1","read-only":"false","output":"true","fig-cap":"","fig-height":5,"dpi":72,"editor-font-scale":1,"message":"true","context":"interactive","out-height":"","editor-quick-suggestions":"false","results":"markup","warning":"true","editor-max-height":"500","fig-width":7,"autorun":"true","out-width":"700px","comment":"","classes":""},"id":1,"code":"library(dplyr)\nlibrary(scda)\nlibrary(scda.2022)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadpp <- synthetic_cdisc_dataset(\"latest\", \"adpp\")\n\n# Filter NAs\nadpp <- adpp %>%\n  filter(PPSPEC != \"NA\" & PARAM != \"NA\" & PPCAT != \"NA\") %>%\n  filter(PARAMCD == \"CMAX\" | PARAMCD == \"AUCIFO\", AVISITN == 1)\n\n# filter data by PPCAT and calculate ratio\nanl_x <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug X\", \"Plasma Drug X\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug X` / `Plasma Drug X`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\nanl_y <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug Y\", \"Plasma Drug Y\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\n# functions to calculate custom quantiles and outliers\nquantiles <- function(x) {\n  quant <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))\n  names(quant) <- c(\"ymin\", \"lower\", \"middle\", \"upper\", \"ymax\")\n  quant\n}\n\noutliers <- function(x) {\n  return(x < quantile(x, 0.05) | x > quantile(x, 0.95))\n}\nplot <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +\n  geom_boxplot(outlier.size = 2) +\n  stat_boxplot(geom = \"errorbar\") +\n  stat_summary(\n    geom = \"point\",\n    fun = \"mean\",\n    col = \"black\",\n    size = 5,\n    shape = 8,\n    position = position_dodge(0.75)\n  ) +\n  geom_text(\n    data = . %>% dplyr::group_by(PARAMCD, ACTARM) %>% dplyr::filter(ratio %in% boxplot.stats(ratio)$out),\n    aes(x = PARAMCD, y = ratio, label = USUBJID, col = ACTARM),\n    size = 3,\n    hjust = -0.2,\n    position = position_dodge(0.75),\n    show.legend = FALSE\n  ) +\n  labs(\n    title = \"Boxplot of Metabolite to Parent Ratios by Treatment\",\n    subtitle = paste0(\n      \"Analyte: Plasma Drug X, Metabolite Drug X \",\n      \"\\nPK Parameter: \",\n      as.character(paste(unique(anl_x$PARAMCD), collapse = \", \")),\n      \"\\nVisit: \",\n      as.character((unique(anl_x$AVISIT)))\n    ),\n    caption = \"Program: \\nOutput:\",\n    x = \"Parameter\",\n    y = \"Metabolite to Parent Ratio\"\n  ) +\n  theme(plot.caption = element_text(hjust = 0)) +\n  theme_nest()\n\n# PKPG06\nplot"},{"options":{"label":"unnamed-chunk-2","read-only":"false","output":"true","fig-cap":"","fig-height":5,"dpi":72,"editor-font-scale":1,"message":"true","context":"interactive","out-height":"","editor-quick-suggestions":"false","results":"markup","warning":"true","editor-max-height":"500","fig-width":7,"autorun":"true","out-width":"700px","comment":"","classes":""},"id":2,"code":"library(dplyr)\nlibrary(scda)\nlibrary(scda.2022)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadpp <- synthetic_cdisc_dataset(\"latest\", \"adpp\")\n\n# Filter NAs\nadpp <- adpp %>%\n  filter(PPSPEC != \"NA\" & PARAM != \"NA\" & PPCAT != \"NA\") %>%\n  filter(PARAMCD == \"CMAX\" | PARAMCD == \"AUCIFO\", AVISITN == 1)\n\n# filter data by PPCAT and calculate ratio\nanl_x <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug X\", \"Plasma Drug X\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug X` / `Plasma Drug X`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\nanl_y <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug Y\", \"Plasma Drug Y\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\n# functions to calculate custom quantiles and outliers\nquantiles <- function(x) {\n  quant <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))\n  names(quant) <- c(\"ymin\", \"lower\", \"middle\", \"upper\", \"ymax\")\n  quant\n}\n\noutliers <- function(x) {\n  return(x < quantile(x, 0.05) | x > quantile(x, 0.95))\n}\nplot <- ggplot(anl_y, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +\n  geom_boxplot(outlier.size = 2) +\n  stat_boxplot(geom = \"errorbar\") +\n  stat_summary(\n    geom = \"point\",\n    fun = \"mean\",\n    col = \"black\",\n    size = 5,\n    shape = 8,\n    position = position_dodge(0.75)\n  ) +\n  geom_text(\n    data = . %>% dplyr::group_by(PARAMCD, ACTARM) %>% dplyr::filter(ratio %in% boxplot.stats(ratio)$out),\n    aes(x = PARAMCD, y = ratio, label = USUBJID, color = ACTARM),\n    size = 3,\n    hjust = -0.2,\n    position = position_dodge(0.75),\n    show.legend = FALSE\n  ) +\n  labs(\n    title = \"Boxplot of Metabolite to Parent Ratios by Treatment\",\n    subtitle = paste0(\n      \"Analyte: Plasma Drug Y, Metabolite Drug Y \",\n      \"\\nPK Parameter: \",\n      as.character(paste(unique(anl_y$PARAMCD), collapse = \", \")),\n      \"\\nVisit: \",\n      as.character((unique(anl_y$AVISIT)))\n    ),\n    caption = \"Program: \\nOutput:\",\n    x = \"Parameter\",\n    y = \"Metabolite to Parent Ratio\"\n  ) +\n  theme(plot.caption = element_text(hjust = 0)) +\n  theme_nest()\n\n# result\nplot"},{"options":{"label":"unnamed-chunk-3","read-only":"false","output":"true","fig-cap":"","fig-height":5,"dpi":72,"editor-font-scale":1,"message":"true","context":"interactive","out-height":"","editor-quick-suggestions":"false","results":"markup","warning":"true","editor-max-height":"500","fig-width":7,"autorun":"true","out-width":"700px","comment":"","classes":""},"id":3,"code":"library(dplyr)\nlibrary(scda)\nlibrary(scda.2022)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadpp <- synthetic_cdisc_dataset(\"latest\", \"adpp\")\n\n# Filter NAs\nadpp <- adpp %>%\n  filter(PPSPEC != \"NA\" & PARAM != \"NA\" & PPCAT != \"NA\") %>%\n  filter(PARAMCD == \"CMAX\" | PARAMCD == \"AUCIFO\", AVISITN == 1)\n\n# filter data by PPCAT and calculate ratio\nanl_x <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug X\", \"Plasma Drug X\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug X` / `Plasma Drug X`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\nanl_y <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug Y\", \"Plasma Drug Y\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\n# functions to calculate custom quantiles and outliers\nquantiles <- function(x) {\n  quant <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))\n  names(quant) <- c(\"ymin\", \"lower\", \"middle\", \"upper\", \"ymax\")\n  quant\n}\n\noutliers <- function(x) {\n  return(x < quantile(x, 0.05) | x > quantile(x, 0.95))\n}\n# whiskers are formed with the minimum and maximum values\nplot <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +\n  geom_boxplot(outlier.size = 0) +\n  stat_boxplot(geom = \"errorbar\", coef = NULL) +\n  stat_summary(geom = \"point\", fun = \"mean\", col = \"black\", size = 5, shape = 8, position = position_dodge(0.75)) +\n  labs(\n    title = \"Boxplot of Metabolite to Parent Ratios by Treatment\",\n    subtitle = paste0(\n      \"Analyte: Plasma Drug X, Metabolite Drug X \",\n      \"\\nPK Parameter: \",\n      as.character(paste(unique(anl_x$PARAMCD), collapse = \", \")),\n      \"\\nVisit: \",\n      as.character((unique(anl_x$AVISIT)))\n    ),\n    caption = \"Program:\\nOutput:\",\n    x = \"Parameter\",\n    y = \"Metabolite to Parent Ratio\"\n  ) +\n  theme(plot.caption = element_text(hjust = 0)) +\n  theme_nest()\n\n# result\nplot"},{"options":{"label":"unnamed-chunk-4","read-only":"false","output":"true","fig-cap":"","fig-height":5,"dpi":72,"editor-font-scale":1,"message":"true","context":"interactive","out-height":"","editor-quick-suggestions":"false","results":"markup","warning":"true","editor-max-height":"500","fig-width":7,"autorun":"true","out-width":"700px","comment":"","classes":""},"id":4,"code":"library(dplyr)\nlibrary(scda)\nlibrary(scda.2022)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadpp <- synthetic_cdisc_dataset(\"latest\", \"adpp\")\n\n# Filter NAs\nadpp <- adpp %>%\n  filter(PPSPEC != \"NA\" & PARAM != \"NA\" & PPCAT != \"NA\") %>%\n  filter(PARAMCD == \"CMAX\" | PARAMCD == \"AUCIFO\", AVISITN == 1)\n\n# filter data by PPCAT and calculate ratio\nanl_x <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug X\", \"Plasma Drug X\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug X` / `Plasma Drug X`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\nanl_y <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug Y\", \"Plasma Drug Y\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\n# functions to calculate custom quantiles and outliers\nquantiles <- function(x) {\n  quant <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))\n  names(quant) <- c(\"ymin\", \"lower\", \"middle\", \"upper\", \"ymax\")\n  quant\n}\n\noutliers <- function(x) {\n  return(x < quantile(x, 0.05) | x > quantile(x, 0.95))\n}\nanl_x_without_outliers <- anl_x %>%\n  dplyr::group_by(PARAMCD, ACTARM) %>%\n  dplyr::mutate(outlier = ifelse(outliers(ratio), ratio, as.numeric(NA)))\nplot <- ggplot(anl_x, aes(PARAMCD, ratio, fill = ACTARM, label = USUBJID)) +\n  stat_summary(\n    fun.data = quantiles, geom = \"boxplot\",\n    position = position_dodge(1)\n  ) +\n  stat_summary(\n    geom = \"point\",\n    fun = \"mean\",\n    col = \"black\",\n    size = 5,\n    shape = 8,\n    position = position_dodge(1)\n  ) +\n  stat_summary(\n    fun.data = quantiles, geom = \"errorbar\",\n    position = position_dodge(1)\n  ) +\n  geom_point(\n    data = anl_x_without_outliers,\n    aes(x = PARAMCD, y = outlier),\n    na.rm = TRUE,\n    size = 2,\n    position = position_dodge(1),\n    show.legend = FALSE\n  ) +\n  geom_text(\n    data = anl_x_without_outliers,\n    aes(x = PARAMCD, y = outlier, label = USUBJID, color = ACTARM),\n    na.rm = TRUE,\n    size = 3,\n    hjust = -0.2,\n    vjust = 1,\n    position = position_dodge(1),\n    show.legend = FALSE\n  ) +\n  labs(\n    title = \"Boxplot of Metabolite to Parent Ratios by Treatment\",\n    subtitle = paste0(\n      \"Analyte: Plasma Drug X, Metabolite Drug X \",\n      \"\\nPK Parameter: \",\n      as.character(paste(unique(anl_x$PARAMCD), collapse = \", \")),\n      \"\\nVisit: \",\n      as.character((unique(anl_x$AVISIT)))\n    ),\n    caption = \"Program: \\nOutput:\",\n    x = \"Parameter\",\n    y = \"Metabolite to Parent Ratio\"\n  ) +\n  theme(plot.caption = element_text(hjust = 0)) +\n  theme_nest()\n\n# result\nplot"}];
+globalThis.qwebrCellDetails = [{"options":{"context":"interactive","out-height":"","comment":"","output":"true","fig-height":5,"editor-font-scale":1,"fig-cap":"","classes":"","results":"markup","warning":"true","fig-width":7,"message":"true","label":"unnamed-chunk-1","editor-max-height":"500","autorun":"true","read-only":"false","out-width":"700px","dpi":72,"editor-quick-suggestions":"false"},"id":1,"code":"library(dplyr)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadpp <- random.cdisc.data::cadpp\n\n# Filter NAs\nadpp <- adpp %>%\n  filter(PPSPEC != \"NA\" & PARAM != \"NA\" & PPCAT != \"NA\") %>%\n  filter(PARAMCD == \"CMAX\" | PARAMCD == \"AUCIFO\", AVISITN == 1)\n\n# filter data by PPCAT and calculate ratio\nanl_x <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug X\", \"Plasma Drug X\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug X` / `Plasma Drug X`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\nanl_y <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug Y\", \"Plasma Drug Y\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\n# functions to calculate custom quantiles and outliers\nquantiles <- function(x) {\n  quant <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))\n  names(quant) <- c(\"ymin\", \"lower\", \"middle\", \"upper\", \"ymax\")\n  quant\n}\n\noutliers <- function(x) {\n  return(x < quantile(x, 0.05) | x > quantile(x, 0.95))\n}\nplot <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +\n  geom_boxplot(outlier.size = 2) +\n  stat_boxplot(geom = \"errorbar\") +\n  stat_summary(\n    geom = \"point\",\n    fun = \"mean\",\n    col = \"black\",\n    size = 5,\n    shape = 8,\n    position = position_dodge(0.75)\n  ) +\n  geom_text(\n    data = . %>% dplyr::group_by(PARAMCD, ACTARM) %>% dplyr::filter(ratio %in% boxplot.stats(ratio)$out),\n    aes(x = PARAMCD, y = ratio, label = USUBJID, col = ACTARM),\n    size = 3,\n    hjust = -0.2,\n    position = position_dodge(0.75),\n    show.legend = FALSE\n  ) +\n  labs(\n    title = \"Boxplot of Metabolite to Parent Ratios by Treatment\",\n    subtitle = paste0(\n      \"Analyte: Plasma Drug X, Metabolite Drug X \",\n      \"\\nPK Parameter: \",\n      as.character(paste(unique(anl_x$PARAMCD), collapse = \", \")),\n      \"\\nVisit: \",\n      as.character((unique(anl_x$AVISIT)))\n    ),\n    caption = \"Program: \\nOutput:\",\n    x = \"Parameter\",\n    y = \"Metabolite to Parent Ratio\"\n  ) +\n  theme(plot.caption = element_text(hjust = 0)) +\n  theme_nest()\n\n# PKPG06\nplot"},{"options":{"context":"interactive","out-height":"","comment":"","output":"true","fig-height":5,"editor-font-scale":1,"fig-cap":"","classes":"","results":"markup","warning":"true","fig-width":7,"message":"true","label":"unnamed-chunk-2","editor-max-height":"500","autorun":"true","read-only":"false","out-width":"700px","dpi":72,"editor-quick-suggestions":"false"},"id":2,"code":"library(dplyr)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadpp <- random.cdisc.data::cadpp\n\n# Filter NAs\nadpp <- adpp %>%\n  filter(PPSPEC != \"NA\" & PARAM != \"NA\" & PPCAT != \"NA\") %>%\n  filter(PARAMCD == \"CMAX\" | PARAMCD == \"AUCIFO\", AVISITN == 1)\n\n# filter data by PPCAT and calculate ratio\nanl_x <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug X\", \"Plasma Drug X\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug X` / `Plasma Drug X`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\nanl_y <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug Y\", \"Plasma Drug Y\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\n# functions to calculate custom quantiles and outliers\nquantiles <- function(x) {\n  quant <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))\n  names(quant) <- c(\"ymin\", \"lower\", \"middle\", \"upper\", \"ymax\")\n  quant\n}\n\noutliers <- function(x) {\n  return(x < quantile(x, 0.05) | x > quantile(x, 0.95))\n}\nplot <- ggplot(anl_y, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +\n  geom_boxplot(outlier.size = 2) +\n  stat_boxplot(geom = \"errorbar\") +\n  stat_summary(\n    geom = \"point\",\n    fun = \"mean\",\n    col = \"black\",\n    size = 5,\n    shape = 8,\n    position = position_dodge(0.75)\n  ) +\n  geom_text(\n    data = . %>% dplyr::group_by(PARAMCD, ACTARM) %>% dplyr::filter(ratio %in% boxplot.stats(ratio)$out),\n    aes(x = PARAMCD, y = ratio, label = USUBJID, color = ACTARM),\n    size = 3,\n    hjust = -0.2,\n    position = position_dodge(0.75),\n    show.legend = FALSE\n  ) +\n  labs(\n    title = \"Boxplot of Metabolite to Parent Ratios by Treatment\",\n    subtitle = paste0(\n      \"Analyte: Plasma Drug Y, Metabolite Drug Y \",\n      \"\\nPK Parameter: \",\n      as.character(paste(unique(anl_y$PARAMCD), collapse = \", \")),\n      \"\\nVisit: \",\n      as.character((unique(anl_y$AVISIT)))\n    ),\n    caption = \"Program: \\nOutput:\",\n    x = \"Parameter\",\n    y = \"Metabolite to Parent Ratio\"\n  ) +\n  theme(plot.caption = element_text(hjust = 0)) +\n  theme_nest()\n\n# result\nplot"},{"options":{"context":"interactive","out-height":"","comment":"","output":"true","fig-height":5,"editor-font-scale":1,"fig-cap":"","classes":"","results":"markup","warning":"true","fig-width":7,"message":"true","label":"unnamed-chunk-3","editor-max-height":"500","autorun":"true","read-only":"false","out-width":"700px","dpi":72,"editor-quick-suggestions":"false"},"id":3,"code":"library(dplyr)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadpp <- random.cdisc.data::cadpp\n\n# Filter NAs\nadpp <- adpp %>%\n  filter(PPSPEC != \"NA\" & PARAM != \"NA\" & PPCAT != \"NA\") %>%\n  filter(PARAMCD == \"CMAX\" | PARAMCD == \"AUCIFO\", AVISITN == 1)\n\n# filter data by PPCAT and calculate ratio\nanl_x <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug X\", \"Plasma Drug X\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug X` / `Plasma Drug X`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\nanl_y <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug Y\", \"Plasma Drug Y\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\n# functions to calculate custom quantiles and outliers\nquantiles <- function(x) {\n  quant <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))\n  names(quant) <- c(\"ymin\", \"lower\", \"middle\", \"upper\", \"ymax\")\n  quant\n}\n\noutliers <- function(x) {\n  return(x < quantile(x, 0.05) | x > quantile(x, 0.95))\n}\n# whiskers are formed with the minimum and maximum values\nplot <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +\n  geom_boxplot(outlier.size = 0) +\n  stat_boxplot(geom = \"errorbar\", coef = NULL) +\n  stat_summary(geom = \"point\", fun = \"mean\", col = \"black\", size = 5, shape = 8, position = position_dodge(0.75)) +\n  labs(\n    title = \"Boxplot of Metabolite to Parent Ratios by Treatment\",\n    subtitle = paste0(\n      \"Analyte: Plasma Drug X, Metabolite Drug X \",\n      \"\\nPK Parameter: \",\n      as.character(paste(unique(anl_x$PARAMCD), collapse = \", \")),\n      \"\\nVisit: \",\n      as.character((unique(anl_x$AVISIT)))\n    ),\n    caption = \"Program:\\nOutput:\",\n    x = \"Parameter\",\n    y = \"Metabolite to Parent Ratio\"\n  ) +\n  theme(plot.caption = element_text(hjust = 0)) +\n  theme_nest()\n\n# result\nplot"},{"options":{"context":"interactive","out-height":"","comment":"","output":"true","fig-height":5,"editor-font-scale":1,"fig-cap":"","classes":"","results":"markup","warning":"true","fig-width":7,"message":"true","label":"unnamed-chunk-4","editor-max-height":"500","autorun":"true","read-only":"false","out-width":"700px","dpi":72,"editor-quick-suggestions":"false"},"id":4,"code":"library(dplyr)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadpp <- random.cdisc.data::cadpp\n\n# Filter NAs\nadpp <- adpp %>%\n  filter(PPSPEC != \"NA\" & PARAM != \"NA\" & PPCAT != \"NA\") %>%\n  filter(PARAMCD == \"CMAX\" | PARAMCD == \"AUCIFO\", AVISITN == 1)\n\n# filter data by PPCAT and calculate ratio\nanl_x <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug X\", \"Plasma Drug X\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug X` / `Plasma Drug X`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\nanl_y <- adpp %>%\n  filter(PPCAT %in% c(\"Metabolite Drug Y\", \"Plasma Drug Y\")) %>%\n  pivot_wider(\n    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),\n    names_from = PPCAT,\n    values_from = AVAL\n  ) %>%\n  dplyr::mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %>%\n  filter(!is.na(ratio), ratio != Inf)\n\n# functions to calculate custom quantiles and outliers\nquantiles <- function(x) {\n  quant <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))\n  names(quant) <- c(\"ymin\", \"lower\", \"middle\", \"upper\", \"ymax\")\n  quant\n}\n\noutliers <- function(x) {\n  return(x < quantile(x, 0.05) | x > quantile(x, 0.95))\n}\nanl_x_without_outliers <- anl_x %>%\n  dplyr::group_by(PARAMCD, ACTARM) %>%\n  dplyr::mutate(outlier = ifelse(outliers(ratio), ratio, as.numeric(NA)))\nplot <- ggplot(anl_x, aes(PARAMCD, ratio, fill = ACTARM, label = USUBJID)) +\n  stat_summary(\n    fun.data = quantiles, geom = \"boxplot\",\n    position = position_dodge(1)\n  ) +\n  stat_summary(\n    geom = \"point\",\n    fun = \"mean\",\n    col = \"black\",\n    size = 5,\n    shape = 8,\n    position = position_dodge(1)\n  ) +\n  stat_summary(\n    fun.data = quantiles, geom = \"errorbar\",\n    position = position_dodge(1)\n  ) +\n  geom_point(\n    data = anl_x_without_outliers,\n    aes(x = PARAMCD, y = outlier),\n    na.rm = TRUE,\n    size = 2,\n    position = position_dodge(1),\n    show.legend = FALSE\n  ) +\n  geom_text(\n    data = anl_x_without_outliers,\n    aes(x = PARAMCD, y = outlier, label = USUBJID, color = ACTARM),\n    na.rm = TRUE,\n    size = 3,\n    hjust = -0.2,\n    vjust = 1,\n    position = position_dodge(1),\n    show.legend = FALSE\n  ) +\n  labs(\n    title = \"Boxplot of Metabolite to Parent Ratios by Treatment\",\n    subtitle = paste0(\n      \"Analyte: Plasma Drug X, Metabolite Drug X \",\n      \"\\nPK Parameter: \",\n      as.character(paste(unique(anl_x$PARAMCD), collapse = \", \")),\n      \"\\nVisit: \",\n      as.character((unique(anl_x$AVISIT)))\n    ),\n    caption = \"Program: \\nOutput:\",\n    x = \"Parameter\",\n    y = \"Metabolite to Parent Ratio\"\n  ) +\n  theme(plot.caption = element_text(hjust = 0)) +\n  theme_nest()\n\n# result\nplot"}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2624,51 +2624,49 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <div id="tabset-5-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-5-1-tab">
 <div class="cell">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(scda)</span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(scda<span class="fl">.2022</span>)</span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb1-5"><a href="#cb1-5"></a><span class="fu">library</span>(tidyr)</span>
-<span id="cb1-6"><a href="#cb1-6"></a><span class="fu">library</span>(tern)</span>
-<span id="cb1-7"><a href="#cb1-7"></a><span class="fu">library</span>(nestcolor)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(tern)</span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="fu">library</span>(nestcolor)</span>
+<span id="cb1-6"><a href="#cb1-6"></a></span>
+<span id="cb1-7"><a href="#cb1-7"></a>adpp <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadpp</span>
 <span id="cb1-8"><a href="#cb1-8"></a></span>
-<span id="cb1-9"><a href="#cb1-9"></a>adpp <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adpp"</span>)</span>
-<span id="cb1-10"><a href="#cb1-10"></a></span>
-<span id="cb1-11"><a href="#cb1-11"></a><span class="co"># Filter NAs</span></span>
-<span id="cb1-12"><a href="#cb1-12"></a>adpp <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
-<span id="cb1-13"><a href="#cb1-13"></a>  <span class="fu">filter</span>(PPSPEC <span class="sc">!=</span> <span class="st">"NA"</span> <span class="sc">&amp;</span> PARAM <span class="sc">!=</span> <span class="st">"NA"</span> <span class="sc">&amp;</span> PPCAT <span class="sc">!=</span> <span class="st">"NA"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-14"><a href="#cb1-14"></a>  <span class="fu">filter</span>(PARAMCD <span class="sc">==</span> <span class="st">"CMAX"</span> <span class="sc">|</span> PARAMCD <span class="sc">==</span> <span class="st">"AUCIFO"</span>, AVISITN <span class="sc">==</span> <span class="dv">1</span>)</span>
-<span id="cb1-15"><a href="#cb1-15"></a></span>
-<span id="cb1-16"><a href="#cb1-16"></a><span class="co"># filter data by PPCAT and calculate ratio</span></span>
-<span id="cb1-17"><a href="#cb1-17"></a>anl_x <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
-<span id="cb1-18"><a href="#cb1-18"></a>  <span class="fu">filter</span>(PPCAT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Metabolite Drug X"</span>, <span class="st">"Plasma Drug X"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-19"><a href="#cb1-19"></a>  <span class="fu">pivot_wider</span>(</span>
-<span id="cb1-20"><a href="#cb1-20"></a>    <span class="at">id_cols =</span> <span class="fu">c</span>(USUBJID, ACTARM, PARAMCD, AVISIT),</span>
-<span id="cb1-21"><a href="#cb1-21"></a>    <span class="at">names_from =</span> PPCAT,</span>
-<span id="cb1-22"><a href="#cb1-22"></a>    <span class="at">values_from =</span> AVAL</span>
-<span id="cb1-23"><a href="#cb1-23"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-24"><a href="#cb1-24"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">ratio =</span> <span class="st">`</span><span class="at">Metabolite Drug X</span><span class="st">`</span> <span class="sc">/</span> <span class="st">`</span><span class="at">Plasma Drug X</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-25"><a href="#cb1-25"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(ratio), ratio <span class="sc">!=</span> <span class="cn">Inf</span>)</span>
-<span id="cb1-26"><a href="#cb1-26"></a></span>
-<span id="cb1-27"><a href="#cb1-27"></a>anl_y <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
-<span id="cb1-28"><a href="#cb1-28"></a>  <span class="fu">filter</span>(PPCAT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Metabolite Drug Y"</span>, <span class="st">"Plasma Drug Y"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-29"><a href="#cb1-29"></a>  <span class="fu">pivot_wider</span>(</span>
-<span id="cb1-30"><a href="#cb1-30"></a>    <span class="at">id_cols =</span> <span class="fu">c</span>(USUBJID, ACTARM, PARAMCD, AVISIT),</span>
-<span id="cb1-31"><a href="#cb1-31"></a>    <span class="at">names_from =</span> PPCAT,</span>
-<span id="cb1-32"><a href="#cb1-32"></a>    <span class="at">values_from =</span> AVAL</span>
-<span id="cb1-33"><a href="#cb1-33"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-34"><a href="#cb1-34"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">ratio =</span> <span class="st">`</span><span class="at">Metabolite Drug Y</span><span class="st">`</span> <span class="sc">/</span> <span class="st">`</span><span class="at">Plasma Drug Y</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-35"><a href="#cb1-35"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(ratio), ratio <span class="sc">!=</span> <span class="cn">Inf</span>)</span>
-<span id="cb1-36"><a href="#cb1-36"></a></span>
-<span id="cb1-37"><a href="#cb1-37"></a><span class="co"># functions to calculate custom quantiles and outliers</span></span>
-<span id="cb1-38"><a href="#cb1-38"></a>quantiles <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb1-39"><a href="#cb1-39"></a>  quant <span class="ot">&lt;-</span> <span class="fu">quantile</span>(x, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">0.95</span>))</span>
-<span id="cb1-40"><a href="#cb1-40"></a>  <span class="fu">names</span>(quant) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ymin"</span>, <span class="st">"lower"</span>, <span class="st">"middle"</span>, <span class="st">"upper"</span>, <span class="st">"ymax"</span>)</span>
-<span id="cb1-41"><a href="#cb1-41"></a>  quant</span>
-<span id="cb1-42"><a href="#cb1-42"></a>}</span>
-<span id="cb1-43"><a href="#cb1-43"></a></span>
-<span id="cb1-44"><a href="#cb1-44"></a>outliers <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb1-45"><a href="#cb1-45"></a>  <span class="fu">return</span>(x <span class="sc">&lt;</span> <span class="fu">quantile</span>(x, <span class="fl">0.05</span>) <span class="sc">|</span> x <span class="sc">&gt;</span> <span class="fu">quantile</span>(x, <span class="fl">0.95</span>))</span>
-<span id="cb1-46"><a href="#cb1-46"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="co"># Filter NAs</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a>adpp <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>  <span class="fu">filter</span>(PPSPEC <span class="sc">!=</span> <span class="st">"NA"</span> <span class="sc">&amp;</span> PARAM <span class="sc">!=</span> <span class="st">"NA"</span> <span class="sc">&amp;</span> PPCAT <span class="sc">!=</span> <span class="st">"NA"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a>  <span class="fu">filter</span>(PARAMCD <span class="sc">==</span> <span class="st">"CMAX"</span> <span class="sc">|</span> PARAMCD <span class="sc">==</span> <span class="st">"AUCIFO"</span>, AVISITN <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb1-13"><a href="#cb1-13"></a></span>
+<span id="cb1-14"><a href="#cb1-14"></a><span class="co"># filter data by PPCAT and calculate ratio</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a>anl_x <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
+<span id="cb1-16"><a href="#cb1-16"></a>  <span class="fu">filter</span>(PPCAT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Metabolite Drug X"</span>, <span class="st">"Plasma Drug X"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-17"><a href="#cb1-17"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb1-18"><a href="#cb1-18"></a>    <span class="at">id_cols =</span> <span class="fu">c</span>(USUBJID, ACTARM, PARAMCD, AVISIT),</span>
+<span id="cb1-19"><a href="#cb1-19"></a>    <span class="at">names_from =</span> PPCAT,</span>
+<span id="cb1-20"><a href="#cb1-20"></a>    <span class="at">values_from =</span> AVAL</span>
+<span id="cb1-21"><a href="#cb1-21"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-22"><a href="#cb1-22"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">ratio =</span> <span class="st">`</span><span class="at">Metabolite Drug X</span><span class="st">`</span> <span class="sc">/</span> <span class="st">`</span><span class="at">Plasma Drug X</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-23"><a href="#cb1-23"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(ratio), ratio <span class="sc">!=</span> <span class="cn">Inf</span>)</span>
+<span id="cb1-24"><a href="#cb1-24"></a></span>
+<span id="cb1-25"><a href="#cb1-25"></a>anl_y <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
+<span id="cb1-26"><a href="#cb1-26"></a>  <span class="fu">filter</span>(PPCAT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Metabolite Drug Y"</span>, <span class="st">"Plasma Drug Y"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-27"><a href="#cb1-27"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb1-28"><a href="#cb1-28"></a>    <span class="at">id_cols =</span> <span class="fu">c</span>(USUBJID, ACTARM, PARAMCD, AVISIT),</span>
+<span id="cb1-29"><a href="#cb1-29"></a>    <span class="at">names_from =</span> PPCAT,</span>
+<span id="cb1-30"><a href="#cb1-30"></a>    <span class="at">values_from =</span> AVAL</span>
+<span id="cb1-31"><a href="#cb1-31"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-32"><a href="#cb1-32"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">ratio =</span> <span class="st">`</span><span class="at">Metabolite Drug Y</span><span class="st">`</span> <span class="sc">/</span> <span class="st">`</span><span class="at">Plasma Drug Y</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-33"><a href="#cb1-33"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(ratio), ratio <span class="sc">!=</span> <span class="cn">Inf</span>)</span>
+<span id="cb1-34"><a href="#cb1-34"></a></span>
+<span id="cb1-35"><a href="#cb1-35"></a><span class="co"># functions to calculate custom quantiles and outliers</span></span>
+<span id="cb1-36"><a href="#cb1-36"></a>quantiles <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb1-37"><a href="#cb1-37"></a>  quant <span class="ot">&lt;-</span> <span class="fu">quantile</span>(x, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">0.95</span>))</span>
+<span id="cb1-38"><a href="#cb1-38"></a>  <span class="fu">names</span>(quant) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ymin"</span>, <span class="st">"lower"</span>, <span class="st">"middle"</span>, <span class="st">"upper"</span>, <span class="st">"ymax"</span>)</span>
+<span id="cb1-39"><a href="#cb1-39"></a>  quant</span>
+<span id="cb1-40"><a href="#cb1-40"></a>}</span>
+<span id="cb1-41"><a href="#cb1-41"></a></span>
+<span id="cb1-42"><a href="#cb1-42"></a>outliers <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb1-43"><a href="#cb1-43"></a>  <span class="fu">return</span>(x <span class="sc">&lt;</span> <span class="fu">quantile</span>(x, <span class="fl">0.05</span>) <span class="sc">|</span> x <span class="sc">&gt;</span> <span class="fu">quantile</span>(x, <span class="fl">0.95</span>))</span>
+<span id="cb1-44"><a href="#cb1-44"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
@@ -3025,7 +3023,7 @@ Experimental use!
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-05-11 18:00:50 UTC"</code></pre>
+<pre><code>[1] "2024-05-15 17:58:34 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -3050,23 +3048,27 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] nestcolor_0.1.2  tern_0.9.4       rtables_0.6.7    magrittr_2.0.3  
- [5] formatters_0.5.6 tidyr_1.3.1      ggplot2_3.5.1    scda.2022_0.1.5 
- [9] scda_0.1.6       dplyr_1.1.4     
+[1] nestcolor_0.1.2  tern_0.9.4       rtables_0.6.7    magrittr_2.0.3  
+[5] formatters_0.5.6 tidyr_1.3.1      ggplot2_3.5.1    dplyr_1.1.4     
 
 loaded via a namespace (and not attached):
- [1] Matrix_1.7-0      gtable_0.3.5      jsonlite_1.8.8    compiler_4.4.0   
- [5] brio_1.1.5        tidyselect_1.2.1  splines_4.4.0     scales_1.3.0     
- [9] yaml_2.3.8        fastmap_1.1.1     lattice_0.22-6    R6_2.5.1         
-[13] labeling_0.4.3    generics_0.1.3    knitr_1.46        rbibutils_2.2.16 
-[17] backports_1.4.1   htmlwidgets_1.6.4 checkmate_2.3.1   tibble_3.2.1     
-[21] munsell_0.5.1     pillar_1.9.0      rlang_1.1.3       utf8_1.2.4       
-[25] testthat_3.2.1.1  broom_1.0.5       xfun_0.43         cli_3.6.2        
-[29] withr_3.0.0       Rdpack_2.6        digest_0.6.35     grid_4.4.0       
-[33] lifecycle_1.0.4   vctrs_0.6.5       evaluate_0.23     glue_1.7.0       
-[37] farver_2.1.1      codetools_0.2-20  survival_3.6-4    fansi_1.0.6      
-[41] colorspace_2.1-0  rmarkdown_2.26    purrr_1.0.2       tools_4.4.0      
-[45] pkgconfig_2.0.3   htmltools_0.5.8.1</code></pre>
+ [1] Matrix_1.7-0             gtable_0.3.5             jsonlite_1.8.8          
+ [4] compiler_4.4.0           brio_1.1.5               tidyselect_1.2.1        
+ [7] stringr_1.5.1            splines_4.4.0            scales_1.3.0            
+[10] yaml_2.3.8               fastmap_1.2.0            lattice_0.22-6          
+[13] R6_2.5.1                 labeling_0.4.3           generics_0.1.3          
+[16] knitr_1.46               rbibutils_2.2.16         htmlwidgets_1.6.4       
+[19] backports_1.4.1          checkmate_2.3.1          tibble_3.2.1            
+[22] munsell_0.5.1            pillar_1.9.0             rlang_1.1.3             
+[25] utf8_1.2.4               testthat_3.2.1.1         stringi_1.8.4           
+[28] broom_1.0.5              xfun_0.44                cli_3.6.2               
+[31] withr_3.0.0              Rdpack_2.6               digest_0.6.35           
+[34] grid_4.4.0               lifecycle_1.0.4          vctrs_0.6.5             
+[37] evaluate_0.23            glue_1.7.0               farver_2.1.2            
+[40] codetools_0.2-20         survival_3.6-4           random.cdisc.data_0.3.15
+[43] fansi_1.0.6              colorspace_2.1-0         rmarkdown_2.26          
+[46] purrr_1.0.2              tools_4.4.0              pkgconfig_2.0.3         
+[49] htmltools_0.5.8.1       </code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
@@ -3738,273 +3740,271 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb12-14"><a href="#cb12-14"></a><span class="in">#| code-fold: show</span></span>
 <span id="cb12-15"><a href="#cb12-15"></a></span>
 <span id="cb12-16"><a href="#cb12-16"></a><span class="in">library(dplyr)</span></span>
-<span id="cb12-17"><a href="#cb12-17"></a><span class="in">library(scda)</span></span>
-<span id="cb12-18"><a href="#cb12-18"></a><span class="in">library(scda.2022)</span></span>
-<span id="cb12-19"><a href="#cb12-19"></a><span class="in">library(ggplot2)</span></span>
-<span id="cb12-20"><a href="#cb12-20"></a><span class="in">library(tidyr)</span></span>
-<span id="cb12-21"><a href="#cb12-21"></a><span class="in">library(tern)</span></span>
-<span id="cb12-22"><a href="#cb12-22"></a><span class="in">library(nestcolor)</span></span>
+<span id="cb12-17"><a href="#cb12-17"></a><span class="in">library(ggplot2)</span></span>
+<span id="cb12-18"><a href="#cb12-18"></a><span class="in">library(tidyr)</span></span>
+<span id="cb12-19"><a href="#cb12-19"></a><span class="in">library(tern)</span></span>
+<span id="cb12-20"><a href="#cb12-20"></a><span class="in">library(nestcolor)</span></span>
+<span id="cb12-21"><a href="#cb12-21"></a></span>
+<span id="cb12-22"><a href="#cb12-22"></a><span class="in">adpp &lt;- random.cdisc.data::cadpp</span></span>
 <span id="cb12-23"><a href="#cb12-23"></a></span>
-<span id="cb12-24"><a href="#cb12-24"></a><span class="in">adpp &lt;- synthetic_cdisc_dataset("latest", "adpp")</span></span>
-<span id="cb12-25"><a href="#cb12-25"></a></span>
-<span id="cb12-26"><a href="#cb12-26"></a><span class="in"># Filter NAs</span></span>
-<span id="cb12-27"><a href="#cb12-27"></a><span class="in">adpp &lt;- adpp %&gt;%</span></span>
-<span id="cb12-28"><a href="#cb12-28"></a><span class="in">  filter(PPSPEC != "NA" &amp; PARAM != "NA" &amp; PPCAT != "NA") %&gt;%</span></span>
-<span id="cb12-29"><a href="#cb12-29"></a><span class="in">  filter(PARAMCD == "CMAX" | PARAMCD == "AUCIFO", AVISITN == 1)</span></span>
-<span id="cb12-30"><a href="#cb12-30"></a></span>
-<span id="cb12-31"><a href="#cb12-31"></a><span class="in"># filter data by PPCAT and calculate ratio</span></span>
-<span id="cb12-32"><a href="#cb12-32"></a><span class="in">anl_x &lt;- adpp %&gt;%</span></span>
-<span id="cb12-33"><a href="#cb12-33"></a><span class="in">  filter(PPCAT %in% c("Metabolite Drug X", "Plasma Drug X")) %&gt;%</span></span>
-<span id="cb12-34"><a href="#cb12-34"></a><span class="in">  pivot_wider(</span></span>
-<span id="cb12-35"><a href="#cb12-35"></a><span class="in">    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),</span></span>
-<span id="cb12-36"><a href="#cb12-36"></a><span class="in">    names_from = PPCAT,</span></span>
-<span id="cb12-37"><a href="#cb12-37"></a><span class="in">    values_from = AVAL</span></span>
-<span id="cb12-38"><a href="#cb12-38"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-39"><a href="#cb12-39"></a><span class="in">  dplyr::mutate(ratio = `Metabolite Drug X` / `Plasma Drug X`) %&gt;%</span></span>
-<span id="cb12-40"><a href="#cb12-40"></a><span class="in">  filter(!is.na(ratio), ratio != Inf)</span></span>
-<span id="cb12-41"><a href="#cb12-41"></a></span>
-<span id="cb12-42"><a href="#cb12-42"></a><span class="in">anl_y &lt;- adpp %&gt;%</span></span>
-<span id="cb12-43"><a href="#cb12-43"></a><span class="in">  filter(PPCAT %in% c("Metabolite Drug Y", "Plasma Drug Y")) %&gt;%</span></span>
-<span id="cb12-44"><a href="#cb12-44"></a><span class="in">  pivot_wider(</span></span>
-<span id="cb12-45"><a href="#cb12-45"></a><span class="in">    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),</span></span>
-<span id="cb12-46"><a href="#cb12-46"></a><span class="in">    names_from = PPCAT,</span></span>
-<span id="cb12-47"><a href="#cb12-47"></a><span class="in">    values_from = AVAL</span></span>
-<span id="cb12-48"><a href="#cb12-48"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-49"><a href="#cb12-49"></a><span class="in">  dplyr::mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %&gt;%</span></span>
-<span id="cb12-50"><a href="#cb12-50"></a><span class="in">  filter(!is.na(ratio), ratio != Inf)</span></span>
-<span id="cb12-51"><a href="#cb12-51"></a></span>
-<span id="cb12-52"><a href="#cb12-52"></a><span class="in"># functions to calculate custom quantiles and outliers</span></span>
-<span id="cb12-53"><a href="#cb12-53"></a><span class="in">quantiles &lt;- function(x) {</span></span>
-<span id="cb12-54"><a href="#cb12-54"></a><span class="in">  quant &lt;- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))</span></span>
-<span id="cb12-55"><a href="#cb12-55"></a><span class="in">  names(quant) &lt;- c("ymin", "lower", "middle", "upper", "ymax")</span></span>
-<span id="cb12-56"><a href="#cb12-56"></a><span class="in">  quant</span></span>
-<span id="cb12-57"><a href="#cb12-57"></a><span class="in">}</span></span>
-<span id="cb12-58"><a href="#cb12-58"></a></span>
-<span id="cb12-59"><a href="#cb12-59"></a><span class="in">outliers &lt;- function(x) {</span></span>
-<span id="cb12-60"><a href="#cb12-60"></a><span class="in">  return(x &lt; quantile(x, 0.05) | x &gt; quantile(x, 0.95))</span></span>
-<span id="cb12-61"><a href="#cb12-61"></a><span class="in">}</span></span>
-<span id="cb12-62"><a href="#cb12-62"></a><span class="in">```</span></span>
+<span id="cb12-24"><a href="#cb12-24"></a><span class="in"># Filter NAs</span></span>
+<span id="cb12-25"><a href="#cb12-25"></a><span class="in">adpp &lt;- adpp %&gt;%</span></span>
+<span id="cb12-26"><a href="#cb12-26"></a><span class="in">  filter(PPSPEC != "NA" &amp; PARAM != "NA" &amp; PPCAT != "NA") %&gt;%</span></span>
+<span id="cb12-27"><a href="#cb12-27"></a><span class="in">  filter(PARAMCD == "CMAX" | PARAMCD == "AUCIFO", AVISITN == 1)</span></span>
+<span id="cb12-28"><a href="#cb12-28"></a></span>
+<span id="cb12-29"><a href="#cb12-29"></a><span class="in"># filter data by PPCAT and calculate ratio</span></span>
+<span id="cb12-30"><a href="#cb12-30"></a><span class="in">anl_x &lt;- adpp %&gt;%</span></span>
+<span id="cb12-31"><a href="#cb12-31"></a><span class="in">  filter(PPCAT %in% c("Metabolite Drug X", "Plasma Drug X")) %&gt;%</span></span>
+<span id="cb12-32"><a href="#cb12-32"></a><span class="in">  pivot_wider(</span></span>
+<span id="cb12-33"><a href="#cb12-33"></a><span class="in">    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),</span></span>
+<span id="cb12-34"><a href="#cb12-34"></a><span class="in">    names_from = PPCAT,</span></span>
+<span id="cb12-35"><a href="#cb12-35"></a><span class="in">    values_from = AVAL</span></span>
+<span id="cb12-36"><a href="#cb12-36"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb12-37"><a href="#cb12-37"></a><span class="in">  dplyr::mutate(ratio = `Metabolite Drug X` / `Plasma Drug X`) %&gt;%</span></span>
+<span id="cb12-38"><a href="#cb12-38"></a><span class="in">  filter(!is.na(ratio), ratio != Inf)</span></span>
+<span id="cb12-39"><a href="#cb12-39"></a></span>
+<span id="cb12-40"><a href="#cb12-40"></a><span class="in">anl_y &lt;- adpp %&gt;%</span></span>
+<span id="cb12-41"><a href="#cb12-41"></a><span class="in">  filter(PPCAT %in% c("Metabolite Drug Y", "Plasma Drug Y")) %&gt;%</span></span>
+<span id="cb12-42"><a href="#cb12-42"></a><span class="in">  pivot_wider(</span></span>
+<span id="cb12-43"><a href="#cb12-43"></a><span class="in">    id_cols = c(USUBJID, ACTARM, PARAMCD, AVISIT),</span></span>
+<span id="cb12-44"><a href="#cb12-44"></a><span class="in">    names_from = PPCAT,</span></span>
+<span id="cb12-45"><a href="#cb12-45"></a><span class="in">    values_from = AVAL</span></span>
+<span id="cb12-46"><a href="#cb12-46"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb12-47"><a href="#cb12-47"></a><span class="in">  dplyr::mutate(ratio = `Metabolite Drug Y` / `Plasma Drug Y`) %&gt;%</span></span>
+<span id="cb12-48"><a href="#cb12-48"></a><span class="in">  filter(!is.na(ratio), ratio != Inf)</span></span>
+<span id="cb12-49"><a href="#cb12-49"></a></span>
+<span id="cb12-50"><a href="#cb12-50"></a><span class="in"># functions to calculate custom quantiles and outliers</span></span>
+<span id="cb12-51"><a href="#cb12-51"></a><span class="in">quantiles &lt;- function(x) {</span></span>
+<span id="cb12-52"><a href="#cb12-52"></a><span class="in">  quant &lt;- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))</span></span>
+<span id="cb12-53"><a href="#cb12-53"></a><span class="in">  names(quant) &lt;- c("ymin", "lower", "middle", "upper", "ymax")</span></span>
+<span id="cb12-54"><a href="#cb12-54"></a><span class="in">  quant</span></span>
+<span id="cb12-55"><a href="#cb12-55"></a><span class="in">}</span></span>
+<span id="cb12-56"><a href="#cb12-56"></a></span>
+<span id="cb12-57"><a href="#cb12-57"></a><span class="in">outliers &lt;- function(x) {</span></span>
+<span id="cb12-58"><a href="#cb12-58"></a><span class="in">  return(x &lt; quantile(x, 0.05) | x &gt; quantile(x, 0.95))</span></span>
+<span id="cb12-59"><a href="#cb12-59"></a><span class="in">}</span></span>
+<span id="cb12-60"><a href="#cb12-60"></a><span class="in">```</span></span>
+<span id="cb12-61"><a href="#cb12-61"></a></span>
+<span id="cb12-62"><a href="#cb12-62"></a><span class="fu">## Plot with Whiskers at ±1.5 &lt;br/&gt; Times Inter-Quartile Range</span></span>
 <span id="cb12-63"><a href="#cb12-63"></a></span>
-<span id="cb12-64"><a href="#cb12-64"></a><span class="fu">## Plot with Whiskers at ±1.5 &lt;br/&gt; Times Inter-Quartile Range</span></span>
+<span id="cb12-64"><a href="#cb12-64"></a><span class="fu">#### Drug X Boxplot</span></span>
 <span id="cb12-65"><a href="#cb12-65"></a></span>
-<span id="cb12-66"><a href="#cb12-66"></a><span class="fu">#### Drug X Boxplot</span></span>
-<span id="cb12-67"><a href="#cb12-67"></a></span>
-<span id="cb12-68"><a href="#cb12-68"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb12-69"><a href="#cb12-69"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb12-70"><a href="#cb12-70"></a></span>
-<span id="cb12-71"><a href="#cb12-71"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
-<span id="cb12-72"><a href="#cb12-72"></a><span class="in">```{r plot1, test = list(plot_v1 = "plot"), opts.label = "skip_test_strict"}</span></span>
-<span id="cb12-73"><a href="#cb12-73"></a><span class="in">plot &lt;- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +</span></span>
-<span id="cb12-74"><a href="#cb12-74"></a><span class="in">  geom_boxplot(outlier.size = 2) +</span></span>
-<span id="cb12-75"><a href="#cb12-75"></a><span class="in">  stat_boxplot(geom = "errorbar") +</span></span>
-<span id="cb12-76"><a href="#cb12-76"></a><span class="in">  stat_summary(</span></span>
-<span id="cb12-77"><a href="#cb12-77"></a><span class="in">    geom = "point",</span></span>
-<span id="cb12-78"><a href="#cb12-78"></a><span class="in">    fun = "mean",</span></span>
-<span id="cb12-79"><a href="#cb12-79"></a><span class="in">    col = "black",</span></span>
-<span id="cb12-80"><a href="#cb12-80"></a><span class="in">    size = 5,</span></span>
-<span id="cb12-81"><a href="#cb12-81"></a><span class="in">    shape = 8,</span></span>
-<span id="cb12-82"><a href="#cb12-82"></a><span class="in">    position = position_dodge(0.75)</span></span>
-<span id="cb12-83"><a href="#cb12-83"></a><span class="in">  ) +</span></span>
-<span id="cb12-84"><a href="#cb12-84"></a><span class="in">  geom_text(</span></span>
-<span id="cb12-85"><a href="#cb12-85"></a><span class="in">    data = . %&gt;% dplyr::group_by(PARAMCD, ACTARM) %&gt;% dplyr::filter(ratio %in% boxplot.stats(ratio)$out),</span></span>
-<span id="cb12-86"><a href="#cb12-86"></a><span class="in">    aes(x = PARAMCD, y = ratio, label = USUBJID, col = ACTARM),</span></span>
-<span id="cb12-87"><a href="#cb12-87"></a><span class="in">    size = 3,</span></span>
-<span id="cb12-88"><a href="#cb12-88"></a><span class="in">    hjust = -0.2,</span></span>
-<span id="cb12-89"><a href="#cb12-89"></a><span class="in">    position = position_dodge(0.75),</span></span>
-<span id="cb12-90"><a href="#cb12-90"></a><span class="in">    show.legend = FALSE</span></span>
-<span id="cb12-91"><a href="#cb12-91"></a><span class="in">  ) +</span></span>
-<span id="cb12-92"><a href="#cb12-92"></a><span class="in">  labs(</span></span>
-<span id="cb12-93"><a href="#cb12-93"></a><span class="in">    title = "Boxplot of Metabolite to Parent Ratios by Treatment",</span></span>
-<span id="cb12-94"><a href="#cb12-94"></a><span class="in">    subtitle = paste0(</span></span>
-<span id="cb12-95"><a href="#cb12-95"></a><span class="in">      "Analyte: Plasma Drug X, Metabolite Drug X ",</span></span>
-<span id="cb12-96"><a href="#cb12-96"></a><span class="in">      "\nPK Parameter: ",</span></span>
-<span id="cb12-97"><a href="#cb12-97"></a><span class="in">      as.character(paste(unique(anl_x$PARAMCD), collapse = ", ")),</span></span>
-<span id="cb12-98"><a href="#cb12-98"></a><span class="in">      "\nVisit: ",</span></span>
-<span id="cb12-99"><a href="#cb12-99"></a><span class="in">      as.character((unique(anl_x$AVISIT)))</span></span>
-<span id="cb12-100"><a href="#cb12-100"></a><span class="in">    ),</span></span>
-<span id="cb12-101"><a href="#cb12-101"></a><span class="in">    caption = "Program: \nOutput:",</span></span>
-<span id="cb12-102"><a href="#cb12-102"></a><span class="in">    x = "Parameter",</span></span>
-<span id="cb12-103"><a href="#cb12-103"></a><span class="in">    y = "Metabolite to Parent Ratio"</span></span>
-<span id="cb12-104"><a href="#cb12-104"></a><span class="in">  ) +</span></span>
-<span id="cb12-105"><a href="#cb12-105"></a><span class="in">  theme(plot.caption = element_text(hjust = 0)) +</span></span>
-<span id="cb12-106"><a href="#cb12-106"></a><span class="in">  theme_nest()</span></span>
-<span id="cb12-107"><a href="#cb12-107"></a></span>
-<span id="cb12-108"><a href="#cb12-108"></a><span class="in"># PKPG06</span></span>
-<span id="cb12-109"><a href="#cb12-109"></a><span class="in">plot</span></span>
-<span id="cb12-110"><a href="#cb12-110"></a><span class="in">```</span></span>
-<span id="cb12-111"><a href="#cb12-111"></a></span>
-<span id="cb12-112"><a href="#cb12-112"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot1")`</span></span>
-<span id="cb12-113"><a href="#cb12-113"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb12-114"><a href="#cb12-114"></a>:::</span>
+<span id="cb12-66"><a href="#cb12-66"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb12-67"><a href="#cb12-67"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb12-68"><a href="#cb12-68"></a></span>
+<span id="cb12-69"><a href="#cb12-69"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
+<span id="cb12-70"><a href="#cb12-70"></a><span class="in">```{r plot1, test = list(plot_v1 = "plot"), opts.label = "skip_test_strict"}</span></span>
+<span id="cb12-71"><a href="#cb12-71"></a><span class="in">plot &lt;- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +</span></span>
+<span id="cb12-72"><a href="#cb12-72"></a><span class="in">  geom_boxplot(outlier.size = 2) +</span></span>
+<span id="cb12-73"><a href="#cb12-73"></a><span class="in">  stat_boxplot(geom = "errorbar") +</span></span>
+<span id="cb12-74"><a href="#cb12-74"></a><span class="in">  stat_summary(</span></span>
+<span id="cb12-75"><a href="#cb12-75"></a><span class="in">    geom = "point",</span></span>
+<span id="cb12-76"><a href="#cb12-76"></a><span class="in">    fun = "mean",</span></span>
+<span id="cb12-77"><a href="#cb12-77"></a><span class="in">    col = "black",</span></span>
+<span id="cb12-78"><a href="#cb12-78"></a><span class="in">    size = 5,</span></span>
+<span id="cb12-79"><a href="#cb12-79"></a><span class="in">    shape = 8,</span></span>
+<span id="cb12-80"><a href="#cb12-80"></a><span class="in">    position = position_dodge(0.75)</span></span>
+<span id="cb12-81"><a href="#cb12-81"></a><span class="in">  ) +</span></span>
+<span id="cb12-82"><a href="#cb12-82"></a><span class="in">  geom_text(</span></span>
+<span id="cb12-83"><a href="#cb12-83"></a><span class="in">    data = . %&gt;% dplyr::group_by(PARAMCD, ACTARM) %&gt;% dplyr::filter(ratio %in% boxplot.stats(ratio)$out),</span></span>
+<span id="cb12-84"><a href="#cb12-84"></a><span class="in">    aes(x = PARAMCD, y = ratio, label = USUBJID, col = ACTARM),</span></span>
+<span id="cb12-85"><a href="#cb12-85"></a><span class="in">    size = 3,</span></span>
+<span id="cb12-86"><a href="#cb12-86"></a><span class="in">    hjust = -0.2,</span></span>
+<span id="cb12-87"><a href="#cb12-87"></a><span class="in">    position = position_dodge(0.75),</span></span>
+<span id="cb12-88"><a href="#cb12-88"></a><span class="in">    show.legend = FALSE</span></span>
+<span id="cb12-89"><a href="#cb12-89"></a><span class="in">  ) +</span></span>
+<span id="cb12-90"><a href="#cb12-90"></a><span class="in">  labs(</span></span>
+<span id="cb12-91"><a href="#cb12-91"></a><span class="in">    title = "Boxplot of Metabolite to Parent Ratios by Treatment",</span></span>
+<span id="cb12-92"><a href="#cb12-92"></a><span class="in">    subtitle = paste0(</span></span>
+<span id="cb12-93"><a href="#cb12-93"></a><span class="in">      "Analyte: Plasma Drug X, Metabolite Drug X ",</span></span>
+<span id="cb12-94"><a href="#cb12-94"></a><span class="in">      "\nPK Parameter: ",</span></span>
+<span id="cb12-95"><a href="#cb12-95"></a><span class="in">      as.character(paste(unique(anl_x$PARAMCD), collapse = ", ")),</span></span>
+<span id="cb12-96"><a href="#cb12-96"></a><span class="in">      "\nVisit: ",</span></span>
+<span id="cb12-97"><a href="#cb12-97"></a><span class="in">      as.character((unique(anl_x$AVISIT)))</span></span>
+<span id="cb12-98"><a href="#cb12-98"></a><span class="in">    ),</span></span>
+<span id="cb12-99"><a href="#cb12-99"></a><span class="in">    caption = "Program: \nOutput:",</span></span>
+<span id="cb12-100"><a href="#cb12-100"></a><span class="in">    x = "Parameter",</span></span>
+<span id="cb12-101"><a href="#cb12-101"></a><span class="in">    y = "Metabolite to Parent Ratio"</span></span>
+<span id="cb12-102"><a href="#cb12-102"></a><span class="in">  ) +</span></span>
+<span id="cb12-103"><a href="#cb12-103"></a><span class="in">  theme(plot.caption = element_text(hjust = 0)) +</span></span>
+<span id="cb12-104"><a href="#cb12-104"></a><span class="in">  theme_nest()</span></span>
+<span id="cb12-105"><a href="#cb12-105"></a></span>
+<span id="cb12-106"><a href="#cb12-106"></a><span class="in"># PKPG06</span></span>
+<span id="cb12-107"><a href="#cb12-107"></a><span class="in">plot</span></span>
+<span id="cb12-108"><a href="#cb12-108"></a><span class="in">```</span></span>
+<span id="cb12-109"><a href="#cb12-109"></a></span>
+<span id="cb12-110"><a href="#cb12-110"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot1")`</span></span>
+<span id="cb12-111"><a href="#cb12-111"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb12-112"><a href="#cb12-112"></a>:::</span>
+<span id="cb12-113"><a href="#cb12-113"></a></span>
+<span id="cb12-114"><a href="#cb12-114"></a><span class="fu">#### Drug Y Boxplot</span></span>
 <span id="cb12-115"><a href="#cb12-115"></a></span>
-<span id="cb12-116"><a href="#cb12-116"></a><span class="fu">#### Drug Y Boxplot</span></span>
-<span id="cb12-117"><a href="#cb12-117"></a></span>
-<span id="cb12-118"><a href="#cb12-118"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb12-119"><a href="#cb12-119"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb12-120"><a href="#cb12-120"></a></span>
-<span id="cb12-121"><a href="#cb12-121"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
-<span id="cb12-122"><a href="#cb12-122"></a><span class="in">```{r plot2, test = list(plot_v2 = "plot"), opts.label = "skip_test_strict"}</span></span>
-<span id="cb12-123"><a href="#cb12-123"></a><span class="in">plot &lt;- ggplot(anl_y, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +</span></span>
-<span id="cb12-124"><a href="#cb12-124"></a><span class="in">  geom_boxplot(outlier.size = 2) +</span></span>
-<span id="cb12-125"><a href="#cb12-125"></a><span class="in">  stat_boxplot(geom = "errorbar") +</span></span>
-<span id="cb12-126"><a href="#cb12-126"></a><span class="in">  stat_summary(</span></span>
-<span id="cb12-127"><a href="#cb12-127"></a><span class="in">    geom = "point",</span></span>
-<span id="cb12-128"><a href="#cb12-128"></a><span class="in">    fun = "mean",</span></span>
-<span id="cb12-129"><a href="#cb12-129"></a><span class="in">    col = "black",</span></span>
-<span id="cb12-130"><a href="#cb12-130"></a><span class="in">    size = 5,</span></span>
-<span id="cb12-131"><a href="#cb12-131"></a><span class="in">    shape = 8,</span></span>
-<span id="cb12-132"><a href="#cb12-132"></a><span class="in">    position = position_dodge(0.75)</span></span>
-<span id="cb12-133"><a href="#cb12-133"></a><span class="in">  ) +</span></span>
-<span id="cb12-134"><a href="#cb12-134"></a><span class="in">  geom_text(</span></span>
-<span id="cb12-135"><a href="#cb12-135"></a><span class="in">    data = . %&gt;% dplyr::group_by(PARAMCD, ACTARM) %&gt;% dplyr::filter(ratio %in% boxplot.stats(ratio)$out),</span></span>
-<span id="cb12-136"><a href="#cb12-136"></a><span class="in">    aes(x = PARAMCD, y = ratio, label = USUBJID, color = ACTARM),</span></span>
-<span id="cb12-137"><a href="#cb12-137"></a><span class="in">    size = 3,</span></span>
-<span id="cb12-138"><a href="#cb12-138"></a><span class="in">    hjust = -0.2,</span></span>
-<span id="cb12-139"><a href="#cb12-139"></a><span class="in">    position = position_dodge(0.75),</span></span>
-<span id="cb12-140"><a href="#cb12-140"></a><span class="in">    show.legend = FALSE</span></span>
-<span id="cb12-141"><a href="#cb12-141"></a><span class="in">  ) +</span></span>
-<span id="cb12-142"><a href="#cb12-142"></a><span class="in">  labs(</span></span>
-<span id="cb12-143"><a href="#cb12-143"></a><span class="in">    title = "Boxplot of Metabolite to Parent Ratios by Treatment",</span></span>
-<span id="cb12-144"><a href="#cb12-144"></a><span class="in">    subtitle = paste0(</span></span>
-<span id="cb12-145"><a href="#cb12-145"></a><span class="in">      "Analyte: Plasma Drug Y, Metabolite Drug Y ",</span></span>
-<span id="cb12-146"><a href="#cb12-146"></a><span class="in">      "\nPK Parameter: ",</span></span>
-<span id="cb12-147"><a href="#cb12-147"></a><span class="in">      as.character(paste(unique(anl_y$PARAMCD), collapse = ", ")),</span></span>
-<span id="cb12-148"><a href="#cb12-148"></a><span class="in">      "\nVisit: ",</span></span>
-<span id="cb12-149"><a href="#cb12-149"></a><span class="in">      as.character((unique(anl_y$AVISIT)))</span></span>
-<span id="cb12-150"><a href="#cb12-150"></a><span class="in">    ),</span></span>
-<span id="cb12-151"><a href="#cb12-151"></a><span class="in">    caption = "Program: \nOutput:",</span></span>
-<span id="cb12-152"><a href="#cb12-152"></a><span class="in">    x = "Parameter",</span></span>
-<span id="cb12-153"><a href="#cb12-153"></a><span class="in">    y = "Metabolite to Parent Ratio"</span></span>
-<span id="cb12-154"><a href="#cb12-154"></a><span class="in">  ) +</span></span>
-<span id="cb12-155"><a href="#cb12-155"></a><span class="in">  theme(plot.caption = element_text(hjust = 0)) +</span></span>
-<span id="cb12-156"><a href="#cb12-156"></a><span class="in">  theme_nest()</span></span>
-<span id="cb12-157"><a href="#cb12-157"></a></span>
-<span id="cb12-158"><a href="#cb12-158"></a><span class="in"># result</span></span>
-<span id="cb12-159"><a href="#cb12-159"></a><span class="in">plot</span></span>
-<span id="cb12-160"><a href="#cb12-160"></a><span class="in">```</span></span>
-<span id="cb12-161"><a href="#cb12-161"></a></span>
-<span id="cb12-162"><a href="#cb12-162"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot2")`</span></span>
-<span id="cb12-163"><a href="#cb12-163"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb12-164"><a href="#cb12-164"></a>:::</span>
+<span id="cb12-116"><a href="#cb12-116"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb12-117"><a href="#cb12-117"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb12-118"><a href="#cb12-118"></a></span>
+<span id="cb12-119"><a href="#cb12-119"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
+<span id="cb12-120"><a href="#cb12-120"></a><span class="in">```{r plot2, test = list(plot_v2 = "plot"), opts.label = "skip_test_strict"}</span></span>
+<span id="cb12-121"><a href="#cb12-121"></a><span class="in">plot &lt;- ggplot(anl_y, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +</span></span>
+<span id="cb12-122"><a href="#cb12-122"></a><span class="in">  geom_boxplot(outlier.size = 2) +</span></span>
+<span id="cb12-123"><a href="#cb12-123"></a><span class="in">  stat_boxplot(geom = "errorbar") +</span></span>
+<span id="cb12-124"><a href="#cb12-124"></a><span class="in">  stat_summary(</span></span>
+<span id="cb12-125"><a href="#cb12-125"></a><span class="in">    geom = "point",</span></span>
+<span id="cb12-126"><a href="#cb12-126"></a><span class="in">    fun = "mean",</span></span>
+<span id="cb12-127"><a href="#cb12-127"></a><span class="in">    col = "black",</span></span>
+<span id="cb12-128"><a href="#cb12-128"></a><span class="in">    size = 5,</span></span>
+<span id="cb12-129"><a href="#cb12-129"></a><span class="in">    shape = 8,</span></span>
+<span id="cb12-130"><a href="#cb12-130"></a><span class="in">    position = position_dodge(0.75)</span></span>
+<span id="cb12-131"><a href="#cb12-131"></a><span class="in">  ) +</span></span>
+<span id="cb12-132"><a href="#cb12-132"></a><span class="in">  geom_text(</span></span>
+<span id="cb12-133"><a href="#cb12-133"></a><span class="in">    data = . %&gt;% dplyr::group_by(PARAMCD, ACTARM) %&gt;% dplyr::filter(ratio %in% boxplot.stats(ratio)$out),</span></span>
+<span id="cb12-134"><a href="#cb12-134"></a><span class="in">    aes(x = PARAMCD, y = ratio, label = USUBJID, color = ACTARM),</span></span>
+<span id="cb12-135"><a href="#cb12-135"></a><span class="in">    size = 3,</span></span>
+<span id="cb12-136"><a href="#cb12-136"></a><span class="in">    hjust = -0.2,</span></span>
+<span id="cb12-137"><a href="#cb12-137"></a><span class="in">    position = position_dodge(0.75),</span></span>
+<span id="cb12-138"><a href="#cb12-138"></a><span class="in">    show.legend = FALSE</span></span>
+<span id="cb12-139"><a href="#cb12-139"></a><span class="in">  ) +</span></span>
+<span id="cb12-140"><a href="#cb12-140"></a><span class="in">  labs(</span></span>
+<span id="cb12-141"><a href="#cb12-141"></a><span class="in">    title = "Boxplot of Metabolite to Parent Ratios by Treatment",</span></span>
+<span id="cb12-142"><a href="#cb12-142"></a><span class="in">    subtitle = paste0(</span></span>
+<span id="cb12-143"><a href="#cb12-143"></a><span class="in">      "Analyte: Plasma Drug Y, Metabolite Drug Y ",</span></span>
+<span id="cb12-144"><a href="#cb12-144"></a><span class="in">      "\nPK Parameter: ",</span></span>
+<span id="cb12-145"><a href="#cb12-145"></a><span class="in">      as.character(paste(unique(anl_y$PARAMCD), collapse = ", ")),</span></span>
+<span id="cb12-146"><a href="#cb12-146"></a><span class="in">      "\nVisit: ",</span></span>
+<span id="cb12-147"><a href="#cb12-147"></a><span class="in">      as.character((unique(anl_y$AVISIT)))</span></span>
+<span id="cb12-148"><a href="#cb12-148"></a><span class="in">    ),</span></span>
+<span id="cb12-149"><a href="#cb12-149"></a><span class="in">    caption = "Program: \nOutput:",</span></span>
+<span id="cb12-150"><a href="#cb12-150"></a><span class="in">    x = "Parameter",</span></span>
+<span id="cb12-151"><a href="#cb12-151"></a><span class="in">    y = "Metabolite to Parent Ratio"</span></span>
+<span id="cb12-152"><a href="#cb12-152"></a><span class="in">  ) +</span></span>
+<span id="cb12-153"><a href="#cb12-153"></a><span class="in">  theme(plot.caption = element_text(hjust = 0)) +</span></span>
+<span id="cb12-154"><a href="#cb12-154"></a><span class="in">  theme_nest()</span></span>
+<span id="cb12-155"><a href="#cb12-155"></a></span>
+<span id="cb12-156"><a href="#cb12-156"></a><span class="in"># result</span></span>
+<span id="cb12-157"><a href="#cb12-157"></a><span class="in">plot</span></span>
+<span id="cb12-158"><a href="#cb12-158"></a><span class="in">```</span></span>
+<span id="cb12-159"><a href="#cb12-159"></a></span>
+<span id="cb12-160"><a href="#cb12-160"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot2")`</span></span>
+<span id="cb12-161"><a href="#cb12-161"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb12-162"><a href="#cb12-162"></a>:::</span>
+<span id="cb12-163"><a href="#cb12-163"></a></span>
+<span id="cb12-164"><a href="#cb12-164"></a><span class="fu">## Plot with Whiskers at &lt;br/&gt; Minimum and Maximum Values</span></span>
 <span id="cb12-165"><a href="#cb12-165"></a></span>
-<span id="cb12-166"><a href="#cb12-166"></a><span class="fu">## Plot with Whiskers at &lt;br/&gt; Minimum and Maximum Values</span></span>
-<span id="cb12-167"><a href="#cb12-167"></a></span>
-<span id="cb12-168"><a href="#cb12-168"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb12-169"><a href="#cb12-169"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb12-170"><a href="#cb12-170"></a></span>
-<span id="cb12-171"><a href="#cb12-171"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
-<span id="cb12-172"><a href="#cb12-172"></a><span class="in">```{r plot3, test = list(plot_v3 = "plot"), opts.label = "skip_test_strict"}</span></span>
-<span id="cb12-173"><a href="#cb12-173"></a><span class="in"># whiskers are formed with the minimum and maximum values</span></span>
-<span id="cb12-174"><a href="#cb12-174"></a><span class="in">plot &lt;- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +</span></span>
-<span id="cb12-175"><a href="#cb12-175"></a><span class="in">  geom_boxplot(outlier.size = 0) +</span></span>
-<span id="cb12-176"><a href="#cb12-176"></a><span class="in">  stat_boxplot(geom = "errorbar", coef = NULL) +</span></span>
-<span id="cb12-177"><a href="#cb12-177"></a><span class="in">  stat_summary(geom = "point", fun = "mean", col = "black", size = 5, shape = 8, position = position_dodge(0.75)) +</span></span>
-<span id="cb12-178"><a href="#cb12-178"></a><span class="in">  labs(</span></span>
-<span id="cb12-179"><a href="#cb12-179"></a><span class="in">    title = "Boxplot of Metabolite to Parent Ratios by Treatment",</span></span>
-<span id="cb12-180"><a href="#cb12-180"></a><span class="in">    subtitle = paste0(</span></span>
-<span id="cb12-181"><a href="#cb12-181"></a><span class="in">      "Analyte: Plasma Drug X, Metabolite Drug X ",</span></span>
-<span id="cb12-182"><a href="#cb12-182"></a><span class="in">      "\nPK Parameter: ",</span></span>
-<span id="cb12-183"><a href="#cb12-183"></a><span class="in">      as.character(paste(unique(anl_x$PARAMCD), collapse = ", ")),</span></span>
-<span id="cb12-184"><a href="#cb12-184"></a><span class="in">      "\nVisit: ",</span></span>
-<span id="cb12-185"><a href="#cb12-185"></a><span class="in">      as.character((unique(anl_x$AVISIT)))</span></span>
-<span id="cb12-186"><a href="#cb12-186"></a><span class="in">    ),</span></span>
-<span id="cb12-187"><a href="#cb12-187"></a><span class="in">    caption = "Program:\nOutput:",</span></span>
-<span id="cb12-188"><a href="#cb12-188"></a><span class="in">    x = "Parameter",</span></span>
-<span id="cb12-189"><a href="#cb12-189"></a><span class="in">    y = "Metabolite to Parent Ratio"</span></span>
-<span id="cb12-190"><a href="#cb12-190"></a><span class="in">  ) +</span></span>
-<span id="cb12-191"><a href="#cb12-191"></a><span class="in">  theme(plot.caption = element_text(hjust = 0)) +</span></span>
-<span id="cb12-192"><a href="#cb12-192"></a><span class="in">  theme_nest()</span></span>
-<span id="cb12-193"><a href="#cb12-193"></a></span>
-<span id="cb12-194"><a href="#cb12-194"></a><span class="in"># result</span></span>
-<span id="cb12-195"><a href="#cb12-195"></a><span class="in">plot</span></span>
-<span id="cb12-196"><a href="#cb12-196"></a><span class="in">```</span></span>
-<span id="cb12-197"><a href="#cb12-197"></a></span>
-<span id="cb12-198"><a href="#cb12-198"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot3")`</span></span>
-<span id="cb12-199"><a href="#cb12-199"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb12-200"><a href="#cb12-200"></a>:::</span>
+<span id="cb12-166"><a href="#cb12-166"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb12-167"><a href="#cb12-167"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb12-168"><a href="#cb12-168"></a></span>
+<span id="cb12-169"><a href="#cb12-169"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
+<span id="cb12-170"><a href="#cb12-170"></a><span class="in">```{r plot3, test = list(plot_v3 = "plot"), opts.label = "skip_test_strict"}</span></span>
+<span id="cb12-171"><a href="#cb12-171"></a><span class="in"># whiskers are formed with the minimum and maximum values</span></span>
+<span id="cb12-172"><a href="#cb12-172"></a><span class="in">plot &lt;- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +</span></span>
+<span id="cb12-173"><a href="#cb12-173"></a><span class="in">  geom_boxplot(outlier.size = 0) +</span></span>
+<span id="cb12-174"><a href="#cb12-174"></a><span class="in">  stat_boxplot(geom = "errorbar", coef = NULL) +</span></span>
+<span id="cb12-175"><a href="#cb12-175"></a><span class="in">  stat_summary(geom = "point", fun = "mean", col = "black", size = 5, shape = 8, position = position_dodge(0.75)) +</span></span>
+<span id="cb12-176"><a href="#cb12-176"></a><span class="in">  labs(</span></span>
+<span id="cb12-177"><a href="#cb12-177"></a><span class="in">    title = "Boxplot of Metabolite to Parent Ratios by Treatment",</span></span>
+<span id="cb12-178"><a href="#cb12-178"></a><span class="in">    subtitle = paste0(</span></span>
+<span id="cb12-179"><a href="#cb12-179"></a><span class="in">      "Analyte: Plasma Drug X, Metabolite Drug X ",</span></span>
+<span id="cb12-180"><a href="#cb12-180"></a><span class="in">      "\nPK Parameter: ",</span></span>
+<span id="cb12-181"><a href="#cb12-181"></a><span class="in">      as.character(paste(unique(anl_x$PARAMCD), collapse = ", ")),</span></span>
+<span id="cb12-182"><a href="#cb12-182"></a><span class="in">      "\nVisit: ",</span></span>
+<span id="cb12-183"><a href="#cb12-183"></a><span class="in">      as.character((unique(anl_x$AVISIT)))</span></span>
+<span id="cb12-184"><a href="#cb12-184"></a><span class="in">    ),</span></span>
+<span id="cb12-185"><a href="#cb12-185"></a><span class="in">    caption = "Program:\nOutput:",</span></span>
+<span id="cb12-186"><a href="#cb12-186"></a><span class="in">    x = "Parameter",</span></span>
+<span id="cb12-187"><a href="#cb12-187"></a><span class="in">    y = "Metabolite to Parent Ratio"</span></span>
+<span id="cb12-188"><a href="#cb12-188"></a><span class="in">  ) +</span></span>
+<span id="cb12-189"><a href="#cb12-189"></a><span class="in">  theme(plot.caption = element_text(hjust = 0)) +</span></span>
+<span id="cb12-190"><a href="#cb12-190"></a><span class="in">  theme_nest()</span></span>
+<span id="cb12-191"><a href="#cb12-191"></a></span>
+<span id="cb12-192"><a href="#cb12-192"></a><span class="in"># result</span></span>
+<span id="cb12-193"><a href="#cb12-193"></a><span class="in">plot</span></span>
+<span id="cb12-194"><a href="#cb12-194"></a><span class="in">```</span></span>
+<span id="cb12-195"><a href="#cb12-195"></a></span>
+<span id="cb12-196"><a href="#cb12-196"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot3")`</span></span>
+<span id="cb12-197"><a href="#cb12-197"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb12-198"><a href="#cb12-198"></a>:::</span>
+<span id="cb12-199"><a href="#cb12-199"></a></span>
+<span id="cb12-200"><a href="#cb12-200"></a><span class="fu">## Plot with Whiskers at &lt;br/&gt; 5th and 95th Percentiles</span></span>
 <span id="cb12-201"><a href="#cb12-201"></a></span>
-<span id="cb12-202"><a href="#cb12-202"></a><span class="fu">## Plot with Whiskers at &lt;br/&gt; 5th and 95th Percentiles</span></span>
-<span id="cb12-203"><a href="#cb12-203"></a></span>
-<span id="cb12-204"><a href="#cb12-204"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb12-205"><a href="#cb12-205"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb12-206"><a href="#cb12-206"></a></span>
-<span id="cb12-207"><a href="#cb12-207"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
-<span id="cb12-208"><a href="#cb12-208"></a><span class="in">```{r plot4, test = list(plot_v4 = "plot"), opts.label = "skip_test_strict"}</span></span>
-<span id="cb12-209"><a href="#cb12-209"></a><span class="in">anl_x_without_outliers &lt;- anl_x %&gt;%</span></span>
-<span id="cb12-210"><a href="#cb12-210"></a><span class="in">  dplyr::group_by(PARAMCD, ACTARM) %&gt;%</span></span>
-<span id="cb12-211"><a href="#cb12-211"></a><span class="in">  dplyr::mutate(outlier = ifelse(outliers(ratio), ratio, as.numeric(NA)))</span></span>
-<span id="cb12-212"><a href="#cb12-212"></a><span class="in">plot &lt;- ggplot(anl_x, aes(PARAMCD, ratio, fill = ACTARM, label = USUBJID)) +</span></span>
-<span id="cb12-213"><a href="#cb12-213"></a><span class="in">  stat_summary(</span></span>
-<span id="cb12-214"><a href="#cb12-214"></a><span class="in">    fun.data = quantiles, geom = "boxplot",</span></span>
-<span id="cb12-215"><a href="#cb12-215"></a><span class="in">    position = position_dodge(1)</span></span>
-<span id="cb12-216"><a href="#cb12-216"></a><span class="in">  ) +</span></span>
-<span id="cb12-217"><a href="#cb12-217"></a><span class="in">  stat_summary(</span></span>
-<span id="cb12-218"><a href="#cb12-218"></a><span class="in">    geom = "point",</span></span>
-<span id="cb12-219"><a href="#cb12-219"></a><span class="in">    fun = "mean",</span></span>
-<span id="cb12-220"><a href="#cb12-220"></a><span class="in">    col = "black",</span></span>
-<span id="cb12-221"><a href="#cb12-221"></a><span class="in">    size = 5,</span></span>
-<span id="cb12-222"><a href="#cb12-222"></a><span class="in">    shape = 8,</span></span>
-<span id="cb12-223"><a href="#cb12-223"></a><span class="in">    position = position_dodge(1)</span></span>
-<span id="cb12-224"><a href="#cb12-224"></a><span class="in">  ) +</span></span>
-<span id="cb12-225"><a href="#cb12-225"></a><span class="in">  stat_summary(</span></span>
-<span id="cb12-226"><a href="#cb12-226"></a><span class="in">    fun.data = quantiles, geom = "errorbar",</span></span>
-<span id="cb12-227"><a href="#cb12-227"></a><span class="in">    position = position_dodge(1)</span></span>
-<span id="cb12-228"><a href="#cb12-228"></a><span class="in">  ) +</span></span>
-<span id="cb12-229"><a href="#cb12-229"></a><span class="in">  geom_point(</span></span>
-<span id="cb12-230"><a href="#cb12-230"></a><span class="in">    data = anl_x_without_outliers,</span></span>
-<span id="cb12-231"><a href="#cb12-231"></a><span class="in">    aes(x = PARAMCD, y = outlier),</span></span>
-<span id="cb12-232"><a href="#cb12-232"></a><span class="in">    na.rm = TRUE,</span></span>
-<span id="cb12-233"><a href="#cb12-233"></a><span class="in">    size = 2,</span></span>
-<span id="cb12-234"><a href="#cb12-234"></a><span class="in">    position = position_dodge(1),</span></span>
-<span id="cb12-235"><a href="#cb12-235"></a><span class="in">    show.legend = FALSE</span></span>
-<span id="cb12-236"><a href="#cb12-236"></a><span class="in">  ) +</span></span>
-<span id="cb12-237"><a href="#cb12-237"></a><span class="in">  geom_text(</span></span>
-<span id="cb12-238"><a href="#cb12-238"></a><span class="in">    data = anl_x_without_outliers,</span></span>
-<span id="cb12-239"><a href="#cb12-239"></a><span class="in">    aes(x = PARAMCD, y = outlier, label = USUBJID, color = ACTARM),</span></span>
-<span id="cb12-240"><a href="#cb12-240"></a><span class="in">    na.rm = TRUE,</span></span>
-<span id="cb12-241"><a href="#cb12-241"></a><span class="in">    size = 3,</span></span>
-<span id="cb12-242"><a href="#cb12-242"></a><span class="in">    hjust = -0.2,</span></span>
-<span id="cb12-243"><a href="#cb12-243"></a><span class="in">    vjust = 1,</span></span>
-<span id="cb12-244"><a href="#cb12-244"></a><span class="in">    position = position_dodge(1),</span></span>
-<span id="cb12-245"><a href="#cb12-245"></a><span class="in">    show.legend = FALSE</span></span>
-<span id="cb12-246"><a href="#cb12-246"></a><span class="in">  ) +</span></span>
-<span id="cb12-247"><a href="#cb12-247"></a><span class="in">  labs(</span></span>
-<span id="cb12-248"><a href="#cb12-248"></a><span class="in">    title = "Boxplot of Metabolite to Parent Ratios by Treatment",</span></span>
-<span id="cb12-249"><a href="#cb12-249"></a><span class="in">    subtitle = paste0(</span></span>
-<span id="cb12-250"><a href="#cb12-250"></a><span class="in">      "Analyte: Plasma Drug X, Metabolite Drug X ",</span></span>
-<span id="cb12-251"><a href="#cb12-251"></a><span class="in">      "\nPK Parameter: ",</span></span>
-<span id="cb12-252"><a href="#cb12-252"></a><span class="in">      as.character(paste(unique(anl_x$PARAMCD), collapse = ", ")),</span></span>
-<span id="cb12-253"><a href="#cb12-253"></a><span class="in">      "\nVisit: ",</span></span>
-<span id="cb12-254"><a href="#cb12-254"></a><span class="in">      as.character((unique(anl_x$AVISIT)))</span></span>
-<span id="cb12-255"><a href="#cb12-255"></a><span class="in">    ),</span></span>
-<span id="cb12-256"><a href="#cb12-256"></a><span class="in">    caption = "Program: \nOutput:",</span></span>
-<span id="cb12-257"><a href="#cb12-257"></a><span class="in">    x = "Parameter",</span></span>
-<span id="cb12-258"><a href="#cb12-258"></a><span class="in">    y = "Metabolite to Parent Ratio"</span></span>
-<span id="cb12-259"><a href="#cb12-259"></a><span class="in">  ) +</span></span>
-<span id="cb12-260"><a href="#cb12-260"></a><span class="in">  theme(plot.caption = element_text(hjust = 0)) +</span></span>
-<span id="cb12-261"><a href="#cb12-261"></a><span class="in">  theme_nest()</span></span>
-<span id="cb12-262"><a href="#cb12-262"></a></span>
-<span id="cb12-263"><a href="#cb12-263"></a><span class="in"># result</span></span>
-<span id="cb12-264"><a href="#cb12-264"></a><span class="in">plot</span></span>
-<span id="cb12-265"><a href="#cb12-265"></a><span class="in">```</span></span>
-<span id="cb12-266"><a href="#cb12-266"></a></span>
-<span id="cb12-267"><a href="#cb12-267"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot4")`</span></span>
-<span id="cb12-268"><a href="#cb12-268"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb12-269"><a href="#cb12-269"></a>:::</span>
+<span id="cb12-202"><a href="#cb12-202"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb12-203"><a href="#cb12-203"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb12-204"><a href="#cb12-204"></a></span>
+<span id="cb12-205"><a href="#cb12-205"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
+<span id="cb12-206"><a href="#cb12-206"></a><span class="in">```{r plot4, test = list(plot_v4 = "plot"), opts.label = "skip_test_strict"}</span></span>
+<span id="cb12-207"><a href="#cb12-207"></a><span class="in">anl_x_without_outliers &lt;- anl_x %&gt;%</span></span>
+<span id="cb12-208"><a href="#cb12-208"></a><span class="in">  dplyr::group_by(PARAMCD, ACTARM) %&gt;%</span></span>
+<span id="cb12-209"><a href="#cb12-209"></a><span class="in">  dplyr::mutate(outlier = ifelse(outliers(ratio), ratio, as.numeric(NA)))</span></span>
+<span id="cb12-210"><a href="#cb12-210"></a><span class="in">plot &lt;- ggplot(anl_x, aes(PARAMCD, ratio, fill = ACTARM, label = USUBJID)) +</span></span>
+<span id="cb12-211"><a href="#cb12-211"></a><span class="in">  stat_summary(</span></span>
+<span id="cb12-212"><a href="#cb12-212"></a><span class="in">    fun.data = quantiles, geom = "boxplot",</span></span>
+<span id="cb12-213"><a href="#cb12-213"></a><span class="in">    position = position_dodge(1)</span></span>
+<span id="cb12-214"><a href="#cb12-214"></a><span class="in">  ) +</span></span>
+<span id="cb12-215"><a href="#cb12-215"></a><span class="in">  stat_summary(</span></span>
+<span id="cb12-216"><a href="#cb12-216"></a><span class="in">    geom = "point",</span></span>
+<span id="cb12-217"><a href="#cb12-217"></a><span class="in">    fun = "mean",</span></span>
+<span id="cb12-218"><a href="#cb12-218"></a><span class="in">    col = "black",</span></span>
+<span id="cb12-219"><a href="#cb12-219"></a><span class="in">    size = 5,</span></span>
+<span id="cb12-220"><a href="#cb12-220"></a><span class="in">    shape = 8,</span></span>
+<span id="cb12-221"><a href="#cb12-221"></a><span class="in">    position = position_dodge(1)</span></span>
+<span id="cb12-222"><a href="#cb12-222"></a><span class="in">  ) +</span></span>
+<span id="cb12-223"><a href="#cb12-223"></a><span class="in">  stat_summary(</span></span>
+<span id="cb12-224"><a href="#cb12-224"></a><span class="in">    fun.data = quantiles, geom = "errorbar",</span></span>
+<span id="cb12-225"><a href="#cb12-225"></a><span class="in">    position = position_dodge(1)</span></span>
+<span id="cb12-226"><a href="#cb12-226"></a><span class="in">  ) +</span></span>
+<span id="cb12-227"><a href="#cb12-227"></a><span class="in">  geom_point(</span></span>
+<span id="cb12-228"><a href="#cb12-228"></a><span class="in">    data = anl_x_without_outliers,</span></span>
+<span id="cb12-229"><a href="#cb12-229"></a><span class="in">    aes(x = PARAMCD, y = outlier),</span></span>
+<span id="cb12-230"><a href="#cb12-230"></a><span class="in">    na.rm = TRUE,</span></span>
+<span id="cb12-231"><a href="#cb12-231"></a><span class="in">    size = 2,</span></span>
+<span id="cb12-232"><a href="#cb12-232"></a><span class="in">    position = position_dodge(1),</span></span>
+<span id="cb12-233"><a href="#cb12-233"></a><span class="in">    show.legend = FALSE</span></span>
+<span id="cb12-234"><a href="#cb12-234"></a><span class="in">  ) +</span></span>
+<span id="cb12-235"><a href="#cb12-235"></a><span class="in">  geom_text(</span></span>
+<span id="cb12-236"><a href="#cb12-236"></a><span class="in">    data = anl_x_without_outliers,</span></span>
+<span id="cb12-237"><a href="#cb12-237"></a><span class="in">    aes(x = PARAMCD, y = outlier, label = USUBJID, color = ACTARM),</span></span>
+<span id="cb12-238"><a href="#cb12-238"></a><span class="in">    na.rm = TRUE,</span></span>
+<span id="cb12-239"><a href="#cb12-239"></a><span class="in">    size = 3,</span></span>
+<span id="cb12-240"><a href="#cb12-240"></a><span class="in">    hjust = -0.2,</span></span>
+<span id="cb12-241"><a href="#cb12-241"></a><span class="in">    vjust = 1,</span></span>
+<span id="cb12-242"><a href="#cb12-242"></a><span class="in">    position = position_dodge(1),</span></span>
+<span id="cb12-243"><a href="#cb12-243"></a><span class="in">    show.legend = FALSE</span></span>
+<span id="cb12-244"><a href="#cb12-244"></a><span class="in">  ) +</span></span>
+<span id="cb12-245"><a href="#cb12-245"></a><span class="in">  labs(</span></span>
+<span id="cb12-246"><a href="#cb12-246"></a><span class="in">    title = "Boxplot of Metabolite to Parent Ratios by Treatment",</span></span>
+<span id="cb12-247"><a href="#cb12-247"></a><span class="in">    subtitle = paste0(</span></span>
+<span id="cb12-248"><a href="#cb12-248"></a><span class="in">      "Analyte: Plasma Drug X, Metabolite Drug X ",</span></span>
+<span id="cb12-249"><a href="#cb12-249"></a><span class="in">      "\nPK Parameter: ",</span></span>
+<span id="cb12-250"><a href="#cb12-250"></a><span class="in">      as.character(paste(unique(anl_x$PARAMCD), collapse = ", ")),</span></span>
+<span id="cb12-251"><a href="#cb12-251"></a><span class="in">      "\nVisit: ",</span></span>
+<span id="cb12-252"><a href="#cb12-252"></a><span class="in">      as.character((unique(anl_x$AVISIT)))</span></span>
+<span id="cb12-253"><a href="#cb12-253"></a><span class="in">    ),</span></span>
+<span id="cb12-254"><a href="#cb12-254"></a><span class="in">    caption = "Program: \nOutput:",</span></span>
+<span id="cb12-255"><a href="#cb12-255"></a><span class="in">    x = "Parameter",</span></span>
+<span id="cb12-256"><a href="#cb12-256"></a><span class="in">    y = "Metabolite to Parent Ratio"</span></span>
+<span id="cb12-257"><a href="#cb12-257"></a><span class="in">  ) +</span></span>
+<span id="cb12-258"><a href="#cb12-258"></a><span class="in">  theme(plot.caption = element_text(hjust = 0)) +</span></span>
+<span id="cb12-259"><a href="#cb12-259"></a><span class="in">  theme_nest()</span></span>
+<span id="cb12-260"><a href="#cb12-260"></a></span>
+<span id="cb12-261"><a href="#cb12-261"></a><span class="in"># result</span></span>
+<span id="cb12-262"><a href="#cb12-262"></a><span class="in">plot</span></span>
+<span id="cb12-263"><a href="#cb12-263"></a><span class="in">```</span></span>
+<span id="cb12-264"><a href="#cb12-264"></a></span>
+<span id="cb12-265"><a href="#cb12-265"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot4")`</span></span>
+<span id="cb12-266"><a href="#cb12-266"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb12-267"><a href="#cb12-267"></a>:::</span>
+<span id="cb12-268"><a href="#cb12-268"></a></span>
+<span id="cb12-269"><a href="#cb12-269"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
 <span id="cb12-270"><a href="#cb12-270"></a></span>
-<span id="cb12-271"><a href="#cb12-271"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb12-271"><a href="#cb12-271"></a><span class="fu">## `teal` App</span></span>
 <span id="cb12-272"><a href="#cb12-272"></a></span>
-<span id="cb12-273"><a href="#cb12-273"></a><span class="fu">## `teal` App</span></span>
-<span id="cb12-274"><a href="#cb12-274"></a></span>
-<span id="cb12-275"><a href="#cb12-275"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb12-276"><a href="#cb12-276"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb12-277"><a href="#cb12-277"></a></span>
-<span id="cb12-278"><a href="#cb12-278"></a><span class="in"># In progress</span></span>
-<span id="cb12-279"><a href="#cb12-279"></a><span class="in">```</span></span>
+<span id="cb12-273"><a href="#cb12-273"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb12-274"><a href="#cb12-274"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb12-275"><a href="#cb12-275"></a></span>
+<span id="cb12-276"><a href="#cb12-276"></a><span class="in"># In progress</span></span>
+<span id="cb12-277"><a href="#cb12-277"></a><span class="in">```</span></span>
+<span id="cb12-278"><a href="#cb12-278"></a></span>
+<span id="cb12-279"><a href="#cb12-279"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
 <span id="cb12-280"><a href="#cb12-280"></a></span>
-<span id="cb12-281"><a href="#cb12-281"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb12-282"><a href="#cb12-282"></a></span>
-<span id="cb12-283"><a href="#cb12-283"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-281"><a href="#cb12-281"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

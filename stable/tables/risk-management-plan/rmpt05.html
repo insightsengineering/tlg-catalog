@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"read-only":"false","out-width":"700px","fig-width":7,"out-height":"","warning":"true","classes":"","editor-font-scale":1,"output":"true","label":"unnamed-chunk-1","comment":"","message":"true","editor-max-height":"500","fig-height":5,"context":"interactive","autorun":"true","dpi":72,"fig-cap":"","results":"markup","editor-quick-suggestions":"false"},"id":1,"code":"library(tern)\nlibrary(scda)\nlibrary(scda.2022)\nlibrary(dplyr)\n\nadsl <- synthetic_cdisc_dataset(\"latest\", \"adsl\")\nadex <- synthetic_cdisc_dataset(\"latest\", \"adex\")\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\n# Simulate ADEX records with PARAMCD == \"TDURD\" as they are not in the sample dataset.\nset.seed(1)\nadex2 <- adex %>%\n  distinct(USUBJID, .keep_all = TRUE) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE)\n  ) %>%\n  bind_rows(adex)\n\n# Now pre-processing steps are carried out.\nanl <- adex2 %>%\n  filter(\n    PARAMCD == \"TDURD\",\n    PARCAT2 == \"Drug A\",\n    SAFFL == \"Y\"\n  ) %>%\n  mutate()\n\nadsl_f <- adsl %>% filter(adsl$SAFFL == \"Y\")\nlyt <- basic_table(\n  title = \"Extent of Exposure by Race: Safety-Evaluable Patients\",\n  main_footer = \"* Person time is the sum of exposure across all patients in unit: days.\",\n  show_colcounts = TRUE\n) %>%\n  summarize_patients_exposure_in_cols(\n    var = \"AVAL\", col_split = TRUE,\n    .labels = c(n_patients = \"Patients\", sum_exposure = \"Person time*\")\n  ) %>%\n  analyze_patients_exposure_in_cols(\n    var = \"RACE\",\n    col_split = FALSE\n  ) %>%\n  append_topleft(c(\"\", obj_label(adex$RACE)))\n\nresult <- build_table(lyt, df = anl, alt_counts_df = adsl_f)\nresult"}];
+globalThis.qwebrCellDetails = [{"options":{"fig-cap":"","autorun":"true","editor-font-scale":1,"out-width":"700px","output":"true","fig-width":7,"editor-max-height":"500","warning":"true","editor-quick-suggestions":"false","dpi":72,"read-only":"false","label":"unnamed-chunk-1","context":"interactive","classes":"","comment":"","results":"markup","fig-height":5,"out-height":"","message":"true"},"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\n# Simulate ADEX records with PARAMCD == \"TDURD\" as they are not in the sample dataset.\nset.seed(1)\nadex2 <- adex %>%\n  distinct(USUBJID, .keep_all = TRUE) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE)\n  ) %>%\n  bind_rows(adex)\n\n# Now pre-processing steps are carried out.\nanl <- adex2 %>%\n  filter(\n    PARAMCD == \"TDURD\",\n    PARCAT2 == \"Drug A\",\n    SAFFL == \"Y\"\n  ) %>%\n  mutate()\n\nadsl_f <- adsl %>% filter(adsl$SAFFL == \"Y\")\nlyt <- basic_table(\n  title = \"Extent of Exposure by Race: Safety-Evaluable Patients\",\n  main_footer = \"* Person time is the sum of exposure across all patients in unit: days.\",\n  show_colcounts = TRUE\n) %>%\n  summarize_patients_exposure_in_cols(\n    var = \"AVAL\", col_split = TRUE,\n    .labels = c(n_patients = \"Patients\", sum_exposure = \"Person time*\")\n  ) %>%\n  analyze_patients_exposure_in_cols(\n    var = \"RACE\",\n    col_split = FALSE\n  ) %>%\n  append_topleft(c(\"\", obj_label(adex$RACE)))\n\nresult <- build_table(lyt, df = anl, alt_counts_df = adsl_f)\nresult","id":1}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2628,38 +2628,36 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <div class="cell">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(tern)</span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(scda)</span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(scda<span class="fl">.2022</span>)</span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-5"><a href="#cb1-5"></a></span>
-<span id="cb1-6"><a href="#cb1-6"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
-<span id="cb1-7"><a href="#cb1-7"></a>adex <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adex"</span>)</span>
-<span id="cb1-8"><a href="#cb1-8"></a></span>
-<span id="cb1-9"><a href="#cb1-9"></a><span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>adsl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adsl)</span>
-<span id="cb1-11"><a href="#cb1-11"></a>adex <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adex)</span>
-<span id="cb1-12"><a href="#cb1-12"></a></span>
-<span id="cb1-13"><a href="#cb1-13"></a><span class="co"># Simulate ADEX records with PARAMCD == "TDURD" as they are not in the sample dataset.</span></span>
-<span id="cb1-14"><a href="#cb1-14"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb1-15"><a href="#cb1-15"></a>adex2 <span class="ot">&lt;-</span> adex <span class="sc">%&gt;%</span></span>
-<span id="cb1-16"><a href="#cb1-16"></a>  <span class="fu">distinct</span>(USUBJID, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-17"><a href="#cb1-17"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-18"><a href="#cb1-18"></a>    <span class="at">PARAMCD =</span> <span class="st">"TDURD"</span>,</span>
-<span id="cb1-19"><a href="#cb1-19"></a>    <span class="at">PARAM =</span> <span class="st">"Overall duration (days)"</span>,</span>
-<span id="cb1-20"><a href="#cb1-20"></a>    <span class="at">AVAL =</span> <span class="fu">sample</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">200</span>), <span class="at">size =</span> <span class="fu">n</span>(), <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb1-21"><a href="#cb1-21"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-22"><a href="#cb1-22"></a>  <span class="fu">bind_rows</span>(adex)</span>
-<span id="cb1-23"><a href="#cb1-23"></a></span>
-<span id="cb1-24"><a href="#cb1-24"></a><span class="co"># Now pre-processing steps are carried out.</span></span>
-<span id="cb1-25"><a href="#cb1-25"></a>anl <span class="ot">&lt;-</span> adex2 <span class="sc">%&gt;%</span></span>
-<span id="cb1-26"><a href="#cb1-26"></a>  <span class="fu">filter</span>(</span>
-<span id="cb1-27"><a href="#cb1-27"></a>    PARAMCD <span class="sc">==</span> <span class="st">"TDURD"</span>,</span>
-<span id="cb1-28"><a href="#cb1-28"></a>    PARCAT2 <span class="sc">==</span> <span class="st">"Drug A"</span>,</span>
-<span id="cb1-29"><a href="#cb1-29"></a>    SAFFL <span class="sc">==</span> <span class="st">"Y"</span></span>
-<span id="cb1-30"><a href="#cb1-30"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-31"><a href="#cb1-31"></a>  <span class="fu">mutate</span>()</span>
-<span id="cb1-32"><a href="#cb1-32"></a></span>
-<span id="cb1-33"><a href="#cb1-33"></a>adsl_f <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span> <span class="fu">filter</span>(adsl<span class="sc">$</span>SAFFL <span class="sc">==</span> <span class="st">"Y"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3"></a></span>
+<span id="cb1-4"><a href="#cb1-4"></a>adsl <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadsl</span>
+<span id="cb1-5"><a href="#cb1-5"></a>adex <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadex</span>
+<span id="cb1-6"><a href="#cb1-6"></a></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>adsl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adsl)</span>
+<span id="cb1-9"><a href="#cb1-9"></a>adex <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adex)</span>
+<span id="cb1-10"><a href="#cb1-10"></a></span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="co"># Simulate ADEX records with PARAMCD == "TDURD" as they are not in the sample dataset.</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb1-13"><a href="#cb1-13"></a>adex2 <span class="ot">&lt;-</span> adex <span class="sc">%&gt;%</span></span>
+<span id="cb1-14"><a href="#cb1-14"></a>  <span class="fu">distinct</span>(USUBJID, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-16"><a href="#cb1-16"></a>    <span class="at">PARAMCD =</span> <span class="st">"TDURD"</span>,</span>
+<span id="cb1-17"><a href="#cb1-17"></a>    <span class="at">PARAM =</span> <span class="st">"Overall duration (days)"</span>,</span>
+<span id="cb1-18"><a href="#cb1-18"></a>    <span class="at">AVAL =</span> <span class="fu">sample</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">200</span>), <span class="at">size =</span> <span class="fu">n</span>(), <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-19"><a href="#cb1-19"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-20"><a href="#cb1-20"></a>  <span class="fu">bind_rows</span>(adex)</span>
+<span id="cb1-21"><a href="#cb1-21"></a></span>
+<span id="cb1-22"><a href="#cb1-22"></a><span class="co"># Now pre-processing steps are carried out.</span></span>
+<span id="cb1-23"><a href="#cb1-23"></a>anl <span class="ot">&lt;-</span> adex2 <span class="sc">%&gt;%</span></span>
+<span id="cb1-24"><a href="#cb1-24"></a>  <span class="fu">filter</span>(</span>
+<span id="cb1-25"><a href="#cb1-25"></a>    PARAMCD <span class="sc">==</span> <span class="st">"TDURD"</span>,</span>
+<span id="cb1-26"><a href="#cb1-26"></a>    PARCAT2 <span class="sc">==</span> <span class="st">"Drug A"</span>,</span>
+<span id="cb1-27"><a href="#cb1-27"></a>    SAFFL <span class="sc">==</span> <span class="st">"Y"</span></span>
+<span id="cb1-28"><a href="#cb1-28"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-29"><a href="#cb1-29"></a>  <span class="fu">mutate</span>()</span>
+<span id="cb1-30"><a href="#cb1-30"></a></span>
+<span id="cb1-31"><a href="#cb1-31"></a>adsl_f <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span> <span class="fu">filter</span>(adsl<span class="sc">$</span>SAFFL <span class="sc">==</span> <span class="st">"Y"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
@@ -2754,66 +2752,64 @@ Experimental use!
 <span id="cb4-3"><a href="#cb4-3"></a><span class="do">## Data reproducible code</span></span>
 <span id="cb4-4"><a href="#cb4-4"></a>data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
 <span id="cb4-5"><a href="#cb4-5"></a>data <span class="ot">&lt;-</span> <span class="fu">within</span>(data, {</span>
-<span id="cb4-6"><a href="#cb4-6"></a>  <span class="fu">library</span>(scda)</span>
-<span id="cb4-7"><a href="#cb4-7"></a>  <span class="fu">library</span>(scda<span class="fl">.2022</span>)</span>
-<span id="cb4-8"><a href="#cb4-8"></a>  <span class="fu">library</span>(dplyr)</span>
-<span id="cb4-9"><a href="#cb4-9"></a></span>
-<span id="cb4-10"><a href="#cb4-10"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
-<span id="cb4-11"><a href="#cb4-11"></a>  ADEX <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adex"</span>)</span>
-<span id="cb4-12"><a href="#cb4-12"></a></span>
-<span id="cb4-13"><a href="#cb4-13"></a>  labels <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(ADEX)</span>
-<span id="cb4-14"><a href="#cb4-14"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>, <span class="at">kind =</span> <span class="st">"Mersenne-Twister"</span>)</span>
-<span id="cb4-15"><a href="#cb4-15"></a></span>
-<span id="cb4-16"><a href="#cb4-16"></a>  labels <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(ADEX)</span>
-<span id="cb4-17"><a href="#cb4-17"></a>  ADEX <span class="ot">&lt;-</span> ADEX <span class="sc">%&gt;%</span></span>
-<span id="cb4-18"><a href="#cb4-18"></a>    <span class="fu">distinct</span>(USUBJID, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-19"><a href="#cb4-19"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb4-20"><a href="#cb4-20"></a>      <span class="at">PARAMCD =</span> <span class="st">"TDURD"</span>,</span>
-<span id="cb4-21"><a href="#cb4-21"></a>      <span class="at">PARAM =</span> <span class="st">"Overall duration (days)"</span>,</span>
-<span id="cb4-22"><a href="#cb4-22"></a>      <span class="at">AVAL =</span> <span class="fu">sample</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">200</span>), <span class="at">size =</span> <span class="fu">n</span>(), <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb4-23"><a href="#cb4-23"></a>      <span class="at">AVALU =</span> <span class="st">"Days"</span></span>
-<span id="cb4-24"><a href="#cb4-24"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb4-25"><a href="#cb4-25"></a>    <span class="fu">bind_rows</span>(ADEX)</span>
-<span id="cb4-26"><a href="#cb4-26"></a></span>
-<span id="cb4-27"><a href="#cb4-27"></a>  <span class="fu">col_labels</span>(ADEX) <span class="ot">&lt;-</span> labels</span>
-<span id="cb4-28"><a href="#cb4-28"></a>})</span>
-<span id="cb4-29"><a href="#cb4-29"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADEX"</span>)</span>
-<span id="cb4-30"><a href="#cb4-30"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
-<span id="cb4-31"><a href="#cb4-31"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
-<span id="cb4-32"><a href="#cb4-32"></a></span>
-<span id="cb4-33"><a href="#cb4-33"></a><span class="do">## Reusable Configuration For Modules</span></span>
-<span id="cb4-34"><a href="#cb4-34"></a>ADEX <span class="ot">&lt;-</span> data[[<span class="st">"ADEX"</span>]]</span>
-<span id="cb4-35"><a href="#cb4-35"></a></span>
-<span id="cb4-36"><a href="#cb4-36"></a><span class="do">## Setup App</span></span>
-<span id="cb4-37"><a href="#cb4-37"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb4-38"><a href="#cb4-38"></a>  <span class="at">data =</span> data,</span>
-<span id="cb4-39"><a href="#cb4-39"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb4-40"><a href="#cb4-40"></a>    <span class="fu">tm_t_exposure</span>(</span>
-<span id="cb4-41"><a href="#cb4-41"></a>      <span class="at">label =</span> <span class="st">"Duration of Exposure Table"</span>,</span>
-<span id="cb4-42"><a href="#cb4-42"></a>      <span class="at">dataname =</span> <span class="st">"ADEX"</span>,</span>
-<span id="cb4-43"><a href="#cb4-43"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb4-44"><a href="#cb4-44"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(ADEX, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>),</span>
-<span id="cb4-45"><a href="#cb4-45"></a>        <span class="at">selected =</span> <span class="st">"TDURD"</span></span>
-<span id="cb4-46"><a href="#cb4-46"></a>      ),</span>
-<span id="cb4-47"><a href="#cb4-47"></a>      <span class="at">col_by_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb4-48"><a href="#cb4-48"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADEX, <span class="at">subset =</span> <span class="fu">c</span>(<span class="st">"ARM"</span>)),</span>
-<span id="cb4-49"><a href="#cb4-49"></a>        <span class="at">selected =</span> <span class="st">"ARM"</span></span>
-<span id="cb4-50"><a href="#cb4-50"></a>      ),</span>
-<span id="cb4-51"><a href="#cb4-51"></a>      <span class="at">row_by_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb4-52"><a href="#cb4-52"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADEX, <span class="at">subset =</span> <span class="fu">c</span>(<span class="st">"RACE"</span>, <span class="st">"STRATA1"</span>, <span class="st">"SEX"</span>)),</span>
-<span id="cb4-53"><a href="#cb4-53"></a>        <span class="at">selected =</span> <span class="st">"RACE"</span></span>
-<span id="cb4-54"><a href="#cb4-54"></a>      ),</span>
-<span id="cb4-55"><a href="#cb4-55"></a>      <span class="at">parcat =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb4-56"><a href="#cb4-56"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(ADEX, <span class="st">"PARCAT2"</span>),</span>
-<span id="cb4-57"><a href="#cb4-57"></a>        <span class="at">selected =</span> <span class="st">"Drug A"</span></span>
-<span id="cb4-58"><a href="#cb4-58"></a>      ),</span>
-<span id="cb4-59"><a href="#cb4-59"></a>      <span class="at">add_total =</span> <span class="cn">FALSE</span></span>
-<span id="cb4-60"><a href="#cb4-60"></a>    )</span>
-<span id="cb4-61"><a href="#cb4-61"></a>  ),</span>
-<span id="cb4-62"><a href="#cb4-62"></a>  <span class="at">filter =</span> <span class="fu">teal_slices</span>(<span class="fu">teal_slice</span>(<span class="st">"ADSL"</span>, <span class="st">"SAFFL"</span>, <span class="at">selected =</span> <span class="st">"Y"</span>))</span>
-<span id="cb4-63"><a href="#cb4-63"></a>)</span>
-<span id="cb4-64"><a href="#cb4-64"></a></span>
-<span id="cb4-65"><a href="#cb4-65"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-6"><a href="#cb4-6"></a>  <span class="fu">library</span>(dplyr)</span>
+<span id="cb4-7"><a href="#cb4-7"></a></span>
+<span id="cb4-8"><a href="#cb4-8"></a>  ADSL <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadsl</span>
+<span id="cb4-9"><a href="#cb4-9"></a>  ADEX <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadex</span>
+<span id="cb4-10"><a href="#cb4-10"></a></span>
+<span id="cb4-11"><a href="#cb4-11"></a>  labels <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(ADEX)</span>
+<span id="cb4-12"><a href="#cb4-12"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>, <span class="at">kind =</span> <span class="st">"Mersenne-Twister"</span>)</span>
+<span id="cb4-13"><a href="#cb4-13"></a></span>
+<span id="cb4-14"><a href="#cb4-14"></a>  labels <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(ADEX)</span>
+<span id="cb4-15"><a href="#cb4-15"></a>  ADEX <span class="ot">&lt;-</span> ADEX <span class="sc">%&gt;%</span></span>
+<span id="cb4-16"><a href="#cb4-16"></a>    <span class="fu">distinct</span>(USUBJID, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-17"><a href="#cb4-17"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb4-18"><a href="#cb4-18"></a>      <span class="at">PARAMCD =</span> <span class="st">"TDURD"</span>,</span>
+<span id="cb4-19"><a href="#cb4-19"></a>      <span class="at">PARAM =</span> <span class="st">"Overall duration (days)"</span>,</span>
+<span id="cb4-20"><a href="#cb4-20"></a>      <span class="at">AVAL =</span> <span class="fu">sample</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">200</span>), <span class="at">size =</span> <span class="fu">n</span>(), <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb4-21"><a href="#cb4-21"></a>      <span class="at">AVALU =</span> <span class="st">"Days"</span></span>
+<span id="cb4-22"><a href="#cb4-22"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb4-23"><a href="#cb4-23"></a>    <span class="fu">bind_rows</span>(ADEX)</span>
+<span id="cb4-24"><a href="#cb4-24"></a></span>
+<span id="cb4-25"><a href="#cb4-25"></a>  <span class="fu">col_labels</span>(ADEX) <span class="ot">&lt;-</span> labels</span>
+<span id="cb4-26"><a href="#cb4-26"></a>})</span>
+<span id="cb4-27"><a href="#cb4-27"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADEX"</span>)</span>
+<span id="cb4-28"><a href="#cb4-28"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
+<span id="cb4-29"><a href="#cb4-29"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
+<span id="cb4-30"><a href="#cb4-30"></a></span>
+<span id="cb4-31"><a href="#cb4-31"></a><span class="do">## Reusable Configuration For Modules</span></span>
+<span id="cb4-32"><a href="#cb4-32"></a>ADEX <span class="ot">&lt;-</span> data[[<span class="st">"ADEX"</span>]]</span>
+<span id="cb4-33"><a href="#cb4-33"></a></span>
+<span id="cb4-34"><a href="#cb4-34"></a><span class="do">## Setup App</span></span>
+<span id="cb4-35"><a href="#cb4-35"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb4-36"><a href="#cb4-36"></a>  <span class="at">data =</span> data,</span>
+<span id="cb4-37"><a href="#cb4-37"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb4-38"><a href="#cb4-38"></a>    <span class="fu">tm_t_exposure</span>(</span>
+<span id="cb4-39"><a href="#cb4-39"></a>      <span class="at">label =</span> <span class="st">"Duration of Exposure Table"</span>,</span>
+<span id="cb4-40"><a href="#cb4-40"></a>      <span class="at">dataname =</span> <span class="st">"ADEX"</span>,</span>
+<span id="cb4-41"><a href="#cb4-41"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb4-42"><a href="#cb4-42"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(ADEX, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>),</span>
+<span id="cb4-43"><a href="#cb4-43"></a>        <span class="at">selected =</span> <span class="st">"TDURD"</span></span>
+<span id="cb4-44"><a href="#cb4-44"></a>      ),</span>
+<span id="cb4-45"><a href="#cb4-45"></a>      <span class="at">col_by_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb4-46"><a href="#cb4-46"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADEX, <span class="at">subset =</span> <span class="fu">c</span>(<span class="st">"ARM"</span>)),</span>
+<span id="cb4-47"><a href="#cb4-47"></a>        <span class="at">selected =</span> <span class="st">"ARM"</span></span>
+<span id="cb4-48"><a href="#cb4-48"></a>      ),</span>
+<span id="cb4-49"><a href="#cb4-49"></a>      <span class="at">row_by_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb4-50"><a href="#cb4-50"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADEX, <span class="at">subset =</span> <span class="fu">c</span>(<span class="st">"RACE"</span>, <span class="st">"STRATA1"</span>, <span class="st">"SEX"</span>)),</span>
+<span id="cb4-51"><a href="#cb4-51"></a>        <span class="at">selected =</span> <span class="st">"RACE"</span></span>
+<span id="cb4-52"><a href="#cb4-52"></a>      ),</span>
+<span id="cb4-53"><a href="#cb4-53"></a>      <span class="at">parcat =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb4-54"><a href="#cb4-54"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(ADEX, <span class="st">"PARCAT2"</span>),</span>
+<span id="cb4-55"><a href="#cb4-55"></a>        <span class="at">selected =</span> <span class="st">"Drug A"</span></span>
+<span id="cb4-56"><a href="#cb4-56"></a>      ),</span>
+<span id="cb4-57"><a href="#cb4-57"></a>      <span class="at">add_total =</span> <span class="cn">FALSE</span></span>
+<span id="cb4-58"><a href="#cb4-58"></a>    )</span>
+<span id="cb4-59"><a href="#cb4-59"></a>  ),</span>
+<span id="cb4-60"><a href="#cb4-60"></a>  <span class="at">filter =</span> <span class="fu">teal_slices</span>(<span class="fu">teal_slice</span>(<span class="st">"ADSL"</span>, <span class="st">"SAFFL"</span>, <span class="at">selected =</span> <span class="st">"Y"</span>))</span>
+<span id="cb4-61"><a href="#cb4-61"></a>)</span>
+<span id="cb4-62"><a href="#cb4-62"></a></span>
+<span id="cb4-63"><a href="#cb4-63"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="rmpt05_files/figure-html/teal-1.png" class="img-fluid figure-img" width="1440"></p>
@@ -2873,66 +2869,64 @@ we have to put some code upfront
 <span id="cb5-22"><a href="#cb5-22"></a>## Data reproducible code</span>
 <span id="cb5-23"><a href="#cb5-23"></a>data &lt;- teal_data()</span>
 <span id="cb5-24"><a href="#cb5-24"></a>data &lt;- within(data, {</span>
-<span id="cb5-25"><a href="#cb5-25"></a>  library(scda)</span>
-<span id="cb5-26"><a href="#cb5-26"></a>  library(scda.2022)</span>
-<span id="cb5-27"><a href="#cb5-27"></a>  library(dplyr)</span>
-<span id="cb5-28"><a href="#cb5-28"></a></span>
-<span id="cb5-29"><a href="#cb5-29"></a>  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")</span>
-<span id="cb5-30"><a href="#cb5-30"></a>  ADEX &lt;- synthetic_cdisc_dataset("latest", "adex")</span>
-<span id="cb5-31"><a href="#cb5-31"></a></span>
-<span id="cb5-32"><a href="#cb5-32"></a>  labels &lt;- col_labels(ADEX)</span>
-<span id="cb5-33"><a href="#cb5-33"></a>  set.seed(1, kind = "Mersenne-Twister")</span>
-<span id="cb5-34"><a href="#cb5-34"></a></span>
-<span id="cb5-35"><a href="#cb5-35"></a>  labels &lt;- col_labels(ADEX)</span>
-<span id="cb5-36"><a href="#cb5-36"></a>  ADEX &lt;- ADEX %&gt;%</span>
-<span id="cb5-37"><a href="#cb5-37"></a>    distinct(USUBJID, .keep_all = TRUE) %&gt;%</span>
-<span id="cb5-38"><a href="#cb5-38"></a>    mutate(</span>
-<span id="cb5-39"><a href="#cb5-39"></a>      PARAMCD = "TDURD",</span>
-<span id="cb5-40"><a href="#cb5-40"></a>      PARAM = "Overall duration (days)",</span>
-<span id="cb5-41"><a href="#cb5-41"></a>      AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),</span>
-<span id="cb5-42"><a href="#cb5-42"></a>      AVALU = "Days"</span>
-<span id="cb5-43"><a href="#cb5-43"></a>    ) %&gt;%</span>
-<span id="cb5-44"><a href="#cb5-44"></a>    bind_rows(ADEX)</span>
-<span id="cb5-45"><a href="#cb5-45"></a></span>
-<span id="cb5-46"><a href="#cb5-46"></a>  col_labels(ADEX) &lt;- labels</span>
-<span id="cb5-47"><a href="#cb5-47"></a>})</span>
-<span id="cb5-48"><a href="#cb5-48"></a>datanames &lt;- c("ADSL", "ADEX")</span>
-<span id="cb5-49"><a href="#cb5-49"></a>datanames(data) &lt;- datanames</span>
-<span id="cb5-50"><a href="#cb5-50"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
-<span id="cb5-51"><a href="#cb5-51"></a></span>
-<span id="cb5-52"><a href="#cb5-52"></a>## Reusable Configuration For Modules</span>
-<span id="cb5-53"><a href="#cb5-53"></a>ADEX &lt;- data[["ADEX"]]</span>
-<span id="cb5-54"><a href="#cb5-54"></a></span>
-<span id="cb5-55"><a href="#cb5-55"></a>## Setup App</span>
-<span id="cb5-56"><a href="#cb5-56"></a>app &lt;- init(</span>
-<span id="cb5-57"><a href="#cb5-57"></a>  data = data,</span>
-<span id="cb5-58"><a href="#cb5-58"></a>  modules = modules(</span>
-<span id="cb5-59"><a href="#cb5-59"></a>    tm_t_exposure(</span>
-<span id="cb5-60"><a href="#cb5-60"></a>      label = "Duration of Exposure Table",</span>
-<span id="cb5-61"><a href="#cb5-61"></a>      dataname = "ADEX",</span>
-<span id="cb5-62"><a href="#cb5-62"></a>      paramcd = choices_selected(</span>
-<span id="cb5-63"><a href="#cb5-63"></a>        choices = value_choices(ADEX, "PARAMCD", "PARAM"),</span>
-<span id="cb5-64"><a href="#cb5-64"></a>        selected = "TDURD"</span>
-<span id="cb5-65"><a href="#cb5-65"></a>      ),</span>
-<span id="cb5-66"><a href="#cb5-66"></a>      col_by_var = choices_selected(</span>
-<span id="cb5-67"><a href="#cb5-67"></a>        choices = variable_choices(ADEX, subset = c("ARM")),</span>
-<span id="cb5-68"><a href="#cb5-68"></a>        selected = "ARM"</span>
-<span id="cb5-69"><a href="#cb5-69"></a>      ),</span>
-<span id="cb5-70"><a href="#cb5-70"></a>      row_by_var = choices_selected(</span>
-<span id="cb5-71"><a href="#cb5-71"></a>        choices = variable_choices(ADEX, subset = c("RACE", "STRATA1", "SEX")),</span>
-<span id="cb5-72"><a href="#cb5-72"></a>        selected = "RACE"</span>
-<span id="cb5-73"><a href="#cb5-73"></a>      ),</span>
-<span id="cb5-74"><a href="#cb5-74"></a>      parcat = choices_selected(</span>
-<span id="cb5-75"><a href="#cb5-75"></a>        choices = value_choices(ADEX, "PARCAT2"),</span>
-<span id="cb5-76"><a href="#cb5-76"></a>        selected = "Drug A"</span>
-<span id="cb5-77"><a href="#cb5-77"></a>      ),</span>
-<span id="cb5-78"><a href="#cb5-78"></a>      add_total = FALSE</span>
-<span id="cb5-79"><a href="#cb5-79"></a>    )</span>
-<span id="cb5-80"><a href="#cb5-80"></a>  ),</span>
-<span id="cb5-81"><a href="#cb5-81"></a>  filter = teal_slices(teal_slice("ADSL", "SAFFL", selected = "Y"))</span>
-<span id="cb5-82"><a href="#cb5-82"></a>)</span>
-<span id="cb5-83"><a href="#cb5-83"></a></span>
-<span id="cb5-84"><a href="#cb5-84"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-25"><a href="#cb5-25"></a>  library(dplyr)</span>
+<span id="cb5-26"><a href="#cb5-26"></a></span>
+<span id="cb5-27"><a href="#cb5-27"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
+<span id="cb5-28"><a href="#cb5-28"></a>  ADEX &lt;- random.cdisc.data::cadex</span>
+<span id="cb5-29"><a href="#cb5-29"></a></span>
+<span id="cb5-30"><a href="#cb5-30"></a>  labels &lt;- col_labels(ADEX)</span>
+<span id="cb5-31"><a href="#cb5-31"></a>  set.seed(1, kind = "Mersenne-Twister")</span>
+<span id="cb5-32"><a href="#cb5-32"></a></span>
+<span id="cb5-33"><a href="#cb5-33"></a>  labels &lt;- col_labels(ADEX)</span>
+<span id="cb5-34"><a href="#cb5-34"></a>  ADEX &lt;- ADEX %&gt;%</span>
+<span id="cb5-35"><a href="#cb5-35"></a>    distinct(USUBJID, .keep_all = TRUE) %&gt;%</span>
+<span id="cb5-36"><a href="#cb5-36"></a>    mutate(</span>
+<span id="cb5-37"><a href="#cb5-37"></a>      PARAMCD = "TDURD",</span>
+<span id="cb5-38"><a href="#cb5-38"></a>      PARAM = "Overall duration (days)",</span>
+<span id="cb5-39"><a href="#cb5-39"></a>      AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),</span>
+<span id="cb5-40"><a href="#cb5-40"></a>      AVALU = "Days"</span>
+<span id="cb5-41"><a href="#cb5-41"></a>    ) %&gt;%</span>
+<span id="cb5-42"><a href="#cb5-42"></a>    bind_rows(ADEX)</span>
+<span id="cb5-43"><a href="#cb5-43"></a></span>
+<span id="cb5-44"><a href="#cb5-44"></a>  col_labels(ADEX) &lt;- labels</span>
+<span id="cb5-45"><a href="#cb5-45"></a>})</span>
+<span id="cb5-46"><a href="#cb5-46"></a>datanames &lt;- c("ADSL", "ADEX")</span>
+<span id="cb5-47"><a href="#cb5-47"></a>datanames(data) &lt;- datanames</span>
+<span id="cb5-48"><a href="#cb5-48"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
+<span id="cb5-49"><a href="#cb5-49"></a></span>
+<span id="cb5-50"><a href="#cb5-50"></a>## Reusable Configuration For Modules</span>
+<span id="cb5-51"><a href="#cb5-51"></a>ADEX &lt;- data[["ADEX"]]</span>
+<span id="cb5-52"><a href="#cb5-52"></a></span>
+<span id="cb5-53"><a href="#cb5-53"></a>## Setup App</span>
+<span id="cb5-54"><a href="#cb5-54"></a>app &lt;- init(</span>
+<span id="cb5-55"><a href="#cb5-55"></a>  data = data,</span>
+<span id="cb5-56"><a href="#cb5-56"></a>  modules = modules(</span>
+<span id="cb5-57"><a href="#cb5-57"></a>    tm_t_exposure(</span>
+<span id="cb5-58"><a href="#cb5-58"></a>      label = "Duration of Exposure Table",</span>
+<span id="cb5-59"><a href="#cb5-59"></a>      dataname = "ADEX",</span>
+<span id="cb5-60"><a href="#cb5-60"></a>      paramcd = choices_selected(</span>
+<span id="cb5-61"><a href="#cb5-61"></a>        choices = value_choices(ADEX, "PARAMCD", "PARAM"),</span>
+<span id="cb5-62"><a href="#cb5-62"></a>        selected = "TDURD"</span>
+<span id="cb5-63"><a href="#cb5-63"></a>      ),</span>
+<span id="cb5-64"><a href="#cb5-64"></a>      col_by_var = choices_selected(</span>
+<span id="cb5-65"><a href="#cb5-65"></a>        choices = variable_choices(ADEX, subset = c("ARM")),</span>
+<span id="cb5-66"><a href="#cb5-66"></a>        selected = "ARM"</span>
+<span id="cb5-67"><a href="#cb5-67"></a>      ),</span>
+<span id="cb5-68"><a href="#cb5-68"></a>      row_by_var = choices_selected(</span>
+<span id="cb5-69"><a href="#cb5-69"></a>        choices = variable_choices(ADEX, subset = c("RACE", "STRATA1", "SEX")),</span>
+<span id="cb5-70"><a href="#cb5-70"></a>        selected = "RACE"</span>
+<span id="cb5-71"><a href="#cb5-71"></a>      ),</span>
+<span id="cb5-72"><a href="#cb5-72"></a>      parcat = choices_selected(</span>
+<span id="cb5-73"><a href="#cb5-73"></a>        choices = value_choices(ADEX, "PARCAT2"),</span>
+<span id="cb5-74"><a href="#cb5-74"></a>        selected = "Drug A"</span>
+<span id="cb5-75"><a href="#cb5-75"></a>      ),</span>
+<span id="cb5-76"><a href="#cb5-76"></a>      add_total = FALSE</span>
+<span id="cb5-77"><a href="#cb5-77"></a>    )</span>
+<span id="cb5-78"><a href="#cb5-78"></a>  ),</span>
+<span id="cb5-79"><a href="#cb5-79"></a>  filter = teal_slices(teal_slice("ADSL", "SAFFL", selected = "Y"))</span>
+<span id="cb5-80"><a href="#cb5-80"></a>)</span>
+<span id="cb5-81"><a href="#cb5-81"></a></span>
+<span id="cb5-82"><a href="#cb5-82"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -2942,7 +2936,7 @@ we have to put some code upfront
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-05-11 17:50:32 UTC"</code></pre>
+<pre><code>[1] "2024-05-15 17:48:21 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2971,41 +2965,40 @@ other attached packages:
  [3] teal_0.15.2                 teal.slice_0.5.1           
  [5] teal.data_0.6.0             teal.code_0.5.0            
  [7] shiny_1.8.1.1               dplyr_1.1.4                
- [9] scda.2022_0.1.5             scda_0.1.6                 
-[11] tern_0.9.4                  rtables_0.6.7              
-[13] magrittr_2.0.3              formatters_0.5.6           
+ [9] tern_0.9.4                  rtables_0.6.7              
+[11] magrittr_2.0.3              formatters_0.5.6           
 
 loaded via a namespace (and not attached):
- [1] tidyselect_1.2.1      fastmap_1.1.1         TH.data_1.1-2        
- [4] webshot2_0.1.1        promises_1.3.0        shinyjs_2.1.0        
- [7] digest_0.6.35         estimability_1.5      mime_0.12            
-[10] tern.gee_0.1.3        lifecycle_1.0.4       processx_3.8.4       
-[13] survival_3.6-4        compiler_4.4.0        rlang_1.1.3          
-[16] sass_0.4.9            tools_4.4.0           utf8_1.2.4           
-[19] yaml_2.3.8            knitr_1.46            htmlwidgets_1.6.4    
-[22] websocket_1.4.1       multcomp_1.4-25       withr_3.0.0          
-[25] purrr_1.0.2           shinyWidgets_0.8.6    geepack_1.3.10       
-[28] grid_4.4.0            fansi_1.0.6           teal.logger_0.2.0    
-[31] xtable_1.8-4          colorspace_2.1-0      ggplot2_3.5.1        
-[34] emmeans_1.10.1        scales_1.3.0          MASS_7.3-60.2        
-[37] cli_3.6.2             mvtnorm_1.2-4         rmarkdown_2.26       
-[40] generics_0.1.3        chromote_0.2.0        cachem_1.0.8         
-[43] splines_4.4.0         formatR_1.14          vctrs_0.6.5          
-[46] webshot_0.5.5         Matrix_1.7-0          sandwich_3.1-0       
-[49] jsonlite_1.8.8        callr_3.7.6           teal.widgets_0.4.2   
-[52] testthat_3.2.1.1      fontawesome_0.5.2     jquerylib_0.1.4      
-[55] tidyr_1.3.1           glue_1.7.0            ps_1.7.6             
-[58] codetools_0.2-20      stringi_1.8.4         gtable_0.3.5         
-[61] later_1.3.2           shinycssloaders_1.0.0 munsell_0.5.1        
-[64] tibble_3.2.1          logger_0.3.0          pillar_1.9.0         
-[67] htmltools_0.5.8.1     brio_1.1.5            R6_2.5.1             
-[70] Rdpack_2.6            evaluate_0.23         lattice_0.22-6       
-[73] rbibutils_2.2.16      backports_1.4.1       memoise_2.0.1        
-[76] broom_1.0.5           teal.reporter_0.3.1   httpuv_1.6.15        
-[79] bslib_0.7.0           Rcpp_1.0.12           shinyvalidate_0.1.3  
-[82] coda_0.19-4.1         nlme_3.1-164          checkmate_2.3.1      
-[85] xfun_0.43             zoo_1.8-12            forcats_1.0.0        
-[88] pkgconfig_2.0.3      </code></pre>
+ [1] tidyselect_1.2.1         fastmap_1.2.0            random.cdisc.data_0.3.15
+ [4] TH.data_1.1-2            webshot2_0.1.1           promises_1.3.0          
+ [7] shinyjs_2.1.0            digest_0.6.35            estimability_1.5.1      
+[10] mime_0.12                tern.gee_0.1.3           lifecycle_1.0.4         
+[13] processx_3.8.4           survival_3.6-4           compiler_4.4.0          
+[16] rlang_1.1.3              sass_0.4.9               tools_4.4.0             
+[19] utf8_1.2.4               yaml_2.3.8               knitr_1.46              
+[22] htmlwidgets_1.6.4        websocket_1.4.1          multcomp_1.4-25         
+[25] withr_3.0.0              purrr_1.0.2              shinyWidgets_0.8.6      
+[28] geepack_1.3.10           grid_4.4.0               fansi_1.0.6             
+[31] teal.logger_0.2.0        xtable_1.8-4             colorspace_2.1-0        
+[34] ggplot2_3.5.1            emmeans_1.10.1           scales_1.3.0            
+[37] MASS_7.3-60.2            cli_3.6.2                mvtnorm_1.2-4           
+[40] rmarkdown_2.26           generics_0.1.3           chromote_0.2.0          
+[43] cachem_1.0.8             stringr_1.5.1            splines_4.4.0           
+[46] formatR_1.14             vctrs_0.6.5              webshot_0.5.5           
+[49] Matrix_1.7-0             sandwich_3.1-0           jsonlite_1.8.8          
+[52] callr_3.7.6              teal.widgets_0.4.2       testthat_3.2.1.1        
+[55] fontawesome_0.5.2        tidyr_1.3.1              jquerylib_0.1.4         
+[58] glue_1.7.0               ps_1.7.6                 codetools_0.2-20        
+[61] stringi_1.8.4            gtable_0.3.5             later_1.3.2             
+[64] shinycssloaders_1.0.0    munsell_0.5.1            tibble_3.2.1            
+[67] logger_0.3.0             pillar_1.9.0             htmltools_0.5.8.1       
+[70] brio_1.1.5               R6_2.5.1                 Rdpack_2.6              
+[73] evaluate_0.23            lattice_0.22-6           rbibutils_2.2.16        
+[76] backports_1.4.1          memoise_2.0.1            broom_1.0.5             
+[79] teal.reporter_0.3.1      httpuv_1.6.15            bslib_0.7.0             
+[82] Rcpp_1.0.12              shinyvalidate_0.1.3      coda_0.19-4.1           
+[85] nlme_3.1-164             checkmate_2.3.1          xfun_0.44               
+[88] zoo_1.8-12               forcats_1.0.0            pkgconfig_2.0.3         </code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
@@ -3680,150 +3673,146 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb11-14"><a href="#cb11-14"></a><span class="in">#| code-fold: show</span></span>
 <span id="cb11-15"><a href="#cb11-15"></a></span>
 <span id="cb11-16"><a href="#cb11-16"></a><span class="in">library(tern)</span></span>
-<span id="cb11-17"><a href="#cb11-17"></a><span class="in">library(scda)</span></span>
-<span id="cb11-18"><a href="#cb11-18"></a><span class="in">library(scda.2022)</span></span>
-<span id="cb11-19"><a href="#cb11-19"></a><span class="in">library(dplyr)</span></span>
-<span id="cb11-20"><a href="#cb11-20"></a></span>
-<span id="cb11-21"><a href="#cb11-21"></a><span class="in">adsl &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
-<span id="cb11-22"><a href="#cb11-22"></a><span class="in">adex &lt;- synthetic_cdisc_dataset("latest", "adex")</span></span>
-<span id="cb11-23"><a href="#cb11-23"></a></span>
-<span id="cb11-24"><a href="#cb11-24"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb11-25"><a href="#cb11-25"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb11-26"><a href="#cb11-26"></a><span class="in">adex &lt;- df_explicit_na(adex)</span></span>
-<span id="cb11-27"><a href="#cb11-27"></a></span>
-<span id="cb11-28"><a href="#cb11-28"></a><span class="in"># Simulate ADEX records with PARAMCD == "TDURD" as they are not in the sample dataset.</span></span>
-<span id="cb11-29"><a href="#cb11-29"></a><span class="in">set.seed(1)</span></span>
-<span id="cb11-30"><a href="#cb11-30"></a><span class="in">adex2 &lt;- adex %&gt;%</span></span>
-<span id="cb11-31"><a href="#cb11-31"></a><span class="in">  distinct(USUBJID, .keep_all = TRUE) %&gt;%</span></span>
-<span id="cb11-32"><a href="#cb11-32"></a><span class="in">  mutate(</span></span>
-<span id="cb11-33"><a href="#cb11-33"></a><span class="in">    PARAMCD = "TDURD",</span></span>
-<span id="cb11-34"><a href="#cb11-34"></a><span class="in">    PARAM = "Overall duration (days)",</span></span>
-<span id="cb11-35"><a href="#cb11-35"></a><span class="in">    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE)</span></span>
-<span id="cb11-36"><a href="#cb11-36"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb11-37"><a href="#cb11-37"></a><span class="in">  bind_rows(adex)</span></span>
-<span id="cb11-38"><a href="#cb11-38"></a></span>
-<span id="cb11-39"><a href="#cb11-39"></a><span class="in"># Now pre-processing steps are carried out.</span></span>
-<span id="cb11-40"><a href="#cb11-40"></a><span class="in">anl &lt;- adex2 %&gt;%</span></span>
-<span id="cb11-41"><a href="#cb11-41"></a><span class="in">  filter(</span></span>
-<span id="cb11-42"><a href="#cb11-42"></a><span class="in">    PARAMCD == "TDURD",</span></span>
-<span id="cb11-43"><a href="#cb11-43"></a><span class="in">    PARCAT2 == "Drug A",</span></span>
-<span id="cb11-44"><a href="#cb11-44"></a><span class="in">    SAFFL == "Y"</span></span>
-<span id="cb11-45"><a href="#cb11-45"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb11-46"><a href="#cb11-46"></a><span class="in">  mutate()</span></span>
-<span id="cb11-47"><a href="#cb11-47"></a></span>
-<span id="cb11-48"><a href="#cb11-48"></a><span class="in">adsl_f &lt;- adsl %&gt;% filter(adsl$SAFFL == "Y")</span></span>
-<span id="cb11-49"><a href="#cb11-49"></a><span class="in">```</span></span>
+<span id="cb11-17"><a href="#cb11-17"></a><span class="in">library(dplyr)</span></span>
+<span id="cb11-18"><a href="#cb11-18"></a></span>
+<span id="cb11-19"><a href="#cb11-19"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb11-20"><a href="#cb11-20"></a><span class="in">adex &lt;- random.cdisc.data::cadex</span></span>
+<span id="cb11-21"><a href="#cb11-21"></a></span>
+<span id="cb11-22"><a href="#cb11-22"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb11-23"><a href="#cb11-23"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb11-24"><a href="#cb11-24"></a><span class="in">adex &lt;- df_explicit_na(adex)</span></span>
+<span id="cb11-25"><a href="#cb11-25"></a></span>
+<span id="cb11-26"><a href="#cb11-26"></a><span class="in"># Simulate ADEX records with PARAMCD == "TDURD" as they are not in the sample dataset.</span></span>
+<span id="cb11-27"><a href="#cb11-27"></a><span class="in">set.seed(1)</span></span>
+<span id="cb11-28"><a href="#cb11-28"></a><span class="in">adex2 &lt;- adex %&gt;%</span></span>
+<span id="cb11-29"><a href="#cb11-29"></a><span class="in">  distinct(USUBJID, .keep_all = TRUE) %&gt;%</span></span>
+<span id="cb11-30"><a href="#cb11-30"></a><span class="in">  mutate(</span></span>
+<span id="cb11-31"><a href="#cb11-31"></a><span class="in">    PARAMCD = "TDURD",</span></span>
+<span id="cb11-32"><a href="#cb11-32"></a><span class="in">    PARAM = "Overall duration (days)",</span></span>
+<span id="cb11-33"><a href="#cb11-33"></a><span class="in">    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE)</span></span>
+<span id="cb11-34"><a href="#cb11-34"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-35"><a href="#cb11-35"></a><span class="in">  bind_rows(adex)</span></span>
+<span id="cb11-36"><a href="#cb11-36"></a></span>
+<span id="cb11-37"><a href="#cb11-37"></a><span class="in"># Now pre-processing steps are carried out.</span></span>
+<span id="cb11-38"><a href="#cb11-38"></a><span class="in">anl &lt;- adex2 %&gt;%</span></span>
+<span id="cb11-39"><a href="#cb11-39"></a><span class="in">  filter(</span></span>
+<span id="cb11-40"><a href="#cb11-40"></a><span class="in">    PARAMCD == "TDURD",</span></span>
+<span id="cb11-41"><a href="#cb11-41"></a><span class="in">    PARCAT2 == "Drug A",</span></span>
+<span id="cb11-42"><a href="#cb11-42"></a><span class="in">    SAFFL == "Y"</span></span>
+<span id="cb11-43"><a href="#cb11-43"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-44"><a href="#cb11-44"></a><span class="in">  mutate()</span></span>
+<span id="cb11-45"><a href="#cb11-45"></a></span>
+<span id="cb11-46"><a href="#cb11-46"></a><span class="in">adsl_f &lt;- adsl %&gt;% filter(adsl$SAFFL == "Y")</span></span>
+<span id="cb11-47"><a href="#cb11-47"></a><span class="in">```</span></span>
+<span id="cb11-48"><a href="#cb11-48"></a></span>
+<span id="cb11-49"><a href="#cb11-49"></a><span class="fu">## Standard Table</span></span>
 <span id="cb11-50"><a href="#cb11-50"></a></span>
-<span id="cb11-51"><a href="#cb11-51"></a><span class="fu">## Standard Table</span></span>
-<span id="cb11-52"><a href="#cb11-52"></a></span>
-<span id="cb11-53"><a href="#cb11-53"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb11-54"><a href="#cb11-54"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb11-55"><a href="#cb11-55"></a></span>
-<span id="cb11-56"><a href="#cb11-56"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb11-57"><a href="#cb11-57"></a><span class="in">lyt &lt;- basic_table(</span></span>
-<span id="cb11-58"><a href="#cb11-58"></a><span class="in">  title = "Extent of Exposure by Race: Safety-Evaluable Patients",</span></span>
-<span id="cb11-59"><a href="#cb11-59"></a><span class="in">  main_footer = "* Person time is the sum of exposure across all patients in unit: days.",</span></span>
-<span id="cb11-60"><a href="#cb11-60"></a><span class="in">  show_colcounts = TRUE</span></span>
-<span id="cb11-61"><a href="#cb11-61"></a><span class="in">) %&gt;%</span></span>
-<span id="cb11-62"><a href="#cb11-62"></a><span class="in">  summarize_patients_exposure_in_cols(</span></span>
-<span id="cb11-63"><a href="#cb11-63"></a><span class="in">    var = "AVAL", col_split = TRUE,</span></span>
-<span id="cb11-64"><a href="#cb11-64"></a><span class="in">    .labels = c(n_patients = "Patients", sum_exposure = "Person time*")</span></span>
-<span id="cb11-65"><a href="#cb11-65"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb11-66"><a href="#cb11-66"></a><span class="in">  analyze_patients_exposure_in_cols(</span></span>
-<span id="cb11-67"><a href="#cb11-67"></a><span class="in">    var = "RACE",</span></span>
-<span id="cb11-68"><a href="#cb11-68"></a><span class="in">    col_split = FALSE</span></span>
-<span id="cb11-69"><a href="#cb11-69"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb11-70"><a href="#cb11-70"></a><span class="in">  append_topleft(c("", obj_label(adex$RACE)))</span></span>
-<span id="cb11-71"><a href="#cb11-71"></a></span>
-<span id="cb11-72"><a href="#cb11-72"></a><span class="in">result &lt;- build_table(lyt, df = anl, alt_counts_df = adsl_f)</span></span>
-<span id="cb11-73"><a href="#cb11-73"></a><span class="in">result</span></span>
-<span id="cb11-74"><a href="#cb11-74"></a><span class="in">```</span></span>
-<span id="cb11-75"><a href="#cb11-75"></a></span>
-<span id="cb11-76"><a href="#cb11-76"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
-<span id="cb11-77"><a href="#cb11-77"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb11-78"><a href="#cb11-78"></a>:::</span>
+<span id="cb11-51"><a href="#cb11-51"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb11-52"><a href="#cb11-52"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb11-53"><a href="#cb11-53"></a></span>
+<span id="cb11-54"><a href="#cb11-54"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb11-55"><a href="#cb11-55"></a><span class="in">lyt &lt;- basic_table(</span></span>
+<span id="cb11-56"><a href="#cb11-56"></a><span class="in">  title = "Extent of Exposure by Race: Safety-Evaluable Patients",</span></span>
+<span id="cb11-57"><a href="#cb11-57"></a><span class="in">  main_footer = "* Person time is the sum of exposure across all patients in unit: days.",</span></span>
+<span id="cb11-58"><a href="#cb11-58"></a><span class="in">  show_colcounts = TRUE</span></span>
+<span id="cb11-59"><a href="#cb11-59"></a><span class="in">) %&gt;%</span></span>
+<span id="cb11-60"><a href="#cb11-60"></a><span class="in">  summarize_patients_exposure_in_cols(</span></span>
+<span id="cb11-61"><a href="#cb11-61"></a><span class="in">    var = "AVAL", col_split = TRUE,</span></span>
+<span id="cb11-62"><a href="#cb11-62"></a><span class="in">    .labels = c(n_patients = "Patients", sum_exposure = "Person time*")</span></span>
+<span id="cb11-63"><a href="#cb11-63"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-64"><a href="#cb11-64"></a><span class="in">  analyze_patients_exposure_in_cols(</span></span>
+<span id="cb11-65"><a href="#cb11-65"></a><span class="in">    var = "RACE",</span></span>
+<span id="cb11-66"><a href="#cb11-66"></a><span class="in">    col_split = FALSE</span></span>
+<span id="cb11-67"><a href="#cb11-67"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-68"><a href="#cb11-68"></a><span class="in">  append_topleft(c("", obj_label(adex$RACE)))</span></span>
+<span id="cb11-69"><a href="#cb11-69"></a></span>
+<span id="cb11-70"><a href="#cb11-70"></a><span class="in">result &lt;- build_table(lyt, df = anl, alt_counts_df = adsl_f)</span></span>
+<span id="cb11-71"><a href="#cb11-71"></a><span class="in">result</span></span>
+<span id="cb11-72"><a href="#cb11-72"></a><span class="in">```</span></span>
+<span id="cb11-73"><a href="#cb11-73"></a></span>
+<span id="cb11-74"><a href="#cb11-74"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
+<span id="cb11-75"><a href="#cb11-75"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb11-76"><a href="#cb11-76"></a>:::</span>
+<span id="cb11-77"><a href="#cb11-77"></a></span>
+<span id="cb11-78"><a href="#cb11-78"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
 <span id="cb11-79"><a href="#cb11-79"></a></span>
-<span id="cb11-80"><a href="#cb11-80"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb11-80"><a href="#cb11-80"></a><span class="fu">## `teal` App</span></span>
 <span id="cb11-81"><a href="#cb11-81"></a></span>
-<span id="cb11-82"><a href="#cb11-82"></a><span class="fu">## `teal` App</span></span>
-<span id="cb11-83"><a href="#cb11-83"></a></span>
-<span id="cb11-84"><a href="#cb11-84"></a>::: {.panel-tabset .nav-justified}</span>
-<span id="cb11-85"><a href="#cb11-85"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
-<span id="cb11-86"><a href="#cb11-86"></a></span>
-<span id="cb11-87"><a href="#cb11-87"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb11-88"><a href="#cb11-88"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb11-89"><a href="#cb11-89"></a></span>
-<span id="cb11-90"><a href="#cb11-90"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb11-91"><a href="#cb11-91"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb11-92"><a href="#cb11-92"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb11-93"><a href="#cb11-93"></a><span class="in">  library(scda)</span></span>
-<span id="cb11-94"><a href="#cb11-94"></a><span class="in">  library(scda.2022)</span></span>
-<span id="cb11-95"><a href="#cb11-95"></a><span class="in">  library(dplyr)</span></span>
-<span id="cb11-96"><a href="#cb11-96"></a></span>
-<span id="cb11-97"><a href="#cb11-97"></a><span class="in">  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
-<span id="cb11-98"><a href="#cb11-98"></a><span class="in">  ADEX &lt;- synthetic_cdisc_dataset("latest", "adex")</span></span>
-<span id="cb11-99"><a href="#cb11-99"></a></span>
-<span id="cb11-100"><a href="#cb11-100"></a><span class="in">  labels &lt;- col_labels(ADEX)</span></span>
-<span id="cb11-101"><a href="#cb11-101"></a><span class="in">  set.seed(1, kind = "Mersenne-Twister")</span></span>
-<span id="cb11-102"><a href="#cb11-102"></a></span>
-<span id="cb11-103"><a href="#cb11-103"></a><span class="in">  labels &lt;- col_labels(ADEX)</span></span>
-<span id="cb11-104"><a href="#cb11-104"></a><span class="in">  ADEX &lt;- ADEX %&gt;%</span></span>
-<span id="cb11-105"><a href="#cb11-105"></a><span class="in">    distinct(USUBJID, .keep_all = TRUE) %&gt;%</span></span>
-<span id="cb11-106"><a href="#cb11-106"></a><span class="in">    mutate(</span></span>
-<span id="cb11-107"><a href="#cb11-107"></a><span class="in">      PARAMCD = "TDURD",</span></span>
-<span id="cb11-108"><a href="#cb11-108"></a><span class="in">      PARAM = "Overall duration (days)",</span></span>
-<span id="cb11-109"><a href="#cb11-109"></a><span class="in">      AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),</span></span>
-<span id="cb11-110"><a href="#cb11-110"></a><span class="in">      AVALU = "Days"</span></span>
-<span id="cb11-111"><a href="#cb11-111"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb11-112"><a href="#cb11-112"></a><span class="in">    bind_rows(ADEX)</span></span>
-<span id="cb11-113"><a href="#cb11-113"></a></span>
-<span id="cb11-114"><a href="#cb11-114"></a><span class="in">  col_labels(ADEX) &lt;- labels</span></span>
-<span id="cb11-115"><a href="#cb11-115"></a><span class="in">})</span></span>
-<span id="cb11-116"><a href="#cb11-116"></a><span class="in">datanames &lt;- c("ADSL", "ADEX")</span></span>
-<span id="cb11-117"><a href="#cb11-117"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb11-118"><a href="#cb11-118"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb11-119"><a href="#cb11-119"></a></span>
-<span id="cb11-120"><a href="#cb11-120"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb11-121"><a href="#cb11-121"></a><span class="in">ADEX &lt;- data[["ADEX"]]</span></span>
-<span id="cb11-122"><a href="#cb11-122"></a></span>
-<span id="cb11-123"><a href="#cb11-123"></a><span class="in">## Setup App</span></span>
-<span id="cb11-124"><a href="#cb11-124"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb11-125"><a href="#cb11-125"></a><span class="in">  data = data,</span></span>
-<span id="cb11-126"><a href="#cb11-126"></a><span class="in">  modules = modules(</span></span>
-<span id="cb11-127"><a href="#cb11-127"></a><span class="in">    tm_t_exposure(</span></span>
-<span id="cb11-128"><a href="#cb11-128"></a><span class="in">      label = "Duration of Exposure Table",</span></span>
-<span id="cb11-129"><a href="#cb11-129"></a><span class="in">      dataname = "ADEX",</span></span>
-<span id="cb11-130"><a href="#cb11-130"></a><span class="in">      paramcd = choices_selected(</span></span>
-<span id="cb11-131"><a href="#cb11-131"></a><span class="in">        choices = value_choices(ADEX, "PARAMCD", "PARAM"),</span></span>
-<span id="cb11-132"><a href="#cb11-132"></a><span class="in">        selected = "TDURD"</span></span>
+<span id="cb11-82"><a href="#cb11-82"></a>::: {.panel-tabset .nav-justified}</span>
+<span id="cb11-83"><a href="#cb11-83"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
+<span id="cb11-84"><a href="#cb11-84"></a></span>
+<span id="cb11-85"><a href="#cb11-85"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb11-86"><a href="#cb11-86"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb11-87"><a href="#cb11-87"></a></span>
+<span id="cb11-88"><a href="#cb11-88"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb11-89"><a href="#cb11-89"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb11-90"><a href="#cb11-90"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb11-91"><a href="#cb11-91"></a><span class="in">  library(dplyr)</span></span>
+<span id="cb11-92"><a href="#cb11-92"></a></span>
+<span id="cb11-93"><a href="#cb11-93"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb11-94"><a href="#cb11-94"></a><span class="in">  ADEX &lt;- random.cdisc.data::cadex</span></span>
+<span id="cb11-95"><a href="#cb11-95"></a></span>
+<span id="cb11-96"><a href="#cb11-96"></a><span class="in">  labels &lt;- col_labels(ADEX)</span></span>
+<span id="cb11-97"><a href="#cb11-97"></a><span class="in">  set.seed(1, kind = "Mersenne-Twister")</span></span>
+<span id="cb11-98"><a href="#cb11-98"></a></span>
+<span id="cb11-99"><a href="#cb11-99"></a><span class="in">  labels &lt;- col_labels(ADEX)</span></span>
+<span id="cb11-100"><a href="#cb11-100"></a><span class="in">  ADEX &lt;- ADEX %&gt;%</span></span>
+<span id="cb11-101"><a href="#cb11-101"></a><span class="in">    distinct(USUBJID, .keep_all = TRUE) %&gt;%</span></span>
+<span id="cb11-102"><a href="#cb11-102"></a><span class="in">    mutate(</span></span>
+<span id="cb11-103"><a href="#cb11-103"></a><span class="in">      PARAMCD = "TDURD",</span></span>
+<span id="cb11-104"><a href="#cb11-104"></a><span class="in">      PARAM = "Overall duration (days)",</span></span>
+<span id="cb11-105"><a href="#cb11-105"></a><span class="in">      AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE),</span></span>
+<span id="cb11-106"><a href="#cb11-106"></a><span class="in">      AVALU = "Days"</span></span>
+<span id="cb11-107"><a href="#cb11-107"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb11-108"><a href="#cb11-108"></a><span class="in">    bind_rows(ADEX)</span></span>
+<span id="cb11-109"><a href="#cb11-109"></a></span>
+<span id="cb11-110"><a href="#cb11-110"></a><span class="in">  col_labels(ADEX) &lt;- labels</span></span>
+<span id="cb11-111"><a href="#cb11-111"></a><span class="in">})</span></span>
+<span id="cb11-112"><a href="#cb11-112"></a><span class="in">datanames &lt;- c("ADSL", "ADEX")</span></span>
+<span id="cb11-113"><a href="#cb11-113"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb11-114"><a href="#cb11-114"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb11-115"><a href="#cb11-115"></a></span>
+<span id="cb11-116"><a href="#cb11-116"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb11-117"><a href="#cb11-117"></a><span class="in">ADEX &lt;- data[["ADEX"]]</span></span>
+<span id="cb11-118"><a href="#cb11-118"></a></span>
+<span id="cb11-119"><a href="#cb11-119"></a><span class="in">## Setup App</span></span>
+<span id="cb11-120"><a href="#cb11-120"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb11-121"><a href="#cb11-121"></a><span class="in">  data = data,</span></span>
+<span id="cb11-122"><a href="#cb11-122"></a><span class="in">  modules = modules(</span></span>
+<span id="cb11-123"><a href="#cb11-123"></a><span class="in">    tm_t_exposure(</span></span>
+<span id="cb11-124"><a href="#cb11-124"></a><span class="in">      label = "Duration of Exposure Table",</span></span>
+<span id="cb11-125"><a href="#cb11-125"></a><span class="in">      dataname = "ADEX",</span></span>
+<span id="cb11-126"><a href="#cb11-126"></a><span class="in">      paramcd = choices_selected(</span></span>
+<span id="cb11-127"><a href="#cb11-127"></a><span class="in">        choices = value_choices(ADEX, "PARAMCD", "PARAM"),</span></span>
+<span id="cb11-128"><a href="#cb11-128"></a><span class="in">        selected = "TDURD"</span></span>
+<span id="cb11-129"><a href="#cb11-129"></a><span class="in">      ),</span></span>
+<span id="cb11-130"><a href="#cb11-130"></a><span class="in">      col_by_var = choices_selected(</span></span>
+<span id="cb11-131"><a href="#cb11-131"></a><span class="in">        choices = variable_choices(ADEX, subset = c("ARM")),</span></span>
+<span id="cb11-132"><a href="#cb11-132"></a><span class="in">        selected = "ARM"</span></span>
 <span id="cb11-133"><a href="#cb11-133"></a><span class="in">      ),</span></span>
-<span id="cb11-134"><a href="#cb11-134"></a><span class="in">      col_by_var = choices_selected(</span></span>
-<span id="cb11-135"><a href="#cb11-135"></a><span class="in">        choices = variable_choices(ADEX, subset = c("ARM")),</span></span>
-<span id="cb11-136"><a href="#cb11-136"></a><span class="in">        selected = "ARM"</span></span>
+<span id="cb11-134"><a href="#cb11-134"></a><span class="in">      row_by_var = choices_selected(</span></span>
+<span id="cb11-135"><a href="#cb11-135"></a><span class="in">        choices = variable_choices(ADEX, subset = c("RACE", "STRATA1", "SEX")),</span></span>
+<span id="cb11-136"><a href="#cb11-136"></a><span class="in">        selected = "RACE"</span></span>
 <span id="cb11-137"><a href="#cb11-137"></a><span class="in">      ),</span></span>
-<span id="cb11-138"><a href="#cb11-138"></a><span class="in">      row_by_var = choices_selected(</span></span>
-<span id="cb11-139"><a href="#cb11-139"></a><span class="in">        choices = variable_choices(ADEX, subset = c("RACE", "STRATA1", "SEX")),</span></span>
-<span id="cb11-140"><a href="#cb11-140"></a><span class="in">        selected = "RACE"</span></span>
+<span id="cb11-138"><a href="#cb11-138"></a><span class="in">      parcat = choices_selected(</span></span>
+<span id="cb11-139"><a href="#cb11-139"></a><span class="in">        choices = value_choices(ADEX, "PARCAT2"),</span></span>
+<span id="cb11-140"><a href="#cb11-140"></a><span class="in">        selected = "Drug A"</span></span>
 <span id="cb11-141"><a href="#cb11-141"></a><span class="in">      ),</span></span>
-<span id="cb11-142"><a href="#cb11-142"></a><span class="in">      parcat = choices_selected(</span></span>
-<span id="cb11-143"><a href="#cb11-143"></a><span class="in">        choices = value_choices(ADEX, "PARCAT2"),</span></span>
-<span id="cb11-144"><a href="#cb11-144"></a><span class="in">        selected = "Drug A"</span></span>
-<span id="cb11-145"><a href="#cb11-145"></a><span class="in">      ),</span></span>
-<span id="cb11-146"><a href="#cb11-146"></a><span class="in">      add_total = FALSE</span></span>
-<span id="cb11-147"><a href="#cb11-147"></a><span class="in">    )</span></span>
-<span id="cb11-148"><a href="#cb11-148"></a><span class="in">  ),</span></span>
-<span id="cb11-149"><a href="#cb11-149"></a><span class="in">  filter = teal_slices(teal_slice("ADSL", "SAFFL", selected = "Y"))</span></span>
-<span id="cb11-150"><a href="#cb11-150"></a><span class="in">)</span></span>
-<span id="cb11-151"><a href="#cb11-151"></a></span>
-<span id="cb11-152"><a href="#cb11-152"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb11-153"><a href="#cb11-153"></a><span class="in">```</span></span>
-<span id="cb11-154"><a href="#cb11-154"></a></span>
-<span id="cb11-155"><a href="#cb11-155"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
-<span id="cb11-156"><a href="#cb11-156"></a>:::</span>
-<span id="cb11-157"><a href="#cb11-157"></a></span>
-<span id="cb11-158"><a href="#cb11-158"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb11-159"><a href="#cb11-159"></a></span>
-<span id="cb11-160"><a href="#cb11-160"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-142"><a href="#cb11-142"></a><span class="in">      add_total = FALSE</span></span>
+<span id="cb11-143"><a href="#cb11-143"></a><span class="in">    )</span></span>
+<span id="cb11-144"><a href="#cb11-144"></a><span class="in">  ),</span></span>
+<span id="cb11-145"><a href="#cb11-145"></a><span class="in">  filter = teal_slices(teal_slice("ADSL", "SAFFL", selected = "Y"))</span></span>
+<span id="cb11-146"><a href="#cb11-146"></a><span class="in">)</span></span>
+<span id="cb11-147"><a href="#cb11-147"></a></span>
+<span id="cb11-148"><a href="#cb11-148"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb11-149"><a href="#cb11-149"></a><span class="in">```</span></span>
+<span id="cb11-150"><a href="#cb11-150"></a></span>
+<span id="cb11-151"><a href="#cb11-151"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
+<span id="cb11-152"><a href="#cb11-152"></a>:::</span>
+<span id="cb11-153"><a href="#cb11-153"></a></span>
+<span id="cb11-154"><a href="#cb11-154"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb11-155"><a href="#cb11-155"></a></span>
+<span id="cb11-156"><a href="#cb11-156"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

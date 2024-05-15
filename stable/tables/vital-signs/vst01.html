@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"code":"library(tern)\nlibrary(scda)\nlibrary(scda.2022)\nlibrary(dplyr)\n\nadsl <- synthetic_cdisc_dataset(\"latest\", \"adsl\")\nadvs <- synthetic_cdisc_dataset(\"latest\", \"advs\")\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\n\nadvs_label <- var_labels(advs)\n\nadvs <- advs %>%\n  filter(\n    PARAMCD == \"DIABP\",\n    PARAM == \"Diastolic Blood Pressure\"\n  ) %>%\n  mutate(\n    PARAMCD = droplevels(PARAMCD),\n    PARAM = droplevels(PARAM)\n  )\n\n# post-baseline\nadvs_pb <- advs %>%\n  filter(ABLFL != \"Y\", ABLFL2 != \"Y\")\n\nadvs_pb_max <- advs_pb %>%\n  group_by(PARAM, USUBJID) %>%\n  arrange(desc(AVAL)) %>%\n  slice(1) %>%\n  ungroup() %>%\n  mutate(AVISIT = \"Post-Baseline Maximum\")\n\nadvs_pb_min <- advs_pb %>%\n  group_by(PARAM, USUBJID) %>%\n  arrange(AVAL) %>%\n  slice(1) %>%\n  ungroup() %>%\n  mutate(AVISIT = \"Post-Baseline Minimum\")\n\nadvs_pb_last <- advs_pb %>%\n  group_by(PARAM, USUBJID) %>%\n  arrange(desc(AVISITN)) %>%\n  slice(1) %>%\n  ungroup() %>%\n  mutate(AVISIT = \"Post-Baseline Last\")\n\n# Please note that for real data, per ADaM Spec 1.1, the advs_f can be obtained by filtering on PARAMCD, then\n# ANL01FL == 'Y' or AVISIT in c('POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST')\n\nadvs_f <- rbind(\n  advs,\n  advs_pb_last,\n  advs_pb_min,\n  advs_pb_max\n)\n\nadvs_f <- advs_f %>%\n  mutate(AVISIT = droplevels(AVISIT))\n\nvar_labels(advs_f) <- advs_label\nsplit_fun <- drop_split_levels\n\nafun <- function(x, .var, .spl_context, ...) {\n  n_fun <- sum(!is.na(x), na.rm = TRUE)\n  if (n_fun == 0) {\n    mean_sd_fun <- c(NA, NA)\n    median_fun <- NA\n    min_max_fun <- c(NA, NA)\n  } else {\n    mean_sd_fun <- c(mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))\n    median_fun <- median(x, na.rm = TRUE)\n    min_max_fun <- c(min(x), max(x))\n  }\n  is_chg <- .var == \"CHG\"\n  is_baseline <- .spl_context$value[which(.spl_context$split == \"AVISIT\")] == \"BASELINE\"\n  if (is_baseline && is_chg) n_fun <- mean_sd_fun <- median_fun <- min_max_fun <- NULL\n\n  in_rows(\n    \"n\" = n_fun,\n    \"Mean (SD)\" = mean_sd_fun,\n    \"Median\" = median_fun,\n    \"Min - Max\" = min_max_fun,\n    .formats = list(\"n\" = \"xx\", \"Mean (SD)\" = \"xx.xx (xx.xx)\", \"Median\" = \"xx.xx\", \"Min - Max\" = \"xx.xx - xx.xx\"),\n    .format_na_strs = list(\"n\" = \"NE\", \"Mean (SD)\" = \"NE (NE)\", \"Median\" = \"NE\", \"Min - Max\" = \"NE - NE\")\n  )\n}\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"AVISIT\", split_fun = split_fun, label_pos = \"topleft\", split_label = \"\\n\\nAnalysis Visit\") %>%\n  split_cols_by_multivar(\n    vars = c(\"AVAL\", \"CHG\"),\n    varlabels = c(\"Value at Visit\", \"Change from\\nBaseline\")\n  ) %>%\n  analyze_colvars(afun = afun)\n\nresult <- build_table(lyt = lyt, df = advs_f, alt_counts_df = adsl)\nresult","options":{"warning":"true","classes":"","out-height":"","fig-height":5,"context":"interactive","results":"markup","fig-width":7,"message":"true","label":"unnamed-chunk-1","autorun":"true","output":"true","fig-cap":"","editor-max-height":"500","comment":"","read-only":"false","editor-font-scale":1,"out-width":"700px","editor-quick-suggestions":"false","dpi":72},"id":1}];
+globalThis.qwebrCellDetails = [{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\n\nadvs_label <- var_labels(advs)\n\nadvs <- advs %>%\n  filter(\n    PARAMCD == \"DIABP\",\n    PARAM == \"Diastolic Blood Pressure\"\n  ) %>%\n  mutate(\n    PARAMCD = droplevels(PARAMCD),\n    PARAM = droplevels(PARAM)\n  )\n\n# post-baseline\nadvs_pb <- advs %>%\n  filter(ABLFL != \"Y\", ABLFL2 != \"Y\")\n\nadvs_pb_max <- advs_pb %>%\n  group_by(PARAM, USUBJID) %>%\n  arrange(desc(AVAL)) %>%\n  slice(1) %>%\n  ungroup() %>%\n  mutate(AVISIT = \"Post-Baseline Maximum\")\n\nadvs_pb_min <- advs_pb %>%\n  group_by(PARAM, USUBJID) %>%\n  arrange(AVAL) %>%\n  slice(1) %>%\n  ungroup() %>%\n  mutate(AVISIT = \"Post-Baseline Minimum\")\n\nadvs_pb_last <- advs_pb %>%\n  group_by(PARAM, USUBJID) %>%\n  arrange(desc(AVISITN)) %>%\n  slice(1) %>%\n  ungroup() %>%\n  mutate(AVISIT = \"Post-Baseline Last\")\n\n# Please note that for real data, per ADaM Spec 1.1, the advs_f can be obtained by filtering on PARAMCD, then\n# ANL01FL == 'Y' or AVISIT in c('POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST')\n\nadvs_f <- rbind(\n  advs,\n  advs_pb_last,\n  advs_pb_min,\n  advs_pb_max\n)\n\nadvs_f <- advs_f %>%\n  mutate(AVISIT = droplevels(AVISIT))\n\nvar_labels(advs_f) <- advs_label\nsplit_fun <- drop_split_levels\n\nafun <- function(x, .var, .spl_context, ...) {\n  n_fun <- sum(!is.na(x), na.rm = TRUE)\n  if (n_fun == 0) {\n    mean_sd_fun <- c(NA, NA)\n    median_fun <- NA\n    min_max_fun <- c(NA, NA)\n  } else {\n    mean_sd_fun <- c(mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))\n    median_fun <- median(x, na.rm = TRUE)\n    min_max_fun <- c(min(x), max(x))\n  }\n  is_chg <- .var == \"CHG\"\n  is_baseline <- .spl_context$value[which(.spl_context$split == \"AVISIT\")] == \"BASELINE\"\n  if (is_baseline && is_chg) n_fun <- mean_sd_fun <- median_fun <- min_max_fun <- NULL\n\n  in_rows(\n    \"n\" = n_fun,\n    \"Mean (SD)\" = mean_sd_fun,\n    \"Median\" = median_fun,\n    \"Min - Max\" = min_max_fun,\n    .formats = list(\"n\" = \"xx\", \"Mean (SD)\" = \"xx.xx (xx.xx)\", \"Median\" = \"xx.xx\", \"Min - Max\" = \"xx.xx - xx.xx\"),\n    .format_na_strs = list(\"n\" = \"NE\", \"Mean (SD)\" = \"NE (NE)\", \"Median\" = \"NE\", \"Min - Max\" = \"NE - NE\")\n  )\n}\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"AVISIT\", split_fun = split_fun, label_pos = \"topleft\", split_label = \"\\n\\nAnalysis Visit\") %>%\n  split_cols_by_multivar(\n    vars = c(\"AVAL\", \"CHG\"),\n    varlabels = c(\"Value at Visit\", \"Change from\\nBaseline\")\n  ) %>%\n  analyze_colvars(afun = afun)\n\nresult <- build_table(lyt = lyt, df = advs_f, alt_counts_df = adsl)\nresult","id":1,"options":{"results":"markup","classes":"","editor-quick-suggestions":"false","fig-height":5,"fig-width":7,"label":"unnamed-chunk-1","dpi":72,"out-height":"","out-width":"700px","context":"interactive","fig-cap":"","autorun":"true","editor-max-height":"500","output":"true","message":"true","editor-font-scale":1,"warning":"true","comment":"","read-only":"false"}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2628,68 +2628,66 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <div class="cell">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(tern)</span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(scda)</span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(scda<span class="fl">.2022</span>)</span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-5"><a href="#cb1-5"></a></span>
-<span id="cb1-6"><a href="#cb1-6"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
-<span id="cb1-7"><a href="#cb1-7"></a>advs <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"advs"</span>)</span>
-<span id="cb1-8"><a href="#cb1-8"></a></span>
-<span id="cb1-9"><a href="#cb1-9"></a><span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>adsl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adsl)</span>
-<span id="cb1-11"><a href="#cb1-11"></a>advs <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(advs)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3"></a></span>
+<span id="cb1-4"><a href="#cb1-4"></a>adsl <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadsl</span>
+<span id="cb1-5"><a href="#cb1-5"></a>advs <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadvs</span>
+<span id="cb1-6"><a href="#cb1-6"></a></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>adsl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adsl)</span>
+<span id="cb1-9"><a href="#cb1-9"></a>advs <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(advs)</span>
+<span id="cb1-10"><a href="#cb1-10"></a></span>
+<span id="cb1-11"><a href="#cb1-11"></a>advs_label <span class="ot">&lt;-</span> <span class="fu">var_labels</span>(advs)</span>
 <span id="cb1-12"><a href="#cb1-12"></a></span>
-<span id="cb1-13"><a href="#cb1-13"></a>advs_label <span class="ot">&lt;-</span> <span class="fu">var_labels</span>(advs)</span>
-<span id="cb1-14"><a href="#cb1-14"></a></span>
-<span id="cb1-15"><a href="#cb1-15"></a>advs <span class="ot">&lt;-</span> advs <span class="sc">%&gt;%</span></span>
-<span id="cb1-16"><a href="#cb1-16"></a>  <span class="fu">filter</span>(</span>
-<span id="cb1-17"><a href="#cb1-17"></a>    PARAMCD <span class="sc">==</span> <span class="st">"DIABP"</span>,</span>
-<span id="cb1-18"><a href="#cb1-18"></a>    PARAM <span class="sc">==</span> <span class="st">"Diastolic Blood Pressure"</span></span>
-<span id="cb1-19"><a href="#cb1-19"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-20"><a href="#cb1-20"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-21"><a href="#cb1-21"></a>    <span class="at">PARAMCD =</span> <span class="fu">droplevels</span>(PARAMCD),</span>
-<span id="cb1-22"><a href="#cb1-22"></a>    <span class="at">PARAM =</span> <span class="fu">droplevels</span>(PARAM)</span>
-<span id="cb1-23"><a href="#cb1-23"></a>  )</span>
-<span id="cb1-24"><a href="#cb1-24"></a></span>
-<span id="cb1-25"><a href="#cb1-25"></a><span class="co"># post-baseline</span></span>
-<span id="cb1-26"><a href="#cb1-26"></a>advs_pb <span class="ot">&lt;-</span> advs <span class="sc">%&gt;%</span></span>
-<span id="cb1-27"><a href="#cb1-27"></a>  <span class="fu">filter</span>(ABLFL <span class="sc">!=</span> <span class="st">"Y"</span>, ABLFL2 <span class="sc">!=</span> <span class="st">"Y"</span>)</span>
-<span id="cb1-28"><a href="#cb1-28"></a></span>
-<span id="cb1-29"><a href="#cb1-29"></a>advs_pb_max <span class="ot">&lt;-</span> advs_pb <span class="sc">%&gt;%</span></span>
-<span id="cb1-30"><a href="#cb1-30"></a>  <span class="fu">group_by</span>(PARAM, USUBJID) <span class="sc">%&gt;%</span></span>
-<span id="cb1-31"><a href="#cb1-31"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(AVAL)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-32"><a href="#cb1-32"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-33"><a href="#cb1-33"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb1-34"><a href="#cb1-34"></a>  <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="st">"Post-Baseline Maximum"</span>)</span>
-<span id="cb1-35"><a href="#cb1-35"></a></span>
-<span id="cb1-36"><a href="#cb1-36"></a>advs_pb_min <span class="ot">&lt;-</span> advs_pb <span class="sc">%&gt;%</span></span>
-<span id="cb1-37"><a href="#cb1-37"></a>  <span class="fu">group_by</span>(PARAM, USUBJID) <span class="sc">%&gt;%</span></span>
-<span id="cb1-38"><a href="#cb1-38"></a>  <span class="fu">arrange</span>(AVAL) <span class="sc">%&gt;%</span></span>
-<span id="cb1-39"><a href="#cb1-39"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-40"><a href="#cb1-40"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb1-41"><a href="#cb1-41"></a>  <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="st">"Post-Baseline Minimum"</span>)</span>
-<span id="cb1-42"><a href="#cb1-42"></a></span>
-<span id="cb1-43"><a href="#cb1-43"></a>advs_pb_last <span class="ot">&lt;-</span> advs_pb <span class="sc">%&gt;%</span></span>
-<span id="cb1-44"><a href="#cb1-44"></a>  <span class="fu">group_by</span>(PARAM, USUBJID) <span class="sc">%&gt;%</span></span>
-<span id="cb1-45"><a href="#cb1-45"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(AVISITN)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-46"><a href="#cb1-46"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-47"><a href="#cb1-47"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb1-48"><a href="#cb1-48"></a>  <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="st">"Post-Baseline Last"</span>)</span>
-<span id="cb1-49"><a href="#cb1-49"></a></span>
-<span id="cb1-50"><a href="#cb1-50"></a><span class="co"># Please note that for real data, per ADaM Spec 1.1, the advs_f can be obtained by filtering on PARAMCD, then</span></span>
-<span id="cb1-51"><a href="#cb1-51"></a><span class="co"># ANL01FL == 'Y' or AVISIT in c('POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST')</span></span>
-<span id="cb1-52"><a href="#cb1-52"></a></span>
-<span id="cb1-53"><a href="#cb1-53"></a>advs_f <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb1-54"><a href="#cb1-54"></a>  advs,</span>
-<span id="cb1-55"><a href="#cb1-55"></a>  advs_pb_last,</span>
-<span id="cb1-56"><a href="#cb1-56"></a>  advs_pb_min,</span>
-<span id="cb1-57"><a href="#cb1-57"></a>  advs_pb_max</span>
-<span id="cb1-58"><a href="#cb1-58"></a>)</span>
-<span id="cb1-59"><a href="#cb1-59"></a></span>
-<span id="cb1-60"><a href="#cb1-60"></a>advs_f <span class="ot">&lt;-</span> advs_f <span class="sc">%&gt;%</span></span>
-<span id="cb1-61"><a href="#cb1-61"></a>  <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="fu">droplevels</span>(AVISIT))</span>
-<span id="cb1-62"><a href="#cb1-62"></a></span>
-<span id="cb1-63"><a href="#cb1-63"></a><span class="fu">var_labels</span>(advs_f) <span class="ot">&lt;-</span> advs_label</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-13"><a href="#cb1-13"></a>advs <span class="ot">&lt;-</span> advs <span class="sc">%&gt;%</span></span>
+<span id="cb1-14"><a href="#cb1-14"></a>  <span class="fu">filter</span>(</span>
+<span id="cb1-15"><a href="#cb1-15"></a>    PARAMCD <span class="sc">==</span> <span class="st">"DIABP"</span>,</span>
+<span id="cb1-16"><a href="#cb1-16"></a>    PARAM <span class="sc">==</span> <span class="st">"Diastolic Blood Pressure"</span></span>
+<span id="cb1-17"><a href="#cb1-17"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-18"><a href="#cb1-18"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-19"><a href="#cb1-19"></a>    <span class="at">PARAMCD =</span> <span class="fu">droplevels</span>(PARAMCD),</span>
+<span id="cb1-20"><a href="#cb1-20"></a>    <span class="at">PARAM =</span> <span class="fu">droplevels</span>(PARAM)</span>
+<span id="cb1-21"><a href="#cb1-21"></a>  )</span>
+<span id="cb1-22"><a href="#cb1-22"></a></span>
+<span id="cb1-23"><a href="#cb1-23"></a><span class="co"># post-baseline</span></span>
+<span id="cb1-24"><a href="#cb1-24"></a>advs_pb <span class="ot">&lt;-</span> advs <span class="sc">%&gt;%</span></span>
+<span id="cb1-25"><a href="#cb1-25"></a>  <span class="fu">filter</span>(ABLFL <span class="sc">!=</span> <span class="st">"Y"</span>, ABLFL2 <span class="sc">!=</span> <span class="st">"Y"</span>)</span>
+<span id="cb1-26"><a href="#cb1-26"></a></span>
+<span id="cb1-27"><a href="#cb1-27"></a>advs_pb_max <span class="ot">&lt;-</span> advs_pb <span class="sc">%&gt;%</span></span>
+<span id="cb1-28"><a href="#cb1-28"></a>  <span class="fu">group_by</span>(PARAM, USUBJID) <span class="sc">%&gt;%</span></span>
+<span id="cb1-29"><a href="#cb1-29"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(AVAL)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-30"><a href="#cb1-30"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-31"><a href="#cb1-31"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-32"><a href="#cb1-32"></a>  <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="st">"Post-Baseline Maximum"</span>)</span>
+<span id="cb1-33"><a href="#cb1-33"></a></span>
+<span id="cb1-34"><a href="#cb1-34"></a>advs_pb_min <span class="ot">&lt;-</span> advs_pb <span class="sc">%&gt;%</span></span>
+<span id="cb1-35"><a href="#cb1-35"></a>  <span class="fu">group_by</span>(PARAM, USUBJID) <span class="sc">%&gt;%</span></span>
+<span id="cb1-36"><a href="#cb1-36"></a>  <span class="fu">arrange</span>(AVAL) <span class="sc">%&gt;%</span></span>
+<span id="cb1-37"><a href="#cb1-37"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-38"><a href="#cb1-38"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-39"><a href="#cb1-39"></a>  <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="st">"Post-Baseline Minimum"</span>)</span>
+<span id="cb1-40"><a href="#cb1-40"></a></span>
+<span id="cb1-41"><a href="#cb1-41"></a>advs_pb_last <span class="ot">&lt;-</span> advs_pb <span class="sc">%&gt;%</span></span>
+<span id="cb1-42"><a href="#cb1-42"></a>  <span class="fu">group_by</span>(PARAM, USUBJID) <span class="sc">%&gt;%</span></span>
+<span id="cb1-43"><a href="#cb1-43"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(AVISITN)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-44"><a href="#cb1-44"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-45"><a href="#cb1-45"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-46"><a href="#cb1-46"></a>  <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="st">"Post-Baseline Last"</span>)</span>
+<span id="cb1-47"><a href="#cb1-47"></a></span>
+<span id="cb1-48"><a href="#cb1-48"></a><span class="co"># Please note that for real data, per ADaM Spec 1.1, the advs_f can be obtained by filtering on PARAMCD, then</span></span>
+<span id="cb1-49"><a href="#cb1-49"></a><span class="co"># ANL01FL == 'Y' or AVISIT in c('POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST')</span></span>
+<span id="cb1-50"><a href="#cb1-50"></a></span>
+<span id="cb1-51"><a href="#cb1-51"></a>advs_f <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb1-52"><a href="#cb1-52"></a>  advs,</span>
+<span id="cb1-53"><a href="#cb1-53"></a>  advs_pb_last,</span>
+<span id="cb1-54"><a href="#cb1-54"></a>  advs_pb_min,</span>
+<span id="cb1-55"><a href="#cb1-55"></a>  advs_pb_max</span>
+<span id="cb1-56"><a href="#cb1-56"></a>)</span>
+<span id="cb1-57"><a href="#cb1-57"></a></span>
+<span id="cb1-58"><a href="#cb1-58"></a>advs_f <span class="ot">&lt;-</span> advs_f <span class="sc">%&gt;%</span></span>
+<span id="cb1-59"><a href="#cb1-59"></a>  <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="fu">droplevels</span>(AVISIT))</span>
+<span id="cb1-60"><a href="#cb1-60"></a></span>
+<span id="cb1-61"><a href="#cb1-61"></a><span class="fu">var_labels</span>(advs_f) <span class="ot">&lt;-</span> advs_label</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
@@ -2843,91 +2841,89 @@ Experimental use!
 <span id="cb4-3"><a href="#cb4-3"></a><span class="do">## Data reproducible code</span></span>
 <span id="cb4-4"><a href="#cb4-4"></a>data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
 <span id="cb4-5"><a href="#cb4-5"></a>data <span class="ot">&lt;-</span> <span class="fu">within</span>(data, {</span>
-<span id="cb4-6"><a href="#cb4-6"></a>  <span class="fu">library</span>(scda)</span>
-<span id="cb4-7"><a href="#cb4-7"></a>  <span class="fu">library</span>(scda<span class="fl">.2022</span>)</span>
-<span id="cb4-8"><a href="#cb4-8"></a>  <span class="fu">library</span>(dplyr)</span>
-<span id="cb4-9"><a href="#cb4-9"></a></span>
-<span id="cb4-10"><a href="#cb4-10"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
-<span id="cb4-11"><a href="#cb4-11"></a>  ADVS <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"advs"</span>)</span>
-<span id="cb4-12"><a href="#cb4-12"></a>  advs_label <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(ADVS)</span>
-<span id="cb4-13"><a href="#cb4-13"></a></span>
-<span id="cb4-14"><a href="#cb4-14"></a>  <span class="co"># post-baseline</span></span>
-<span id="cb4-15"><a href="#cb4-15"></a>  advs_pb <span class="ot">&lt;-</span> ADVS <span class="sc">%&gt;%</span></span>
-<span id="cb4-16"><a href="#cb4-16"></a>    <span class="fu">filter</span>(</span>
-<span id="cb4-17"><a href="#cb4-17"></a>      ABLFL <span class="sc">!=</span> <span class="st">"Y"</span>,</span>
-<span id="cb4-18"><a href="#cb4-18"></a>      ABLFL2 <span class="sc">!=</span> <span class="st">"Y"</span></span>
-<span id="cb4-19"><a href="#cb4-19"></a>    )</span>
-<span id="cb4-20"><a href="#cb4-20"></a></span>
-<span id="cb4-21"><a href="#cb4-21"></a>  advs_pb_max <span class="ot">&lt;-</span> advs_pb <span class="sc">%&gt;%</span></span>
-<span id="cb4-22"><a href="#cb4-22"></a>    <span class="fu">group_by</span>(PARAM, USUBJID) <span class="sc">%&gt;%</span></span>
-<span id="cb4-23"><a href="#cb4-23"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(AVAL)) <span class="sc">%&gt;%</span></span>
-<span id="cb4-24"><a href="#cb4-24"></a>    <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-25"><a href="#cb4-25"></a>    <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb4-26"><a href="#cb4-26"></a>    <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="st">"Post-Baseline Maximum"</span>)</span>
-<span id="cb4-27"><a href="#cb4-27"></a></span>
-<span id="cb4-28"><a href="#cb4-28"></a>  advs_pb_min <span class="ot">&lt;-</span> advs_pb <span class="sc">%&gt;%</span></span>
-<span id="cb4-29"><a href="#cb4-29"></a>    <span class="fu">group_by</span>(PARAM, USUBJID) <span class="sc">%&gt;%</span></span>
-<span id="cb4-30"><a href="#cb4-30"></a>    <span class="fu">arrange</span>(AVAL) <span class="sc">%&gt;%</span></span>
-<span id="cb4-31"><a href="#cb4-31"></a>    <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-32"><a href="#cb4-32"></a>    <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb4-33"><a href="#cb4-33"></a>    <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="st">"Post-Baseline Minimum"</span>)</span>
-<span id="cb4-34"><a href="#cb4-34"></a></span>
-<span id="cb4-35"><a href="#cb4-35"></a>  advs_pb_last <span class="ot">&lt;-</span> advs_pb <span class="sc">%&gt;%</span></span>
-<span id="cb4-36"><a href="#cb4-36"></a>    <span class="fu">group_by</span>(PARAM, USUBJID) <span class="sc">%&gt;%</span></span>
-<span id="cb4-37"><a href="#cb4-37"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(AVISITN)) <span class="sc">%&gt;%</span></span>
-<span id="cb4-38"><a href="#cb4-38"></a>    <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-39"><a href="#cb4-39"></a>    <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb4-40"><a href="#cb4-40"></a>    <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="st">"Post-Baseline Last"</span>)</span>
-<span id="cb4-41"><a href="#cb4-41"></a></span>
-<span id="cb4-42"><a href="#cb4-42"></a>  ADVS <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb4-43"><a href="#cb4-43"></a>    ADVS,</span>
-<span id="cb4-44"><a href="#cb4-44"></a>    advs_pb_last,</span>
-<span id="cb4-45"><a href="#cb4-45"></a>    advs_pb_min,</span>
-<span id="cb4-46"><a href="#cb4-46"></a>    advs_pb_max</span>
-<span id="cb4-47"><a href="#cb4-47"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb4-48"><a href="#cb4-48"></a>    <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="fu">droplevels</span>(AVISIT))</span>
-<span id="cb4-49"><a href="#cb4-49"></a></span>
-<span id="cb4-50"><a href="#cb4-50"></a>  <span class="fu">col_labels</span>(ADVS) <span class="ot">&lt;-</span> advs_label</span>
-<span id="cb4-51"><a href="#cb4-51"></a>})</span>
-<span id="cb4-52"><a href="#cb4-52"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADVS"</span>)</span>
-<span id="cb4-53"><a href="#cb4-53"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
-<span id="cb4-54"><a href="#cb4-54"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
-<span id="cb4-55"><a href="#cb4-55"></a></span>
-<span id="cb4-56"><a href="#cb4-56"></a><span class="do">## Reusable Configuration For Modules</span></span>
-<span id="cb4-57"><a href="#cb4-57"></a>ADSL <span class="ot">&lt;-</span> data[[<span class="st">"ADSL"</span>]]</span>
-<span id="cb4-58"><a href="#cb4-58"></a>ADVS <span class="ot">&lt;-</span> data[[<span class="st">"ADVS"</span>]]</span>
-<span id="cb4-59"><a href="#cb4-59"></a></span>
-<span id="cb4-60"><a href="#cb4-60"></a><span class="do">## Setup App</span></span>
-<span id="cb4-61"><a href="#cb4-61"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb4-62"><a href="#cb4-62"></a>  <span class="at">data =</span> data,</span>
-<span id="cb4-63"><a href="#cb4-63"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb4-64"><a href="#cb4-64"></a>    <span class="fu">tm_t_summary_by</span>(</span>
-<span id="cb4-65"><a href="#cb4-65"></a>      <span class="at">label =</span> <span class="st">"Vital Sign Results and Change from Baseline by Visit"</span>,</span>
-<span id="cb4-66"><a href="#cb4-66"></a>      <span class="at">dataname =</span> <span class="st">"ADVS"</span>,</span>
-<span id="cb4-67"><a href="#cb4-67"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb4-68"><a href="#cb4-68"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADSL, <span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>)),</span>
-<span id="cb4-69"><a href="#cb4-69"></a>        <span class="at">selected =</span> <span class="st">"ARM"</span></span>
-<span id="cb4-70"><a href="#cb4-70"></a>      ),</span>
-<span id="cb4-71"><a href="#cb4-71"></a>      <span class="at">by_vars =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb4-72"><a href="#cb4-72"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADVS, <span class="fu">c</span>(<span class="st">"PARAM"</span>, <span class="st">"AVISIT"</span>)),</span>
-<span id="cb4-73"><a href="#cb4-73"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">"AVISIT"</span>, <span class="st">"PARAM"</span>)</span>
-<span id="cb4-74"><a href="#cb4-74"></a>      ),</span>
-<span id="cb4-75"><a href="#cb4-75"></a>      <span class="at">summarize_vars =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb4-76"><a href="#cb4-76"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADVS, <span class="fu">c</span>(<span class="st">"AVAL"</span>, <span class="st">"CHG"</span>)),</span>
-<span id="cb4-77"><a href="#cb4-77"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">"AVAL"</span>, <span class="st">"CHG"</span>)</span>
-<span id="cb4-78"><a href="#cb4-78"></a>      ),</span>
-<span id="cb4-79"><a href="#cb4-79"></a>      <span class="at">useNA =</span> <span class="st">"ifany"</span>,</span>
-<span id="cb4-80"><a href="#cb4-80"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb4-81"><a href="#cb4-81"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(ADVS, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>),</span>
-<span id="cb4-82"><a href="#cb4-82"></a>        <span class="at">selected =</span> <span class="st">"DIABP"</span></span>
-<span id="cb4-83"><a href="#cb4-83"></a>      ),</span>
-<span id="cb4-84"><a href="#cb4-84"></a>      <span class="at">parallel_vars =</span> <span class="cn">TRUE</span></span>
-<span id="cb4-85"><a href="#cb4-85"></a>    )</span>
-<span id="cb4-86"><a href="#cb4-86"></a>  ),</span>
-<span id="cb4-87"><a href="#cb4-87"></a>  <span class="at">filter =</span> <span class="fu">teal_slices</span>(<span class="fu">teal_slice</span>(<span class="st">"ADVS"</span>, <span class="st">"AVAL"</span>, <span class="at">selected =</span> <span class="cn">NULL</span>))</span>
-<span id="cb4-88"><a href="#cb4-88"></a>)</span>
-<span id="cb4-89"><a href="#cb4-89"></a></span>
-<span id="cb4-90"><a href="#cb4-90"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-6"><a href="#cb4-6"></a>  <span class="fu">library</span>(dplyr)</span>
+<span id="cb4-7"><a href="#cb4-7"></a></span>
+<span id="cb4-8"><a href="#cb4-8"></a>  ADSL <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadsl</span>
+<span id="cb4-9"><a href="#cb4-9"></a>  ADVS <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadvs</span>
+<span id="cb4-10"><a href="#cb4-10"></a>  advs_label <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(ADVS)</span>
+<span id="cb4-11"><a href="#cb4-11"></a></span>
+<span id="cb4-12"><a href="#cb4-12"></a>  <span class="co"># post-baseline</span></span>
+<span id="cb4-13"><a href="#cb4-13"></a>  advs_pb <span class="ot">&lt;-</span> ADVS <span class="sc">%&gt;%</span></span>
+<span id="cb4-14"><a href="#cb4-14"></a>    <span class="fu">filter</span>(</span>
+<span id="cb4-15"><a href="#cb4-15"></a>      ABLFL <span class="sc">!=</span> <span class="st">"Y"</span>,</span>
+<span id="cb4-16"><a href="#cb4-16"></a>      ABLFL2 <span class="sc">!=</span> <span class="st">"Y"</span></span>
+<span id="cb4-17"><a href="#cb4-17"></a>    )</span>
+<span id="cb4-18"><a href="#cb4-18"></a></span>
+<span id="cb4-19"><a href="#cb4-19"></a>  advs_pb_max <span class="ot">&lt;-</span> advs_pb <span class="sc">%&gt;%</span></span>
+<span id="cb4-20"><a href="#cb4-20"></a>    <span class="fu">group_by</span>(PARAM, USUBJID) <span class="sc">%&gt;%</span></span>
+<span id="cb4-21"><a href="#cb4-21"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(AVAL)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-22"><a href="#cb4-22"></a>    <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-23"><a href="#cb4-23"></a>    <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb4-24"><a href="#cb4-24"></a>    <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="st">"Post-Baseline Maximum"</span>)</span>
+<span id="cb4-25"><a href="#cb4-25"></a></span>
+<span id="cb4-26"><a href="#cb4-26"></a>  advs_pb_min <span class="ot">&lt;-</span> advs_pb <span class="sc">%&gt;%</span></span>
+<span id="cb4-27"><a href="#cb4-27"></a>    <span class="fu">group_by</span>(PARAM, USUBJID) <span class="sc">%&gt;%</span></span>
+<span id="cb4-28"><a href="#cb4-28"></a>    <span class="fu">arrange</span>(AVAL) <span class="sc">%&gt;%</span></span>
+<span id="cb4-29"><a href="#cb4-29"></a>    <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-30"><a href="#cb4-30"></a>    <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb4-31"><a href="#cb4-31"></a>    <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="st">"Post-Baseline Minimum"</span>)</span>
+<span id="cb4-32"><a href="#cb4-32"></a></span>
+<span id="cb4-33"><a href="#cb4-33"></a>  advs_pb_last <span class="ot">&lt;-</span> advs_pb <span class="sc">%&gt;%</span></span>
+<span id="cb4-34"><a href="#cb4-34"></a>    <span class="fu">group_by</span>(PARAM, USUBJID) <span class="sc">%&gt;%</span></span>
+<span id="cb4-35"><a href="#cb4-35"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(AVISITN)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-36"><a href="#cb4-36"></a>    <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-37"><a href="#cb4-37"></a>    <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb4-38"><a href="#cb4-38"></a>    <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="st">"Post-Baseline Last"</span>)</span>
+<span id="cb4-39"><a href="#cb4-39"></a></span>
+<span id="cb4-40"><a href="#cb4-40"></a>  ADVS <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb4-41"><a href="#cb4-41"></a>    ADVS,</span>
+<span id="cb4-42"><a href="#cb4-42"></a>    advs_pb_last,</span>
+<span id="cb4-43"><a href="#cb4-43"></a>    advs_pb_min,</span>
+<span id="cb4-44"><a href="#cb4-44"></a>    advs_pb_max</span>
+<span id="cb4-45"><a href="#cb4-45"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb4-46"><a href="#cb4-46"></a>    <span class="fu">mutate</span>(<span class="at">AVISIT =</span> <span class="fu">droplevels</span>(AVISIT))</span>
+<span id="cb4-47"><a href="#cb4-47"></a></span>
+<span id="cb4-48"><a href="#cb4-48"></a>  <span class="fu">col_labels</span>(ADVS) <span class="ot">&lt;-</span> advs_label</span>
+<span id="cb4-49"><a href="#cb4-49"></a>})</span>
+<span id="cb4-50"><a href="#cb4-50"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADVS"</span>)</span>
+<span id="cb4-51"><a href="#cb4-51"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
+<span id="cb4-52"><a href="#cb4-52"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
+<span id="cb4-53"><a href="#cb4-53"></a></span>
+<span id="cb4-54"><a href="#cb4-54"></a><span class="do">## Reusable Configuration For Modules</span></span>
+<span id="cb4-55"><a href="#cb4-55"></a>ADSL <span class="ot">&lt;-</span> data[[<span class="st">"ADSL"</span>]]</span>
+<span id="cb4-56"><a href="#cb4-56"></a>ADVS <span class="ot">&lt;-</span> data[[<span class="st">"ADVS"</span>]]</span>
+<span id="cb4-57"><a href="#cb4-57"></a></span>
+<span id="cb4-58"><a href="#cb4-58"></a><span class="do">## Setup App</span></span>
+<span id="cb4-59"><a href="#cb4-59"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb4-60"><a href="#cb4-60"></a>  <span class="at">data =</span> data,</span>
+<span id="cb4-61"><a href="#cb4-61"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb4-62"><a href="#cb4-62"></a>    <span class="fu">tm_t_summary_by</span>(</span>
+<span id="cb4-63"><a href="#cb4-63"></a>      <span class="at">label =</span> <span class="st">"Vital Sign Results and Change from Baseline by Visit"</span>,</span>
+<span id="cb4-64"><a href="#cb4-64"></a>      <span class="at">dataname =</span> <span class="st">"ADVS"</span>,</span>
+<span id="cb4-65"><a href="#cb4-65"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb4-66"><a href="#cb4-66"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADSL, <span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>)),</span>
+<span id="cb4-67"><a href="#cb4-67"></a>        <span class="at">selected =</span> <span class="st">"ARM"</span></span>
+<span id="cb4-68"><a href="#cb4-68"></a>      ),</span>
+<span id="cb4-69"><a href="#cb4-69"></a>      <span class="at">by_vars =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb4-70"><a href="#cb4-70"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADVS, <span class="fu">c</span>(<span class="st">"PARAM"</span>, <span class="st">"AVISIT"</span>)),</span>
+<span id="cb4-71"><a href="#cb4-71"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">"AVISIT"</span>, <span class="st">"PARAM"</span>)</span>
+<span id="cb4-72"><a href="#cb4-72"></a>      ),</span>
+<span id="cb4-73"><a href="#cb4-73"></a>      <span class="at">summarize_vars =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb4-74"><a href="#cb4-74"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADVS, <span class="fu">c</span>(<span class="st">"AVAL"</span>, <span class="st">"CHG"</span>)),</span>
+<span id="cb4-75"><a href="#cb4-75"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">"AVAL"</span>, <span class="st">"CHG"</span>)</span>
+<span id="cb4-76"><a href="#cb4-76"></a>      ),</span>
+<span id="cb4-77"><a href="#cb4-77"></a>      <span class="at">useNA =</span> <span class="st">"ifany"</span>,</span>
+<span id="cb4-78"><a href="#cb4-78"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb4-79"><a href="#cb4-79"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(ADVS, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>),</span>
+<span id="cb4-80"><a href="#cb4-80"></a>        <span class="at">selected =</span> <span class="st">"DIABP"</span></span>
+<span id="cb4-81"><a href="#cb4-81"></a>      ),</span>
+<span id="cb4-82"><a href="#cb4-82"></a>      <span class="at">parallel_vars =</span> <span class="cn">TRUE</span></span>
+<span id="cb4-83"><a href="#cb4-83"></a>    )</span>
+<span id="cb4-84"><a href="#cb4-84"></a>  ),</span>
+<span id="cb4-85"><a href="#cb4-85"></a>  <span class="at">filter =</span> <span class="fu">teal_slices</span>(<span class="fu">teal_slice</span>(<span class="st">"ADVS"</span>, <span class="st">"AVAL"</span>, <span class="at">selected =</span> <span class="cn">NULL</span>))</span>
+<span id="cb4-86"><a href="#cb4-86"></a>)</span>
+<span id="cb4-87"><a href="#cb4-87"></a></span>
+<span id="cb4-88"><a href="#cb4-88"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stderr">
 <pre><code>Warning: The 'plotly_relayout' event tied a source ID of
 'teal-main_ui-filter_panel-active-ADVS-filter-ADVS_AVAL-inputs-histogram_plot'
@@ -2994,91 +2990,89 @@ we have to put some code upfront
 <span id="cb6-22"><a href="#cb6-22"></a>## Data reproducible code</span>
 <span id="cb6-23"><a href="#cb6-23"></a>data &lt;- teal_data()</span>
 <span id="cb6-24"><a href="#cb6-24"></a>data &lt;- within(data, {</span>
-<span id="cb6-25"><a href="#cb6-25"></a>  library(scda)</span>
-<span id="cb6-26"><a href="#cb6-26"></a>  library(scda.2022)</span>
-<span id="cb6-27"><a href="#cb6-27"></a>  library(dplyr)</span>
-<span id="cb6-28"><a href="#cb6-28"></a></span>
-<span id="cb6-29"><a href="#cb6-29"></a>  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")</span>
-<span id="cb6-30"><a href="#cb6-30"></a>  ADVS &lt;- synthetic_cdisc_dataset("latest", "advs")</span>
-<span id="cb6-31"><a href="#cb6-31"></a>  advs_label &lt;- col_labels(ADVS)</span>
-<span id="cb6-32"><a href="#cb6-32"></a></span>
-<span id="cb6-33"><a href="#cb6-33"></a>  # post-baseline</span>
-<span id="cb6-34"><a href="#cb6-34"></a>  advs_pb &lt;- ADVS %&gt;%</span>
-<span id="cb6-35"><a href="#cb6-35"></a>    filter(</span>
-<span id="cb6-36"><a href="#cb6-36"></a>      ABLFL != "Y",</span>
-<span id="cb6-37"><a href="#cb6-37"></a>      ABLFL2 != "Y"</span>
-<span id="cb6-38"><a href="#cb6-38"></a>    )</span>
-<span id="cb6-39"><a href="#cb6-39"></a></span>
-<span id="cb6-40"><a href="#cb6-40"></a>  advs_pb_max &lt;- advs_pb %&gt;%</span>
-<span id="cb6-41"><a href="#cb6-41"></a>    group_by(PARAM, USUBJID) %&gt;%</span>
-<span id="cb6-42"><a href="#cb6-42"></a>    arrange(desc(AVAL)) %&gt;%</span>
-<span id="cb6-43"><a href="#cb6-43"></a>    slice(1) %&gt;%</span>
-<span id="cb6-44"><a href="#cb6-44"></a>    ungroup() %&gt;%</span>
-<span id="cb6-45"><a href="#cb6-45"></a>    mutate(AVISIT = "Post-Baseline Maximum")</span>
-<span id="cb6-46"><a href="#cb6-46"></a></span>
-<span id="cb6-47"><a href="#cb6-47"></a>  advs_pb_min &lt;- advs_pb %&gt;%</span>
-<span id="cb6-48"><a href="#cb6-48"></a>    group_by(PARAM, USUBJID) %&gt;%</span>
-<span id="cb6-49"><a href="#cb6-49"></a>    arrange(AVAL) %&gt;%</span>
-<span id="cb6-50"><a href="#cb6-50"></a>    slice(1) %&gt;%</span>
-<span id="cb6-51"><a href="#cb6-51"></a>    ungroup() %&gt;%</span>
-<span id="cb6-52"><a href="#cb6-52"></a>    mutate(AVISIT = "Post-Baseline Minimum")</span>
-<span id="cb6-53"><a href="#cb6-53"></a></span>
-<span id="cb6-54"><a href="#cb6-54"></a>  advs_pb_last &lt;- advs_pb %&gt;%</span>
-<span id="cb6-55"><a href="#cb6-55"></a>    group_by(PARAM, USUBJID) %&gt;%</span>
-<span id="cb6-56"><a href="#cb6-56"></a>    arrange(desc(AVISITN)) %&gt;%</span>
-<span id="cb6-57"><a href="#cb6-57"></a>    slice(1) %&gt;%</span>
-<span id="cb6-58"><a href="#cb6-58"></a>    ungroup() %&gt;%</span>
-<span id="cb6-59"><a href="#cb6-59"></a>    mutate(AVISIT = "Post-Baseline Last")</span>
-<span id="cb6-60"><a href="#cb6-60"></a></span>
-<span id="cb6-61"><a href="#cb6-61"></a>  ADVS &lt;- rbind(</span>
-<span id="cb6-62"><a href="#cb6-62"></a>    ADVS,</span>
-<span id="cb6-63"><a href="#cb6-63"></a>    advs_pb_last,</span>
-<span id="cb6-64"><a href="#cb6-64"></a>    advs_pb_min,</span>
-<span id="cb6-65"><a href="#cb6-65"></a>    advs_pb_max</span>
-<span id="cb6-66"><a href="#cb6-66"></a>  ) %&gt;%</span>
-<span id="cb6-67"><a href="#cb6-67"></a>    mutate(AVISIT = droplevels(AVISIT))</span>
-<span id="cb6-68"><a href="#cb6-68"></a></span>
-<span id="cb6-69"><a href="#cb6-69"></a>  col_labels(ADVS) &lt;- advs_label</span>
-<span id="cb6-70"><a href="#cb6-70"></a>})</span>
-<span id="cb6-71"><a href="#cb6-71"></a>datanames &lt;- c("ADSL", "ADVS")</span>
-<span id="cb6-72"><a href="#cb6-72"></a>datanames(data) &lt;- datanames</span>
-<span id="cb6-73"><a href="#cb6-73"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
-<span id="cb6-74"><a href="#cb6-74"></a></span>
-<span id="cb6-75"><a href="#cb6-75"></a>## Reusable Configuration For Modules</span>
-<span id="cb6-76"><a href="#cb6-76"></a>ADSL &lt;- data[["ADSL"]]</span>
-<span id="cb6-77"><a href="#cb6-77"></a>ADVS &lt;- data[["ADVS"]]</span>
-<span id="cb6-78"><a href="#cb6-78"></a></span>
-<span id="cb6-79"><a href="#cb6-79"></a>## Setup App</span>
-<span id="cb6-80"><a href="#cb6-80"></a>app &lt;- init(</span>
-<span id="cb6-81"><a href="#cb6-81"></a>  data = data,</span>
-<span id="cb6-82"><a href="#cb6-82"></a>  modules = modules(</span>
-<span id="cb6-83"><a href="#cb6-83"></a>    tm_t_summary_by(</span>
-<span id="cb6-84"><a href="#cb6-84"></a>      label = "Vital Sign Results and Change from Baseline by Visit",</span>
-<span id="cb6-85"><a href="#cb6-85"></a>      dataname = "ADVS",</span>
-<span id="cb6-86"><a href="#cb6-86"></a>      arm_var = choices_selected(</span>
-<span id="cb6-87"><a href="#cb6-87"></a>        choices = variable_choices(ADSL, c("ARM", "ARMCD")),</span>
-<span id="cb6-88"><a href="#cb6-88"></a>        selected = "ARM"</span>
-<span id="cb6-89"><a href="#cb6-89"></a>      ),</span>
-<span id="cb6-90"><a href="#cb6-90"></a>      by_vars = choices_selected(</span>
-<span id="cb6-91"><a href="#cb6-91"></a>        choices = variable_choices(ADVS, c("PARAM", "AVISIT")),</span>
-<span id="cb6-92"><a href="#cb6-92"></a>        selected = c("AVISIT", "PARAM")</span>
-<span id="cb6-93"><a href="#cb6-93"></a>      ),</span>
-<span id="cb6-94"><a href="#cb6-94"></a>      summarize_vars = choices_selected(</span>
-<span id="cb6-95"><a href="#cb6-95"></a>        choices = variable_choices(ADVS, c("AVAL", "CHG")),</span>
-<span id="cb6-96"><a href="#cb6-96"></a>        selected = c("AVAL", "CHG")</span>
-<span id="cb6-97"><a href="#cb6-97"></a>      ),</span>
-<span id="cb6-98"><a href="#cb6-98"></a>      useNA = "ifany",</span>
-<span id="cb6-99"><a href="#cb6-99"></a>      paramcd = choices_selected(</span>
-<span id="cb6-100"><a href="#cb6-100"></a>        choices = value_choices(ADVS, "PARAMCD", "PARAM"),</span>
-<span id="cb6-101"><a href="#cb6-101"></a>        selected = "DIABP"</span>
-<span id="cb6-102"><a href="#cb6-102"></a>      ),</span>
-<span id="cb6-103"><a href="#cb6-103"></a>      parallel_vars = TRUE</span>
-<span id="cb6-104"><a href="#cb6-104"></a>    )</span>
-<span id="cb6-105"><a href="#cb6-105"></a>  ),</span>
-<span id="cb6-106"><a href="#cb6-106"></a>  filter = teal_slices(teal_slice("ADVS", "AVAL", selected = NULL))</span>
-<span id="cb6-107"><a href="#cb6-107"></a>)</span>
-<span id="cb6-108"><a href="#cb6-108"></a></span>
-<span id="cb6-109"><a href="#cb6-109"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-25"><a href="#cb6-25"></a>  library(dplyr)</span>
+<span id="cb6-26"><a href="#cb6-26"></a></span>
+<span id="cb6-27"><a href="#cb6-27"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
+<span id="cb6-28"><a href="#cb6-28"></a>  ADVS &lt;- random.cdisc.data::cadvs</span>
+<span id="cb6-29"><a href="#cb6-29"></a>  advs_label &lt;- col_labels(ADVS)</span>
+<span id="cb6-30"><a href="#cb6-30"></a></span>
+<span id="cb6-31"><a href="#cb6-31"></a>  # post-baseline</span>
+<span id="cb6-32"><a href="#cb6-32"></a>  advs_pb &lt;- ADVS %&gt;%</span>
+<span id="cb6-33"><a href="#cb6-33"></a>    filter(</span>
+<span id="cb6-34"><a href="#cb6-34"></a>      ABLFL != "Y",</span>
+<span id="cb6-35"><a href="#cb6-35"></a>      ABLFL2 != "Y"</span>
+<span id="cb6-36"><a href="#cb6-36"></a>    )</span>
+<span id="cb6-37"><a href="#cb6-37"></a></span>
+<span id="cb6-38"><a href="#cb6-38"></a>  advs_pb_max &lt;- advs_pb %&gt;%</span>
+<span id="cb6-39"><a href="#cb6-39"></a>    group_by(PARAM, USUBJID) %&gt;%</span>
+<span id="cb6-40"><a href="#cb6-40"></a>    arrange(desc(AVAL)) %&gt;%</span>
+<span id="cb6-41"><a href="#cb6-41"></a>    slice(1) %&gt;%</span>
+<span id="cb6-42"><a href="#cb6-42"></a>    ungroup() %&gt;%</span>
+<span id="cb6-43"><a href="#cb6-43"></a>    mutate(AVISIT = "Post-Baseline Maximum")</span>
+<span id="cb6-44"><a href="#cb6-44"></a></span>
+<span id="cb6-45"><a href="#cb6-45"></a>  advs_pb_min &lt;- advs_pb %&gt;%</span>
+<span id="cb6-46"><a href="#cb6-46"></a>    group_by(PARAM, USUBJID) %&gt;%</span>
+<span id="cb6-47"><a href="#cb6-47"></a>    arrange(AVAL) %&gt;%</span>
+<span id="cb6-48"><a href="#cb6-48"></a>    slice(1) %&gt;%</span>
+<span id="cb6-49"><a href="#cb6-49"></a>    ungroup() %&gt;%</span>
+<span id="cb6-50"><a href="#cb6-50"></a>    mutate(AVISIT = "Post-Baseline Minimum")</span>
+<span id="cb6-51"><a href="#cb6-51"></a></span>
+<span id="cb6-52"><a href="#cb6-52"></a>  advs_pb_last &lt;- advs_pb %&gt;%</span>
+<span id="cb6-53"><a href="#cb6-53"></a>    group_by(PARAM, USUBJID) %&gt;%</span>
+<span id="cb6-54"><a href="#cb6-54"></a>    arrange(desc(AVISITN)) %&gt;%</span>
+<span id="cb6-55"><a href="#cb6-55"></a>    slice(1) %&gt;%</span>
+<span id="cb6-56"><a href="#cb6-56"></a>    ungroup() %&gt;%</span>
+<span id="cb6-57"><a href="#cb6-57"></a>    mutate(AVISIT = "Post-Baseline Last")</span>
+<span id="cb6-58"><a href="#cb6-58"></a></span>
+<span id="cb6-59"><a href="#cb6-59"></a>  ADVS &lt;- rbind(</span>
+<span id="cb6-60"><a href="#cb6-60"></a>    ADVS,</span>
+<span id="cb6-61"><a href="#cb6-61"></a>    advs_pb_last,</span>
+<span id="cb6-62"><a href="#cb6-62"></a>    advs_pb_min,</span>
+<span id="cb6-63"><a href="#cb6-63"></a>    advs_pb_max</span>
+<span id="cb6-64"><a href="#cb6-64"></a>  ) %&gt;%</span>
+<span id="cb6-65"><a href="#cb6-65"></a>    mutate(AVISIT = droplevels(AVISIT))</span>
+<span id="cb6-66"><a href="#cb6-66"></a></span>
+<span id="cb6-67"><a href="#cb6-67"></a>  col_labels(ADVS) &lt;- advs_label</span>
+<span id="cb6-68"><a href="#cb6-68"></a>})</span>
+<span id="cb6-69"><a href="#cb6-69"></a>datanames &lt;- c("ADSL", "ADVS")</span>
+<span id="cb6-70"><a href="#cb6-70"></a>datanames(data) &lt;- datanames</span>
+<span id="cb6-71"><a href="#cb6-71"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
+<span id="cb6-72"><a href="#cb6-72"></a></span>
+<span id="cb6-73"><a href="#cb6-73"></a>## Reusable Configuration For Modules</span>
+<span id="cb6-74"><a href="#cb6-74"></a>ADSL &lt;- data[["ADSL"]]</span>
+<span id="cb6-75"><a href="#cb6-75"></a>ADVS &lt;- data[["ADVS"]]</span>
+<span id="cb6-76"><a href="#cb6-76"></a></span>
+<span id="cb6-77"><a href="#cb6-77"></a>## Setup App</span>
+<span id="cb6-78"><a href="#cb6-78"></a>app &lt;- init(</span>
+<span id="cb6-79"><a href="#cb6-79"></a>  data = data,</span>
+<span id="cb6-80"><a href="#cb6-80"></a>  modules = modules(</span>
+<span id="cb6-81"><a href="#cb6-81"></a>    tm_t_summary_by(</span>
+<span id="cb6-82"><a href="#cb6-82"></a>      label = "Vital Sign Results and Change from Baseline by Visit",</span>
+<span id="cb6-83"><a href="#cb6-83"></a>      dataname = "ADVS",</span>
+<span id="cb6-84"><a href="#cb6-84"></a>      arm_var = choices_selected(</span>
+<span id="cb6-85"><a href="#cb6-85"></a>        choices = variable_choices(ADSL, c("ARM", "ARMCD")),</span>
+<span id="cb6-86"><a href="#cb6-86"></a>        selected = "ARM"</span>
+<span id="cb6-87"><a href="#cb6-87"></a>      ),</span>
+<span id="cb6-88"><a href="#cb6-88"></a>      by_vars = choices_selected(</span>
+<span id="cb6-89"><a href="#cb6-89"></a>        choices = variable_choices(ADVS, c("PARAM", "AVISIT")),</span>
+<span id="cb6-90"><a href="#cb6-90"></a>        selected = c("AVISIT", "PARAM")</span>
+<span id="cb6-91"><a href="#cb6-91"></a>      ),</span>
+<span id="cb6-92"><a href="#cb6-92"></a>      summarize_vars = choices_selected(</span>
+<span id="cb6-93"><a href="#cb6-93"></a>        choices = variable_choices(ADVS, c("AVAL", "CHG")),</span>
+<span id="cb6-94"><a href="#cb6-94"></a>        selected = c("AVAL", "CHG")</span>
+<span id="cb6-95"><a href="#cb6-95"></a>      ),</span>
+<span id="cb6-96"><a href="#cb6-96"></a>      useNA = "ifany",</span>
+<span id="cb6-97"><a href="#cb6-97"></a>      paramcd = choices_selected(</span>
+<span id="cb6-98"><a href="#cb6-98"></a>        choices = value_choices(ADVS, "PARAMCD", "PARAM"),</span>
+<span id="cb6-99"><a href="#cb6-99"></a>        selected = "DIABP"</span>
+<span id="cb6-100"><a href="#cb6-100"></a>      ),</span>
+<span id="cb6-101"><a href="#cb6-101"></a>      parallel_vars = TRUE</span>
+<span id="cb6-102"><a href="#cb6-102"></a>    )</span>
+<span id="cb6-103"><a href="#cb6-103"></a>  ),</span>
+<span id="cb6-104"><a href="#cb6-104"></a>  filter = teal_slices(teal_slice("ADVS", "AVAL", selected = NULL))</span>
+<span id="cb6-105"><a href="#cb6-105"></a>)</span>
+<span id="cb6-106"><a href="#cb6-106"></a></span>
+<span id="cb6-107"><a href="#cb6-107"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -3088,7 +3082,7 @@ we have to put some code upfront
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-05-11 17:47:49 UTC"</code></pre>
+<pre><code>[1] "2024-05-15 17:45:40 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -3117,42 +3111,42 @@ other attached packages:
  [3] teal_0.15.2                 teal.slice_0.5.1           
  [5] teal.data_0.6.0             teal.code_0.5.0            
  [7] shiny_1.8.1.1               dplyr_1.1.4                
- [9] scda.2022_0.1.5             scda_0.1.6                 
-[11] tern_0.9.4                  rtables_0.6.7              
-[13] magrittr_2.0.3              formatters_0.5.6           
+ [9] tern_0.9.4                  rtables_0.6.7              
+[11] magrittr_2.0.3              formatters_0.5.6           
 
 loaded via a namespace (and not attached):
- [1] Rdpack_2.6            formatR_1.14          tern.gee_0.1.3       
- [4] logger_0.3.0          testthat_3.2.1.1      sandwich_3.1-0       
- [7] rlang_1.1.3           multcomp_1.4-25       compiler_4.4.0       
-[10] callr_3.7.6           vctrs_0.6.5           pkgconfig_2.0.3      
-[13] fastmap_1.1.1         backports_1.4.1       fontawesome_0.5.2    
-[16] utf8_1.2.4            promises_1.3.0        rmarkdown_2.26       
-[19] ps_1.7.6              purrr_1.0.2           xfun_0.43            
-[22] shinyvalidate_0.1.3   cachem_1.0.8          teal.reporter_0.3.1  
-[25] jsonlite_1.8.8        later_1.3.2           broom_1.0.5          
-[28] R6_2.5.1              bslib_0.7.0           stringi_1.8.4        
-[31] brio_1.1.5            jquerylib_0.1.4       estimability_1.5     
-[34] Rcpp_1.0.12           knitr_1.46            zoo_1.8-12           
-[37] teal.logger_0.2.0     httpuv_1.6.15         Matrix_1.7-0         
-[40] splines_4.4.0         tidyselect_1.2.1      yaml_2.3.8           
-[43] codetools_0.2-20      websocket_1.4.1       processx_3.8.4       
-[46] teal.widgets_0.4.2    lattice_0.22-6        tibble_3.2.1         
-[49] withr_3.0.0           coda_0.19-4.1         evaluate_0.23        
-[52] survival_3.6-4        pillar_1.9.0          shinycssloaders_1.0.0
-[55] checkmate_2.3.1       shinyjs_2.1.0         plotly_4.10.4        
-[58] generics_0.1.3        chromote_0.2.0        ggplot2_3.5.1        
-[61] munsell_0.5.1         scales_1.3.0          xtable_1.8-4         
-[64] glue_1.7.0            emmeans_1.10.1        lazyeval_0.2.2       
-[67] tools_4.4.0           webshot2_0.1.1        data.table_1.15.4    
-[70] webshot_0.5.5         forcats_1.0.0         mvtnorm_1.2-4        
-[73] grid_4.4.0            tidyr_1.3.1           rbibutils_2.2.16     
-[76] colorspace_2.1-0      nlme_3.1-164          cli_3.6.2            
-[79] fansi_1.0.6           viridisLite_0.4.2     geepack_1.3.10       
-[82] gtable_0.3.5          sass_0.4.9            digest_0.6.35        
-[85] TH.data_1.1-2         htmlwidgets_1.6.4     memoise_2.0.1        
-[88] htmltools_0.5.8.1     lifecycle_1.0.4       httr_1.4.7           
-[91] shinyWidgets_0.8.6    mime_0.12             MASS_7.3-60.2        </code></pre>
+ [1] Rdpack_2.6               formatR_1.14             tern.gee_0.1.3          
+ [4] logger_0.3.0             testthat_3.2.1.1         sandwich_3.1-0          
+ [7] rlang_1.1.3              multcomp_1.4-25          compiler_4.4.0          
+[10] callr_3.7.6              vctrs_0.6.5              stringr_1.5.1           
+[13] pkgconfig_2.0.3          fastmap_1.2.0            backports_1.4.1         
+[16] fontawesome_0.5.2        utf8_1.2.4               promises_1.3.0          
+[19] rmarkdown_2.26           ps_1.7.6                 purrr_1.0.2             
+[22] xfun_0.44                shinyvalidate_0.1.3      cachem_1.0.8            
+[25] teal.reporter_0.3.1      jsonlite_1.8.8           later_1.3.2             
+[28] broom_1.0.5              R6_2.5.1                 bslib_0.7.0             
+[31] stringi_1.8.4            brio_1.1.5               jquerylib_0.1.4         
+[34] estimability_1.5.1       Rcpp_1.0.12              knitr_1.46              
+[37] zoo_1.8-12               teal.logger_0.2.0        httpuv_1.6.15           
+[40] Matrix_1.7-0             splines_4.4.0            tidyselect_1.2.1        
+[43] yaml_2.3.8               codetools_0.2-20         websocket_1.4.1         
+[46] processx_3.8.4           teal.widgets_0.4.2       lattice_0.22-6          
+[49] tibble_3.2.1             withr_3.0.0              coda_0.19-4.1           
+[52] evaluate_0.23            survival_3.6-4           pillar_1.9.0            
+[55] shinycssloaders_1.0.0    checkmate_2.3.1          shinyjs_2.1.0           
+[58] plotly_4.10.4            generics_0.1.3           chromote_0.2.0          
+[61] ggplot2_3.5.1            munsell_0.5.1            scales_1.3.0            
+[64] xtable_1.8-4             glue_1.7.0               emmeans_1.10.1          
+[67] lazyeval_0.2.2           tools_4.4.0              webshot2_0.1.1          
+[70] data.table_1.15.4        webshot_0.5.5            forcats_1.0.0           
+[73] mvtnorm_1.2-4            grid_4.4.0               tidyr_1.3.1             
+[76] rbibutils_2.2.16         colorspace_2.1-0         nlme_3.1-164            
+[79] random.cdisc.data_0.3.15 cli_3.6.2                fansi_1.0.6             
+[82] viridisLite_0.4.2        geepack_1.3.10           gtable_0.3.5            
+[85] sass_0.4.9               digest_0.6.35            TH.data_1.1-2           
+[88] htmlwidgets_1.6.4        memoise_2.0.1            htmltools_0.5.8.1       
+[91] lifecycle_1.0.4          httr_1.4.7               shinyWidgets_0.8.6      
+[94] mime_0.12                MASS_7.3-60.2           </code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
@@ -3827,227 +3821,224 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb12-14"><a href="#cb12-14"></a><span class="in">#| code-fold: show</span></span>
 <span id="cb12-15"><a href="#cb12-15"></a></span>
 <span id="cb12-16"><a href="#cb12-16"></a><span class="in">library(tern)</span></span>
-<span id="cb12-17"><a href="#cb12-17"></a><span class="in">library(scda)</span></span>
-<span id="cb12-18"><a href="#cb12-18"></a><span class="in">library(scda.2022)</span></span>
-<span id="cb12-19"><a href="#cb12-19"></a><span class="in">library(dplyr)</span></span>
-<span id="cb12-20"><a href="#cb12-20"></a></span>
-<span id="cb12-21"><a href="#cb12-21"></a><span class="in">adsl &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
-<span id="cb12-22"><a href="#cb12-22"></a><span class="in">advs &lt;- synthetic_cdisc_dataset("latest", "advs")</span></span>
-<span id="cb12-23"><a href="#cb12-23"></a></span>
-<span id="cb12-24"><a href="#cb12-24"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb12-25"><a href="#cb12-25"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb12-26"><a href="#cb12-26"></a><span class="in">advs &lt;- df_explicit_na(advs)</span></span>
+<span id="cb12-17"><a href="#cb12-17"></a><span class="in">library(dplyr)</span></span>
+<span id="cb12-18"><a href="#cb12-18"></a></span>
+<span id="cb12-19"><a href="#cb12-19"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb12-20"><a href="#cb12-20"></a><span class="in">advs &lt;- random.cdisc.data::cadvs</span></span>
+<span id="cb12-21"><a href="#cb12-21"></a></span>
+<span id="cb12-22"><a href="#cb12-22"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb12-23"><a href="#cb12-23"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb12-24"><a href="#cb12-24"></a><span class="in">advs &lt;- df_explicit_na(advs)</span></span>
+<span id="cb12-25"><a href="#cb12-25"></a></span>
+<span id="cb12-26"><a href="#cb12-26"></a><span class="in">advs_label &lt;- var_labels(advs)</span></span>
 <span id="cb12-27"><a href="#cb12-27"></a></span>
-<span id="cb12-28"><a href="#cb12-28"></a><span class="in">advs_label &lt;- var_labels(advs)</span></span>
-<span id="cb12-29"><a href="#cb12-29"></a></span>
-<span id="cb12-30"><a href="#cb12-30"></a><span class="in">advs &lt;- advs %&gt;%</span></span>
-<span id="cb12-31"><a href="#cb12-31"></a><span class="in">  filter(</span></span>
-<span id="cb12-32"><a href="#cb12-32"></a><span class="in">    PARAMCD == "DIABP",</span></span>
-<span id="cb12-33"><a href="#cb12-33"></a><span class="in">    PARAM == "Diastolic Blood Pressure"</span></span>
-<span id="cb12-34"><a href="#cb12-34"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-35"><a href="#cb12-35"></a><span class="in">  mutate(</span></span>
-<span id="cb12-36"><a href="#cb12-36"></a><span class="in">    PARAMCD = droplevels(PARAMCD),</span></span>
-<span id="cb12-37"><a href="#cb12-37"></a><span class="in">    PARAM = droplevels(PARAM)</span></span>
-<span id="cb12-38"><a href="#cb12-38"></a><span class="in">  )</span></span>
-<span id="cb12-39"><a href="#cb12-39"></a></span>
-<span id="cb12-40"><a href="#cb12-40"></a><span class="in"># post-baseline</span></span>
-<span id="cb12-41"><a href="#cb12-41"></a><span class="in">advs_pb &lt;- advs %&gt;%</span></span>
-<span id="cb12-42"><a href="#cb12-42"></a><span class="in">  filter(ABLFL != "Y", ABLFL2 != "Y")</span></span>
-<span id="cb12-43"><a href="#cb12-43"></a></span>
-<span id="cb12-44"><a href="#cb12-44"></a><span class="in">advs_pb_max &lt;- advs_pb %&gt;%</span></span>
-<span id="cb12-45"><a href="#cb12-45"></a><span class="in">  group_by(PARAM, USUBJID) %&gt;%</span></span>
-<span id="cb12-46"><a href="#cb12-46"></a><span class="in">  arrange(desc(AVAL)) %&gt;%</span></span>
-<span id="cb12-47"><a href="#cb12-47"></a><span class="in">  slice(1) %&gt;%</span></span>
-<span id="cb12-48"><a href="#cb12-48"></a><span class="in">  ungroup() %&gt;%</span></span>
-<span id="cb12-49"><a href="#cb12-49"></a><span class="in">  mutate(AVISIT = "Post-Baseline Maximum")</span></span>
-<span id="cb12-50"><a href="#cb12-50"></a></span>
-<span id="cb12-51"><a href="#cb12-51"></a><span class="in">advs_pb_min &lt;- advs_pb %&gt;%</span></span>
-<span id="cb12-52"><a href="#cb12-52"></a><span class="in">  group_by(PARAM, USUBJID) %&gt;%</span></span>
-<span id="cb12-53"><a href="#cb12-53"></a><span class="in">  arrange(AVAL) %&gt;%</span></span>
-<span id="cb12-54"><a href="#cb12-54"></a><span class="in">  slice(1) %&gt;%</span></span>
-<span id="cb12-55"><a href="#cb12-55"></a><span class="in">  ungroup() %&gt;%</span></span>
-<span id="cb12-56"><a href="#cb12-56"></a><span class="in">  mutate(AVISIT = "Post-Baseline Minimum")</span></span>
-<span id="cb12-57"><a href="#cb12-57"></a></span>
-<span id="cb12-58"><a href="#cb12-58"></a><span class="in">advs_pb_last &lt;- advs_pb %&gt;%</span></span>
-<span id="cb12-59"><a href="#cb12-59"></a><span class="in">  group_by(PARAM, USUBJID) %&gt;%</span></span>
-<span id="cb12-60"><a href="#cb12-60"></a><span class="in">  arrange(desc(AVISITN)) %&gt;%</span></span>
-<span id="cb12-61"><a href="#cb12-61"></a><span class="in">  slice(1) %&gt;%</span></span>
-<span id="cb12-62"><a href="#cb12-62"></a><span class="in">  ungroup() %&gt;%</span></span>
-<span id="cb12-63"><a href="#cb12-63"></a><span class="in">  mutate(AVISIT = "Post-Baseline Last")</span></span>
-<span id="cb12-64"><a href="#cb12-64"></a></span>
-<span id="cb12-65"><a href="#cb12-65"></a><span class="in"># Please note that for real data, per ADaM Spec 1.1, the advs_f can be obtained by filtering on PARAMCD, then</span></span>
-<span id="cb12-66"><a href="#cb12-66"></a><span class="in"># ANL01FL == 'Y' or AVISIT in c('POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST')</span></span>
-<span id="cb12-67"><a href="#cb12-67"></a></span>
-<span id="cb12-68"><a href="#cb12-68"></a><span class="in">advs_f &lt;- rbind(</span></span>
-<span id="cb12-69"><a href="#cb12-69"></a><span class="in">  advs,</span></span>
-<span id="cb12-70"><a href="#cb12-70"></a><span class="in">  advs_pb_last,</span></span>
-<span id="cb12-71"><a href="#cb12-71"></a><span class="in">  advs_pb_min,</span></span>
-<span id="cb12-72"><a href="#cb12-72"></a><span class="in">  advs_pb_max</span></span>
-<span id="cb12-73"><a href="#cb12-73"></a><span class="in">)</span></span>
-<span id="cb12-74"><a href="#cb12-74"></a></span>
-<span id="cb12-75"><a href="#cb12-75"></a><span class="in">advs_f &lt;- advs_f %&gt;%</span></span>
-<span id="cb12-76"><a href="#cb12-76"></a><span class="in">  mutate(AVISIT = droplevels(AVISIT))</span></span>
-<span id="cb12-77"><a href="#cb12-77"></a></span>
-<span id="cb12-78"><a href="#cb12-78"></a><span class="in">var_labels(advs_f) &lt;- advs_label</span></span>
-<span id="cb12-79"><a href="#cb12-79"></a><span class="in">```</span></span>
+<span id="cb12-28"><a href="#cb12-28"></a><span class="in">advs &lt;- advs %&gt;%</span></span>
+<span id="cb12-29"><a href="#cb12-29"></a><span class="in">  filter(</span></span>
+<span id="cb12-30"><a href="#cb12-30"></a><span class="in">    PARAMCD == "DIABP",</span></span>
+<span id="cb12-31"><a href="#cb12-31"></a><span class="in">    PARAM == "Diastolic Blood Pressure"</span></span>
+<span id="cb12-32"><a href="#cb12-32"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb12-33"><a href="#cb12-33"></a><span class="in">  mutate(</span></span>
+<span id="cb12-34"><a href="#cb12-34"></a><span class="in">    PARAMCD = droplevels(PARAMCD),</span></span>
+<span id="cb12-35"><a href="#cb12-35"></a><span class="in">    PARAM = droplevels(PARAM)</span></span>
+<span id="cb12-36"><a href="#cb12-36"></a><span class="in">  )</span></span>
+<span id="cb12-37"><a href="#cb12-37"></a></span>
+<span id="cb12-38"><a href="#cb12-38"></a><span class="in"># post-baseline</span></span>
+<span id="cb12-39"><a href="#cb12-39"></a><span class="in">advs_pb &lt;- advs %&gt;%</span></span>
+<span id="cb12-40"><a href="#cb12-40"></a><span class="in">  filter(ABLFL != "Y", ABLFL2 != "Y")</span></span>
+<span id="cb12-41"><a href="#cb12-41"></a></span>
+<span id="cb12-42"><a href="#cb12-42"></a><span class="in">advs_pb_max &lt;- advs_pb %&gt;%</span></span>
+<span id="cb12-43"><a href="#cb12-43"></a><span class="in">  group_by(PARAM, USUBJID) %&gt;%</span></span>
+<span id="cb12-44"><a href="#cb12-44"></a><span class="in">  arrange(desc(AVAL)) %&gt;%</span></span>
+<span id="cb12-45"><a href="#cb12-45"></a><span class="in">  slice(1) %&gt;%</span></span>
+<span id="cb12-46"><a href="#cb12-46"></a><span class="in">  ungroup() %&gt;%</span></span>
+<span id="cb12-47"><a href="#cb12-47"></a><span class="in">  mutate(AVISIT = "Post-Baseline Maximum")</span></span>
+<span id="cb12-48"><a href="#cb12-48"></a></span>
+<span id="cb12-49"><a href="#cb12-49"></a><span class="in">advs_pb_min &lt;- advs_pb %&gt;%</span></span>
+<span id="cb12-50"><a href="#cb12-50"></a><span class="in">  group_by(PARAM, USUBJID) %&gt;%</span></span>
+<span id="cb12-51"><a href="#cb12-51"></a><span class="in">  arrange(AVAL) %&gt;%</span></span>
+<span id="cb12-52"><a href="#cb12-52"></a><span class="in">  slice(1) %&gt;%</span></span>
+<span id="cb12-53"><a href="#cb12-53"></a><span class="in">  ungroup() %&gt;%</span></span>
+<span id="cb12-54"><a href="#cb12-54"></a><span class="in">  mutate(AVISIT = "Post-Baseline Minimum")</span></span>
+<span id="cb12-55"><a href="#cb12-55"></a></span>
+<span id="cb12-56"><a href="#cb12-56"></a><span class="in">advs_pb_last &lt;- advs_pb %&gt;%</span></span>
+<span id="cb12-57"><a href="#cb12-57"></a><span class="in">  group_by(PARAM, USUBJID) %&gt;%</span></span>
+<span id="cb12-58"><a href="#cb12-58"></a><span class="in">  arrange(desc(AVISITN)) %&gt;%</span></span>
+<span id="cb12-59"><a href="#cb12-59"></a><span class="in">  slice(1) %&gt;%</span></span>
+<span id="cb12-60"><a href="#cb12-60"></a><span class="in">  ungroup() %&gt;%</span></span>
+<span id="cb12-61"><a href="#cb12-61"></a><span class="in">  mutate(AVISIT = "Post-Baseline Last")</span></span>
+<span id="cb12-62"><a href="#cb12-62"></a></span>
+<span id="cb12-63"><a href="#cb12-63"></a><span class="in"># Please note that for real data, per ADaM Spec 1.1, the advs_f can be obtained by filtering on PARAMCD, then</span></span>
+<span id="cb12-64"><a href="#cb12-64"></a><span class="in"># ANL01FL == 'Y' or AVISIT in c('POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST')</span></span>
+<span id="cb12-65"><a href="#cb12-65"></a></span>
+<span id="cb12-66"><a href="#cb12-66"></a><span class="in">advs_f &lt;- rbind(</span></span>
+<span id="cb12-67"><a href="#cb12-67"></a><span class="in">  advs,</span></span>
+<span id="cb12-68"><a href="#cb12-68"></a><span class="in">  advs_pb_last,</span></span>
+<span id="cb12-69"><a href="#cb12-69"></a><span class="in">  advs_pb_min,</span></span>
+<span id="cb12-70"><a href="#cb12-70"></a><span class="in">  advs_pb_max</span></span>
+<span id="cb12-71"><a href="#cb12-71"></a><span class="in">)</span></span>
+<span id="cb12-72"><a href="#cb12-72"></a></span>
+<span id="cb12-73"><a href="#cb12-73"></a><span class="in">advs_f &lt;- advs_f %&gt;%</span></span>
+<span id="cb12-74"><a href="#cb12-74"></a><span class="in">  mutate(AVISIT = droplevels(AVISIT))</span></span>
+<span id="cb12-75"><a href="#cb12-75"></a></span>
+<span id="cb12-76"><a href="#cb12-76"></a><span class="in">var_labels(advs_f) &lt;- advs_label</span></span>
+<span id="cb12-77"><a href="#cb12-77"></a><span class="in">```</span></span>
+<span id="cb12-78"><a href="#cb12-78"></a></span>
+<span id="cb12-79"><a href="#cb12-79"></a><span class="fu">## Standard Table</span></span>
 <span id="cb12-80"><a href="#cb12-80"></a></span>
-<span id="cb12-81"><a href="#cb12-81"></a><span class="fu">## Standard Table</span></span>
-<span id="cb12-82"><a href="#cb12-82"></a></span>
-<span id="cb12-83"><a href="#cb12-83"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb12-84"><a href="#cb12-84"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb12-85"><a href="#cb12-85"></a></span>
-<span id="cb12-86"><a href="#cb12-86"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb12-87"><a href="#cb12-87"></a><span class="in">split_fun &lt;- drop_split_levels</span></span>
-<span id="cb12-88"><a href="#cb12-88"></a></span>
-<span id="cb12-89"><a href="#cb12-89"></a><span class="in">afun &lt;- function(x, .var, .spl_context, ...) {</span></span>
-<span id="cb12-90"><a href="#cb12-90"></a><span class="in">  n_fun &lt;- sum(!is.na(x), na.rm = TRUE)</span></span>
-<span id="cb12-91"><a href="#cb12-91"></a><span class="in">  if (n_fun == 0) {</span></span>
-<span id="cb12-92"><a href="#cb12-92"></a><span class="in">    mean_sd_fun &lt;- c(NA, NA)</span></span>
-<span id="cb12-93"><a href="#cb12-93"></a><span class="in">    median_fun &lt;- NA</span></span>
-<span id="cb12-94"><a href="#cb12-94"></a><span class="in">    min_max_fun &lt;- c(NA, NA)</span></span>
-<span id="cb12-95"><a href="#cb12-95"></a><span class="in">  } else {</span></span>
-<span id="cb12-96"><a href="#cb12-96"></a><span class="in">    mean_sd_fun &lt;- c(mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))</span></span>
-<span id="cb12-97"><a href="#cb12-97"></a><span class="in">    median_fun &lt;- median(x, na.rm = TRUE)</span></span>
-<span id="cb12-98"><a href="#cb12-98"></a><span class="in">    min_max_fun &lt;- c(min(x), max(x))</span></span>
-<span id="cb12-99"><a href="#cb12-99"></a><span class="in">  }</span></span>
-<span id="cb12-100"><a href="#cb12-100"></a><span class="in">  is_chg &lt;- .var == "CHG"</span></span>
-<span id="cb12-101"><a href="#cb12-101"></a><span class="in">  is_baseline &lt;- .spl_context$value[which(.spl_context$split == "AVISIT")] == "BASELINE"</span></span>
-<span id="cb12-102"><a href="#cb12-102"></a><span class="in">  if (is_baseline &amp;&amp; is_chg) n_fun &lt;- mean_sd_fun &lt;- median_fun &lt;- min_max_fun &lt;- NULL</span></span>
-<span id="cb12-103"><a href="#cb12-103"></a></span>
-<span id="cb12-104"><a href="#cb12-104"></a><span class="in">  in_rows(</span></span>
-<span id="cb12-105"><a href="#cb12-105"></a><span class="in">    "n" = n_fun,</span></span>
-<span id="cb12-106"><a href="#cb12-106"></a><span class="in">    "Mean (SD)" = mean_sd_fun,</span></span>
-<span id="cb12-107"><a href="#cb12-107"></a><span class="in">    "Median" = median_fun,</span></span>
-<span id="cb12-108"><a href="#cb12-108"></a><span class="in">    "Min - Max" = min_max_fun,</span></span>
-<span id="cb12-109"><a href="#cb12-109"></a><span class="in">    .formats = list("n" = "xx", "Mean (SD)" = "xx.xx (xx.xx)", "Median" = "xx.xx", "Min - Max" = "xx.xx - xx.xx"),</span></span>
-<span id="cb12-110"><a href="#cb12-110"></a><span class="in">    .format_na_strs = list("n" = "NE", "Mean (SD)" = "NE (NE)", "Median" = "NE", "Min - Max" = "NE - NE")</span></span>
-<span id="cb12-111"><a href="#cb12-111"></a><span class="in">  )</span></span>
-<span id="cb12-112"><a href="#cb12-112"></a><span class="in">}</span></span>
-<span id="cb12-113"><a href="#cb12-113"></a></span>
-<span id="cb12-114"><a href="#cb12-114"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb12-115"><a href="#cb12-115"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb12-116"><a href="#cb12-116"></a><span class="in">  split_rows_by("AVISIT", split_fun = split_fun, label_pos = "topleft", split_label = "\n\nAnalysis Visit") %&gt;%</span></span>
-<span id="cb12-117"><a href="#cb12-117"></a><span class="in">  split_cols_by_multivar(</span></span>
-<span id="cb12-118"><a href="#cb12-118"></a><span class="in">    vars = c("AVAL", "CHG"),</span></span>
-<span id="cb12-119"><a href="#cb12-119"></a><span class="in">    varlabels = c("Value at Visit", "Change from\nBaseline")</span></span>
-<span id="cb12-120"><a href="#cb12-120"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-121"><a href="#cb12-121"></a><span class="in">  analyze_colvars(afun = afun)</span></span>
-<span id="cb12-122"><a href="#cb12-122"></a></span>
-<span id="cb12-123"><a href="#cb12-123"></a><span class="in">result &lt;- build_table(lyt = lyt, df = advs_f, alt_counts_df = adsl)</span></span>
-<span id="cb12-124"><a href="#cb12-124"></a><span class="in">result</span></span>
-<span id="cb12-125"><a href="#cb12-125"></a><span class="in">```</span></span>
-<span id="cb12-126"><a href="#cb12-126"></a></span>
-<span id="cb12-127"><a href="#cb12-127"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
-<span id="cb12-128"><a href="#cb12-128"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb12-129"><a href="#cb12-129"></a>:::</span>
+<span id="cb12-81"><a href="#cb12-81"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb12-82"><a href="#cb12-82"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb12-83"><a href="#cb12-83"></a></span>
+<span id="cb12-84"><a href="#cb12-84"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb12-85"><a href="#cb12-85"></a><span class="in">split_fun &lt;- drop_split_levels</span></span>
+<span id="cb12-86"><a href="#cb12-86"></a></span>
+<span id="cb12-87"><a href="#cb12-87"></a><span class="in">afun &lt;- function(x, .var, .spl_context, ...) {</span></span>
+<span id="cb12-88"><a href="#cb12-88"></a><span class="in">  n_fun &lt;- sum(!is.na(x), na.rm = TRUE)</span></span>
+<span id="cb12-89"><a href="#cb12-89"></a><span class="in">  if (n_fun == 0) {</span></span>
+<span id="cb12-90"><a href="#cb12-90"></a><span class="in">    mean_sd_fun &lt;- c(NA, NA)</span></span>
+<span id="cb12-91"><a href="#cb12-91"></a><span class="in">    median_fun &lt;- NA</span></span>
+<span id="cb12-92"><a href="#cb12-92"></a><span class="in">    min_max_fun &lt;- c(NA, NA)</span></span>
+<span id="cb12-93"><a href="#cb12-93"></a><span class="in">  } else {</span></span>
+<span id="cb12-94"><a href="#cb12-94"></a><span class="in">    mean_sd_fun &lt;- c(mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))</span></span>
+<span id="cb12-95"><a href="#cb12-95"></a><span class="in">    median_fun &lt;- median(x, na.rm = TRUE)</span></span>
+<span id="cb12-96"><a href="#cb12-96"></a><span class="in">    min_max_fun &lt;- c(min(x), max(x))</span></span>
+<span id="cb12-97"><a href="#cb12-97"></a><span class="in">  }</span></span>
+<span id="cb12-98"><a href="#cb12-98"></a><span class="in">  is_chg &lt;- .var == "CHG"</span></span>
+<span id="cb12-99"><a href="#cb12-99"></a><span class="in">  is_baseline &lt;- .spl_context$value[which(.spl_context$split == "AVISIT")] == "BASELINE"</span></span>
+<span id="cb12-100"><a href="#cb12-100"></a><span class="in">  if (is_baseline &amp;&amp; is_chg) n_fun &lt;- mean_sd_fun &lt;- median_fun &lt;- min_max_fun &lt;- NULL</span></span>
+<span id="cb12-101"><a href="#cb12-101"></a></span>
+<span id="cb12-102"><a href="#cb12-102"></a><span class="in">  in_rows(</span></span>
+<span id="cb12-103"><a href="#cb12-103"></a><span class="in">    "n" = n_fun,</span></span>
+<span id="cb12-104"><a href="#cb12-104"></a><span class="in">    "Mean (SD)" = mean_sd_fun,</span></span>
+<span id="cb12-105"><a href="#cb12-105"></a><span class="in">    "Median" = median_fun,</span></span>
+<span id="cb12-106"><a href="#cb12-106"></a><span class="in">    "Min - Max" = min_max_fun,</span></span>
+<span id="cb12-107"><a href="#cb12-107"></a><span class="in">    .formats = list("n" = "xx", "Mean (SD)" = "xx.xx (xx.xx)", "Median" = "xx.xx", "Min - Max" = "xx.xx - xx.xx"),</span></span>
+<span id="cb12-108"><a href="#cb12-108"></a><span class="in">    .format_na_strs = list("n" = "NE", "Mean (SD)" = "NE (NE)", "Median" = "NE", "Min - Max" = "NE - NE")</span></span>
+<span id="cb12-109"><a href="#cb12-109"></a><span class="in">  )</span></span>
+<span id="cb12-110"><a href="#cb12-110"></a><span class="in">}</span></span>
+<span id="cb12-111"><a href="#cb12-111"></a></span>
+<span id="cb12-112"><a href="#cb12-112"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb12-113"><a href="#cb12-113"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb12-114"><a href="#cb12-114"></a><span class="in">  split_rows_by("AVISIT", split_fun = split_fun, label_pos = "topleft", split_label = "\n\nAnalysis Visit") %&gt;%</span></span>
+<span id="cb12-115"><a href="#cb12-115"></a><span class="in">  split_cols_by_multivar(</span></span>
+<span id="cb12-116"><a href="#cb12-116"></a><span class="in">    vars = c("AVAL", "CHG"),</span></span>
+<span id="cb12-117"><a href="#cb12-117"></a><span class="in">    varlabels = c("Value at Visit", "Change from\nBaseline")</span></span>
+<span id="cb12-118"><a href="#cb12-118"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb12-119"><a href="#cb12-119"></a><span class="in">  analyze_colvars(afun = afun)</span></span>
+<span id="cb12-120"><a href="#cb12-120"></a></span>
+<span id="cb12-121"><a href="#cb12-121"></a><span class="in">result &lt;- build_table(lyt = lyt, df = advs_f, alt_counts_df = adsl)</span></span>
+<span id="cb12-122"><a href="#cb12-122"></a><span class="in">result</span></span>
+<span id="cb12-123"><a href="#cb12-123"></a><span class="in">```</span></span>
+<span id="cb12-124"><a href="#cb12-124"></a></span>
+<span id="cb12-125"><a href="#cb12-125"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
+<span id="cb12-126"><a href="#cb12-126"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb12-127"><a href="#cb12-127"></a>:::</span>
+<span id="cb12-128"><a href="#cb12-128"></a></span>
+<span id="cb12-129"><a href="#cb12-129"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
 <span id="cb12-130"><a href="#cb12-130"></a></span>
-<span id="cb12-131"><a href="#cb12-131"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb12-131"><a href="#cb12-131"></a><span class="fu">## `teal` App</span></span>
 <span id="cb12-132"><a href="#cb12-132"></a></span>
-<span id="cb12-133"><a href="#cb12-133"></a><span class="fu">## `teal` App</span></span>
-<span id="cb12-134"><a href="#cb12-134"></a></span>
-<span id="cb12-135"><a href="#cb12-135"></a>::: {.panel-tabset .nav-justified}</span>
-<span id="cb12-136"><a href="#cb12-136"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
+<span id="cb12-133"><a href="#cb12-133"></a>::: {.panel-tabset .nav-justified}</span>
+<span id="cb12-134"><a href="#cb12-134"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
+<span id="cb12-135"><a href="#cb12-135"></a></span>
+<span id="cb12-136"><a href="#cb12-136"></a><span class="co">&lt;!-- skip eval because of https://github.com/insightsengineering/teal.modules.clinical/pull/1087 --&gt;</span></span>
 <span id="cb12-137"><a href="#cb12-137"></a></span>
-<span id="cb12-138"><a href="#cb12-138"></a><span class="co">&lt;!-- skip eval because of https://github.com/insightsengineering/teal.modules.clinical/pull/1087 --&gt;</span></span>
-<span id="cb12-139"><a href="#cb12-139"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app"), eval = packageVersion("teal.modules.clinical") &gt;= "0.9.0.9007"}</span></span>
-<span id="cb12-140"><a href="#cb12-140"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb12-141"><a href="#cb12-141"></a></span>
-<span id="cb12-142"><a href="#cb12-142"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb12-143"><a href="#cb12-143"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb12-144"><a href="#cb12-144"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb12-145"><a href="#cb12-145"></a><span class="in">  library(scda)</span></span>
-<span id="cb12-146"><a href="#cb12-146"></a><span class="in">  library(scda.2022)</span></span>
-<span id="cb12-147"><a href="#cb12-147"></a><span class="in">  library(dplyr)</span></span>
-<span id="cb12-148"><a href="#cb12-148"></a></span>
-<span id="cb12-149"><a href="#cb12-149"></a><span class="in">  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
-<span id="cb12-150"><a href="#cb12-150"></a><span class="in">  ADVS &lt;- synthetic_cdisc_dataset("latest", "advs")</span></span>
-<span id="cb12-151"><a href="#cb12-151"></a><span class="in">  advs_label &lt;- col_labels(ADVS)</span></span>
-<span id="cb12-152"><a href="#cb12-152"></a></span>
-<span id="cb12-153"><a href="#cb12-153"></a><span class="in">  # post-baseline</span></span>
-<span id="cb12-154"><a href="#cb12-154"></a><span class="in">  advs_pb &lt;- ADVS %&gt;%</span></span>
-<span id="cb12-155"><a href="#cb12-155"></a><span class="in">    filter(</span></span>
-<span id="cb12-156"><a href="#cb12-156"></a><span class="in">      ABLFL != "Y",</span></span>
-<span id="cb12-157"><a href="#cb12-157"></a><span class="in">      ABLFL2 != "Y"</span></span>
-<span id="cb12-158"><a href="#cb12-158"></a><span class="in">    )</span></span>
-<span id="cb12-159"><a href="#cb12-159"></a></span>
-<span id="cb12-160"><a href="#cb12-160"></a><span class="in">  advs_pb_max &lt;- advs_pb %&gt;%</span></span>
-<span id="cb12-161"><a href="#cb12-161"></a><span class="in">    group_by(PARAM, USUBJID) %&gt;%</span></span>
-<span id="cb12-162"><a href="#cb12-162"></a><span class="in">    arrange(desc(AVAL)) %&gt;%</span></span>
-<span id="cb12-163"><a href="#cb12-163"></a><span class="in">    slice(1) %&gt;%</span></span>
-<span id="cb12-164"><a href="#cb12-164"></a><span class="in">    ungroup() %&gt;%</span></span>
-<span id="cb12-165"><a href="#cb12-165"></a><span class="in">    mutate(AVISIT = "Post-Baseline Maximum")</span></span>
-<span id="cb12-166"><a href="#cb12-166"></a></span>
-<span id="cb12-167"><a href="#cb12-167"></a><span class="in">  advs_pb_min &lt;- advs_pb %&gt;%</span></span>
-<span id="cb12-168"><a href="#cb12-168"></a><span class="in">    group_by(PARAM, USUBJID) %&gt;%</span></span>
-<span id="cb12-169"><a href="#cb12-169"></a><span class="in">    arrange(AVAL) %&gt;%</span></span>
-<span id="cb12-170"><a href="#cb12-170"></a><span class="in">    slice(1) %&gt;%</span></span>
-<span id="cb12-171"><a href="#cb12-171"></a><span class="in">    ungroup() %&gt;%</span></span>
-<span id="cb12-172"><a href="#cb12-172"></a><span class="in">    mutate(AVISIT = "Post-Baseline Minimum")</span></span>
-<span id="cb12-173"><a href="#cb12-173"></a></span>
-<span id="cb12-174"><a href="#cb12-174"></a><span class="in">  advs_pb_last &lt;- advs_pb %&gt;%</span></span>
-<span id="cb12-175"><a href="#cb12-175"></a><span class="in">    group_by(PARAM, USUBJID) %&gt;%</span></span>
-<span id="cb12-176"><a href="#cb12-176"></a><span class="in">    arrange(desc(AVISITN)) %&gt;%</span></span>
-<span id="cb12-177"><a href="#cb12-177"></a><span class="in">    slice(1) %&gt;%</span></span>
-<span id="cb12-178"><a href="#cb12-178"></a><span class="in">    ungroup() %&gt;%</span></span>
-<span id="cb12-179"><a href="#cb12-179"></a><span class="in">    mutate(AVISIT = "Post-Baseline Last")</span></span>
-<span id="cb12-180"><a href="#cb12-180"></a></span>
-<span id="cb12-181"><a href="#cb12-181"></a><span class="in">  ADVS &lt;- rbind(</span></span>
-<span id="cb12-182"><a href="#cb12-182"></a><span class="in">    ADVS,</span></span>
-<span id="cb12-183"><a href="#cb12-183"></a><span class="in">    advs_pb_last,</span></span>
-<span id="cb12-184"><a href="#cb12-184"></a><span class="in">    advs_pb_min,</span></span>
-<span id="cb12-185"><a href="#cb12-185"></a><span class="in">    advs_pb_max</span></span>
-<span id="cb12-186"><a href="#cb12-186"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-187"><a href="#cb12-187"></a><span class="in">    mutate(AVISIT = droplevels(AVISIT))</span></span>
-<span id="cb12-188"><a href="#cb12-188"></a></span>
-<span id="cb12-189"><a href="#cb12-189"></a><span class="in">  col_labels(ADVS) &lt;- advs_label</span></span>
-<span id="cb12-190"><a href="#cb12-190"></a><span class="in">})</span></span>
-<span id="cb12-191"><a href="#cb12-191"></a><span class="in">datanames &lt;- c("ADSL", "ADVS")</span></span>
-<span id="cb12-192"><a href="#cb12-192"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb12-193"><a href="#cb12-193"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb12-194"><a href="#cb12-194"></a></span>
-<span id="cb12-195"><a href="#cb12-195"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb12-196"><a href="#cb12-196"></a><span class="in">ADSL &lt;- data[["ADSL"]]</span></span>
-<span id="cb12-197"><a href="#cb12-197"></a><span class="in">ADVS &lt;- data[["ADVS"]]</span></span>
-<span id="cb12-198"><a href="#cb12-198"></a></span>
-<span id="cb12-199"><a href="#cb12-199"></a><span class="in">## Setup App</span></span>
-<span id="cb12-200"><a href="#cb12-200"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb12-201"><a href="#cb12-201"></a><span class="in">  data = data,</span></span>
-<span id="cb12-202"><a href="#cb12-202"></a><span class="in">  modules = modules(</span></span>
-<span id="cb12-203"><a href="#cb12-203"></a><span class="in">    tm_t_summary_by(</span></span>
-<span id="cb12-204"><a href="#cb12-204"></a><span class="in">      label = "Vital Sign Results and Change from Baseline by Visit",</span></span>
-<span id="cb12-205"><a href="#cb12-205"></a><span class="in">      dataname = "ADVS",</span></span>
-<span id="cb12-206"><a href="#cb12-206"></a><span class="in">      arm_var = choices_selected(</span></span>
-<span id="cb12-207"><a href="#cb12-207"></a><span class="in">        choices = variable_choices(ADSL, c("ARM", "ARMCD")),</span></span>
-<span id="cb12-208"><a href="#cb12-208"></a><span class="in">        selected = "ARM"</span></span>
-<span id="cb12-209"><a href="#cb12-209"></a><span class="in">      ),</span></span>
-<span id="cb12-210"><a href="#cb12-210"></a><span class="in">      by_vars = choices_selected(</span></span>
-<span id="cb12-211"><a href="#cb12-211"></a><span class="in">        choices = variable_choices(ADVS, c("PARAM", "AVISIT")),</span></span>
-<span id="cb12-212"><a href="#cb12-212"></a><span class="in">        selected = c("AVISIT", "PARAM")</span></span>
-<span id="cb12-213"><a href="#cb12-213"></a><span class="in">      ),</span></span>
-<span id="cb12-214"><a href="#cb12-214"></a><span class="in">      summarize_vars = choices_selected(</span></span>
-<span id="cb12-215"><a href="#cb12-215"></a><span class="in">        choices = variable_choices(ADVS, c("AVAL", "CHG")),</span></span>
-<span id="cb12-216"><a href="#cb12-216"></a><span class="in">        selected = c("AVAL", "CHG")</span></span>
-<span id="cb12-217"><a href="#cb12-217"></a><span class="in">      ),</span></span>
-<span id="cb12-218"><a href="#cb12-218"></a><span class="in">      useNA = "ifany",</span></span>
-<span id="cb12-219"><a href="#cb12-219"></a><span class="in">      paramcd = choices_selected(</span></span>
-<span id="cb12-220"><a href="#cb12-220"></a><span class="in">        choices = value_choices(ADVS, "PARAMCD", "PARAM"),</span></span>
-<span id="cb12-221"><a href="#cb12-221"></a><span class="in">        selected = "DIABP"</span></span>
-<span id="cb12-222"><a href="#cb12-222"></a><span class="in">      ),</span></span>
-<span id="cb12-223"><a href="#cb12-223"></a><span class="in">      parallel_vars = TRUE</span></span>
-<span id="cb12-224"><a href="#cb12-224"></a><span class="in">    )</span></span>
-<span id="cb12-225"><a href="#cb12-225"></a><span class="in">  ),</span></span>
-<span id="cb12-226"><a href="#cb12-226"></a><span class="in">  filter = teal_slices(teal_slice("ADVS", "AVAL", selected = NULL))</span></span>
-<span id="cb12-227"><a href="#cb12-227"></a><span class="in">)</span></span>
+<span id="cb12-138"><a href="#cb12-138"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app"), eval = packageVersion("teal.modules.clinical") &gt;= "0.9.0.9007"}</span></span>
+<span id="cb12-139"><a href="#cb12-139"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb12-140"><a href="#cb12-140"></a></span>
+<span id="cb12-141"><a href="#cb12-141"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb12-142"><a href="#cb12-142"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb12-143"><a href="#cb12-143"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb12-144"><a href="#cb12-144"></a><span class="in">  library(dplyr)</span></span>
+<span id="cb12-145"><a href="#cb12-145"></a></span>
+<span id="cb12-146"><a href="#cb12-146"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb12-147"><a href="#cb12-147"></a><span class="in">  ADVS &lt;- random.cdisc.data::cadvs</span></span>
+<span id="cb12-148"><a href="#cb12-148"></a><span class="in">  advs_label &lt;- col_labels(ADVS)</span></span>
+<span id="cb12-149"><a href="#cb12-149"></a></span>
+<span id="cb12-150"><a href="#cb12-150"></a><span class="in">  # post-baseline</span></span>
+<span id="cb12-151"><a href="#cb12-151"></a><span class="in">  advs_pb &lt;- ADVS %&gt;%</span></span>
+<span id="cb12-152"><a href="#cb12-152"></a><span class="in">    filter(</span></span>
+<span id="cb12-153"><a href="#cb12-153"></a><span class="in">      ABLFL != "Y",</span></span>
+<span id="cb12-154"><a href="#cb12-154"></a><span class="in">      ABLFL2 != "Y"</span></span>
+<span id="cb12-155"><a href="#cb12-155"></a><span class="in">    )</span></span>
+<span id="cb12-156"><a href="#cb12-156"></a></span>
+<span id="cb12-157"><a href="#cb12-157"></a><span class="in">  advs_pb_max &lt;- advs_pb %&gt;%</span></span>
+<span id="cb12-158"><a href="#cb12-158"></a><span class="in">    group_by(PARAM, USUBJID) %&gt;%</span></span>
+<span id="cb12-159"><a href="#cb12-159"></a><span class="in">    arrange(desc(AVAL)) %&gt;%</span></span>
+<span id="cb12-160"><a href="#cb12-160"></a><span class="in">    slice(1) %&gt;%</span></span>
+<span id="cb12-161"><a href="#cb12-161"></a><span class="in">    ungroup() %&gt;%</span></span>
+<span id="cb12-162"><a href="#cb12-162"></a><span class="in">    mutate(AVISIT = "Post-Baseline Maximum")</span></span>
+<span id="cb12-163"><a href="#cb12-163"></a></span>
+<span id="cb12-164"><a href="#cb12-164"></a><span class="in">  advs_pb_min &lt;- advs_pb %&gt;%</span></span>
+<span id="cb12-165"><a href="#cb12-165"></a><span class="in">    group_by(PARAM, USUBJID) %&gt;%</span></span>
+<span id="cb12-166"><a href="#cb12-166"></a><span class="in">    arrange(AVAL) %&gt;%</span></span>
+<span id="cb12-167"><a href="#cb12-167"></a><span class="in">    slice(1) %&gt;%</span></span>
+<span id="cb12-168"><a href="#cb12-168"></a><span class="in">    ungroup() %&gt;%</span></span>
+<span id="cb12-169"><a href="#cb12-169"></a><span class="in">    mutate(AVISIT = "Post-Baseline Minimum")</span></span>
+<span id="cb12-170"><a href="#cb12-170"></a></span>
+<span id="cb12-171"><a href="#cb12-171"></a><span class="in">  advs_pb_last &lt;- advs_pb %&gt;%</span></span>
+<span id="cb12-172"><a href="#cb12-172"></a><span class="in">    group_by(PARAM, USUBJID) %&gt;%</span></span>
+<span id="cb12-173"><a href="#cb12-173"></a><span class="in">    arrange(desc(AVISITN)) %&gt;%</span></span>
+<span id="cb12-174"><a href="#cb12-174"></a><span class="in">    slice(1) %&gt;%</span></span>
+<span id="cb12-175"><a href="#cb12-175"></a><span class="in">    ungroup() %&gt;%</span></span>
+<span id="cb12-176"><a href="#cb12-176"></a><span class="in">    mutate(AVISIT = "Post-Baseline Last")</span></span>
+<span id="cb12-177"><a href="#cb12-177"></a></span>
+<span id="cb12-178"><a href="#cb12-178"></a><span class="in">  ADVS &lt;- rbind(</span></span>
+<span id="cb12-179"><a href="#cb12-179"></a><span class="in">    ADVS,</span></span>
+<span id="cb12-180"><a href="#cb12-180"></a><span class="in">    advs_pb_last,</span></span>
+<span id="cb12-181"><a href="#cb12-181"></a><span class="in">    advs_pb_min,</span></span>
+<span id="cb12-182"><a href="#cb12-182"></a><span class="in">    advs_pb_max</span></span>
+<span id="cb12-183"><a href="#cb12-183"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb12-184"><a href="#cb12-184"></a><span class="in">    mutate(AVISIT = droplevels(AVISIT))</span></span>
+<span id="cb12-185"><a href="#cb12-185"></a></span>
+<span id="cb12-186"><a href="#cb12-186"></a><span class="in">  col_labels(ADVS) &lt;- advs_label</span></span>
+<span id="cb12-187"><a href="#cb12-187"></a><span class="in">})</span></span>
+<span id="cb12-188"><a href="#cb12-188"></a><span class="in">datanames &lt;- c("ADSL", "ADVS")</span></span>
+<span id="cb12-189"><a href="#cb12-189"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb12-190"><a href="#cb12-190"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb12-191"><a href="#cb12-191"></a></span>
+<span id="cb12-192"><a href="#cb12-192"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb12-193"><a href="#cb12-193"></a><span class="in">ADSL &lt;- data[["ADSL"]]</span></span>
+<span id="cb12-194"><a href="#cb12-194"></a><span class="in">ADVS &lt;- data[["ADVS"]]</span></span>
+<span id="cb12-195"><a href="#cb12-195"></a></span>
+<span id="cb12-196"><a href="#cb12-196"></a><span class="in">## Setup App</span></span>
+<span id="cb12-197"><a href="#cb12-197"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb12-198"><a href="#cb12-198"></a><span class="in">  data = data,</span></span>
+<span id="cb12-199"><a href="#cb12-199"></a><span class="in">  modules = modules(</span></span>
+<span id="cb12-200"><a href="#cb12-200"></a><span class="in">    tm_t_summary_by(</span></span>
+<span id="cb12-201"><a href="#cb12-201"></a><span class="in">      label = "Vital Sign Results and Change from Baseline by Visit",</span></span>
+<span id="cb12-202"><a href="#cb12-202"></a><span class="in">      dataname = "ADVS",</span></span>
+<span id="cb12-203"><a href="#cb12-203"></a><span class="in">      arm_var = choices_selected(</span></span>
+<span id="cb12-204"><a href="#cb12-204"></a><span class="in">        choices = variable_choices(ADSL, c("ARM", "ARMCD")),</span></span>
+<span id="cb12-205"><a href="#cb12-205"></a><span class="in">        selected = "ARM"</span></span>
+<span id="cb12-206"><a href="#cb12-206"></a><span class="in">      ),</span></span>
+<span id="cb12-207"><a href="#cb12-207"></a><span class="in">      by_vars = choices_selected(</span></span>
+<span id="cb12-208"><a href="#cb12-208"></a><span class="in">        choices = variable_choices(ADVS, c("PARAM", "AVISIT")),</span></span>
+<span id="cb12-209"><a href="#cb12-209"></a><span class="in">        selected = c("AVISIT", "PARAM")</span></span>
+<span id="cb12-210"><a href="#cb12-210"></a><span class="in">      ),</span></span>
+<span id="cb12-211"><a href="#cb12-211"></a><span class="in">      summarize_vars = choices_selected(</span></span>
+<span id="cb12-212"><a href="#cb12-212"></a><span class="in">        choices = variable_choices(ADVS, c("AVAL", "CHG")),</span></span>
+<span id="cb12-213"><a href="#cb12-213"></a><span class="in">        selected = c("AVAL", "CHG")</span></span>
+<span id="cb12-214"><a href="#cb12-214"></a><span class="in">      ),</span></span>
+<span id="cb12-215"><a href="#cb12-215"></a><span class="in">      useNA = "ifany",</span></span>
+<span id="cb12-216"><a href="#cb12-216"></a><span class="in">      paramcd = choices_selected(</span></span>
+<span id="cb12-217"><a href="#cb12-217"></a><span class="in">        choices = value_choices(ADVS, "PARAMCD", "PARAM"),</span></span>
+<span id="cb12-218"><a href="#cb12-218"></a><span class="in">        selected = "DIABP"</span></span>
+<span id="cb12-219"><a href="#cb12-219"></a><span class="in">      ),</span></span>
+<span id="cb12-220"><a href="#cb12-220"></a><span class="in">      parallel_vars = TRUE</span></span>
+<span id="cb12-221"><a href="#cb12-221"></a><span class="in">    )</span></span>
+<span id="cb12-222"><a href="#cb12-222"></a><span class="in">  ),</span></span>
+<span id="cb12-223"><a href="#cb12-223"></a><span class="in">  filter = teal_slices(teal_slice("ADVS", "AVAL", selected = NULL))</span></span>
+<span id="cb12-224"><a href="#cb12-224"></a><span class="in">)</span></span>
+<span id="cb12-225"><a href="#cb12-225"></a></span>
+<span id="cb12-226"><a href="#cb12-226"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb12-227"><a href="#cb12-227"></a><span class="in">```</span></span>
 <span id="cb12-228"><a href="#cb12-228"></a></span>
-<span id="cb12-229"><a href="#cb12-229"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb12-230"><a href="#cb12-230"></a><span class="in">```</span></span>
+<span id="cb12-229"><a href="#cb12-229"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
+<span id="cb12-230"><a href="#cb12-230"></a>:::</span>
 <span id="cb12-231"><a href="#cb12-231"></a></span>
-<span id="cb12-232"><a href="#cb12-232"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
-<span id="cb12-233"><a href="#cb12-233"></a>:::</span>
-<span id="cb12-234"><a href="#cb12-234"></a></span>
-<span id="cb12-235"><a href="#cb12-235"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb12-236"><a href="#cb12-236"></a></span>
-<span id="cb12-237"><a href="#cb12-237"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-232"><a href="#cb12-232"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb12-233"><a href="#cb12-233"></a></span>
+<span id="cb12-234"><a href="#cb12-234"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

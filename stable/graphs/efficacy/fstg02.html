@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\nlibrary(nestcolor)\nlibrary(scda)\nlibrary(scda.2022)\n\npreprocess_adtte <- function(adtte) {\n  # Save variable labels before data processing steps.\n  adtte_labels <- var_labels(adtte)\n\n  adtte <- adtte %>%\n    df_explicit_na() %>%\n    dplyr::filter(\n      PARAMCD == \"OS\",\n      ARM %in% c(\"B: Placebo\", \"A: Drug X\"),\n      SEX %in% c(\"M\", \"F\")\n    ) %>%\n    dplyr::mutate(\n      # Reorder levels of ARM to display reference arm before treatment arm.\n      ARM = droplevels(forcats::fct_relevel(ARM, \"B: Placebo\")),\n      SEX = droplevels(SEX),\n      is_event = CNSR == 0,\n      # Convert time to MONTH\n      AVAL = day2month(AVAL),\n      AVALU = \"Months\"\n    ) %>%\n    var_relabel(\n      ARM = adtte_labels[\"ARM\"],\n      SEX = adtte_labels[\"SEX\"],\n      is_event = \"Event Flag\",\n      AVAL = adtte_labels[\"AVAL\"],\n      AVALU = adtte_labels[\"AVALU\"]\n    )\n\n  adtte\n}\n\nanl <- synthetic_cdisc_dataset(\"latest\", \"adtte\") %>%\n  preprocess_adtte()\nanl1 <- anl\n\ndf <- extract_survival_subgroups(\n  variables = list(tte = \"AVAL\", is_event = \"is_event\", arm = \"ARM\", subgroups = c(\"SEX\", \"BMRKR2\")),\n  data = anl1\n)\n\nresult <- basic_table() %>%\n  tabulate_survival_subgroups(\n    df = df,\n    vars = c(\"n_tot\", \"n\", \"median\", \"hr\", \"ci\"),\n    time_unit = anl1$AVALU[1]\n  )\nresult\n\n# Add plot.\nplot <- g_forest(tbl = result)\nplot","options":{"message":"true","read-only":"false","fig-width":7,"warning":"true","fig-cap":"","autorun":"true","output":"true","fig-height":5,"comment":"","classes":"","context":"interactive","out-width":"700px","results":"markup","label":"unnamed-chunk-1","dpi":72,"out-height":"","editor-quick-suggestions":"false","editor-max-height":"500","editor-font-scale":1},"id":1},{"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\nlibrary(nestcolor)\nlibrary(scda)\nlibrary(scda.2022)\n\npreprocess_adtte <- function(adtte) {\n  # Save variable labels before data processing steps.\n  adtte_labels <- var_labels(adtte)\n\n  adtte <- adtte %>%\n    df_explicit_na() %>%\n    dplyr::filter(\n      PARAMCD == \"OS\",\n      ARM %in% c(\"B: Placebo\", \"A: Drug X\"),\n      SEX %in% c(\"M\", \"F\")\n    ) %>%\n    dplyr::mutate(\n      # Reorder levels of ARM to display reference arm before treatment arm.\n      ARM = droplevels(forcats::fct_relevel(ARM, \"B: Placebo\")),\n      SEX = droplevels(SEX),\n      is_event = CNSR == 0,\n      # Convert time to MONTH\n      AVAL = day2month(AVAL),\n      AVALU = \"Months\"\n    ) %>%\n    var_relabel(\n      ARM = adtte_labels[\"ARM\"],\n      SEX = adtte_labels[\"SEX\"],\n      is_event = \"Event Flag\",\n      AVAL = adtte_labels[\"AVAL\"],\n      AVALU = adtte_labels[\"AVALU\"]\n    )\n\n  adtte\n}\n\nanl <- synthetic_cdisc_dataset(\"latest\", \"adtte\") %>%\n  preprocess_adtte()\nanl2 <- anl %>%\n  mutate(\n    # Recode levels of arm.\n    ARM = forcats::fct_recode(\n      ARM,\n      \"Placebo\" = \"B: Placebo\",\n      \"Drug X\" = \"A: Drug X\"\n    ),\n    # Reorder levels of `SEX`.\n    SEX = forcats::fct_relevel(SEX, \"M\", \"F\"),\n    # Reorder levels of `STRATA1`` by frequency.\n    STRATA1 = forcats::fct_infreq(STRATA1)\n  )\n\ndf <- extract_survival_subgroups(\n  variables = list(tte = \"AVAL\", is_event = \"is_event\", arm = \"ARM\", subgroups = c(\"SEX\", \"STRATA1\")),\n  data = anl2\n)\n\nresult <- basic_table() %>%\n  tabulate_survival_subgroups(\n    df = df,\n    vars = c(\"n_tot\", \"n\", \"median\", \"hr\", \"ci\"),\n    time_unit = anl2$AVALU[1]\n  )\nresult\n\nplot <- g_forest(tbl = result)\nplot","options":{"message":"true","read-only":"false","fig-width":7,"warning":"true","fig-cap":"","autorun":"true","output":"true","fig-height":5,"comment":"","classes":"","context":"interactive","out-width":"700px","results":"markup","label":"unnamed-chunk-2","dpi":72,"out-height":"","editor-quick-suggestions":"false","editor-max-height":"500","editor-font-scale":1},"id":2},{"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\nlibrary(nestcolor)\nlibrary(scda)\nlibrary(scda.2022)\n\npreprocess_adtte <- function(adtte) {\n  # Save variable labels before data processing steps.\n  adtte_labels <- var_labels(adtte)\n\n  adtte <- adtte %>%\n    df_explicit_na() %>%\n    dplyr::filter(\n      PARAMCD == \"OS\",\n      ARM %in% c(\"B: Placebo\", \"A: Drug X\"),\n      SEX %in% c(\"M\", \"F\")\n    ) %>%\n    dplyr::mutate(\n      # Reorder levels of ARM to display reference arm before treatment arm.\n      ARM = droplevels(forcats::fct_relevel(ARM, \"B: Placebo\")),\n      SEX = droplevels(SEX),\n      is_event = CNSR == 0,\n      # Convert time to MONTH\n      AVAL = day2month(AVAL),\n      AVALU = \"Months\"\n    ) %>%\n    var_relabel(\n      ARM = adtte_labels[\"ARM\"],\n      SEX = adtte_labels[\"SEX\"],\n      is_event = \"Event Flag\",\n      AVAL = adtte_labels[\"AVAL\"],\n      AVALU = adtte_labels[\"AVALU\"]\n    )\n\n  adtte\n}\n\nanl <- synthetic_cdisc_dataset(\"latest\", \"adtte\") %>%\n  preprocess_adtte()\nanl3 <- anl\n\ndf <- extract_survival_subgroups(\n  variables = list(tte = \"AVAL\", is_event = \"is_event\", arm = \"ARM\", subgroups = c(\"SEX\", \"BMRKR2\")),\n  control = control_coxph(conf_level = 0.9),\n  data = anl3\n)\n\nresult <- basic_table() %>%\n  tabulate_survival_subgroups(\n    df = df,\n    vars = c(\"n_tot\", \"hr\", \"ci\")\n  )\nresult\n\n# Add plot.\nplot <- g_forest(tbl = result)\nplot","options":{"message":"true","read-only":"false","fig-width":7,"warning":"true","fig-cap":"","autorun":"true","output":"true","fig-height":5,"comment":"","classes":"","context":"interactive","out-width":"700px","results":"markup","label":"unnamed-chunk-3","dpi":72,"out-height":"","editor-quick-suggestions":"false","editor-max-height":"500","editor-font-scale":1},"id":3},{"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\nlibrary(nestcolor)\nlibrary(scda)\nlibrary(scda.2022)\n\npreprocess_adtte <- function(adtte) {\n  # Save variable labels before data processing steps.\n  adtte_labels <- var_labels(adtte)\n\n  adtte <- adtte %>%\n    df_explicit_na() %>%\n    dplyr::filter(\n      PARAMCD == \"OS\",\n      ARM %in% c(\"B: Placebo\", \"A: Drug X\"),\n      SEX %in% c(\"M\", \"F\")\n    ) %>%\n    dplyr::mutate(\n      # Reorder levels of ARM to display reference arm before treatment arm.\n      ARM = droplevels(forcats::fct_relevel(ARM, \"B: Placebo\")),\n      SEX = droplevels(SEX),\n      is_event = CNSR == 0,\n      # Convert time to MONTH\n      AVAL = day2month(AVAL),\n      AVALU = \"Months\"\n    ) %>%\n    var_relabel(\n      ARM = adtte_labels[\"ARM\"],\n      SEX = adtte_labels[\"SEX\"],\n      is_event = \"Event Flag\",\n      AVAL = adtte_labels[\"AVAL\"],\n      AVALU = adtte_labels[\"AVALU\"]\n    )\n\n  adtte\n}\n\nanl <- synthetic_cdisc_dataset(\"latest\", \"adtte\") %>%\n  preprocess_adtte()\nanl4 <- anl\n\ndf <- extract_survival_subgroups(\n  variables = list(tte = \"AVAL\", is_event = \"is_event\", arm = \"ARM\", subgroups = c(\"SEX\", \"BMRKR2\")),\n  data = anl4\n)\n\nresult <- basic_table() %>%\n  tabulate_survival_subgroups(\n    df = df,\n    vars = c(\"n_tot\", \"n\", \"median\", \"hr\", \"ci\"),\n    time_unit = anl4$AVALU[1]\n  )\nresult\n\n# Add plot.\nplot <- g_forest(\n  tbl = result,\n  col_symbol_size = NULL\n)\nplot","options":{"message":"true","read-only":"false","fig-width":7,"warning":"true","fig-cap":"","autorun":"true","output":"true","fig-height":5,"comment":"","classes":"","context":"interactive","out-width":"700px","results":"markup","label":"unnamed-chunk-4","dpi":72,"out-height":"","editor-quick-suggestions":"false","editor-max-height":"500","editor-font-scale":1},"id":4}];
+globalThis.qwebrCellDetails = [{"id":1,"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\nlibrary(nestcolor)\n\npreprocess_adtte <- function(adtte) {\n  # Save variable labels before data processing steps.\n  adtte_labels <- var_labels(adtte)\n\n  adtte <- adtte %>%\n    df_explicit_na() %>%\n    dplyr::filter(\n      PARAMCD == \"OS\",\n      ARM %in% c(\"B: Placebo\", \"A: Drug X\"),\n      SEX %in% c(\"M\", \"F\")\n    ) %>%\n    dplyr::mutate(\n      # Reorder levels of ARM to display reference arm before treatment arm.\n      ARM = droplevels(forcats::fct_relevel(ARM, \"B: Placebo\")),\n      SEX = droplevels(SEX),\n      is_event = CNSR == 0,\n      # Convert time to MONTH\n      AVAL = day2month(AVAL),\n      AVALU = \"Months\"\n    ) %>%\n    var_relabel(\n      ARM = adtte_labels[\"ARM\"],\n      SEX = adtte_labels[\"SEX\"],\n      is_event = \"Event Flag\",\n      AVAL = adtte_labels[\"AVAL\"],\n      AVALU = adtte_labels[\"AVALU\"]\n    )\n\n  adtte\n}\n\nanl <- random.cdisc.data::cadtte %>%\n  preprocess_adtte()\nanl1 <- anl\n\ndf <- extract_survival_subgroups(\n  variables = list(tte = \"AVAL\", is_event = \"is_event\", arm = \"ARM\", subgroups = c(\"SEX\", \"BMRKR2\")),\n  data = anl1\n)\n\nresult <- basic_table() %>%\n  tabulate_survival_subgroups(\n    df = df,\n    vars = c(\"n_tot\", \"n\", \"median\", \"hr\", \"ci\"),\n    time_unit = anl1$AVALU[1]\n  )\nresult\n\n# Add plot.\nplot <- g_forest(tbl = result)\nplot","options":{"out-width":"700px","editor-max-height":"500","warning":"true","context":"interactive","read-only":"false","fig-height":5,"label":"unnamed-chunk-1","editor-quick-suggestions":"false","message":"true","out-height":"","results":"markup","autorun":"true","fig-width":7,"output":"true","classes":"","comment":"","dpi":72,"fig-cap":"","editor-font-scale":1}},{"id":2,"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\nlibrary(nestcolor)\n\npreprocess_adtte <- function(adtte) {\n  # Save variable labels before data processing steps.\n  adtte_labels <- var_labels(adtte)\n\n  adtte <- adtte %>%\n    df_explicit_na() %>%\n    dplyr::filter(\n      PARAMCD == \"OS\",\n      ARM %in% c(\"B: Placebo\", \"A: Drug X\"),\n      SEX %in% c(\"M\", \"F\")\n    ) %>%\n    dplyr::mutate(\n      # Reorder levels of ARM to display reference arm before treatment arm.\n      ARM = droplevels(forcats::fct_relevel(ARM, \"B: Placebo\")),\n      SEX = droplevels(SEX),\n      is_event = CNSR == 0,\n      # Convert time to MONTH\n      AVAL = day2month(AVAL),\n      AVALU = \"Months\"\n    ) %>%\n    var_relabel(\n      ARM = adtte_labels[\"ARM\"],\n      SEX = adtte_labels[\"SEX\"],\n      is_event = \"Event Flag\",\n      AVAL = adtte_labels[\"AVAL\"],\n      AVALU = adtte_labels[\"AVALU\"]\n    )\n\n  adtte\n}\n\nanl <- random.cdisc.data::cadtte %>%\n  preprocess_adtte()\nanl2 <- anl %>%\n  mutate(\n    # Recode levels of arm.\n    ARM = forcats::fct_recode(\n      ARM,\n      \"Placebo\" = \"B: Placebo\",\n      \"Drug X\" = \"A: Drug X\"\n    ),\n    # Reorder levels of `SEX`.\n    SEX = forcats::fct_relevel(SEX, \"M\", \"F\"),\n    # Reorder levels of `STRATA1`` by frequency.\n    STRATA1 = forcats::fct_infreq(STRATA1)\n  )\n\ndf <- extract_survival_subgroups(\n  variables = list(tte = \"AVAL\", is_event = \"is_event\", arm = \"ARM\", subgroups = c(\"SEX\", \"STRATA1\")),\n  data = anl2\n)\n\nresult <- basic_table() %>%\n  tabulate_survival_subgroups(\n    df = df,\n    vars = c(\"n_tot\", \"n\", \"median\", \"hr\", \"ci\"),\n    time_unit = anl2$AVALU[1]\n  )\nresult\n\nplot <- g_forest(tbl = result)\nplot","options":{"out-width":"700px","editor-max-height":"500","warning":"true","context":"interactive","read-only":"false","fig-height":5,"label":"unnamed-chunk-2","editor-quick-suggestions":"false","message":"true","out-height":"","results":"markup","autorun":"true","fig-width":7,"output":"true","classes":"","comment":"","dpi":72,"fig-cap":"","editor-font-scale":1}},{"id":3,"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\nlibrary(nestcolor)\n\npreprocess_adtte <- function(adtte) {\n  # Save variable labels before data processing steps.\n  adtte_labels <- var_labels(adtte)\n\n  adtte <- adtte %>%\n    df_explicit_na() %>%\n    dplyr::filter(\n      PARAMCD == \"OS\",\n      ARM %in% c(\"B: Placebo\", \"A: Drug X\"),\n      SEX %in% c(\"M\", \"F\")\n    ) %>%\n    dplyr::mutate(\n      # Reorder levels of ARM to display reference arm before treatment arm.\n      ARM = droplevels(forcats::fct_relevel(ARM, \"B: Placebo\")),\n      SEX = droplevels(SEX),\n      is_event = CNSR == 0,\n      # Convert time to MONTH\n      AVAL = day2month(AVAL),\n      AVALU = \"Months\"\n    ) %>%\n    var_relabel(\n      ARM = adtte_labels[\"ARM\"],\n      SEX = adtte_labels[\"SEX\"],\n      is_event = \"Event Flag\",\n      AVAL = adtte_labels[\"AVAL\"],\n      AVALU = adtte_labels[\"AVALU\"]\n    )\n\n  adtte\n}\n\nanl <- random.cdisc.data::cadtte %>%\n  preprocess_adtte()\nanl3 <- anl\n\ndf <- extract_survival_subgroups(\n  variables = list(tte = \"AVAL\", is_event = \"is_event\", arm = \"ARM\", subgroups = c(\"SEX\", \"BMRKR2\")),\n  control = control_coxph(conf_level = 0.9),\n  data = anl3\n)\n\nresult <- basic_table() %>%\n  tabulate_survival_subgroups(\n    df = df,\n    vars = c(\"n_tot\", \"hr\", \"ci\")\n  )\nresult\n\n# Add plot.\nplot <- g_forest(tbl = result)\nplot","options":{"out-width":"700px","editor-max-height":"500","warning":"true","context":"interactive","read-only":"false","fig-height":5,"label":"unnamed-chunk-3","editor-quick-suggestions":"false","message":"true","out-height":"","results":"markup","autorun":"true","fig-width":7,"output":"true","classes":"","comment":"","dpi":72,"fig-cap":"","editor-font-scale":1}},{"id":4,"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\nlibrary(nestcolor)\n\npreprocess_adtte <- function(adtte) {\n  # Save variable labels before data processing steps.\n  adtte_labels <- var_labels(adtte)\n\n  adtte <- adtte %>%\n    df_explicit_na() %>%\n    dplyr::filter(\n      PARAMCD == \"OS\",\n      ARM %in% c(\"B: Placebo\", \"A: Drug X\"),\n      SEX %in% c(\"M\", \"F\")\n    ) %>%\n    dplyr::mutate(\n      # Reorder levels of ARM to display reference arm before treatment arm.\n      ARM = droplevels(forcats::fct_relevel(ARM, \"B: Placebo\")),\n      SEX = droplevels(SEX),\n      is_event = CNSR == 0,\n      # Convert time to MONTH\n      AVAL = day2month(AVAL),\n      AVALU = \"Months\"\n    ) %>%\n    var_relabel(\n      ARM = adtte_labels[\"ARM\"],\n      SEX = adtte_labels[\"SEX\"],\n      is_event = \"Event Flag\",\n      AVAL = adtte_labels[\"AVAL\"],\n      AVALU = adtte_labels[\"AVALU\"]\n    )\n\n  adtte\n}\n\nanl <- random.cdisc.data::cadtte %>%\n  preprocess_adtte()\nanl4 <- anl\n\ndf <- extract_survival_subgroups(\n  variables = list(tte = \"AVAL\", is_event = \"is_event\", arm = \"ARM\", subgroups = c(\"SEX\", \"BMRKR2\")),\n  data = anl4\n)\n\nresult <- basic_table() %>%\n  tabulate_survival_subgroups(\n    df = df,\n    vars = c(\"n_tot\", \"n\", \"median\", \"hr\", \"ci\"),\n    time_unit = anl4$AVALU[1]\n  )\nresult\n\n# Add plot.\nplot <- g_forest(\n  tbl = result,\n  col_symbol_size = NULL\n)\nplot","options":{"out-width":"700px","editor-max-height":"500","warning":"true","context":"interactive","read-only":"false","fig-height":5,"label":"unnamed-chunk-4","editor-quick-suggestions":"false","message":"true","out-height":"","results":"markup","autorun":"true","fig-width":7,"output":"true","classes":"","comment":"","dpi":72,"fig-cap":"","editor-font-scale":1}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2634,42 +2634,40 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(forcats)</span>
 <span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(nestcolor)</span>
-<span id="cb1-5"><a href="#cb1-5"></a><span class="fu">library</span>(scda)</span>
-<span id="cb1-6"><a href="#cb1-6"></a><span class="fu">library</span>(scda<span class="fl">.2022</span>)</span>
-<span id="cb1-7"><a href="#cb1-7"></a></span>
-<span id="cb1-8"><a href="#cb1-8"></a>preprocess_adtte <span class="ot">&lt;-</span> <span class="cf">function</span>(adtte) {</span>
-<span id="cb1-9"><a href="#cb1-9"></a>  <span class="co"># Save variable labels before data processing steps.</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>  adtte_labels <span class="ot">&lt;-</span> <span class="fu">var_labels</span>(adtte)</span>
-<span id="cb1-11"><a href="#cb1-11"></a></span>
-<span id="cb1-12"><a href="#cb1-12"></a>  adtte <span class="ot">&lt;-</span> adtte <span class="sc">%&gt;%</span></span>
-<span id="cb1-13"><a href="#cb1-13"></a>    <span class="fu">df_explicit_na</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb1-14"><a href="#cb1-14"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(</span>
-<span id="cb1-15"><a href="#cb1-15"></a>      PARAMCD <span class="sc">==</span> <span class="st">"OS"</span>,</span>
-<span id="cb1-16"><a href="#cb1-16"></a>      ARM <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"B: Placebo"</span>, <span class="st">"A: Drug X"</span>),</span>
-<span id="cb1-17"><a href="#cb1-17"></a>      SEX <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"M"</span>, <span class="st">"F"</span>)</span>
-<span id="cb1-18"><a href="#cb1-18"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-19"><a href="#cb1-19"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
-<span id="cb1-20"><a href="#cb1-20"></a>      <span class="co"># Reorder levels of ARM to display reference arm before treatment arm.</span></span>
-<span id="cb1-21"><a href="#cb1-21"></a>      <span class="at">ARM =</span> <span class="fu">droplevels</span>(forcats<span class="sc">::</span><span class="fu">fct_relevel</span>(ARM, <span class="st">"B: Placebo"</span>)),</span>
-<span id="cb1-22"><a href="#cb1-22"></a>      <span class="at">SEX =</span> <span class="fu">droplevels</span>(SEX),</span>
-<span id="cb1-23"><a href="#cb1-23"></a>      <span class="at">is_event =</span> CNSR <span class="sc">==</span> <span class="dv">0</span>,</span>
-<span id="cb1-24"><a href="#cb1-24"></a>      <span class="co"># Convert time to MONTH</span></span>
-<span id="cb1-25"><a href="#cb1-25"></a>      <span class="at">AVAL =</span> <span class="fu">day2month</span>(AVAL),</span>
-<span id="cb1-26"><a href="#cb1-26"></a>      <span class="at">AVALU =</span> <span class="st">"Months"</span></span>
-<span id="cb1-27"><a href="#cb1-27"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-28"><a href="#cb1-28"></a>    <span class="fu">var_relabel</span>(</span>
-<span id="cb1-29"><a href="#cb1-29"></a>      <span class="at">ARM =</span> adtte_labels[<span class="st">"ARM"</span>],</span>
-<span id="cb1-30"><a href="#cb1-30"></a>      <span class="at">SEX =</span> adtte_labels[<span class="st">"SEX"</span>],</span>
-<span id="cb1-31"><a href="#cb1-31"></a>      <span class="at">is_event =</span> <span class="st">"Event Flag"</span>,</span>
-<span id="cb1-32"><a href="#cb1-32"></a>      <span class="at">AVAL =</span> adtte_labels[<span class="st">"AVAL"</span>],</span>
-<span id="cb1-33"><a href="#cb1-33"></a>      <span class="at">AVALU =</span> adtte_labels[<span class="st">"AVALU"</span>]</span>
-<span id="cb1-34"><a href="#cb1-34"></a>    )</span>
-<span id="cb1-35"><a href="#cb1-35"></a></span>
-<span id="cb1-36"><a href="#cb1-36"></a>  adtte</span>
-<span id="cb1-37"><a href="#cb1-37"></a>}</span>
-<span id="cb1-38"><a href="#cb1-38"></a></span>
-<span id="cb1-39"><a href="#cb1-39"></a>anl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adtte"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-40"><a href="#cb1-40"></a>  <span class="fu">preprocess_adtte</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-5"><a href="#cb1-5"></a></span>
+<span id="cb1-6"><a href="#cb1-6"></a>preprocess_adtte <span class="ot">&lt;-</span> <span class="cf">function</span>(adtte) {</span>
+<span id="cb1-7"><a href="#cb1-7"></a>  <span class="co"># Save variable labels before data processing steps.</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>  adtte_labels <span class="ot">&lt;-</span> <span class="fu">var_labels</span>(adtte)</span>
+<span id="cb1-9"><a href="#cb1-9"></a></span>
+<span id="cb1-10"><a href="#cb1-10"></a>  adtte <span class="ot">&lt;-</span> adtte <span class="sc">%&gt;%</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>    <span class="fu">df_explicit_na</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(</span>
+<span id="cb1-13"><a href="#cb1-13"></a>      PARAMCD <span class="sc">==</span> <span class="st">"OS"</span>,</span>
+<span id="cb1-14"><a href="#cb1-14"></a>      ARM <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"B: Placebo"</span>, <span class="st">"A: Drug X"</span>),</span>
+<span id="cb1-15"><a href="#cb1-15"></a>      SEX <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"M"</span>, <span class="st">"F"</span>)</span>
+<span id="cb1-16"><a href="#cb1-16"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-17"><a href="#cb1-17"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb1-18"><a href="#cb1-18"></a>      <span class="co"># Reorder levels of ARM to display reference arm before treatment arm.</span></span>
+<span id="cb1-19"><a href="#cb1-19"></a>      <span class="at">ARM =</span> <span class="fu">droplevels</span>(forcats<span class="sc">::</span><span class="fu">fct_relevel</span>(ARM, <span class="st">"B: Placebo"</span>)),</span>
+<span id="cb1-20"><a href="#cb1-20"></a>      <span class="at">SEX =</span> <span class="fu">droplevels</span>(SEX),</span>
+<span id="cb1-21"><a href="#cb1-21"></a>      <span class="at">is_event =</span> CNSR <span class="sc">==</span> <span class="dv">0</span>,</span>
+<span id="cb1-22"><a href="#cb1-22"></a>      <span class="co"># Convert time to MONTH</span></span>
+<span id="cb1-23"><a href="#cb1-23"></a>      <span class="at">AVAL =</span> <span class="fu">day2month</span>(AVAL),</span>
+<span id="cb1-24"><a href="#cb1-24"></a>      <span class="at">AVALU =</span> <span class="st">"Months"</span></span>
+<span id="cb1-25"><a href="#cb1-25"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-26"><a href="#cb1-26"></a>    <span class="fu">var_relabel</span>(</span>
+<span id="cb1-27"><a href="#cb1-27"></a>      <span class="at">ARM =</span> adtte_labels[<span class="st">"ARM"</span>],</span>
+<span id="cb1-28"><a href="#cb1-28"></a>      <span class="at">SEX =</span> adtte_labels[<span class="st">"SEX"</span>],</span>
+<span id="cb1-29"><a href="#cb1-29"></a>      <span class="at">is_event =</span> <span class="st">"Event Flag"</span>,</span>
+<span id="cb1-30"><a href="#cb1-30"></a>      <span class="at">AVAL =</span> adtte_labels[<span class="st">"AVAL"</span>],</span>
+<span id="cb1-31"><a href="#cb1-31"></a>      <span class="at">AVALU =</span> adtte_labels[<span class="st">"AVALU"</span>]</span>
+<span id="cb1-32"><a href="#cb1-32"></a>    )</span>
+<span id="cb1-33"><a href="#cb1-33"></a></span>
+<span id="cb1-34"><a href="#cb1-34"></a>  adtte</span>
+<span id="cb1-35"><a href="#cb1-35"></a>}</span>
+<span id="cb1-36"><a href="#cb1-36"></a></span>
+<span id="cb1-37"><a href="#cb1-37"></a>anl <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadtte <span class="sc">%&gt;%</span></span>
+<span id="cb1-38"><a href="#cb1-38"></a>  <span class="fu">preprocess_adtte</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
@@ -3009,70 +3007,68 @@ Experimental use!
 <span id="cb14-3"><a href="#cb14-3"></a><span class="do">## Data reproducible code</span></span>
 <span id="cb14-4"><a href="#cb14-4"></a>data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
 <span id="cb14-5"><a href="#cb14-5"></a>data <span class="ot">&lt;-</span> <span class="fu">within</span>(data, {</span>
-<span id="cb14-6"><a href="#cb14-6"></a>  <span class="fu">library</span>(scda)</span>
-<span id="cb14-7"><a href="#cb14-7"></a>  <span class="fu">library</span>(scda<span class="fl">.2022</span>)</span>
-<span id="cb14-8"><a href="#cb14-8"></a>  <span class="fu">library</span>(dplyr)</span>
-<span id="cb14-9"><a href="#cb14-9"></a>  <span class="fu">library</span>(forcats)</span>
-<span id="cb14-10"><a href="#cb14-10"></a></span>
-<span id="cb14-11"><a href="#cb14-11"></a>  ADSL <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adsl"</span>)</span>
-<span id="cb14-12"><a href="#cb14-12"></a>  ADSL <span class="ot">&lt;-</span> ADSL <span class="sc">%&gt;%</span></span>
-<span id="cb14-13"><a href="#cb14-13"></a>    <span class="fu">filter</span>(ARM <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"B: Placebo"</span>, <span class="st">"A: Drug X"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb14-14"><a href="#cb14-14"></a>    <span class="fu">mutate</span>(<span class="at">ARM =</span> <span class="fu">droplevels</span>(<span class="fu">fct_relevel</span>(ARM, <span class="st">"B: Placebo"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb14-15"><a href="#cb14-15"></a>    <span class="fu">mutate</span>(<span class="at">ARMCD =</span> <span class="fu">droplevels</span>(<span class="fu">fct_relevel</span>(ARMCD, <span class="st">"ARM B"</span>)))</span>
-<span id="cb14-16"><a href="#cb14-16"></a>  ADSL<span class="sc">$</span>RACE <span class="ot">&lt;-</span> <span class="fu">droplevels</span>(ADSL<span class="sc">$</span>RACE)</span>
-<span id="cb14-17"><a href="#cb14-17"></a></span>
-<span id="cb14-18"><a href="#cb14-18"></a>  ADTTE <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_dataset</span>(<span class="st">"latest"</span>, <span class="st">"adtte"</span>)</span>
-<span id="cb14-19"><a href="#cb14-19"></a>  adtte_labels <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(ADTTE)</span>
-<span id="cb14-20"><a href="#cb14-20"></a></span>
-<span id="cb14-21"><a href="#cb14-21"></a>  ADTTE <span class="ot">&lt;-</span> ADTTE <span class="sc">%&gt;%</span></span>
-<span id="cb14-22"><a href="#cb14-22"></a>    <span class="fu">filter</span>(</span>
-<span id="cb14-23"><a href="#cb14-23"></a>      PARAMCD <span class="sc">==</span> <span class="st">"OS"</span>,</span>
-<span id="cb14-24"><a href="#cb14-24"></a>      ARM <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"B: Placebo"</span>, <span class="st">"A: Drug X"</span>),</span>
-<span id="cb14-25"><a href="#cb14-25"></a>      SEX <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"M"</span>, <span class="st">"F"</span>)</span>
-<span id="cb14-26"><a href="#cb14-26"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb14-27"><a href="#cb14-27"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb14-28"><a href="#cb14-28"></a>      <span class="co"># Reorder levels of ARM to display reference arm before treatment arm.</span></span>
-<span id="cb14-29"><a href="#cb14-29"></a>      <span class="at">ARM =</span> <span class="fu">droplevels</span>(<span class="fu">fct_relevel</span>(ARM, <span class="st">"B: Placebo"</span>)),</span>
-<span id="cb14-30"><a href="#cb14-30"></a>      <span class="at">SEX =</span> <span class="fu">droplevels</span>(SEX),</span>
-<span id="cb14-31"><a href="#cb14-31"></a>      <span class="at">is_event =</span> CNSR <span class="sc">==</span> <span class="dv">0</span>,</span>
-<span id="cb14-32"><a href="#cb14-32"></a>      <span class="co"># Convert time to MONTH</span></span>
-<span id="cb14-33"><a href="#cb14-33"></a>      <span class="at">AVAL =</span> <span class="fu">day2month</span>(AVAL),</span>
-<span id="cb14-34"><a href="#cb14-34"></a>      <span class="at">AVALU =</span> <span class="st">"Months"</span></span>
-<span id="cb14-35"><a href="#cb14-35"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb14-36"><a href="#cb14-36"></a>    <span class="fu">col_relabel</span>(</span>
-<span id="cb14-37"><a href="#cb14-37"></a>      <span class="at">ARM =</span> adtte_labels[<span class="st">"ARM"</span>],</span>
-<span id="cb14-38"><a href="#cb14-38"></a>      <span class="at">SEX =</span> adtte_labels[<span class="st">"SEX"</span>],</span>
-<span id="cb14-39"><a href="#cb14-39"></a>      <span class="at">is_event =</span> <span class="st">"Event Flag"</span>,</span>
-<span id="cb14-40"><a href="#cb14-40"></a>      <span class="at">AVAL =</span> adtte_labels[<span class="st">"AVAL"</span>],</span>
-<span id="cb14-41"><a href="#cb14-41"></a>      <span class="at">AVALU =</span> adtte_labels[<span class="st">"AVALU"</span>]</span>
-<span id="cb14-42"><a href="#cb14-42"></a>    )</span>
-<span id="cb14-43"><a href="#cb14-43"></a>})</span>
-<span id="cb14-44"><a href="#cb14-44"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADTTE"</span>)</span>
-<span id="cb14-45"><a href="#cb14-45"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
-<span id="cb14-46"><a href="#cb14-46"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
-<span id="cb14-47"><a href="#cb14-47"></a></span>
-<span id="cb14-48"><a href="#cb14-48"></a><span class="do">## Reusable Configuration For Modules</span></span>
-<span id="cb14-49"><a href="#cb14-49"></a>ADSL <span class="ot">&lt;-</span> data[[<span class="st">"ADSL"</span>]]</span>
-<span id="cb14-50"><a href="#cb14-50"></a>ADTTE <span class="ot">&lt;-</span> data[[<span class="st">"ADTTE"</span>]]</span>
-<span id="cb14-51"><a href="#cb14-51"></a></span>
-<span id="cb14-52"><a href="#cb14-52"></a><span class="do">## Setup App</span></span>
-<span id="cb14-53"><a href="#cb14-53"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb14-54"><a href="#cb14-54"></a>  <span class="at">data =</span> data,</span>
-<span id="cb14-55"><a href="#cb14-55"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb14-56"><a href="#cb14-56"></a>    <span class="fu">tm_g_forest_tte</span>(</span>
-<span id="cb14-57"><a href="#cb14-57"></a>      <span class="at">label =</span> <span class="st">"Forest Survival"</span>,</span>
-<span id="cb14-58"><a href="#cb14-58"></a>      <span class="at">dataname =</span> <span class="st">"ADTTE"</span>,</span>
-<span id="cb14-59"><a href="#cb14-59"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>), <span class="st">"ARM"</span>),</span>
-<span id="cb14-60"><a href="#cb14-60"></a>      <span class="at">subgroup_var =</span> <span class="fu">choices_selected</span>(<span class="fu">names</span>(ADSL), <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>)),</span>
-<span id="cb14-61"><a href="#cb14-61"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(<span class="fu">value_choices</span>(ADTTE, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>), <span class="st">"OS"</span>),</span>
-<span id="cb14-62"><a href="#cb14-62"></a>      <span class="at">strata_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"STRATA1"</span>, <span class="st">"STRATA2"</span>), <span class="st">"STRATA2"</span>),</span>
-<span id="cb14-63"><a href="#cb14-63"></a>      <span class="at">plot_height =</span> <span class="fu">c</span>(<span class="dv">600</span>, <span class="dv">200</span>, <span class="dv">2000</span>),</span>
-<span id="cb14-64"><a href="#cb14-64"></a>      <span class="at">plot_width =</span> <span class="fu">c</span>(<span class="dv">1500</span>, <span class="dv">200</span>, <span class="dv">5000</span>)</span>
-<span id="cb14-65"><a href="#cb14-65"></a>    )</span>
-<span id="cb14-66"><a href="#cb14-66"></a>  )</span>
-<span id="cb14-67"><a href="#cb14-67"></a>)</span>
-<span id="cb14-68"><a href="#cb14-68"></a></span>
-<span id="cb14-69"><a href="#cb14-69"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-6"><a href="#cb14-6"></a>  <span class="fu">library</span>(dplyr)</span>
+<span id="cb14-7"><a href="#cb14-7"></a>  <span class="fu">library</span>(forcats)</span>
+<span id="cb14-8"><a href="#cb14-8"></a></span>
+<span id="cb14-9"><a href="#cb14-9"></a>  ADSL <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadsl</span>
+<span id="cb14-10"><a href="#cb14-10"></a>  ADSL <span class="ot">&lt;-</span> ADSL <span class="sc">%&gt;%</span></span>
+<span id="cb14-11"><a href="#cb14-11"></a>    <span class="fu">filter</span>(ARM <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"B: Placebo"</span>, <span class="st">"A: Drug X"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb14-12"><a href="#cb14-12"></a>    <span class="fu">mutate</span>(<span class="at">ARM =</span> <span class="fu">droplevels</span>(<span class="fu">fct_relevel</span>(ARM, <span class="st">"B: Placebo"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb14-13"><a href="#cb14-13"></a>    <span class="fu">mutate</span>(<span class="at">ARMCD =</span> <span class="fu">droplevels</span>(<span class="fu">fct_relevel</span>(ARMCD, <span class="st">"ARM B"</span>)))</span>
+<span id="cb14-14"><a href="#cb14-14"></a>  ADSL<span class="sc">$</span>RACE <span class="ot">&lt;-</span> <span class="fu">droplevels</span>(ADSL<span class="sc">$</span>RACE)</span>
+<span id="cb14-15"><a href="#cb14-15"></a></span>
+<span id="cb14-16"><a href="#cb14-16"></a>  ADTTE <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadtte</span>
+<span id="cb14-17"><a href="#cb14-17"></a>  adtte_labels <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(ADTTE)</span>
+<span id="cb14-18"><a href="#cb14-18"></a></span>
+<span id="cb14-19"><a href="#cb14-19"></a>  ADTTE <span class="ot">&lt;-</span> ADTTE <span class="sc">%&gt;%</span></span>
+<span id="cb14-20"><a href="#cb14-20"></a>    <span class="fu">filter</span>(</span>
+<span id="cb14-21"><a href="#cb14-21"></a>      PARAMCD <span class="sc">==</span> <span class="st">"OS"</span>,</span>
+<span id="cb14-22"><a href="#cb14-22"></a>      ARM <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"B: Placebo"</span>, <span class="st">"A: Drug X"</span>),</span>
+<span id="cb14-23"><a href="#cb14-23"></a>      SEX <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"M"</span>, <span class="st">"F"</span>)</span>
+<span id="cb14-24"><a href="#cb14-24"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb14-25"><a href="#cb14-25"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb14-26"><a href="#cb14-26"></a>      <span class="co"># Reorder levels of ARM to display reference arm before treatment arm.</span></span>
+<span id="cb14-27"><a href="#cb14-27"></a>      <span class="at">ARM =</span> <span class="fu">droplevels</span>(<span class="fu">fct_relevel</span>(ARM, <span class="st">"B: Placebo"</span>)),</span>
+<span id="cb14-28"><a href="#cb14-28"></a>      <span class="at">SEX =</span> <span class="fu">droplevels</span>(SEX),</span>
+<span id="cb14-29"><a href="#cb14-29"></a>      <span class="at">is_event =</span> CNSR <span class="sc">==</span> <span class="dv">0</span>,</span>
+<span id="cb14-30"><a href="#cb14-30"></a>      <span class="co"># Convert time to MONTH</span></span>
+<span id="cb14-31"><a href="#cb14-31"></a>      <span class="at">AVAL =</span> <span class="fu">day2month</span>(AVAL),</span>
+<span id="cb14-32"><a href="#cb14-32"></a>      <span class="at">AVALU =</span> <span class="st">"Months"</span></span>
+<span id="cb14-33"><a href="#cb14-33"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb14-34"><a href="#cb14-34"></a>    <span class="fu">col_relabel</span>(</span>
+<span id="cb14-35"><a href="#cb14-35"></a>      <span class="at">ARM =</span> adtte_labels[<span class="st">"ARM"</span>],</span>
+<span id="cb14-36"><a href="#cb14-36"></a>      <span class="at">SEX =</span> adtte_labels[<span class="st">"SEX"</span>],</span>
+<span id="cb14-37"><a href="#cb14-37"></a>      <span class="at">is_event =</span> <span class="st">"Event Flag"</span>,</span>
+<span id="cb14-38"><a href="#cb14-38"></a>      <span class="at">AVAL =</span> adtte_labels[<span class="st">"AVAL"</span>],</span>
+<span id="cb14-39"><a href="#cb14-39"></a>      <span class="at">AVALU =</span> adtte_labels[<span class="st">"AVALU"</span>]</span>
+<span id="cb14-40"><a href="#cb14-40"></a>    )</span>
+<span id="cb14-41"><a href="#cb14-41"></a>})</span>
+<span id="cb14-42"><a href="#cb14-42"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADTTE"</span>)</span>
+<span id="cb14-43"><a href="#cb14-43"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
+<span id="cb14-44"><a href="#cb14-44"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
+<span id="cb14-45"><a href="#cb14-45"></a></span>
+<span id="cb14-46"><a href="#cb14-46"></a><span class="do">## Reusable Configuration For Modules</span></span>
+<span id="cb14-47"><a href="#cb14-47"></a>ADSL <span class="ot">&lt;-</span> data[[<span class="st">"ADSL"</span>]]</span>
+<span id="cb14-48"><a href="#cb14-48"></a>ADTTE <span class="ot">&lt;-</span> data[[<span class="st">"ADTTE"</span>]]</span>
+<span id="cb14-49"><a href="#cb14-49"></a></span>
+<span id="cb14-50"><a href="#cb14-50"></a><span class="do">## Setup App</span></span>
+<span id="cb14-51"><a href="#cb14-51"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb14-52"><a href="#cb14-52"></a>  <span class="at">data =</span> data,</span>
+<span id="cb14-53"><a href="#cb14-53"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb14-54"><a href="#cb14-54"></a>    <span class="fu">tm_g_forest_tte</span>(</span>
+<span id="cb14-55"><a href="#cb14-55"></a>      <span class="at">label =</span> <span class="st">"Forest Survival"</span>,</span>
+<span id="cb14-56"><a href="#cb14-56"></a>      <span class="at">dataname =</span> <span class="st">"ADTTE"</span>,</span>
+<span id="cb14-57"><a href="#cb14-57"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>), <span class="st">"ARM"</span>),</span>
+<span id="cb14-58"><a href="#cb14-58"></a>      <span class="at">subgroup_var =</span> <span class="fu">choices_selected</span>(<span class="fu">names</span>(ADSL), <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>)),</span>
+<span id="cb14-59"><a href="#cb14-59"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(<span class="fu">value_choices</span>(ADTTE, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>), <span class="st">"OS"</span>),</span>
+<span id="cb14-60"><a href="#cb14-60"></a>      <span class="at">strata_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"STRATA1"</span>, <span class="st">"STRATA2"</span>), <span class="st">"STRATA2"</span>),</span>
+<span id="cb14-61"><a href="#cb14-61"></a>      <span class="at">plot_height =</span> <span class="fu">c</span>(<span class="dv">600</span>, <span class="dv">200</span>, <span class="dv">2000</span>),</span>
+<span id="cb14-62"><a href="#cb14-62"></a>      <span class="at">plot_width =</span> <span class="fu">c</span>(<span class="dv">1500</span>, <span class="dv">200</span>, <span class="dv">5000</span>)</span>
+<span id="cb14-63"><a href="#cb14-63"></a>    )</span>
+<span id="cb14-64"><a href="#cb14-64"></a>  )</span>
+<span id="cb14-65"><a href="#cb14-65"></a>)</span>
+<span id="cb14-66"><a href="#cb14-66"></a></span>
+<span id="cb14-67"><a href="#cb14-67"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="fstg02_files/figure-html/teal-1.png" class="img-fluid figure-img" width="1440"></p>
@@ -3132,70 +3128,68 @@ we have to put some code upfront
 <span id="cb15-22"><a href="#cb15-22"></a>## Data reproducible code</span>
 <span id="cb15-23"><a href="#cb15-23"></a>data &lt;- teal_data()</span>
 <span id="cb15-24"><a href="#cb15-24"></a>data &lt;- within(data, {</span>
-<span id="cb15-25"><a href="#cb15-25"></a>  library(scda)</span>
-<span id="cb15-26"><a href="#cb15-26"></a>  library(scda.2022)</span>
-<span id="cb15-27"><a href="#cb15-27"></a>  library(dplyr)</span>
-<span id="cb15-28"><a href="#cb15-28"></a>  library(forcats)</span>
-<span id="cb15-29"><a href="#cb15-29"></a></span>
-<span id="cb15-30"><a href="#cb15-30"></a>  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")</span>
-<span id="cb15-31"><a href="#cb15-31"></a>  ADSL &lt;- ADSL %&gt;%</span>
-<span id="cb15-32"><a href="#cb15-32"></a>    filter(ARM %in% c("B: Placebo", "A: Drug X")) %&gt;%</span>
-<span id="cb15-33"><a href="#cb15-33"></a>    mutate(ARM = droplevels(fct_relevel(ARM, "B: Placebo"))) %&gt;%</span>
-<span id="cb15-34"><a href="#cb15-34"></a>    mutate(ARMCD = droplevels(fct_relevel(ARMCD, "ARM B")))</span>
-<span id="cb15-35"><a href="#cb15-35"></a>  ADSL$RACE &lt;- droplevels(ADSL$RACE)</span>
-<span id="cb15-36"><a href="#cb15-36"></a></span>
-<span id="cb15-37"><a href="#cb15-37"></a>  ADTTE &lt;- synthetic_cdisc_dataset("latest", "adtte")</span>
-<span id="cb15-38"><a href="#cb15-38"></a>  adtte_labels &lt;- col_labels(ADTTE)</span>
-<span id="cb15-39"><a href="#cb15-39"></a></span>
-<span id="cb15-40"><a href="#cb15-40"></a>  ADTTE &lt;- ADTTE %&gt;%</span>
-<span id="cb15-41"><a href="#cb15-41"></a>    filter(</span>
-<span id="cb15-42"><a href="#cb15-42"></a>      PARAMCD == "OS",</span>
-<span id="cb15-43"><a href="#cb15-43"></a>      ARM %in% c("B: Placebo", "A: Drug X"),</span>
-<span id="cb15-44"><a href="#cb15-44"></a>      SEX %in% c("M", "F")</span>
-<span id="cb15-45"><a href="#cb15-45"></a>    ) %&gt;%</span>
-<span id="cb15-46"><a href="#cb15-46"></a>    mutate(</span>
-<span id="cb15-47"><a href="#cb15-47"></a>      # Reorder levels of ARM to display reference arm before treatment arm.</span>
-<span id="cb15-48"><a href="#cb15-48"></a>      ARM = droplevels(fct_relevel(ARM, "B: Placebo")),</span>
-<span id="cb15-49"><a href="#cb15-49"></a>      SEX = droplevels(SEX),</span>
-<span id="cb15-50"><a href="#cb15-50"></a>      is_event = CNSR == 0,</span>
-<span id="cb15-51"><a href="#cb15-51"></a>      # Convert time to MONTH</span>
-<span id="cb15-52"><a href="#cb15-52"></a>      AVAL = day2month(AVAL),</span>
-<span id="cb15-53"><a href="#cb15-53"></a>      AVALU = "Months"</span>
-<span id="cb15-54"><a href="#cb15-54"></a>    ) %&gt;%</span>
-<span id="cb15-55"><a href="#cb15-55"></a>    col_relabel(</span>
-<span id="cb15-56"><a href="#cb15-56"></a>      ARM = adtte_labels["ARM"],</span>
-<span id="cb15-57"><a href="#cb15-57"></a>      SEX = adtte_labels["SEX"],</span>
-<span id="cb15-58"><a href="#cb15-58"></a>      is_event = "Event Flag",</span>
-<span id="cb15-59"><a href="#cb15-59"></a>      AVAL = adtte_labels["AVAL"],</span>
-<span id="cb15-60"><a href="#cb15-60"></a>      AVALU = adtte_labels["AVALU"]</span>
-<span id="cb15-61"><a href="#cb15-61"></a>    )</span>
-<span id="cb15-62"><a href="#cb15-62"></a>})</span>
-<span id="cb15-63"><a href="#cb15-63"></a>datanames &lt;- c("ADSL", "ADTTE")</span>
-<span id="cb15-64"><a href="#cb15-64"></a>datanames(data) &lt;- datanames</span>
-<span id="cb15-65"><a href="#cb15-65"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
-<span id="cb15-66"><a href="#cb15-66"></a></span>
-<span id="cb15-67"><a href="#cb15-67"></a>## Reusable Configuration For Modules</span>
-<span id="cb15-68"><a href="#cb15-68"></a>ADSL &lt;- data[["ADSL"]]</span>
-<span id="cb15-69"><a href="#cb15-69"></a>ADTTE &lt;- data[["ADTTE"]]</span>
-<span id="cb15-70"><a href="#cb15-70"></a></span>
-<span id="cb15-71"><a href="#cb15-71"></a>## Setup App</span>
-<span id="cb15-72"><a href="#cb15-72"></a>app &lt;- init(</span>
-<span id="cb15-73"><a href="#cb15-73"></a>  data = data,</span>
-<span id="cb15-74"><a href="#cb15-74"></a>  modules = modules(</span>
-<span id="cb15-75"><a href="#cb15-75"></a>    tm_g_forest_tte(</span>
-<span id="cb15-76"><a href="#cb15-76"></a>      label = "Forest Survival",</span>
-<span id="cb15-77"><a href="#cb15-77"></a>      dataname = "ADTTE",</span>
-<span id="cb15-78"><a href="#cb15-78"></a>      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span>
-<span id="cb15-79"><a href="#cb15-79"></a>      subgroup_var = choices_selected(names(ADSL), c("SEX", "BMRKR2")),</span>
-<span id="cb15-80"><a href="#cb15-80"></a>      paramcd = choices_selected(value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"),</span>
-<span id="cb15-81"><a href="#cb15-81"></a>      strata_var = choices_selected(c("STRATA1", "STRATA2"), "STRATA2"),</span>
-<span id="cb15-82"><a href="#cb15-82"></a>      plot_height = c(600, 200, 2000),</span>
-<span id="cb15-83"><a href="#cb15-83"></a>      plot_width = c(1500, 200, 5000)</span>
-<span id="cb15-84"><a href="#cb15-84"></a>    )</span>
-<span id="cb15-85"><a href="#cb15-85"></a>  )</span>
-<span id="cb15-86"><a href="#cb15-86"></a>)</span>
-<span id="cb15-87"><a href="#cb15-87"></a></span>
-<span id="cb15-88"><a href="#cb15-88"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb15-25"><a href="#cb15-25"></a>  library(dplyr)</span>
+<span id="cb15-26"><a href="#cb15-26"></a>  library(forcats)</span>
+<span id="cb15-27"><a href="#cb15-27"></a></span>
+<span id="cb15-28"><a href="#cb15-28"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
+<span id="cb15-29"><a href="#cb15-29"></a>  ADSL &lt;- ADSL %&gt;%</span>
+<span id="cb15-30"><a href="#cb15-30"></a>    filter(ARM %in% c("B: Placebo", "A: Drug X")) %&gt;%</span>
+<span id="cb15-31"><a href="#cb15-31"></a>    mutate(ARM = droplevels(fct_relevel(ARM, "B: Placebo"))) %&gt;%</span>
+<span id="cb15-32"><a href="#cb15-32"></a>    mutate(ARMCD = droplevels(fct_relevel(ARMCD, "ARM B")))</span>
+<span id="cb15-33"><a href="#cb15-33"></a>  ADSL$RACE &lt;- droplevels(ADSL$RACE)</span>
+<span id="cb15-34"><a href="#cb15-34"></a></span>
+<span id="cb15-35"><a href="#cb15-35"></a>  ADTTE &lt;- random.cdisc.data::cadtte</span>
+<span id="cb15-36"><a href="#cb15-36"></a>  adtte_labels &lt;- col_labels(ADTTE)</span>
+<span id="cb15-37"><a href="#cb15-37"></a></span>
+<span id="cb15-38"><a href="#cb15-38"></a>  ADTTE &lt;- ADTTE %&gt;%</span>
+<span id="cb15-39"><a href="#cb15-39"></a>    filter(</span>
+<span id="cb15-40"><a href="#cb15-40"></a>      PARAMCD == "OS",</span>
+<span id="cb15-41"><a href="#cb15-41"></a>      ARM %in% c("B: Placebo", "A: Drug X"),</span>
+<span id="cb15-42"><a href="#cb15-42"></a>      SEX %in% c("M", "F")</span>
+<span id="cb15-43"><a href="#cb15-43"></a>    ) %&gt;%</span>
+<span id="cb15-44"><a href="#cb15-44"></a>    mutate(</span>
+<span id="cb15-45"><a href="#cb15-45"></a>      # Reorder levels of ARM to display reference arm before treatment arm.</span>
+<span id="cb15-46"><a href="#cb15-46"></a>      ARM = droplevels(fct_relevel(ARM, "B: Placebo")),</span>
+<span id="cb15-47"><a href="#cb15-47"></a>      SEX = droplevels(SEX),</span>
+<span id="cb15-48"><a href="#cb15-48"></a>      is_event = CNSR == 0,</span>
+<span id="cb15-49"><a href="#cb15-49"></a>      # Convert time to MONTH</span>
+<span id="cb15-50"><a href="#cb15-50"></a>      AVAL = day2month(AVAL),</span>
+<span id="cb15-51"><a href="#cb15-51"></a>      AVALU = "Months"</span>
+<span id="cb15-52"><a href="#cb15-52"></a>    ) %&gt;%</span>
+<span id="cb15-53"><a href="#cb15-53"></a>    col_relabel(</span>
+<span id="cb15-54"><a href="#cb15-54"></a>      ARM = adtte_labels["ARM"],</span>
+<span id="cb15-55"><a href="#cb15-55"></a>      SEX = adtte_labels["SEX"],</span>
+<span id="cb15-56"><a href="#cb15-56"></a>      is_event = "Event Flag",</span>
+<span id="cb15-57"><a href="#cb15-57"></a>      AVAL = adtte_labels["AVAL"],</span>
+<span id="cb15-58"><a href="#cb15-58"></a>      AVALU = adtte_labels["AVALU"]</span>
+<span id="cb15-59"><a href="#cb15-59"></a>    )</span>
+<span id="cb15-60"><a href="#cb15-60"></a>})</span>
+<span id="cb15-61"><a href="#cb15-61"></a>datanames &lt;- c("ADSL", "ADTTE")</span>
+<span id="cb15-62"><a href="#cb15-62"></a>datanames(data) &lt;- datanames</span>
+<span id="cb15-63"><a href="#cb15-63"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
+<span id="cb15-64"><a href="#cb15-64"></a></span>
+<span id="cb15-65"><a href="#cb15-65"></a>## Reusable Configuration For Modules</span>
+<span id="cb15-66"><a href="#cb15-66"></a>ADSL &lt;- data[["ADSL"]]</span>
+<span id="cb15-67"><a href="#cb15-67"></a>ADTTE &lt;- data[["ADTTE"]]</span>
+<span id="cb15-68"><a href="#cb15-68"></a></span>
+<span id="cb15-69"><a href="#cb15-69"></a>## Setup App</span>
+<span id="cb15-70"><a href="#cb15-70"></a>app &lt;- init(</span>
+<span id="cb15-71"><a href="#cb15-71"></a>  data = data,</span>
+<span id="cb15-72"><a href="#cb15-72"></a>  modules = modules(</span>
+<span id="cb15-73"><a href="#cb15-73"></a>    tm_g_forest_tte(</span>
+<span id="cb15-74"><a href="#cb15-74"></a>      label = "Forest Survival",</span>
+<span id="cb15-75"><a href="#cb15-75"></a>      dataname = "ADTTE",</span>
+<span id="cb15-76"><a href="#cb15-76"></a>      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span>
+<span id="cb15-77"><a href="#cb15-77"></a>      subgroup_var = choices_selected(names(ADSL), c("SEX", "BMRKR2")),</span>
+<span id="cb15-78"><a href="#cb15-78"></a>      paramcd = choices_selected(value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"),</span>
+<span id="cb15-79"><a href="#cb15-79"></a>      strata_var = choices_selected(c("STRATA1", "STRATA2"), "STRATA2"),</span>
+<span id="cb15-80"><a href="#cb15-80"></a>      plot_height = c(600, 200, 2000),</span>
+<span id="cb15-81"><a href="#cb15-81"></a>      plot_width = c(1500, 200, 5000)</span>
+<span id="cb15-82"><a href="#cb15-82"></a>    )</span>
+<span id="cb15-83"><a href="#cb15-83"></a>  )</span>
+<span id="cb15-84"><a href="#cb15-84"></a>)</span>
+<span id="cb15-85"><a href="#cb15-85"></a></span>
+<span id="cb15-86"><a href="#cb15-86"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -3205,7 +3199,7 @@ we have to put some code upfront
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-05-11 18:05:10 UTC"</code></pre>
+<pre><code>[1] "2024-05-15 18:02:49 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -3233,44 +3227,44 @@ other attached packages:
  [1] teal.modules.clinical_0.9.1 teal.transform_0.5.0       
  [3] teal_0.15.2                 teal.slice_0.5.1           
  [5] teal.data_0.6.0             teal.code_0.5.0            
- [7] shiny_1.8.1.1               scda.2022_0.1.5            
- [9] scda_0.1.6                  nestcolor_0.1.2            
-[11] forcats_1.0.0               dplyr_1.1.4                
-[13] tern_0.9.4                  rtables_0.6.7              
-[15] magrittr_2.0.3              formatters_0.5.6           
+ [7] shiny_1.8.1.1               nestcolor_0.1.2            
+ [9] forcats_1.0.0               dplyr_1.1.4                
+[11] tern_0.9.4                  rtables_0.6.7              
+[13] magrittr_2.0.3              formatters_0.5.6           
 
 loaded via a namespace (and not attached):
- [1] Rdpack_2.6            formatR_1.14          tern.gee_0.1.3       
- [4] logger_0.3.0          testthat_3.2.1.1      sandwich_3.1-0       
- [7] rlang_1.1.3           multcomp_1.4-25       compiler_4.4.0       
-[10] systemfonts_1.0.6     callr_3.7.6           vctrs_0.6.5          
-[13] pkgconfig_2.0.3       fastmap_1.1.1         backports_1.4.1      
-[16] fontawesome_0.5.2     labeling_0.4.3        utf8_1.2.4           
-[19] promises_1.3.0        rmarkdown_2.26        ps_1.7.6             
-[22] ragg_1.3.1            purrr_1.0.2           xfun_0.43            
-[25] shinyvalidate_0.1.3   cachem_1.0.8          teal.reporter_0.3.1  
-[28] jsonlite_1.8.8        later_1.3.2           broom_1.0.5          
-[31] R6_2.5.1              bslib_0.7.0           stringi_1.8.4        
-[34] brio_1.1.5            jquerylib_0.1.4       estimability_1.5     
-[37] Rcpp_1.0.12           knitr_1.46            zoo_1.8-12           
-[40] teal.logger_0.2.0     httpuv_1.6.15         Matrix_1.7-0         
-[43] splines_4.4.0         tidyselect_1.2.1      yaml_2.3.8           
-[46] codetools_0.2-20      websocket_1.4.1       processx_3.8.4       
-[49] teal.widgets_0.4.2    lattice_0.22-6        tibble_3.2.1         
-[52] withr_3.0.0           coda_0.19-4.1         evaluate_0.23        
-[55] survival_3.6-4        pillar_1.9.0          shinycssloaders_1.0.0
-[58] checkmate_2.3.1       shinyjs_2.1.0         generics_0.1.3       
-[61] chromote_0.2.0        ggplot2_3.5.1         munsell_0.5.1        
-[64] scales_1.3.0          xtable_1.8-4          glue_1.7.0           
-[67] emmeans_1.10.1        tools_4.4.0           webshot2_0.1.1       
-[70] webshot_0.5.5         mvtnorm_1.2-4         cowplot_1.1.3        
-[73] grid_4.4.0            tidyr_1.3.1           rbibutils_2.2.16     
-[76] colorspace_2.1-0      nlme_3.1-164          cli_3.6.2            
-[79] textshaping_0.3.7     fansi_1.0.6           geepack_1.3.10       
-[82] gtable_0.3.5          sass_0.4.9            digest_0.6.35        
-[85] TH.data_1.1-2         htmlwidgets_1.6.4     farver_2.1.1         
-[88] memoise_2.0.1         htmltools_0.5.8.1     lifecycle_1.0.4      
-[91] shinyWidgets_0.8.6    mime_0.12             MASS_7.3-60.2        </code></pre>
+ [1] Rdpack_2.6               formatR_1.14             tern.gee_0.1.3          
+ [4] logger_0.3.0             testthat_3.2.1.1         sandwich_3.1-0          
+ [7] rlang_1.1.3              multcomp_1.4-25          compiler_4.4.0          
+[10] systemfonts_1.1.0        callr_3.7.6              vctrs_0.6.5             
+[13] stringr_1.5.1            pkgconfig_2.0.3          fastmap_1.2.0           
+[16] backports_1.4.1          fontawesome_0.5.2        labeling_0.4.3          
+[19] utf8_1.2.4               promises_1.3.0           rmarkdown_2.26          
+[22] ps_1.7.6                 ragg_1.3.2               purrr_1.0.2             
+[25] xfun_0.44                shinyvalidate_0.1.3      cachem_1.0.8            
+[28] teal.reporter_0.3.1      jsonlite_1.8.8           later_1.3.2             
+[31] broom_1.0.5              R6_2.5.1                 bslib_0.7.0             
+[34] stringi_1.8.4            brio_1.1.5               jquerylib_0.1.4         
+[37] estimability_1.5.1       Rcpp_1.0.12              knitr_1.46              
+[40] zoo_1.8-12               teal.logger_0.2.0        httpuv_1.6.15           
+[43] Matrix_1.7-0             splines_4.4.0            tidyselect_1.2.1        
+[46] yaml_2.3.8               codetools_0.2-20         websocket_1.4.1         
+[49] processx_3.8.4           teal.widgets_0.4.2       lattice_0.22-6          
+[52] tibble_3.2.1             withr_3.0.0              coda_0.19-4.1           
+[55] evaluate_0.23            survival_3.6-4           pillar_1.9.0            
+[58] shinycssloaders_1.0.0    checkmate_2.3.1          shinyjs_2.1.0           
+[61] generics_0.1.3           chromote_0.2.0           ggplot2_3.5.1           
+[64] munsell_0.5.1            scales_1.3.0             xtable_1.8-4            
+[67] glue_1.7.0               emmeans_1.10.1           tools_4.4.0             
+[70] webshot2_0.1.1           webshot_0.5.5            mvtnorm_1.2-4           
+[73] cowplot_1.1.3            grid_4.4.0               tidyr_1.3.1             
+[76] rbibutils_2.2.16         colorspace_2.1-0         nlme_3.1-164            
+[79] random.cdisc.data_0.3.15 cli_3.6.2                textshaping_0.3.7       
+[82] fansi_1.0.6              geepack_1.3.10           gtable_0.3.5            
+[85] sass_0.4.9               digest_0.6.35            TH.data_1.1-2           
+[88] htmlwidgets_1.6.4        farver_2.1.2             memoise_2.0.1           
+[91] htmltools_0.5.8.1        lifecycle_1.0.4          shinyWidgets_0.8.6      
+[94] mime_0.12                MASS_7.3-60.2           </code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
@@ -3948,273 +3942,269 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb21-17"><a href="#cb21-17"></a><span class="in">library(dplyr)</span></span>
 <span id="cb21-18"><a href="#cb21-18"></a><span class="in">library(forcats)</span></span>
 <span id="cb21-19"><a href="#cb21-19"></a><span class="in">library(nestcolor)</span></span>
-<span id="cb21-20"><a href="#cb21-20"></a><span class="in">library(scda)</span></span>
-<span id="cb21-21"><a href="#cb21-21"></a><span class="in">library(scda.2022)</span></span>
-<span id="cb21-22"><a href="#cb21-22"></a></span>
-<span id="cb21-23"><a href="#cb21-23"></a><span class="in">preprocess_adtte &lt;- function(adtte) {</span></span>
-<span id="cb21-24"><a href="#cb21-24"></a><span class="in">  # Save variable labels before data processing steps.</span></span>
-<span id="cb21-25"><a href="#cb21-25"></a><span class="in">  adtte_labels &lt;- var_labels(adtte)</span></span>
-<span id="cb21-26"><a href="#cb21-26"></a></span>
-<span id="cb21-27"><a href="#cb21-27"></a><span class="in">  adtte &lt;- adtte %&gt;%</span></span>
-<span id="cb21-28"><a href="#cb21-28"></a><span class="in">    df_explicit_na() %&gt;%</span></span>
-<span id="cb21-29"><a href="#cb21-29"></a><span class="in">    dplyr::filter(</span></span>
-<span id="cb21-30"><a href="#cb21-30"></a><span class="in">      PARAMCD == "OS",</span></span>
-<span id="cb21-31"><a href="#cb21-31"></a><span class="in">      ARM %in% c("B: Placebo", "A: Drug X"),</span></span>
-<span id="cb21-32"><a href="#cb21-32"></a><span class="in">      SEX %in% c("M", "F")</span></span>
-<span id="cb21-33"><a href="#cb21-33"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb21-34"><a href="#cb21-34"></a><span class="in">    dplyr::mutate(</span></span>
-<span id="cb21-35"><a href="#cb21-35"></a><span class="in">      # Reorder levels of ARM to display reference arm before treatment arm.</span></span>
-<span id="cb21-36"><a href="#cb21-36"></a><span class="in">      ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo")),</span></span>
-<span id="cb21-37"><a href="#cb21-37"></a><span class="in">      SEX = droplevels(SEX),</span></span>
-<span id="cb21-38"><a href="#cb21-38"></a><span class="in">      is_event = CNSR == 0,</span></span>
-<span id="cb21-39"><a href="#cb21-39"></a><span class="in">      # Convert time to MONTH</span></span>
-<span id="cb21-40"><a href="#cb21-40"></a><span class="in">      AVAL = day2month(AVAL),</span></span>
-<span id="cb21-41"><a href="#cb21-41"></a><span class="in">      AVALU = "Months"</span></span>
-<span id="cb21-42"><a href="#cb21-42"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb21-43"><a href="#cb21-43"></a><span class="in">    var_relabel(</span></span>
-<span id="cb21-44"><a href="#cb21-44"></a><span class="in">      ARM = adtte_labels["ARM"],</span></span>
-<span id="cb21-45"><a href="#cb21-45"></a><span class="in">      SEX = adtte_labels["SEX"],</span></span>
-<span id="cb21-46"><a href="#cb21-46"></a><span class="in">      is_event = "Event Flag",</span></span>
-<span id="cb21-47"><a href="#cb21-47"></a><span class="in">      AVAL = adtte_labels["AVAL"],</span></span>
-<span id="cb21-48"><a href="#cb21-48"></a><span class="in">      AVALU = adtte_labels["AVALU"]</span></span>
-<span id="cb21-49"><a href="#cb21-49"></a><span class="in">    )</span></span>
-<span id="cb21-50"><a href="#cb21-50"></a></span>
-<span id="cb21-51"><a href="#cb21-51"></a><span class="in">  adtte</span></span>
-<span id="cb21-52"><a href="#cb21-52"></a><span class="in">}</span></span>
-<span id="cb21-53"><a href="#cb21-53"></a></span>
-<span id="cb21-54"><a href="#cb21-54"></a><span class="in">anl &lt;- synthetic_cdisc_dataset("latest", "adtte") %&gt;%</span></span>
-<span id="cb21-55"><a href="#cb21-55"></a><span class="in">  preprocess_adtte()</span></span>
-<span id="cb21-56"><a href="#cb21-56"></a><span class="in">```</span></span>
+<span id="cb21-20"><a href="#cb21-20"></a></span>
+<span id="cb21-21"><a href="#cb21-21"></a><span class="in">preprocess_adtte &lt;- function(adtte) {</span></span>
+<span id="cb21-22"><a href="#cb21-22"></a><span class="in">  # Save variable labels before data processing steps.</span></span>
+<span id="cb21-23"><a href="#cb21-23"></a><span class="in">  adtte_labels &lt;- var_labels(adtte)</span></span>
+<span id="cb21-24"><a href="#cb21-24"></a></span>
+<span id="cb21-25"><a href="#cb21-25"></a><span class="in">  adtte &lt;- adtte %&gt;%</span></span>
+<span id="cb21-26"><a href="#cb21-26"></a><span class="in">    df_explicit_na() %&gt;%</span></span>
+<span id="cb21-27"><a href="#cb21-27"></a><span class="in">    dplyr::filter(</span></span>
+<span id="cb21-28"><a href="#cb21-28"></a><span class="in">      PARAMCD == "OS",</span></span>
+<span id="cb21-29"><a href="#cb21-29"></a><span class="in">      ARM %in% c("B: Placebo", "A: Drug X"),</span></span>
+<span id="cb21-30"><a href="#cb21-30"></a><span class="in">      SEX %in% c("M", "F")</span></span>
+<span id="cb21-31"><a href="#cb21-31"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb21-32"><a href="#cb21-32"></a><span class="in">    dplyr::mutate(</span></span>
+<span id="cb21-33"><a href="#cb21-33"></a><span class="in">      # Reorder levels of ARM to display reference arm before treatment arm.</span></span>
+<span id="cb21-34"><a href="#cb21-34"></a><span class="in">      ARM = droplevels(forcats::fct_relevel(ARM, "B: Placebo")),</span></span>
+<span id="cb21-35"><a href="#cb21-35"></a><span class="in">      SEX = droplevels(SEX),</span></span>
+<span id="cb21-36"><a href="#cb21-36"></a><span class="in">      is_event = CNSR == 0,</span></span>
+<span id="cb21-37"><a href="#cb21-37"></a><span class="in">      # Convert time to MONTH</span></span>
+<span id="cb21-38"><a href="#cb21-38"></a><span class="in">      AVAL = day2month(AVAL),</span></span>
+<span id="cb21-39"><a href="#cb21-39"></a><span class="in">      AVALU = "Months"</span></span>
+<span id="cb21-40"><a href="#cb21-40"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb21-41"><a href="#cb21-41"></a><span class="in">    var_relabel(</span></span>
+<span id="cb21-42"><a href="#cb21-42"></a><span class="in">      ARM = adtte_labels["ARM"],</span></span>
+<span id="cb21-43"><a href="#cb21-43"></a><span class="in">      SEX = adtte_labels["SEX"],</span></span>
+<span id="cb21-44"><a href="#cb21-44"></a><span class="in">      is_event = "Event Flag",</span></span>
+<span id="cb21-45"><a href="#cb21-45"></a><span class="in">      AVAL = adtte_labels["AVAL"],</span></span>
+<span id="cb21-46"><a href="#cb21-46"></a><span class="in">      AVALU = adtte_labels["AVALU"]</span></span>
+<span id="cb21-47"><a href="#cb21-47"></a><span class="in">    )</span></span>
+<span id="cb21-48"><a href="#cb21-48"></a></span>
+<span id="cb21-49"><a href="#cb21-49"></a><span class="in">  adtte</span></span>
+<span id="cb21-50"><a href="#cb21-50"></a><span class="in">}</span></span>
+<span id="cb21-51"><a href="#cb21-51"></a></span>
+<span id="cb21-52"><a href="#cb21-52"></a><span class="in">anl &lt;- random.cdisc.data::cadtte %&gt;%</span></span>
+<span id="cb21-53"><a href="#cb21-53"></a><span class="in">  preprocess_adtte()</span></span>
+<span id="cb21-54"><a href="#cb21-54"></a><span class="in">```</span></span>
+<span id="cb21-55"><a href="#cb21-55"></a></span>
+<span id="cb21-56"><a href="#cb21-56"></a><span class="fu">## Standard Plot</span></span>
 <span id="cb21-57"><a href="#cb21-57"></a></span>
-<span id="cb21-58"><a href="#cb21-58"></a><span class="fu">## Standard Plot</span></span>
-<span id="cb21-59"><a href="#cb21-59"></a></span>
-<span id="cb21-60"><a href="#cb21-60"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb21-61"><a href="#cb21-61"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb21-62"><a href="#cb21-62"></a></span>
-<span id="cb21-63"><a href="#cb21-63"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 --&gt;</span></span>
-<span id="cb21-64"><a href="#cb21-64"></a><span class="in">```{r plot1, test = list(plot_v1 = "plot"), fig.width = 15, fig.height = 4, opts.label = ifelse(packageVersion("rtables") &lt; "0.6.6.9011", "skip_test_strict", "")}</span></span>
-<span id="cb21-65"><a href="#cb21-65"></a><span class="in">anl1 &lt;- anl</span></span>
-<span id="cb21-66"><a href="#cb21-66"></a></span>
-<span id="cb21-67"><a href="#cb21-67"></a><span class="in">df &lt;- extract_survival_subgroups(</span></span>
-<span id="cb21-68"><a href="#cb21-68"></a><span class="in">  variables = list(tte = "AVAL", is_event = "is_event", arm = "ARM", subgroups = c("SEX", "BMRKR2")),</span></span>
-<span id="cb21-69"><a href="#cb21-69"></a><span class="in">  data = anl1</span></span>
-<span id="cb21-70"><a href="#cb21-70"></a><span class="in">)</span></span>
-<span id="cb21-71"><a href="#cb21-71"></a></span>
-<span id="cb21-72"><a href="#cb21-72"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
-<span id="cb21-73"><a href="#cb21-73"></a><span class="in">  tabulate_survival_subgroups(</span></span>
-<span id="cb21-74"><a href="#cb21-74"></a><span class="in">    df = df,</span></span>
-<span id="cb21-75"><a href="#cb21-75"></a><span class="in">    vars = c("n_tot", "n", "median", "hr", "ci"),</span></span>
-<span id="cb21-76"><a href="#cb21-76"></a><span class="in">    time_unit = anl1$AVALU[1]</span></span>
-<span id="cb21-77"><a href="#cb21-77"></a><span class="in">  )</span></span>
-<span id="cb21-78"><a href="#cb21-78"></a><span class="in">result</span></span>
-<span id="cb21-79"><a href="#cb21-79"></a></span>
-<span id="cb21-80"><a href="#cb21-80"></a><span class="in"># Add plot.</span></span>
-<span id="cb21-81"><a href="#cb21-81"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
-<span id="cb21-82"><a href="#cb21-82"></a><span class="in">plot</span></span>
-<span id="cb21-83"><a href="#cb21-83"></a><span class="in">```</span></span>
-<span id="cb21-84"><a href="#cb21-84"></a></span>
-<span id="cb21-85"><a href="#cb21-85"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot1")`</span></span>
-<span id="cb21-86"><a href="#cb21-86"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb21-87"><a href="#cb21-87"></a>:::</span>
+<span id="cb21-58"><a href="#cb21-58"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-59"><a href="#cb21-59"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-60"><a href="#cb21-60"></a></span>
+<span id="cb21-61"><a href="#cb21-61"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 --&gt;</span></span>
+<span id="cb21-62"><a href="#cb21-62"></a><span class="in">```{r plot1, test = list(plot_v1 = "plot"), fig.width = 15, fig.height = 4, opts.label = ifelse(packageVersion("rtables") &lt; "0.6.6.9011", "skip_test_strict", "")}</span></span>
+<span id="cb21-63"><a href="#cb21-63"></a><span class="in">anl1 &lt;- anl</span></span>
+<span id="cb21-64"><a href="#cb21-64"></a></span>
+<span id="cb21-65"><a href="#cb21-65"></a><span class="in">df &lt;- extract_survival_subgroups(</span></span>
+<span id="cb21-66"><a href="#cb21-66"></a><span class="in">  variables = list(tte = "AVAL", is_event = "is_event", arm = "ARM", subgroups = c("SEX", "BMRKR2")),</span></span>
+<span id="cb21-67"><a href="#cb21-67"></a><span class="in">  data = anl1</span></span>
+<span id="cb21-68"><a href="#cb21-68"></a><span class="in">)</span></span>
+<span id="cb21-69"><a href="#cb21-69"></a></span>
+<span id="cb21-70"><a href="#cb21-70"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
+<span id="cb21-71"><a href="#cb21-71"></a><span class="in">  tabulate_survival_subgroups(</span></span>
+<span id="cb21-72"><a href="#cb21-72"></a><span class="in">    df = df,</span></span>
+<span id="cb21-73"><a href="#cb21-73"></a><span class="in">    vars = c("n_tot", "n", "median", "hr", "ci"),</span></span>
+<span id="cb21-74"><a href="#cb21-74"></a><span class="in">    time_unit = anl1$AVALU[1]</span></span>
+<span id="cb21-75"><a href="#cb21-75"></a><span class="in">  )</span></span>
+<span id="cb21-76"><a href="#cb21-76"></a><span class="in">result</span></span>
+<span id="cb21-77"><a href="#cb21-77"></a></span>
+<span id="cb21-78"><a href="#cb21-78"></a><span class="in"># Add plot.</span></span>
+<span id="cb21-79"><a href="#cb21-79"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
+<span id="cb21-80"><a href="#cb21-80"></a><span class="in">plot</span></span>
+<span id="cb21-81"><a href="#cb21-81"></a><span class="in">```</span></span>
+<span id="cb21-82"><a href="#cb21-82"></a></span>
+<span id="cb21-83"><a href="#cb21-83"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot1")`</span></span>
+<span id="cb21-84"><a href="#cb21-84"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-85"><a href="#cb21-85"></a>:::</span>
+<span id="cb21-86"><a href="#cb21-86"></a></span>
+<span id="cb21-87"><a href="#cb21-87"></a><span class="fu">## Plot Specifying Class Variables and &lt;br/&gt; Options for the Treatment Variable</span></span>
 <span id="cb21-88"><a href="#cb21-88"></a></span>
-<span id="cb21-89"><a href="#cb21-89"></a><span class="fu">## Plot Specifying Class Variables and &lt;br/&gt; Options for the Treatment Variable</span></span>
-<span id="cb21-90"><a href="#cb21-90"></a></span>
-<span id="cb21-91"><a href="#cb21-91"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb21-92"><a href="#cb21-92"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb21-93"><a href="#cb21-93"></a></span>
-<span id="cb21-94"><a href="#cb21-94"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 --&gt;</span></span>
-<span id="cb21-95"><a href="#cb21-95"></a><span class="in">```{r plot2, test = list(plot_v2 = "plot"), fig.width = 15, fig.height = 4, opts.label = ifelse(packageVersion("rtables") &lt; "0.6.6.9011", "skip_test_strict", "")}</span></span>
-<span id="cb21-96"><a href="#cb21-96"></a><span class="in">anl2 &lt;- anl %&gt;%</span></span>
-<span id="cb21-97"><a href="#cb21-97"></a><span class="in">  mutate(</span></span>
-<span id="cb21-98"><a href="#cb21-98"></a><span class="in">    # Recode levels of arm.</span></span>
-<span id="cb21-99"><a href="#cb21-99"></a><span class="in">    ARM = forcats::fct_recode(</span></span>
-<span id="cb21-100"><a href="#cb21-100"></a><span class="in">      ARM,</span></span>
-<span id="cb21-101"><a href="#cb21-101"></a><span class="in">      "Placebo" = "B: Placebo",</span></span>
-<span id="cb21-102"><a href="#cb21-102"></a><span class="in">      "Drug X" = "A: Drug X"</span></span>
-<span id="cb21-103"><a href="#cb21-103"></a><span class="in">    ),</span></span>
-<span id="cb21-104"><a href="#cb21-104"></a><span class="in">    # Reorder levels of `SEX`.</span></span>
-<span id="cb21-105"><a href="#cb21-105"></a><span class="in">    SEX = forcats::fct_relevel(SEX, "M", "F"),</span></span>
-<span id="cb21-106"><a href="#cb21-106"></a><span class="in">    # Reorder levels of `STRATA1`` by frequency.</span></span>
-<span id="cb21-107"><a href="#cb21-107"></a><span class="in">    STRATA1 = forcats::fct_infreq(STRATA1)</span></span>
-<span id="cb21-108"><a href="#cb21-108"></a><span class="in">  )</span></span>
-<span id="cb21-109"><a href="#cb21-109"></a></span>
-<span id="cb21-110"><a href="#cb21-110"></a><span class="in">df &lt;- extract_survival_subgroups(</span></span>
-<span id="cb21-111"><a href="#cb21-111"></a><span class="in">  variables = list(tte = "AVAL", is_event = "is_event", arm = "ARM", subgroups = c("SEX", "STRATA1")),</span></span>
-<span id="cb21-112"><a href="#cb21-112"></a><span class="in">  data = anl2</span></span>
-<span id="cb21-113"><a href="#cb21-113"></a><span class="in">)</span></span>
-<span id="cb21-114"><a href="#cb21-114"></a></span>
-<span id="cb21-115"><a href="#cb21-115"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
-<span id="cb21-116"><a href="#cb21-116"></a><span class="in">  tabulate_survival_subgroups(</span></span>
-<span id="cb21-117"><a href="#cb21-117"></a><span class="in">    df = df,</span></span>
-<span id="cb21-118"><a href="#cb21-118"></a><span class="in">    vars = c("n_tot", "n", "median", "hr", "ci"),</span></span>
-<span id="cb21-119"><a href="#cb21-119"></a><span class="in">    time_unit = anl2$AVALU[1]</span></span>
-<span id="cb21-120"><a href="#cb21-120"></a><span class="in">  )</span></span>
-<span id="cb21-121"><a href="#cb21-121"></a><span class="in">result</span></span>
-<span id="cb21-122"><a href="#cb21-122"></a></span>
-<span id="cb21-123"><a href="#cb21-123"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
-<span id="cb21-124"><a href="#cb21-124"></a><span class="in">plot</span></span>
-<span id="cb21-125"><a href="#cb21-125"></a><span class="in">```</span></span>
-<span id="cb21-126"><a href="#cb21-126"></a></span>
-<span id="cb21-127"><a href="#cb21-127"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot2")`</span></span>
-<span id="cb21-128"><a href="#cb21-128"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb21-129"><a href="#cb21-129"></a>:::</span>
+<span id="cb21-89"><a href="#cb21-89"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-90"><a href="#cb21-90"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-91"><a href="#cb21-91"></a></span>
+<span id="cb21-92"><a href="#cb21-92"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 --&gt;</span></span>
+<span id="cb21-93"><a href="#cb21-93"></a><span class="in">```{r plot2, test = list(plot_v2 = "plot"), fig.width = 15, fig.height = 4, opts.label = ifelse(packageVersion("rtables") &lt; "0.6.6.9011", "skip_test_strict", "")}</span></span>
+<span id="cb21-94"><a href="#cb21-94"></a><span class="in">anl2 &lt;- anl %&gt;%</span></span>
+<span id="cb21-95"><a href="#cb21-95"></a><span class="in">  mutate(</span></span>
+<span id="cb21-96"><a href="#cb21-96"></a><span class="in">    # Recode levels of arm.</span></span>
+<span id="cb21-97"><a href="#cb21-97"></a><span class="in">    ARM = forcats::fct_recode(</span></span>
+<span id="cb21-98"><a href="#cb21-98"></a><span class="in">      ARM,</span></span>
+<span id="cb21-99"><a href="#cb21-99"></a><span class="in">      "Placebo" = "B: Placebo",</span></span>
+<span id="cb21-100"><a href="#cb21-100"></a><span class="in">      "Drug X" = "A: Drug X"</span></span>
+<span id="cb21-101"><a href="#cb21-101"></a><span class="in">    ),</span></span>
+<span id="cb21-102"><a href="#cb21-102"></a><span class="in">    # Reorder levels of `SEX`.</span></span>
+<span id="cb21-103"><a href="#cb21-103"></a><span class="in">    SEX = forcats::fct_relevel(SEX, "M", "F"),</span></span>
+<span id="cb21-104"><a href="#cb21-104"></a><span class="in">    # Reorder levels of `STRATA1`` by frequency.</span></span>
+<span id="cb21-105"><a href="#cb21-105"></a><span class="in">    STRATA1 = forcats::fct_infreq(STRATA1)</span></span>
+<span id="cb21-106"><a href="#cb21-106"></a><span class="in">  )</span></span>
+<span id="cb21-107"><a href="#cb21-107"></a></span>
+<span id="cb21-108"><a href="#cb21-108"></a><span class="in">df &lt;- extract_survival_subgroups(</span></span>
+<span id="cb21-109"><a href="#cb21-109"></a><span class="in">  variables = list(tte = "AVAL", is_event = "is_event", arm = "ARM", subgroups = c("SEX", "STRATA1")),</span></span>
+<span id="cb21-110"><a href="#cb21-110"></a><span class="in">  data = anl2</span></span>
+<span id="cb21-111"><a href="#cb21-111"></a><span class="in">)</span></span>
+<span id="cb21-112"><a href="#cb21-112"></a></span>
+<span id="cb21-113"><a href="#cb21-113"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
+<span id="cb21-114"><a href="#cb21-114"></a><span class="in">  tabulate_survival_subgroups(</span></span>
+<span id="cb21-115"><a href="#cb21-115"></a><span class="in">    df = df,</span></span>
+<span id="cb21-116"><a href="#cb21-116"></a><span class="in">    vars = c("n_tot", "n", "median", "hr", "ci"),</span></span>
+<span id="cb21-117"><a href="#cb21-117"></a><span class="in">    time_unit = anl2$AVALU[1]</span></span>
+<span id="cb21-118"><a href="#cb21-118"></a><span class="in">  )</span></span>
+<span id="cb21-119"><a href="#cb21-119"></a><span class="in">result</span></span>
+<span id="cb21-120"><a href="#cb21-120"></a></span>
+<span id="cb21-121"><a href="#cb21-121"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
+<span id="cb21-122"><a href="#cb21-122"></a><span class="in">plot</span></span>
+<span id="cb21-123"><a href="#cb21-123"></a><span class="in">```</span></span>
+<span id="cb21-124"><a href="#cb21-124"></a></span>
+<span id="cb21-125"><a href="#cb21-125"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot2")`</span></span>
+<span id="cb21-126"><a href="#cb21-126"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-127"><a href="#cb21-127"></a>:::</span>
+<span id="cb21-128"><a href="#cb21-128"></a></span>
+<span id="cb21-129"><a href="#cb21-129"></a><span class="fu">## Plot Selecting Columns and &lt;br/&gt; Changing the Alpha Level</span></span>
 <span id="cb21-130"><a href="#cb21-130"></a></span>
-<span id="cb21-131"><a href="#cb21-131"></a><span class="fu">## Plot Selecting Columns and &lt;br/&gt; Changing the Alpha Level</span></span>
-<span id="cb21-132"><a href="#cb21-132"></a></span>
-<span id="cb21-133"><a href="#cb21-133"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb21-134"><a href="#cb21-134"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb21-135"><a href="#cb21-135"></a></span>
-<span id="cb21-136"><a href="#cb21-136"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 --&gt;</span></span>
-<span id="cb21-137"><a href="#cb21-137"></a><span class="in">```{r plot3, test = list(plot_v3 = "plot"), fig.width = 8, fig.height = 4, opts.label = ifelse(packageVersion("rtables") &lt; "0.6.6.9011", "skip_test_strict", "")}</span></span>
-<span id="cb21-138"><a href="#cb21-138"></a><span class="in">anl3 &lt;- anl</span></span>
-<span id="cb21-139"><a href="#cb21-139"></a></span>
-<span id="cb21-140"><a href="#cb21-140"></a><span class="in">df &lt;- extract_survival_subgroups(</span></span>
-<span id="cb21-141"><a href="#cb21-141"></a><span class="in">  variables = list(tte = "AVAL", is_event = "is_event", arm = "ARM", subgroups = c("SEX", "BMRKR2")),</span></span>
-<span id="cb21-142"><a href="#cb21-142"></a><span class="in">  control = control_coxph(conf_level = 0.9),</span></span>
-<span id="cb21-143"><a href="#cb21-143"></a><span class="in">  data = anl3</span></span>
-<span id="cb21-144"><a href="#cb21-144"></a><span class="in">)</span></span>
-<span id="cb21-145"><a href="#cb21-145"></a></span>
-<span id="cb21-146"><a href="#cb21-146"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
-<span id="cb21-147"><a href="#cb21-147"></a><span class="in">  tabulate_survival_subgroups(</span></span>
-<span id="cb21-148"><a href="#cb21-148"></a><span class="in">    df = df,</span></span>
-<span id="cb21-149"><a href="#cb21-149"></a><span class="in">    vars = c("n_tot", "hr", "ci")</span></span>
-<span id="cb21-150"><a href="#cb21-150"></a><span class="in">  )</span></span>
-<span id="cb21-151"><a href="#cb21-151"></a><span class="in">result</span></span>
-<span id="cb21-152"><a href="#cb21-152"></a></span>
-<span id="cb21-153"><a href="#cb21-153"></a><span class="in"># Add plot.</span></span>
-<span id="cb21-154"><a href="#cb21-154"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
-<span id="cb21-155"><a href="#cb21-155"></a><span class="in">plot</span></span>
-<span id="cb21-156"><a href="#cb21-156"></a><span class="in">```</span></span>
-<span id="cb21-157"><a href="#cb21-157"></a></span>
-<span id="cb21-158"><a href="#cb21-158"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot3")`</span></span>
-<span id="cb21-159"><a href="#cb21-159"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb21-160"><a href="#cb21-160"></a>:::</span>
+<span id="cb21-131"><a href="#cb21-131"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-132"><a href="#cb21-132"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-133"><a href="#cb21-133"></a></span>
+<span id="cb21-134"><a href="#cb21-134"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 --&gt;</span></span>
+<span id="cb21-135"><a href="#cb21-135"></a><span class="in">```{r plot3, test = list(plot_v3 = "plot"), fig.width = 8, fig.height = 4, opts.label = ifelse(packageVersion("rtables") &lt; "0.6.6.9011", "skip_test_strict", "")}</span></span>
+<span id="cb21-136"><a href="#cb21-136"></a><span class="in">anl3 &lt;- anl</span></span>
+<span id="cb21-137"><a href="#cb21-137"></a></span>
+<span id="cb21-138"><a href="#cb21-138"></a><span class="in">df &lt;- extract_survival_subgroups(</span></span>
+<span id="cb21-139"><a href="#cb21-139"></a><span class="in">  variables = list(tte = "AVAL", is_event = "is_event", arm = "ARM", subgroups = c("SEX", "BMRKR2")),</span></span>
+<span id="cb21-140"><a href="#cb21-140"></a><span class="in">  control = control_coxph(conf_level = 0.9),</span></span>
+<span id="cb21-141"><a href="#cb21-141"></a><span class="in">  data = anl3</span></span>
+<span id="cb21-142"><a href="#cb21-142"></a><span class="in">)</span></span>
+<span id="cb21-143"><a href="#cb21-143"></a></span>
+<span id="cb21-144"><a href="#cb21-144"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
+<span id="cb21-145"><a href="#cb21-145"></a><span class="in">  tabulate_survival_subgroups(</span></span>
+<span id="cb21-146"><a href="#cb21-146"></a><span class="in">    df = df,</span></span>
+<span id="cb21-147"><a href="#cb21-147"></a><span class="in">    vars = c("n_tot", "hr", "ci")</span></span>
+<span id="cb21-148"><a href="#cb21-148"></a><span class="in">  )</span></span>
+<span id="cb21-149"><a href="#cb21-149"></a><span class="in">result</span></span>
+<span id="cb21-150"><a href="#cb21-150"></a></span>
+<span id="cb21-151"><a href="#cb21-151"></a><span class="in"># Add plot.</span></span>
+<span id="cb21-152"><a href="#cb21-152"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
+<span id="cb21-153"><a href="#cb21-153"></a><span class="in">plot</span></span>
+<span id="cb21-154"><a href="#cb21-154"></a><span class="in">```</span></span>
+<span id="cb21-155"><a href="#cb21-155"></a></span>
+<span id="cb21-156"><a href="#cb21-156"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot3")`</span></span>
+<span id="cb21-157"><a href="#cb21-157"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-158"><a href="#cb21-158"></a>:::</span>
+<span id="cb21-159"><a href="#cb21-159"></a></span>
+<span id="cb21-160"><a href="#cb21-160"></a><span class="fu">## Plot with Fixed &lt;br/&gt; Symbol Size</span></span>
 <span id="cb21-161"><a href="#cb21-161"></a></span>
-<span id="cb21-162"><a href="#cb21-162"></a><span class="fu">## Plot with Fixed &lt;br/&gt; Symbol Size</span></span>
-<span id="cb21-163"><a href="#cb21-163"></a></span>
-<span id="cb21-164"><a href="#cb21-164"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb21-165"><a href="#cb21-165"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb21-166"><a href="#cb21-166"></a></span>
-<span id="cb21-167"><a href="#cb21-167"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 --&gt;</span></span>
-<span id="cb21-168"><a href="#cb21-168"></a><span class="in">```{r plot4, test = list(plot_v4 = "plot"), fig.width = 15, fig.height = 4, opts.label = ifelse(packageVersion("rtables") &lt; "0.6.6.9011", "skip_test_strict", "")}</span></span>
-<span id="cb21-169"><a href="#cb21-169"></a><span class="in">anl4 &lt;- anl</span></span>
-<span id="cb21-170"><a href="#cb21-170"></a></span>
-<span id="cb21-171"><a href="#cb21-171"></a><span class="in">df &lt;- extract_survival_subgroups(</span></span>
-<span id="cb21-172"><a href="#cb21-172"></a><span class="in">  variables = list(tte = "AVAL", is_event = "is_event", arm = "ARM", subgroups = c("SEX", "BMRKR2")),</span></span>
-<span id="cb21-173"><a href="#cb21-173"></a><span class="in">  data = anl4</span></span>
-<span id="cb21-174"><a href="#cb21-174"></a><span class="in">)</span></span>
-<span id="cb21-175"><a href="#cb21-175"></a></span>
-<span id="cb21-176"><a href="#cb21-176"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
-<span id="cb21-177"><a href="#cb21-177"></a><span class="in">  tabulate_survival_subgroups(</span></span>
-<span id="cb21-178"><a href="#cb21-178"></a><span class="in">    df = df,</span></span>
-<span id="cb21-179"><a href="#cb21-179"></a><span class="in">    vars = c("n_tot", "n", "median", "hr", "ci"),</span></span>
-<span id="cb21-180"><a href="#cb21-180"></a><span class="in">    time_unit = anl4$AVALU[1]</span></span>
-<span id="cb21-181"><a href="#cb21-181"></a><span class="in">  )</span></span>
-<span id="cb21-182"><a href="#cb21-182"></a><span class="in">result</span></span>
-<span id="cb21-183"><a href="#cb21-183"></a></span>
-<span id="cb21-184"><a href="#cb21-184"></a><span class="in"># Add plot.</span></span>
-<span id="cb21-185"><a href="#cb21-185"></a><span class="in">plot &lt;- g_forest(</span></span>
-<span id="cb21-186"><a href="#cb21-186"></a><span class="in">  tbl = result,</span></span>
-<span id="cb21-187"><a href="#cb21-187"></a><span class="in">  col_symbol_size = NULL</span></span>
-<span id="cb21-188"><a href="#cb21-188"></a><span class="in">)</span></span>
-<span id="cb21-189"><a href="#cb21-189"></a><span class="in">plot</span></span>
-<span id="cb21-190"><a href="#cb21-190"></a><span class="in">```</span></span>
-<span id="cb21-191"><a href="#cb21-191"></a></span>
-<span id="cb21-192"><a href="#cb21-192"></a><span class="in">```{r test parameters, test = list(width = "width", height = "height", plot_v3.width = "plot_v3.width"), echo = FALSE}</span></span>
-<span id="cb21-193"><a href="#cb21-193"></a><span class="in">width &lt;- 15</span></span>
-<span id="cb21-194"><a href="#cb21-194"></a><span class="in">height &lt;- 4</span></span>
-<span id="cb21-195"><a href="#cb21-195"></a><span class="in">plot_v3.width &lt;- 8 # nolint: object_name.</span></span>
-<span id="cb21-196"><a href="#cb21-196"></a><span class="in">```</span></span>
-<span id="cb21-197"><a href="#cb21-197"></a></span>
-<span id="cb21-198"><a href="#cb21-198"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot4")`</span></span>
-<span id="cb21-199"><a href="#cb21-199"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb21-200"><a href="#cb21-200"></a>:::</span>
+<span id="cb21-162"><a href="#cb21-162"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-163"><a href="#cb21-163"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-164"><a href="#cb21-164"></a></span>
+<span id="cb21-165"><a href="#cb21-165"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 --&gt;</span></span>
+<span id="cb21-166"><a href="#cb21-166"></a><span class="in">```{r plot4, test = list(plot_v4 = "plot"), fig.width = 15, fig.height = 4, opts.label = ifelse(packageVersion("rtables") &lt; "0.6.6.9011", "skip_test_strict", "")}</span></span>
+<span id="cb21-167"><a href="#cb21-167"></a><span class="in">anl4 &lt;- anl</span></span>
+<span id="cb21-168"><a href="#cb21-168"></a></span>
+<span id="cb21-169"><a href="#cb21-169"></a><span class="in">df &lt;- extract_survival_subgroups(</span></span>
+<span id="cb21-170"><a href="#cb21-170"></a><span class="in">  variables = list(tte = "AVAL", is_event = "is_event", arm = "ARM", subgroups = c("SEX", "BMRKR2")),</span></span>
+<span id="cb21-171"><a href="#cb21-171"></a><span class="in">  data = anl4</span></span>
+<span id="cb21-172"><a href="#cb21-172"></a><span class="in">)</span></span>
+<span id="cb21-173"><a href="#cb21-173"></a></span>
+<span id="cb21-174"><a href="#cb21-174"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
+<span id="cb21-175"><a href="#cb21-175"></a><span class="in">  tabulate_survival_subgroups(</span></span>
+<span id="cb21-176"><a href="#cb21-176"></a><span class="in">    df = df,</span></span>
+<span id="cb21-177"><a href="#cb21-177"></a><span class="in">    vars = c("n_tot", "n", "median", "hr", "ci"),</span></span>
+<span id="cb21-178"><a href="#cb21-178"></a><span class="in">    time_unit = anl4$AVALU[1]</span></span>
+<span id="cb21-179"><a href="#cb21-179"></a><span class="in">  )</span></span>
+<span id="cb21-180"><a href="#cb21-180"></a><span class="in">result</span></span>
+<span id="cb21-181"><a href="#cb21-181"></a></span>
+<span id="cb21-182"><a href="#cb21-182"></a><span class="in"># Add plot.</span></span>
+<span id="cb21-183"><a href="#cb21-183"></a><span class="in">plot &lt;- g_forest(</span></span>
+<span id="cb21-184"><a href="#cb21-184"></a><span class="in">  tbl = result,</span></span>
+<span id="cb21-185"><a href="#cb21-185"></a><span class="in">  col_symbol_size = NULL</span></span>
+<span id="cb21-186"><a href="#cb21-186"></a><span class="in">)</span></span>
+<span id="cb21-187"><a href="#cb21-187"></a><span class="in">plot</span></span>
+<span id="cb21-188"><a href="#cb21-188"></a><span class="in">```</span></span>
+<span id="cb21-189"><a href="#cb21-189"></a></span>
+<span id="cb21-190"><a href="#cb21-190"></a><span class="in">```{r test parameters, test = list(width = "width", height = "height", plot_v3.width = "plot_v3.width"), echo = FALSE}</span></span>
+<span id="cb21-191"><a href="#cb21-191"></a><span class="in">width &lt;- 15</span></span>
+<span id="cb21-192"><a href="#cb21-192"></a><span class="in">height &lt;- 4</span></span>
+<span id="cb21-193"><a href="#cb21-193"></a><span class="in">plot_v3.width &lt;- 8 # nolint: object_name.</span></span>
+<span id="cb21-194"><a href="#cb21-194"></a><span class="in">```</span></span>
+<span id="cb21-195"><a href="#cb21-195"></a></span>
+<span id="cb21-196"><a href="#cb21-196"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot4")`</span></span>
+<span id="cb21-197"><a href="#cb21-197"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-198"><a href="#cb21-198"></a>:::</span>
+<span id="cb21-199"><a href="#cb21-199"></a></span>
+<span id="cb21-200"><a href="#cb21-200"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
 <span id="cb21-201"><a href="#cb21-201"></a></span>
-<span id="cb21-202"><a href="#cb21-202"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb21-202"><a href="#cb21-202"></a><span class="fu">## `teal` App</span></span>
 <span id="cb21-203"><a href="#cb21-203"></a></span>
-<span id="cb21-204"><a href="#cb21-204"></a><span class="fu">## `teal` App</span></span>
-<span id="cb21-205"><a href="#cb21-205"></a></span>
-<span id="cb21-206"><a href="#cb21-206"></a>::: {.panel-tabset .nav-justified}</span>
-<span id="cb21-207"><a href="#cb21-207"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
-<span id="cb21-208"><a href="#cb21-208"></a></span>
-<span id="cb21-209"><a href="#cb21-209"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb21-210"><a href="#cb21-210"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb21-211"><a href="#cb21-211"></a></span>
-<span id="cb21-212"><a href="#cb21-212"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb21-213"><a href="#cb21-213"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb21-214"><a href="#cb21-214"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb21-215"><a href="#cb21-215"></a><span class="in">  library(scda)</span></span>
-<span id="cb21-216"><a href="#cb21-216"></a><span class="in">  library(scda.2022)</span></span>
-<span id="cb21-217"><a href="#cb21-217"></a><span class="in">  library(dplyr)</span></span>
-<span id="cb21-218"><a href="#cb21-218"></a><span class="in">  library(forcats)</span></span>
-<span id="cb21-219"><a href="#cb21-219"></a></span>
-<span id="cb21-220"><a href="#cb21-220"></a><span class="in">  ADSL &lt;- synthetic_cdisc_dataset("latest", "adsl")</span></span>
-<span id="cb21-221"><a href="#cb21-221"></a><span class="in">  ADSL &lt;- ADSL %&gt;%</span></span>
-<span id="cb21-222"><a href="#cb21-222"></a><span class="in">    filter(ARM %in% c("B: Placebo", "A: Drug X")) %&gt;%</span></span>
-<span id="cb21-223"><a href="#cb21-223"></a><span class="in">    mutate(ARM = droplevels(fct_relevel(ARM, "B: Placebo"))) %&gt;%</span></span>
-<span id="cb21-224"><a href="#cb21-224"></a><span class="in">    mutate(ARMCD = droplevels(fct_relevel(ARMCD, "ARM B")))</span></span>
-<span id="cb21-225"><a href="#cb21-225"></a><span class="in">  ADSL$RACE &lt;- droplevels(ADSL$RACE)</span></span>
-<span id="cb21-226"><a href="#cb21-226"></a></span>
-<span id="cb21-227"><a href="#cb21-227"></a><span class="in">  ADTTE &lt;- synthetic_cdisc_dataset("latest", "adtte")</span></span>
-<span id="cb21-228"><a href="#cb21-228"></a><span class="in">  adtte_labels &lt;- col_labels(ADTTE)</span></span>
-<span id="cb21-229"><a href="#cb21-229"></a></span>
-<span id="cb21-230"><a href="#cb21-230"></a><span class="in">  ADTTE &lt;- ADTTE %&gt;%</span></span>
-<span id="cb21-231"><a href="#cb21-231"></a><span class="in">    filter(</span></span>
-<span id="cb21-232"><a href="#cb21-232"></a><span class="in">      PARAMCD == "OS",</span></span>
-<span id="cb21-233"><a href="#cb21-233"></a><span class="in">      ARM %in% c("B: Placebo", "A: Drug X"),</span></span>
-<span id="cb21-234"><a href="#cb21-234"></a><span class="in">      SEX %in% c("M", "F")</span></span>
-<span id="cb21-235"><a href="#cb21-235"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb21-236"><a href="#cb21-236"></a><span class="in">    mutate(</span></span>
-<span id="cb21-237"><a href="#cb21-237"></a><span class="in">      # Reorder levels of ARM to display reference arm before treatment arm.</span></span>
-<span id="cb21-238"><a href="#cb21-238"></a><span class="in">      ARM = droplevels(fct_relevel(ARM, "B: Placebo")),</span></span>
-<span id="cb21-239"><a href="#cb21-239"></a><span class="in">      SEX = droplevels(SEX),</span></span>
-<span id="cb21-240"><a href="#cb21-240"></a><span class="in">      is_event = CNSR == 0,</span></span>
-<span id="cb21-241"><a href="#cb21-241"></a><span class="in">      # Convert time to MONTH</span></span>
-<span id="cb21-242"><a href="#cb21-242"></a><span class="in">      AVAL = day2month(AVAL),</span></span>
-<span id="cb21-243"><a href="#cb21-243"></a><span class="in">      AVALU = "Months"</span></span>
-<span id="cb21-244"><a href="#cb21-244"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb21-245"><a href="#cb21-245"></a><span class="in">    col_relabel(</span></span>
-<span id="cb21-246"><a href="#cb21-246"></a><span class="in">      ARM = adtte_labels["ARM"],</span></span>
-<span id="cb21-247"><a href="#cb21-247"></a><span class="in">      SEX = adtte_labels["SEX"],</span></span>
-<span id="cb21-248"><a href="#cb21-248"></a><span class="in">      is_event = "Event Flag",</span></span>
-<span id="cb21-249"><a href="#cb21-249"></a><span class="in">      AVAL = adtte_labels["AVAL"],</span></span>
-<span id="cb21-250"><a href="#cb21-250"></a><span class="in">      AVALU = adtte_labels["AVALU"]</span></span>
-<span id="cb21-251"><a href="#cb21-251"></a><span class="in">    )</span></span>
-<span id="cb21-252"><a href="#cb21-252"></a><span class="in">})</span></span>
-<span id="cb21-253"><a href="#cb21-253"></a><span class="in">datanames &lt;- c("ADSL", "ADTTE")</span></span>
-<span id="cb21-254"><a href="#cb21-254"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb21-255"><a href="#cb21-255"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb21-204"><a href="#cb21-204"></a>::: {.panel-tabset .nav-justified}</span>
+<span id="cb21-205"><a href="#cb21-205"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
+<span id="cb21-206"><a href="#cb21-206"></a></span>
+<span id="cb21-207"><a href="#cb21-207"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb21-208"><a href="#cb21-208"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb21-209"><a href="#cb21-209"></a></span>
+<span id="cb21-210"><a href="#cb21-210"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb21-211"><a href="#cb21-211"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb21-212"><a href="#cb21-212"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb21-213"><a href="#cb21-213"></a><span class="in">  library(dplyr)</span></span>
+<span id="cb21-214"><a href="#cb21-214"></a><span class="in">  library(forcats)</span></span>
+<span id="cb21-215"><a href="#cb21-215"></a></span>
+<span id="cb21-216"><a href="#cb21-216"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb21-217"><a href="#cb21-217"></a><span class="in">  ADSL &lt;- ADSL %&gt;%</span></span>
+<span id="cb21-218"><a href="#cb21-218"></a><span class="in">    filter(ARM %in% c("B: Placebo", "A: Drug X")) %&gt;%</span></span>
+<span id="cb21-219"><a href="#cb21-219"></a><span class="in">    mutate(ARM = droplevels(fct_relevel(ARM, "B: Placebo"))) %&gt;%</span></span>
+<span id="cb21-220"><a href="#cb21-220"></a><span class="in">    mutate(ARMCD = droplevels(fct_relevel(ARMCD, "ARM B")))</span></span>
+<span id="cb21-221"><a href="#cb21-221"></a><span class="in">  ADSL$RACE &lt;- droplevels(ADSL$RACE)</span></span>
+<span id="cb21-222"><a href="#cb21-222"></a></span>
+<span id="cb21-223"><a href="#cb21-223"></a><span class="in">  ADTTE &lt;- random.cdisc.data::cadtte</span></span>
+<span id="cb21-224"><a href="#cb21-224"></a><span class="in">  adtte_labels &lt;- col_labels(ADTTE)</span></span>
+<span id="cb21-225"><a href="#cb21-225"></a></span>
+<span id="cb21-226"><a href="#cb21-226"></a><span class="in">  ADTTE &lt;- ADTTE %&gt;%</span></span>
+<span id="cb21-227"><a href="#cb21-227"></a><span class="in">    filter(</span></span>
+<span id="cb21-228"><a href="#cb21-228"></a><span class="in">      PARAMCD == "OS",</span></span>
+<span id="cb21-229"><a href="#cb21-229"></a><span class="in">      ARM %in% c("B: Placebo", "A: Drug X"),</span></span>
+<span id="cb21-230"><a href="#cb21-230"></a><span class="in">      SEX %in% c("M", "F")</span></span>
+<span id="cb21-231"><a href="#cb21-231"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb21-232"><a href="#cb21-232"></a><span class="in">    mutate(</span></span>
+<span id="cb21-233"><a href="#cb21-233"></a><span class="in">      # Reorder levels of ARM to display reference arm before treatment arm.</span></span>
+<span id="cb21-234"><a href="#cb21-234"></a><span class="in">      ARM = droplevels(fct_relevel(ARM, "B: Placebo")),</span></span>
+<span id="cb21-235"><a href="#cb21-235"></a><span class="in">      SEX = droplevels(SEX),</span></span>
+<span id="cb21-236"><a href="#cb21-236"></a><span class="in">      is_event = CNSR == 0,</span></span>
+<span id="cb21-237"><a href="#cb21-237"></a><span class="in">      # Convert time to MONTH</span></span>
+<span id="cb21-238"><a href="#cb21-238"></a><span class="in">      AVAL = day2month(AVAL),</span></span>
+<span id="cb21-239"><a href="#cb21-239"></a><span class="in">      AVALU = "Months"</span></span>
+<span id="cb21-240"><a href="#cb21-240"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb21-241"><a href="#cb21-241"></a><span class="in">    col_relabel(</span></span>
+<span id="cb21-242"><a href="#cb21-242"></a><span class="in">      ARM = adtte_labels["ARM"],</span></span>
+<span id="cb21-243"><a href="#cb21-243"></a><span class="in">      SEX = adtte_labels["SEX"],</span></span>
+<span id="cb21-244"><a href="#cb21-244"></a><span class="in">      is_event = "Event Flag",</span></span>
+<span id="cb21-245"><a href="#cb21-245"></a><span class="in">      AVAL = adtte_labels["AVAL"],</span></span>
+<span id="cb21-246"><a href="#cb21-246"></a><span class="in">      AVALU = adtte_labels["AVALU"]</span></span>
+<span id="cb21-247"><a href="#cb21-247"></a><span class="in">    )</span></span>
+<span id="cb21-248"><a href="#cb21-248"></a><span class="in">})</span></span>
+<span id="cb21-249"><a href="#cb21-249"></a><span class="in">datanames &lt;- c("ADSL", "ADTTE")</span></span>
+<span id="cb21-250"><a href="#cb21-250"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb21-251"><a href="#cb21-251"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb21-252"><a href="#cb21-252"></a></span>
+<span id="cb21-253"><a href="#cb21-253"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb21-254"><a href="#cb21-254"></a><span class="in">ADSL &lt;- data[["ADSL"]]</span></span>
+<span id="cb21-255"><a href="#cb21-255"></a><span class="in">ADTTE &lt;- data[["ADTTE"]]</span></span>
 <span id="cb21-256"><a href="#cb21-256"></a></span>
-<span id="cb21-257"><a href="#cb21-257"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb21-258"><a href="#cb21-258"></a><span class="in">ADSL &lt;- data[["ADSL"]]</span></span>
-<span id="cb21-259"><a href="#cb21-259"></a><span class="in">ADTTE &lt;- data[["ADTTE"]]</span></span>
-<span id="cb21-260"><a href="#cb21-260"></a></span>
-<span id="cb21-261"><a href="#cb21-261"></a><span class="in">## Setup App</span></span>
-<span id="cb21-262"><a href="#cb21-262"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb21-263"><a href="#cb21-263"></a><span class="in">  data = data,</span></span>
-<span id="cb21-264"><a href="#cb21-264"></a><span class="in">  modules = modules(</span></span>
-<span id="cb21-265"><a href="#cb21-265"></a><span class="in">    tm_g_forest_tte(</span></span>
-<span id="cb21-266"><a href="#cb21-266"></a><span class="in">      label = "Forest Survival",</span></span>
-<span id="cb21-267"><a href="#cb21-267"></a><span class="in">      dataname = "ADTTE",</span></span>
-<span id="cb21-268"><a href="#cb21-268"></a><span class="in">      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span></span>
-<span id="cb21-269"><a href="#cb21-269"></a><span class="in">      subgroup_var = choices_selected(names(ADSL), c("SEX", "BMRKR2")),</span></span>
-<span id="cb21-270"><a href="#cb21-270"></a><span class="in">      paramcd = choices_selected(value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"),</span></span>
-<span id="cb21-271"><a href="#cb21-271"></a><span class="in">      strata_var = choices_selected(c("STRATA1", "STRATA2"), "STRATA2"),</span></span>
-<span id="cb21-272"><a href="#cb21-272"></a><span class="in">      plot_height = c(600, 200, 2000),</span></span>
-<span id="cb21-273"><a href="#cb21-273"></a><span class="in">      plot_width = c(1500, 200, 5000)</span></span>
-<span id="cb21-274"><a href="#cb21-274"></a><span class="in">    )</span></span>
-<span id="cb21-275"><a href="#cb21-275"></a><span class="in">  )</span></span>
-<span id="cb21-276"><a href="#cb21-276"></a><span class="in">)</span></span>
-<span id="cb21-277"><a href="#cb21-277"></a></span>
-<span id="cb21-278"><a href="#cb21-278"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb21-279"><a href="#cb21-279"></a><span class="in">```</span></span>
-<span id="cb21-280"><a href="#cb21-280"></a></span>
-<span id="cb21-281"><a href="#cb21-281"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
-<span id="cb21-282"><a href="#cb21-282"></a>:::</span>
-<span id="cb21-283"><a href="#cb21-283"></a></span>
-<span id="cb21-284"><a href="#cb21-284"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb21-285"><a href="#cb21-285"></a></span>
-<span id="cb21-286"><a href="#cb21-286"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb21-257"><a href="#cb21-257"></a><span class="in">## Setup App</span></span>
+<span id="cb21-258"><a href="#cb21-258"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb21-259"><a href="#cb21-259"></a><span class="in">  data = data,</span></span>
+<span id="cb21-260"><a href="#cb21-260"></a><span class="in">  modules = modules(</span></span>
+<span id="cb21-261"><a href="#cb21-261"></a><span class="in">    tm_g_forest_tte(</span></span>
+<span id="cb21-262"><a href="#cb21-262"></a><span class="in">      label = "Forest Survival",</span></span>
+<span id="cb21-263"><a href="#cb21-263"></a><span class="in">      dataname = "ADTTE",</span></span>
+<span id="cb21-264"><a href="#cb21-264"></a><span class="in">      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span></span>
+<span id="cb21-265"><a href="#cb21-265"></a><span class="in">      subgroup_var = choices_selected(names(ADSL), c("SEX", "BMRKR2")),</span></span>
+<span id="cb21-266"><a href="#cb21-266"></a><span class="in">      paramcd = choices_selected(value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"),</span></span>
+<span id="cb21-267"><a href="#cb21-267"></a><span class="in">      strata_var = choices_selected(c("STRATA1", "STRATA2"), "STRATA2"),</span></span>
+<span id="cb21-268"><a href="#cb21-268"></a><span class="in">      plot_height = c(600, 200, 2000),</span></span>
+<span id="cb21-269"><a href="#cb21-269"></a><span class="in">      plot_width = c(1500, 200, 5000)</span></span>
+<span id="cb21-270"><a href="#cb21-270"></a><span class="in">    )</span></span>
+<span id="cb21-271"><a href="#cb21-271"></a><span class="in">  )</span></span>
+<span id="cb21-272"><a href="#cb21-272"></a><span class="in">)</span></span>
+<span id="cb21-273"><a href="#cb21-273"></a></span>
+<span id="cb21-274"><a href="#cb21-274"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb21-275"><a href="#cb21-275"></a><span class="in">```</span></span>
+<span id="cb21-276"><a href="#cb21-276"></a></span>
+<span id="cb21-277"><a href="#cb21-277"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
+<span id="cb21-278"><a href="#cb21-278"></a>:::</span>
+<span id="cb21-279"><a href="#cb21-279"></a></span>
+<span id="cb21-280"><a href="#cb21-280"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb21-281"><a href="#cb21-281"></a></span>
+<span id="cb21-282"><a href="#cb21-282"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
