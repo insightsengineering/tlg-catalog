@@ -16,7 +16,6 @@ on:
   push:
     branches:
       - main
-      - replace-devtools-with-pak
   schedule:
     - cron: "17 17 * * 3,6"
 
@@ -45,75 +44,75 @@ jobs:
           REPO: ${{ github.repository }}
           BRANCH: ${{ github.event.repository.default_branch }}
 
-  # publish-dev:
-  #   name: Build & Deploy TLGC (dev) 📖
-  #   runs-on: ubuntu-latest
-  #   container:
-  #     image: ghcr.io/insightsengineering/rstudio:latest
-  #   needs: cache-refresh
-  #   if: ${{ always() }}
-  #   permissions:
-  #     contents: write
-  #   steps:
-  #     - name: Checkout repo 🛎
-  #       uses: actions/checkout@v4.1.1
+  publish-dev:
+    name: Build & Deploy TLGC (dev) 📖
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/insightsengineering/rstudio:latest
+    needs: cache-refresh
+    if: ${{ always() }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo 🛎
+        uses: actions/checkout@v4.1.1
 
-  #     - name: Cache artifacts 📀
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: |
-  #           ~/package/.staged.dependencies
-  #           book/_freeze
-  #         key: ${{ runner.os }}-tlg-catalog-dev
+      - name: Cache artifacts 📀
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/package/.staged.dependencies
+            book/_freeze
+          key: ${{ runner.os }}-tlg-catalog-dev
 
-  #     - name: Normalize variables 📏
-  #       run: |
-  #         echo "gchat_webhook=${{ secrets.GCHAT_WEBHOOK }}" >> $GITHUB_ENV
-  #       shell: bash
+      - name: Normalize variables 📏
+        run: |
+          echo "gchat_webhook=${{ secrets.GCHAT_WEBHOOK }}" >> $GITHUB_ENV
+        shell: bash
 
-  #     - name: Run Staged dependencies 🎦
-  #       uses: insightsengineering/staged-dependencies-action@v1
-  #       env:
-  #         GITHUB_PAT: ${{ secrets.REPO_GITHUB_TOKEN }}
-  #       with:
-  #         path: "./package"
-  #         enable-check: false
-  #         direction: upstream
+      - name: Run Staged dependencies 🎦
+        uses: insightsengineering/staged-dependencies-action@v1
+        env:
+          GITHUB_PAT: ${{ secrets.REPO_GITHUB_TOKEN }}
+        with:
+          path: "./package"
+          enable-check: false
+          direction: upstream
 
-  #     - name: Render catalog 🖨
-  #       run: |
-  #         quarto render --profile development
-  #       shell: bash
-  #       working-directory: book
+      - name: Render catalog 🖨
+        run: |
+          quarto render --profile development
+        shell: bash
+        working-directory: book
 
-  #     - name: Create artifact 📂
-  #       if: startsWith(github.ref, 'refs/tags/v')
-  #       run: |
-  #         zip -r9 ../../site.zip *
-  #       shell: bash
-  #       working-directory: book/_site
+      - name: Create artifact 📂
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          zip -r9 ../../site.zip *
+        shell: bash
+        working-directory: book/_site
 
-  #     - name: Upload docs ⬆
-  #       if: startsWith(github.ref, 'refs/tags/v')
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: site-development
-  #         path: site.zip
+      - name: Upload docs ⬆
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-development
+          path: site.zip
 
-  #     - name: Publish docs 📔
-  #       uses: peaceiris/actions-gh-pages@v3
-  #       with:
-  #         github_token: ${{ secrets.GITHUB_TOKEN }}
-  #         publish_dir: ./book/_site
-  #         destination_dir: development
+      - name: Publish docs 📔
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./book/_site
+          destination_dir: development
 
-  #     - name: GChat notification 🔔
-  #       if: (failure() || cancelled()) && env.gchat_webhook != ''
-  #       uses: insightsengineering/google-chat-notification@master
-  #       with:
-  #         name: ${{ github.event.repository.name }} - development
-  #         url: ${{ secrets.GCHAT_WEBHOOK }}
-  #         status: ${{ job.status }}
+      - name: GChat notification 🔔
+        if: (failure() || cancelled()) && env.gchat_webhook != ''
+        uses: insightsengineering/google-chat-notification@master
+        with:
+          name: ${{ github.event.repository.name }} - development
+          url: ${{ secrets.GCHAT_WEBHOOK }}
+          status: ${{ job.status }}
 
   publish-stable:
     name: Build & Deploy TLGC (stable) 📖
@@ -147,8 +146,6 @@ jobs:
           if (!require("pak")) install.packages("pak", upgrade = "never")
           pak::repo_add("R-universe" = "https://insightsengineering.r-universe.dev")
           pak::local_install_dev_deps(root = ".", upgrade = TRUE)
-          cat("pak cache information:\n")
-          pak::cache_list()
         shell: Rscript {0}
         working-directory: package
 
@@ -158,72 +155,72 @@ jobs:
         shell: bash
         working-directory: book
 
-      # - name: Create artifact 📂
-      #   if: startsWith(github.ref, 'refs/tags/v')
-      #   run: |
-      #     zip -r9 ../../site.zip *
-      #   shell: bash
-      #   working-directory: book/_site
+      - name: Create artifact 📂
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          zip -r9 ../../site.zip *
+        shell: bash
+        working-directory: book/_site
 
-      # - name: Upload docs ⬆
-      #   if: startsWith(github.ref, 'refs/tags/v')
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: site-stable
-      #     path: site.zip
+      - name: Upload docs ⬆
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-stable
+          path: site.zip
 
-      # - name: Publish docs 📔
-      #   uses: peaceiris/actions-gh-pages@v3
-      #   with:
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     publish_dir: ./book/_site
-      #     destination_dir: stable
+      - name: Publish docs 📔
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./book/_site
+          destination_dir: stable
 
-      # - name: GChat notification 🔔
-      #   if: (failure() || cancelled()) && env.gchat_webhook != ''
-      #   uses: insightsengineering/google-chat-notification@master
-      #   with:
-      #     name: ${{ github.event.repository.name }} - stable
-      #     url: ${{ secrets.GCHAT_WEBHOOK }}
-      #     status: ${{ job.status }}
+      - name: GChat notification 🔔
+        if: (failure() || cancelled()) && env.gchat_webhook != ''
+        uses: insightsengineering/google-chat-notification@master
+        with:
+          name: ${{ github.event.repository.name }} - stable
+          url: ${{ secrets.GCHAT_WEBHOOK }}
+          status: ${{ job.status }}
 
-  # upload-release-assets:
-  #   name: Upload assets 🔼
-  #   needs: [publish-dev, publish-stable]
-  #   runs-on: ubuntu-latest
-  #   if: >
-  #     startsWith(github.ref, 'refs/tags/v')
-  #       && !contains(github.event.commits[0].message, '[skip docs]')
-  #   steps:
-  #     - name: Checkout repo 🛎
-  #       uses: actions/checkout@v4.1.1
+  upload-release-assets:
+    name: Upload assets 🔼
+    needs: [publish-dev, publish-stable]
+    runs-on: ubuntu-latest
+    if: >
+      startsWith(github.ref, 'refs/tags/v')
+        && !contains(github.event.commits[0].message, '[skip docs]')
+    steps:
+      - name: Checkout repo 🛎
+        uses: actions/checkout@v4.1.1
 
-  #     - name: Download artifact ⏬
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: site-development
-  #         path: site-development
+      - name: Download artifact ⏬
+        uses: actions/download-artifact@v4
+        with:
+          name: site-development
+          path: site-development
 
-  #     - name: Download artifact ⏬
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: site-stable
-  #         path: site-stable
+      - name: Download artifact ⏬
+        uses: actions/download-artifact@v4
+        with:
+          name: site-stable
+          path: site-stable
 
-  #     - name: Upload binaries to release ⤴
-  #       uses: svenstaro/upload-release-action@v2
-  #       with:
-  #         repo_token: ${{ secrets.GITHUB_TOKEN }}
-  #         file: site-development/site.zip
-  #         asset_name: catalog-development.zip
-  #         tag: ${{ github.ref }}
-  #         overwrite: true
+      - name: Upload binaries to release ⤴
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: site-development/site.zip
+          asset_name: catalog-development.zip
+          tag: ${{ github.ref }}
+          overwrite: true
 
-  #     - name: Upload binaries to release ⤴
-  #       uses: svenstaro/upload-release-action@v2
-  #       with:
-  #         repo_token: ${{ secrets.GITHUB_TOKEN }}
-  #         file: site-stable/site.zip
-  #         asset_name: catalog-stable.zip
-  #         tag: ${{ github.ref }}
-  #         overwrite: true
+      - name: Upload binaries to release ⤴
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: site-stable/site.zip
+          asset_name: catalog-stable.zip
+          tag: ${{ github.ref }}
+          overwrite: true
