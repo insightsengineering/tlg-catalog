@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"code":"library(dplyr)\nlibrary(rlistings)\n\nadab <- random.cdisc.data::cadab %>%\n  filter(NFRLT %% 1 == 0 & NFRLT > 0)\n\ntrt <- \"A: Drug X\"\ndrug_a <- \"A: Drug X Antibody\"\ndrugcd <- unique(adab$PARAMCD[adab$PARAM == \"Antibody titer units\"])[1]\nmin_titer <- 1.10\n\nadab_x <- adab %>%\n  filter(\n    ARM == trt,\n    PARCAT1 == drug_a,\n    ADPBLPFL == \"Y\"\n  ) %>%\n  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%\n  unique() %>%\n  tidyr::pivot_wider(\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  filter(if_any(matches(\"Treatment Emergent - Positive\"), ~ .x == 1)) %>%\n  # filter(`Treatment Emergent - Positive` == 1) %>%\n  mutate(\n    VISN = factor(paste0(\n      VISIT, \"\\n(Day \",\n      ifelse(\n        NFRLT %% 1 == 0,\n        NFRLT,\n        as.character(format(round(NFRLT, 2), nsmall = 2))\n      ),\n      \")\"\n    )),\n    PTES = ifelse(\n      ifelse(\"Treatment induced ADA\" %in% names(.), `Treatment induced ADA` == 1, FALSE),\n      ifelse(\n        \"Transient ADA\" %in% names(.) & `Transient ADA` == 1,\n        \"Induced (Transient)\",\n        \"Induced (Persistent)\"\n      ),\n      \"Enhanced\"\n    )\n  ) %>%\n  mutate(\n    AVAL = paste0(\n      ifelse(\n        ifelse(\"ADA interpreted per sample result\" %in% names(.), `ADA interpreted per sample result` == 0, FALSE),\n        \"NEGATIVE\",\n        ifelse(\n          ifelse(\"Antibody titer units\" %in% names(.), !is.na(`Antibody titer units`), FALSE),\n          ifelse(\n            `Antibody titer units` < min_titer,\n            paste0(\"<\", format(min_titer, nsmall = 2)),\n            as.character(format(round(`Antibody titer units`, 2), nsmall = 2))\n          ),\n          \"---\"\n        )\n      ),\n      ifelse(\n        ifelse(\"NAB interpreted per sample result\" %in% names(.), `NAB interpreted per sample result` == 1, FALSE),\n        \"*\",\n        \"\"\n      )\n    )\n  )\n\nout <- adab_x %>%\n  select(USUBJID, VISN, AVAL, PTES) %>%\n  tidyr::pivot_wider(\n    names_from = VISN,\n    values_from = AVAL\n  ) %>%\n  select(USUBJID, unique(adab_x$VISN[order(adab_x$NFRLT)]), PTES)\n\nvar_labels(out) <- names(out)\n\nout <- out %>%\n  var_relabel(\n    USUBJID = \"Subject ID\",\n    PTES = \"Patient Treatment\\nEmergent ADA Status\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = \"USUBJID\",\n  disp_cols = names(out),\n  main_title = paste0(\n    \"Listing of Anti-\", drugcd, \" Antibody Data for Treatment Emergent ADA Positive Patients, PK Population\",\n    \"\\nProtocol: \", unique(adab$PARCAT1)[1]\n  ),\n  subtitles = paste(\"\\nTreatment Group:\", trt),\n  # nolint start: line_length.\n  main_footer = \"Minimum reportable titer = 1.10 (example only)\n--- = No sample evaluated\nADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies)\nNumber of patients positive for Treatment Emergent ADA = the number of post-baseline evaluable patients determined to have treatment-induced ADA or treatment-enhanced ADA during the study period.\nTreatment-induced ADA = a patient with negative or missing baseline ADA result(s) and at least one positive post-baseline ADA result.\nTreatment-enhanced ADA = a patient with positive ADA result at baseline who has one or more post-baseline titer results that are at least 0.60 t.u. greater than the baseline titer result.\nTransient ADA = ADA positive result detected (a) at only one post-baseline sampling timepoint (excluding last timepoint) OR (b) at 2 or more timepoints during treatment where the first and last ADA positive samples  are separated by a period of < 16 weeks, irrespective of any negative samples in between.\nPersistent ADA =  ADA positive result detected (a) at the last post-baseline sampling timepoint, OR (b) at 2 or more time points during treatment where the first and last ADA positive samples are separated by a period <U+2265> 16 weeks, irrespective of any negative samples in between.\nAsterisk denotes sample that tested positive for Neutralizing Antibodies.\"\n  # nolint end: line_length.\n)\n\nhead(lsting, 20)","options":{"read-only":"false","fig-height":5,"label":"unnamed-chunk-1","warning":"true","results":"markup","fig-width":7,"output":"true","editor-quick-suggestions":"false","out-height":"","editor-max-height":"500","comment":"","autorun":"true","out-width":"700px","classes":"","context":"interactive","message":"true","dpi":72,"editor-font-scale":1,"fig-cap":""},"id":1}];
+globalThis.qwebrCellDetails = [{"options":{"out-height":"","autorun":"true","context":"interactive","fig-width":7,"results":"markup","warning":"true","fig-height":5,"message":"true","read-only":"false","editor-quick-suggestions":"false","editor-font-scale":1,"comment":"","fig-cap":"","label":"unnamed-chunk-1","classes":"","dpi":72,"output":"true","editor-max-height":"500","out-width":"700px"},"id":1,"code":"library(dplyr)\nlibrary(rlistings)\n\nadab <- random.cdisc.data::cadab %>%\n  filter(NFRLT %% 1 == 0 & NFRLT > 0)\n\ntrt <- \"A: Drug X\"\ndrug_a <- \"A: Drug X Antibody\"\ndrugcd <- unique(adab$PARAMCD[adab$PARAM == \"Antibody titer units\"])[1]\nmin_titer <- 1.10\n\nadab_x <- adab %>%\n  filter(\n    ARM == trt,\n    PARCAT1 == drug_a,\n    ADPBLPFL == \"Y\"\n  ) %>%\n  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%\n  unique() %>%\n  tidyr::pivot_wider(\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  filter(if_any(matches(\"Treatment Emergent - Positive\"), ~ .x == 1)) %>%\n  # filter(`Treatment Emergent - Positive` == 1) %>%\n  mutate(\n    VISN = factor(paste0(\n      VISIT, \"\\n(Day \",\n      ifelse(\n        NFRLT %% 1 == 0,\n        NFRLT,\n        as.character(format(round(NFRLT, 2), nsmall = 2))\n      ),\n      \")\"\n    )),\n    PTES = ifelse(\n      ifelse(\"Treatment induced ADA\" %in% names(.), `Treatment induced ADA` == 1, FALSE),\n      ifelse(\n        \"Transient ADA\" %in% names(.) & `Transient ADA` == 1,\n        \"Induced (Transient)\",\n        \"Induced (Persistent)\"\n      ),\n      \"Enhanced\"\n    )\n  ) %>%\n  mutate(\n    AVAL = paste0(\n      ifelse(\n        ifelse(\"ADA interpreted per sample result\" %in% names(.), `ADA interpreted per sample result` == 0, FALSE),\n        \"NEGATIVE\",\n        ifelse(\n          ifelse(\"Antibody titer units\" %in% names(.), !is.na(`Antibody titer units`), FALSE),\n          ifelse(\n            `Antibody titer units` < min_titer,\n            paste0(\"<\", format(min_titer, nsmall = 2)),\n            as.character(format(round(`Antibody titer units`, 2), nsmall = 2))\n          ),\n          \"---\"\n        )\n      ),\n      ifelse(\n        ifelse(\"NAB interpreted per sample result\" %in% names(.), `NAB interpreted per sample result` == 1, FALSE),\n        \"*\",\n        \"\"\n      )\n    )\n  )\n\nout <- adab_x %>%\n  select(USUBJID, VISN, AVAL, PTES) %>%\n  tidyr::pivot_wider(\n    names_from = VISN,\n    values_from = AVAL\n  ) %>%\n  select(USUBJID, unique(adab_x$VISN[order(adab_x$NFRLT)]), PTES)\n\nvar_labels(out) <- names(out)\n\nout <- out %>%\n  var_relabel(\n    USUBJID = \"Subject ID\",\n    PTES = \"Patient Treatment\\nEmergent ADA Status\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = \"USUBJID\",\n  disp_cols = names(out),\n  main_title = paste0(\n    \"Listing of Anti-\", drugcd, \" Antibody Data for Treatment Emergent ADA Positive Patients, PK Population\",\n    \"\\nProtocol: \", unique(adab$PARCAT1)[1]\n  ),\n  subtitles = paste(\"\\nTreatment Group:\", trt),\n  # nolint start: line_length.\n  main_footer = \"Minimum reportable titer = 1.10 (example only)\n--- = No sample evaluated\nADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies)\nNumber of patients positive for Treatment Emergent ADA = the number of post-baseline evaluable patients determined to have treatment-induced ADA or treatment-enhanced ADA during the study period.\nTreatment-induced ADA = a patient with negative or missing baseline ADA result(s) and at least one positive post-baseline ADA result.\nTreatment-enhanced ADA = a patient with positive ADA result at baseline who has one or more post-baseline titer results that are at least 0.60 t.u. greater than the baseline titer result.\nTransient ADA = ADA positive result detected (a) at only one post-baseline sampling timepoint (excluding last timepoint) OR (b) at 2 or more timepoints during treatment where the first and last ADA positive samples  are separated by a period of < 16 weeks, irrespective of any negative samples in between.\nPersistent ADA =  ADA positive result detected (a) at the last post-baseline sampling timepoint, OR (b) at 2 or more time points during treatment where the first and last ADA positive samples are separated by a period ≥ 16 weeks, irrespective of any negative samples in between.\nAsterisk denotes sample that tested positive for Neutralizing Antibodies.\"\n  # nolint end: line_length.\n)\n\nhead(lsting, 20)"}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2745,10 +2745,10 @@ Protocol: A: Drug X Antibody
 
 Treatment Group: A: Drug X
 
------------------------------------------------------
+—————————————————————————————————————————————————————
                          Day 2     Patient Treatment 
      Subject ID         (Day 1)   Emergent ADA Status
------------------------------------------------------
+—————————————————————————————————————————————————————
 AB12345-BRA-1-id-105      ---          Enhanced      
 AB12345-BRA-1-id-134      ---          Enhanced      
  AB12345-BRA-1-id-42      ---          Enhanced      
@@ -2769,7 +2769,7 @@ AB12345-CHN-1-id-119      ---          Enhanced
 AB12345-CHN-1-id-123      ---          Enhanced      
 AB12345-CHN-1-id-133      ---          Enhanced      
 AB12345-CHN-1-id-199      ---          Enhanced      
------------------------------------------------------
+—————————————————————————————————————————————————————
 
 Minimum reportable titer = 1.10 (example only)
 --- = No sample evaluated
@@ -2778,7 +2778,7 @@ Number of patients positive for Treatment Emergent ADA = the number of post-base
 Treatment-induced ADA = a patient with negative or missing baseline ADA result(s) and at least one positive post-baseline ADA result.
 Treatment-enhanced ADA = a patient with positive ADA result at baseline who has one or more post-baseline titer results that are at least 0.60 t.u. greater than the baseline titer result.
 Transient ADA = ADA positive result detected (a) at only one post-baseline sampling timepoint (excluding last timepoint) OR (b) at 2 or more timepoints during treatment where the first and last ADA positive samples  are separated by a period of &lt; 16 weeks, irrespective of any negative samples in between.
-Persistent ADA =  ADA positive result detected (a) at the last post-baseline sampling timepoint, OR (b) at 2 or more time points during treatment where the first and last ADA positive samples are separated by a period &lt;U+2265&gt; 16 weeks, irrespective of any negative samples in between.
+Persistent ADA =  ADA positive result detected (a) at the last post-baseline sampling timepoint, OR (b) at 2 or more time points during treatment where the first and last ADA positive samples are separated by a period ≥ 16 weeks, irrespective of any negative samples in between.
 Asterisk denotes sample that tested positive for Neutralizing Antibodies.</code></pre>
 </div>
 </div>
@@ -2817,7 +2817,7 @@ Experimental use!
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-05-18 18:02:08 UTC"</code></pre>
+<pre><code>[1] "2024-05-22 18:05:29 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2833,7 +2833,12 @@ BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3
 LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0
 
 locale:
-[1] C
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 time zone: Etc/UTC
 tzcode source: system (glibc)
@@ -2848,13 +2853,13 @@ other attached packages:
 loaded via a namespace (and not attached):
  [1] vctrs_0.6.5                   cli_3.6.2                    
  [3] knitr_1.46                    rlang_1.1.3                  
- [5] xfun_0.43                     stringi_1.8.3                
+ [5] xfun_0.44                     stringi_1.8.4                
  [7] purrr_1.0.2                   generics_0.1.3               
  [9] jsonlite_1.8.8                glue_1.7.0                   
 [11] backports_1.4.1               htmltools_0.5.8.1            
 [13] brio_1.1.5                    fansi_1.0.6                  
-[15] rmarkdown_2.26                grid_4.4.0                   
-[17] evaluate_0.23                 fastmap_1.1.1                
+[15] rmarkdown_2.27                grid_4.4.0                   
+[17] evaluate_0.23                 fastmap_1.2.0                
 [19] yaml_2.3.8                    lifecycle_1.0.4              
 [21] stringr_1.5.1                 compiler_4.4.0               
 [23] codetools_0.2-20              htmlwidgets_1.6.4            

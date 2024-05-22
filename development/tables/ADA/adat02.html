@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"options":{"warning":"true","label":"unnamed-chunk-1","out-height":"","editor-max-height":"500","context":"interactive","fig-height":5,"classes":"","fig-width":7,"dpi":72,"fig-cap":"","results":"markup","read-only":"false","message":"true","autorun":"true","output":"true","comment":"","out-width":"700px","editor-font-scale":1,"editor-quick-suggestions":"false"},"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadab <- random.cdisc.data::cadab\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadab <- df_explicit_na(adab) %>%\n  mutate(ADPBLPFL = \"Y\") %>% # temp fix\n  filter(\n    ADPBLPFL == \"Y\",\n    !PARAM %in% c(\n      \"NAB interpreted per sample result\",\n      \"NAB Status of a patient\",\n      \"Treatment enhanced ADA\"\n    )\n  ) %>%\n  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%\n  unique() %>%\n  tidyr::pivot_wider(\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate(\n    across(\n      any_of(c(\n        \"Treatment induced ADA\",\n        \"Transient ADA\",\n        \"Persistent ADA\"\n      )),\n      as.logical\n    )\n  ) %>%\n  mutate(\n    ADPBLPFL = ADPBLPFL == \"Y\",\n    TI_ADA = if (exists(\"Treatment induced ADA\", where = .)) `Treatment induced ADA` else FALSE\n  ) %>%\n  var_relabel(\n    ADPBLPFL = \"Post-baseline evaluable patients\",\n    TI_ADA = \"Treatment-induced ADA patients\"\n  )\n\nadab_ti <- adab %>%\n  filter(TI_ADA)\n# Layout for post-baseline evaluable patient variables from adab dataset.\nlyt_adab <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ACTARM\",\n    split_fun = drop_split_levels\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"ADPBLPFL\",\n    .stats = \"count\",\n    table_names = \"post_baseline\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"TI_ADA\"\n  )\n\n# Layout for treatment-induced patient variables from adab dataset.\nlyt_adab_ti <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ACTARM\",\n    split_fun = keep_split_levels(c(\"A: Drug X\", \"C: Combination\", \"<Missing>\")) # temp fix\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(\"Transient ADA\", \"Persistent ADA\"),\n    var_labels = \"Treatment-induced ADA patients with\",\n    show_labels = \"visible\"\n  ) %>%\n  analyze_vars(\n    \"Time to onset of ADA\",\n    .stats = \"median\",\n    nested = FALSE,\n    .labels = c(median = \"Median time to onset of ADA (weeks)\")\n  ) %>%\n  analyze_vars(\n    \"Antibody titer units\",\n    .stats = \"range\",\n    nested = FALSE,\n    .labels = c(range = \"ADA titer range (min - max)\")\n  )\n\nresult_adab <- build_table(lyt_adab, df = adab, alt_counts_df = adsl)\nresult_adab_ti <- build_table(lyt_adab_ti, df = adab_ti, alt_counts_df = adsl)\n\n# Combine tables.\ncol_info(result_adab) <- col_info(result_adab_ti)\nresult <- rbind(\n  result_adab,\n  result_adab_ti\n)\n\nmain_title(result) <- paste(\n  \"Summary of Patients with Treatment-Induced ADA, PK Population\"\n)\nsubtitles(result) <- paste(\"Protocol:\", unique(adab$PARCAT1)[1])\nmain_footer(result) <- paste(\n  \"ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic\n  Antibodies)\n  Treatment-induced ADA = negative or missing baseline.\n  ADA result(s) and at least one positive post-baseline ADA result.\n  Transient ADA = ADA positive result detected (a) at only one post-baseline\n  sampling timepoint (excluding last timepoint) OR (b) at 2 or more timepoints\n  during treatment where the first and last ADA positive samples are separated\n  by a period of < 16 weeks, irrespective of any negative samples in between.\n  Persistent ADA = ADA positive result detected (a) at the last post-baseline\n  sampling timepoint, OR (b) at 2 or more time points during treatment where\n  the first and last ADA positive samples are separated by a period <U+2265> 16\n  weeks, irrespective of any negative samples in between.\"\n)\nresult"}];
+globalThis.qwebrCellDetails = [{"options":{"out-width":"700px","output":"true","fig-height":5,"editor-quick-suggestions":"false","comment":"","results":"markup","warning":"true","autorun":"true","message":"true","dpi":72,"editor-font-scale":1,"label":"unnamed-chunk-1","classes":"","read-only":"false","fig-cap":"","context":"interactive","editor-max-height":"500","out-height":"","fig-width":7},"id":1,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadab <- random.cdisc.data::cadab\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadab <- df_explicit_na(adab) %>%\n  mutate(ADPBLPFL = \"Y\") %>% # temp fix\n  filter(\n    ADPBLPFL == \"Y\",\n    !PARAM %in% c(\n      \"NAB interpreted per sample result\",\n      \"NAB Status of a patient\",\n      \"Treatment enhanced ADA\"\n    )\n  ) %>%\n  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%\n  unique() %>%\n  tidyr::pivot_wider(\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate(\n    across(\n      any_of(c(\n        \"Treatment induced ADA\",\n        \"Transient ADA\",\n        \"Persistent ADA\"\n      )),\n      as.logical\n    )\n  ) %>%\n  mutate(\n    ADPBLPFL = ADPBLPFL == \"Y\",\n    TI_ADA = if (exists(\"Treatment induced ADA\", where = .)) `Treatment induced ADA` else FALSE\n  ) %>%\n  var_relabel(\n    ADPBLPFL = \"Post-baseline evaluable patients\",\n    TI_ADA = \"Treatment-induced ADA patients\"\n  )\n\nadab_ti <- adab %>%\n  filter(TI_ADA)\n# Layout for post-baseline evaluable patient variables from adab dataset.\nlyt_adab <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ACTARM\",\n    split_fun = drop_split_levels\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"ADPBLPFL\",\n    .stats = \"count\",\n    table_names = \"post_baseline\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"TI_ADA\"\n  )\n\n# Layout for treatment-induced patient variables from adab dataset.\nlyt_adab_ti <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ACTARM\",\n    split_fun = keep_split_levels(c(\"A: Drug X\", \"C: Combination\", \"<Missing>\")) # temp fix\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(\"Transient ADA\", \"Persistent ADA\"),\n    var_labels = \"Treatment-induced ADA patients with\",\n    show_labels = \"visible\"\n  ) %>%\n  analyze_vars(\n    \"Time to onset of ADA\",\n    .stats = \"median\",\n    nested = FALSE,\n    .labels = c(median = \"Median time to onset of ADA (weeks)\")\n  ) %>%\n  analyze_vars(\n    \"Antibody titer units\",\n    .stats = \"range\",\n    nested = FALSE,\n    .labels = c(range = \"ADA titer range (min - max)\")\n  )\n\nresult_adab <- build_table(lyt_adab, df = adab, alt_counts_df = adsl)\nresult_adab_ti <- build_table(lyt_adab_ti, df = adab_ti, alt_counts_df = adsl)\n\n# Combine tables.\ncol_info(result_adab) <- col_info(result_adab_ti)\nresult <- rbind(\n  result_adab,\n  result_adab_ti\n)\n\nmain_title(result) <- paste(\n  \"Summary of Patients with Treatment-Induced ADA, PK Population\"\n)\nsubtitles(result) <- paste(\"Protocol:\", unique(adab$PARCAT1)[1])\nmain_footer(result) <- paste(\n  \"ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic\n  Antibodies)\n  Treatment-induced ADA = negative or missing baseline.\n  ADA result(s) and at least one positive post-baseline ADA result.\n  Transient ADA = ADA positive result detected (a) at only one post-baseline\n  sampling timepoint (excluding last timepoint) OR (b) at 2 or more timepoints\n  during treatment where the first and last ADA positive samples are separated\n  by a period of < 16 weeks, irrespective of any negative samples in between.\n  Persistent ADA = ADA positive result detected (a) at the last post-baseline\n  sampling timepoint, OR (b) at 2 or more time points during treatment where\n  the first and last ADA positive samples are separated by a period ≥ 16\n  weeks, irrespective of any negative samples in between.\"\n)\nresult"}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2754,10 +2754,10 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <pre><code>Summary of Patients with Treatment-Induced ADA, PK Population
 Protocol: A: Drug X Antibody
 
------------------------------------------------------------------------------
+—————————————————————————————————————————————————————————————————————————————
                                       A: Drug X   C: Combination   &lt;Missing&gt; 
                                        (N=134)       (N=132)         (N=0)   
------------------------------------------------------------------------------
+—————————————————————————————————————————————————————————————————————————————
 Post-baseline evaluable patients         134           132            266    
 Treatment-induced ADA patients            0             0          64 (24.1%)
 Treatment-induced ADA patients with                                          
@@ -2765,7 +2765,7 @@ Treatment-induced ADA patients with
   Persistent ADA                          0             0              0     
 Median time to onset of ADA (weeks)      NA             NA            0.1    
 ADA titer range (min - max)              NA             NA             NA    
------------------------------------------------------------------------------
+—————————————————————————————————————————————————————————————————————————————
 
 ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic
   Antibodies)
@@ -2777,7 +2777,7 @@ ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic
   by a period of &lt; 16 weeks, irrespective of any negative samples in between.
   Persistent ADA = ADA positive result detected (a) at the last post-baseline
   sampling timepoint, OR (b) at 2 or more time points during treatment where
-  the first and last ADA positive samples are separated by a period &lt;U+2265&gt; 16
+  the first and last ADA positive samples are separated by a period ≥ 16
   weeks, irrespective of any negative samples in between.</code></pre>
 </div>
 </div>
@@ -2822,7 +2822,7 @@ Experimental use!
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-05-18 17:50:19 UTC"</code></pre>
+<pre><code>[1] "2024-05-22 17:53:21 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2838,7 +2838,12 @@ BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3
 LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0
 
 locale:
-[1] C
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 time zone: Etc/UTC
 tzcode source: system (glibc)
@@ -2856,7 +2861,7 @@ loaded via a namespace (and not attached):
  [5] brio_1.1.5                    tidyselect_1.2.1             
  [7] stringr_1.5.1                 tidyr_1.3.1                  
  [9] splines_4.4.0                 scales_1.3.0                 
-[11] yaml_2.3.8                    fastmap_1.1.1                
+[11] yaml_2.3.8                    fastmap_1.2.0                
 [13] lattice_0.22-6                ggplot2_3.5.1                
 [15] R6_2.5.1                      generics_0.1.3               
 [17] knitr_1.46                    forcats_1.0.0                
@@ -2865,8 +2870,8 @@ loaded via a namespace (and not attached):
 [23] tibble_3.2.1                  munsell_0.5.1                
 [25] pillar_1.9.0                  rlang_1.1.3                  
 [27] utf8_1.2.4                    testthat_3.2.1.1             
-[29] stringi_1.8.3                 broom_1.0.5                  
-[31] xfun_0.43                     cli_3.6.2                    
+[29] stringi_1.8.4                 broom_1.0.6                  
+[31] xfun_0.44                     cli_3.6.2                    
 [33] withr_3.0.0                   Rdpack_2.6                   
 [35] digest_0.6.35                 grid_4.4.0                   
 [37] lifecycle_1.0.4               vctrs_0.6.5                  
@@ -2874,7 +2879,7 @@ loaded via a namespace (and not attached):
 [41] codetools_0.2-20              survival_3.6-4               
 [43] random.cdisc.data_0.3.15.9003 fansi_1.0.6                  
 [45] colorspace_2.1-0              purrr_1.0.2                  
-[47] rmarkdown_2.26                tools_4.4.0                  
+[47] rmarkdown_2.27                tools_4.4.0                  
 [49] pkgconfig_2.0.3               htmltools_0.5.8.1            </code></pre>
 </div>
 </div>
