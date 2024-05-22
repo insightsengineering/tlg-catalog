@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"code":"library(dplyr)\nlibrary(rlistings)\n\nadrs <- random.cdisc.data::cadrs\nadtte <- random.cdisc.data::cadtte\nadex <- random.cdisc.data::cadex\n\nout_ex <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  mutate(ID = paste(SITEID, SUBJID, sep = \"/\")) %>%\n  select(ID, AVAL)\n\nout_rs <- adrs %>%\n  filter(PARAM %in% c(\"Investigator End Of Induction Response\", \"Best Confirmed Overall Response by Investigator\")) %>%\n  mutate(ID = paste(SITEID, SUBJID, sep = \"/\")) %>%\n  select(ID, AVALC, PARAM) %>%\n  tidyr::pivot_wider(\n    id_cols = ID,\n    names_from = PARAM,\n    values_from = AVALC\n  ) %>%\n  right_join(out_ex, ., by = \"ID\", multiple = \"all\")\n\nadtte_flt <- adtte %>%\n  filter(PARAMCD %in% c(\"OS\", \"PFS\", \"CRSD\")) %>%\n  mutate(\n    PARAM = paste(PARAM, paste0(\"(\", AVALU, \")\"), sep = \" \"), ID = paste(SITEID, SUBJID, sep = \"/\"),\n    trigeventpfs = ifelse(CNSR == 0, EVNTDESC, NA)\n  )\n\n# Select triggering event variable\nout_trg <- adtte_flt %>%\n  select(ID, trigeventpfs)\n\nout_tte <- adtte_flt %>%\n  select(ID, TRT01A, PARAM, AVAL, trigeventpfs) %>%\n  tidyr::pivot_wider(\n    id_cols = c(ID, TRT01A),\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate_at(\n    c(\"Overall Survival (DAYS)\", \"Progression Free Survival (DAYS)\", \"Duration of Confirmed Response (DAYS)\"),\n    function(x) format(round(x, 1), nsmall = 1)\n  ) %>%\n  select(\n    ID,\n    TRT01A,\n    `Overall Survival (DAYS)`,\n    `Progression Free Survival (DAYS)`,\n    `Duration of Confirmed Response (DAYS)`\n  ) %>%\n  right_join(out_trg, ., by = \"ID\", multiple = \"all\")\n\nout <- out_tte %>%\n  right_join(out_rs, ., by = \"ID\", multiple = \"all\") %>%\n  select(\n    \"ID\", \"TRT01A\", \"AVAL\", \"Best Confirmed Overall Response by Investigator\",\n    \"Investigator End Of Induction Response\", \"Overall Survival (DAYS)\", \"Progression Free Survival (DAYS)\",\n    \"trigeventpfs\", \"Duration of Confirmed Response (DAYS)\"\n  )\n\nvar_labels(out) <- names(out)\nout <- out %>%\n  var_relabel(\n    ID = \"Center/Patient ID\",\n    TRT01A = \"Treatment\",\n    AVAL = \"Number of Doses\\nReceived\",\n    `Best Confirmed Overall Response by Investigator` = \"Best Confirmed\\nOverall Response\\nby Investigator\",\n    `Investigator End Of Induction Response` = \"Investigator\\nEnd Of Induction\\nResponse\",\n    trigeventpfs = \"Triggering Event\\n for PFS\",\n    `Overall Survival (DAYS)` = \"Overall Survival\\n(days)\",\n    `Progression Free Survival (DAYS)` = \"PFS\\n(days)\",\n    `Duration of Confirmed Response (DAYS)` = \"Duration of\\nConfirmed Response\\n(days)\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"ID\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Individual Efficacy Data\",\n  main_footer = \"PFS = Progression Free Survival\"\n)\n\nhead(lsting, 20)","options":{"editor-max-height":"500","warning":"true","context":"interactive","output":"true","editor-quick-suggestions":"false","autorun":"true","label":"unnamed-chunk-1","fig-width":7,"editor-font-scale":1,"fig-cap":"","message":"true","comment":"","out-width":"700px","results":"markup","read-only":"false","classes":"","fig-height":5,"out-height":"","dpi":72}}];
+globalThis.qwebrCellDetails = [{"id":1,"code":"library(dplyr)\nlibrary(rlistings)\n\nadrs <- random.cdisc.data::cadrs\nadtte <- random.cdisc.data::cadtte\nadex <- random.cdisc.data::cadex\n\nout_ex <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  mutate(ID = paste(SITEID, SUBJID, sep = \"/\")) %>%\n  select(ID, AVAL)\n\nout_rs <- adrs %>%\n  filter(PARAM %in% c(\"Investigator End Of Induction Response\", \"Best Confirmed Overall Response by Investigator\")) %>%\n  mutate(ID = paste(SITEID, SUBJID, sep = \"/\")) %>%\n  select(ID, AVALC, PARAM) %>%\n  tidyr::pivot_wider(\n    id_cols = ID,\n    names_from = PARAM,\n    values_from = AVALC\n  ) %>%\n  right_join(out_ex, ., by = \"ID\", multiple = \"all\")\n\nadtte_flt <- adtte %>%\n  filter(PARAMCD %in% c(\"OS\", \"PFS\", \"CRSD\")) %>%\n  mutate(\n    PARAM = paste(PARAM, paste0(\"(\", AVALU, \")\"), sep = \" \"), ID = paste(SITEID, SUBJID, sep = \"/\"),\n    trigeventpfs = ifelse(CNSR == 0, EVNTDESC, NA)\n  )\n\n# Select triggering event variable\nout_trg <- adtte_flt %>%\n  select(ID, trigeventpfs)\n\nout_tte <- adtte_flt %>%\n  select(ID, TRT01A, PARAM, AVAL, trigeventpfs) %>%\n  tidyr::pivot_wider(\n    id_cols = c(ID, TRT01A),\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate_at(\n    c(\"Overall Survival (DAYS)\", \"Progression Free Survival (DAYS)\", \"Duration of Confirmed Response (DAYS)\"),\n    function(x) format(round(x, 1), nsmall = 1)\n  ) %>%\n  select(\n    ID,\n    TRT01A,\n    `Overall Survival (DAYS)`,\n    `Progression Free Survival (DAYS)`,\n    `Duration of Confirmed Response (DAYS)`\n  ) %>%\n  right_join(out_trg, ., by = \"ID\", multiple = \"all\")\n\nout <- out_tte %>%\n  right_join(out_rs, ., by = \"ID\", multiple = \"all\") %>%\n  select(\n    \"ID\", \"TRT01A\", \"AVAL\", \"Best Confirmed Overall Response by Investigator\",\n    \"Investigator End Of Induction Response\", \"Overall Survival (DAYS)\", \"Progression Free Survival (DAYS)\",\n    \"trigeventpfs\", \"Duration of Confirmed Response (DAYS)\"\n  )\n\nvar_labels(out) <- names(out)\nout <- out %>%\n  var_relabel(\n    ID = \"Center/Patient ID\",\n    TRT01A = \"Treatment\",\n    AVAL = \"Number of Doses\\nReceived\",\n    `Best Confirmed Overall Response by Investigator` = \"Best Confirmed\\nOverall Response\\nby Investigator\",\n    `Investigator End Of Induction Response` = \"Investigator\\nEnd Of Induction\\nResponse\",\n    trigeventpfs = \"Triggering Event\\n for PFS\",\n    `Overall Survival (DAYS)` = \"Overall Survival\\n(days)\",\n    `Progression Free Survival (DAYS)` = \"PFS\\n(days)\",\n    `Duration of Confirmed Response (DAYS)` = \"Duration of\\nConfirmed Response\\n(days)\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"ID\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Individual Efficacy Data\",\n  main_footer = \"PFS = Progression Free Survival\"\n)\n\nhead(lsting, 20)","options":{"fig-height":5,"warning":"true","message":"true","classes":"","context":"interactive","output":"true","comment":"","fig-cap":"","autorun":"true","editor-quick-suggestions":"false","results":"markup","out-width":"700px","label":"unnamed-chunk-1","read-only":"false","editor-max-height":"500","dpi":72,"editor-font-scale":1,"out-height":"","fig-width":7}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2720,11 +2720,11 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 </details><div class="cell-output cell-output-stdout">
 <pre><code>Listing of Individual Efficacy Data
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------
+————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
                                                    Best Confirmed      Investigator                                                          Duration of    
                                 Number of Doses   Overall Response   End Of Induction   Overall Survival    PFS      Triggering Event     Confirmed Response
 Treatment   Center/Patient ID      Received       by Investigator        Response            (days)        (days)         for PFS               (days)      
-------------------------------------------------------------------------------------------------------------------------------------------------------------
+————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 A: Drug X     BRA-1/id-105             7                 CR                 CR               402.6         235.7    Disease Progression         119.6       
                                        7                 CR                 CR               402.6         235.7            NA                  119.6       
                                        7                 CR                 CR               402.6         235.7            NA                  119.6       
@@ -2745,7 +2745,7 @@ A: Drug X     BRA-1/id-105             7                 CR                 CR  
                                        7                 CR                 CR               305.5         272.6            NA                  150.6       
               BRA-11/id-397            7                 PR                 PR               138.7         138.7           Death                138.7       
                                        7                 PR                 PR               138.7         138.7           Death                138.7       
-------------------------------------------------------------------------------------------------------------------------------------------------------------
+————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 
 PFS = Progression Free Survival</code></pre>
 </div>
@@ -2785,7 +2785,7 @@ Experimental use!
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-05-18 18:01:17 UTC"</code></pre>
+<pre><code>[1] "2024-05-22 17:58:16 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2801,7 +2801,12 @@ BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3
 LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0
 
 locale:
-[1] C
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 time zone: Etc/UTC
 tzcode source: system (glibc)

@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\n\nadsl <- random.cdisc.data::cadsl\nadlb <- random.cdisc.data::cadlb\n\nadlb_labels <- var_labels(adlb)\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadlb <- df_explicit_na(adlb)\n\n# Select worst post-baseline records.\nadlb_f <- adlb %>%\n  filter(ATOXGR != \"<Missing>\") %>%\n  filter(ONTRTFL == \"Y\") %>%\n  filter(WGRLOFL == \"Y\" | WGRHIFL == \"Y\")\n\nvar_labels(adlb_f) <- adlb_labels\n\n# Derive GRADE_DIR and GRADE_ANL to use in layout from ATOXGR\nadlb_f <- adlb_f %>%\n  mutate(\n    GRADE_DIR = factor(\n      case_when(\n        ATOXGR %in% c(\"-1\", \"-2\", \"-3\", \"-4\") & .data$WGRLOFL == \"Y\" ~ \"LOW\",\n        ATOXGR == \"0\" ~ \"ZERO\",\n        ATOXGR %in% c(\"1\", \"2\", \"3\", \"4\") & .data$WGRHIFL == \"Y\" ~ \"HIGH\",\n        TRUE ~ \"NONE\"\n      ),\n      levels = c(\"LOW\", \"ZERO\", \"HIGH\", \"NONE\")\n    ),\n    GRADE_ANL = forcats::fct_relevel(\n      forcats::fct_recode(ATOXGR,\n        `1` = \"-1\", `2` = \"-2\", `3` = \"-3\", `4` = \"-4\"\n      ),\n      c(\"0\", \"1\", \"2\", \"3\", \"4\")\n    )\n  ) %>%\n  var_relabel(\n    GRADE_DIR = \"Direction of Abnormality\",\n    GRADE_ANL = \"Analysis Grade\"\n  )\n\n# Construct analysis map\nmap <- expand.grid(\n  PARAM = levels(adlb$PARAM),\n  GRADE_DIR = c(\"LOW\", \"HIGH\"),\n  GRADE_ANL = as.character(1:4),\n  stringsAsFactors = FALSE\n) %>%\n  arrange(PARAM, desc(GRADE_DIR), GRADE_ANL)\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\n    \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$PARAM)\n  ) %>%\n  summarize_num_patients(\n    var = \"USUBJID\",\n    required = \"ATOXGR\",\n    .stats = \"unique_count\"\n  ) %>%\n  split_rows_by(\n    \"GRADE_DIR\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$GRADE_DIR),\n    split_fun = trim_levels_to_map(map)\n  ) %>%\n  count_abnormal_by_worst_grade(\n    var = \"GRADE_ANL\",\n    variables = list(id = \"USUBJID\", param = \"PARAM\", grade_dir = \"GRADE_DIR\"),\n    .indent_mods = 4L\n  ) %>%\n  append_topleft(\"            Highest NCI CTCAE Grade\")\n\nresult <- build_table(lyt = lyt, df = adlb_f, alt_counts_df = adsl)\nresult <- result %>% prune_table()\n\nresult","id":1,"options":{"comment":"","warning":"true","editor-font-scale":1,"autorun":"true","editor-quick-suggestions":"false","dpi":72,"out-width":"700px","classes":"","read-only":"false","message":"true","output":"true","fig-height":5,"fig-width":7,"label":"unnamed-chunk-1","fig-cap":"","editor-max-height":"500","out-height":"","context":"interactive","results":"markup"}}];
+globalThis.qwebrCellDetails = [{"id":1,"options":{"out-height":"","fig-cap":"","fig-height":5,"context":"interactive","fig-width":7,"out-width":"700px","output":"true","editor-quick-suggestions":"false","classes":"","warning":"true","results":"markup","autorun":"true","comment":"","editor-font-scale":1,"label":"unnamed-chunk-1","read-only":"false","dpi":72,"editor-max-height":"500","message":"true"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\n\nadsl <- random.cdisc.data::cadsl\nadlb <- random.cdisc.data::cadlb\n\nadlb_labels <- var_labels(adlb)\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadlb <- df_explicit_na(adlb)\n\n# Select worst post-baseline records.\nadlb_f <- adlb %>%\n  filter(ATOXGR != \"<Missing>\") %>%\n  filter(ONTRTFL == \"Y\") %>%\n  filter(WGRLOFL == \"Y\" | WGRHIFL == \"Y\")\n\nvar_labels(adlb_f) <- adlb_labels\n\n# Derive GRADE_DIR and GRADE_ANL to use in layout from ATOXGR\nadlb_f <- adlb_f %>%\n  mutate(\n    GRADE_DIR = factor(\n      case_when(\n        ATOXGR %in% c(\"-1\", \"-2\", \"-3\", \"-4\") & .data$WGRLOFL == \"Y\" ~ \"LOW\",\n        ATOXGR == \"0\" ~ \"ZERO\",\n        ATOXGR %in% c(\"1\", \"2\", \"3\", \"4\") & .data$WGRHIFL == \"Y\" ~ \"HIGH\",\n        TRUE ~ \"NONE\"\n      ),\n      levels = c(\"LOW\", \"ZERO\", \"HIGH\", \"NONE\")\n    ),\n    GRADE_ANL = forcats::fct_relevel(\n      forcats::fct_recode(ATOXGR,\n        `1` = \"-1\", `2` = \"-2\", `3` = \"-3\", `4` = \"-4\"\n      ),\n      c(\"0\", \"1\", \"2\", \"3\", \"4\")\n    )\n  ) %>%\n  var_relabel(\n    GRADE_DIR = \"Direction of Abnormality\",\n    GRADE_ANL = \"Analysis Grade\"\n  )\n\n# Construct analysis map\nmap <- expand.grid(\n  PARAM = levels(adlb$PARAM),\n  GRADE_DIR = c(\"LOW\", \"HIGH\"),\n  GRADE_ANL = as.character(1:4),\n  stringsAsFactors = FALSE\n) %>%\n  arrange(PARAM, desc(GRADE_DIR), GRADE_ANL)\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\n    \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$PARAM)\n  ) %>%\n  summarize_num_patients(\n    var = \"USUBJID\",\n    required = \"ATOXGR\",\n    .stats = \"unique_count\"\n  ) %>%\n  split_rows_by(\n    \"GRADE_DIR\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$GRADE_DIR),\n    split_fun = trim_levels_to_map(map)\n  ) %>%\n  count_abnormal_by_worst_grade(\n    var = \"GRADE_ANL\",\n    variables = list(id = \"USUBJID\", param = \"PARAM\", grade_dir = \"GRADE_DIR\"),\n    .indent_mods = 4L\n  ) %>%\n  append_topleft(\"            Highest NCI CTCAE Grade\")\n\nresult <- build_table(lyt = lyt, df = adlb_f, alt_counts_df = adsl)\nresult <- result %>% prune_table()\n\nresult"}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2725,7 +2725,7 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <pre><code>Parameter                                                                          
   Direction of Abnormality                 A: Drug X    B: Placebo   C: Combination
             Highest NCI CTCAE Grade         (N=134)      (N=134)        (N=132)    
------------------------------------------------------------------------------------
+———————————————————————————————————————————————————————————————————————————————————
 Alanine Aminotransferase Measurement (n)      134          134            132      
   LOW                                                                              
             1                              15 (11.2%)   11 (8.2%)      15 (11.4%)  
@@ -2952,7 +2952,7 @@ we have to put some code upfront
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-05-18 17:38:39 UTC"</code></pre>
+<pre><code>[1] "2024-05-22 17:35:10 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2968,7 +2968,12 @@ BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3
 LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0
 
 locale:
-[1] C
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 time zone: Etc/UTC
 tzcode source: system (glibc)
@@ -2997,8 +3002,8 @@ loaded via a namespace (and not attached):
 [25] withr_3.0.0              purrr_1.0.2              shinyWidgets_0.8.6      
 [28] geepack_1.3.10           grid_4.4.0               fansi_1.0.6             
 [31] teal.logger_0.2.0        xtable_1.8-4             colorspace_2.1-0        
-[34] ggplot2_3.5.1            emmeans_1.10.1           scales_1.3.0            
-[37] MASS_7.3-60.2            cli_3.6.2                mvtnorm_1.2-4           
+[34] ggplot2_3.5.1            emmeans_1.10.2           scales_1.3.0            
+[37] MASS_7.3-60.2            cli_3.6.2                mvtnorm_1.2-5           
 [40] crayon_1.5.2             rmarkdown_2.27           generics_0.1.3          
 [43] chromote_0.2.0           cachem_1.1.0             stringr_1.5.1           
 [46] splines_4.4.0            formatR_1.14             vctrs_0.6.5             
