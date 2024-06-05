@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"options":{"warning":"true","fig-height":5,"output":"true","editor-max-height":"500","classes":"","autorun":"true","fig-width":7,"results":"markup","out-width":"700px","dpi":72,"message":"true","comment":"","label":"unnamed-chunk-1","editor-font-scale":1,"read-only":"false","context":"interactive","fig-cap":"","editor-quick-suggestions":"false","out-height":""},"code":"library(dplyr)\nlibrary(tern)\n\n# Preprocess analysis data ----\nadpp <- random.cdisc.data::cadpp\nadpp <- adpp %>%\n  filter(PPSPEC == \"Plasma\") %>%\n  filter(AVISIT %in% c(\"CYCLE 1 DAY 1\", \"CYCLE 1 DAY 2\")) %>%\n  h_pkparam_sort() %>%\n  mutate(PARAM = factor(paste0(TLG_DISPLAY, \" (\", AVALU, \")\"))) %>%\n  mutate(PARAM = reorder(PARAM, TLG_ORDER))\n\n# Preprocess subject-level data ----\nadsl <- random.cdisc.data::cadsl\n\n# Workaround needed to include (N=xx) population counts\n# Repeat ADSL by the number of levels in AVISIT\n# Include AVISIT and dummy PARAM as it's needed for trim_levels_in_group\nadsl_tmp <- adsl %>%\n  select(STUDYID, USUBJID, ARMCD) %>%\n  unique() %>%\n  mutate(PARAM = factor(NA_character_, levels = levels(adpp$PARAM)))\n\n# Data for Plasma Drug X example ----\nadpp_x <- adpp %>%\n  filter(PPCAT == \"Plasma Drug X\") %>%\n  # Please do not replicate mutate statement below!\n  # It is used to make the random data in this example more realistic\n  # as not all parameters are always available across all visits.\n  mutate(\n    AVAL = if_else(\n      ARMCD == \"ARM A\" & AVISIT == \"CYCLE 1 DAY 1\" & PARAM == \"Cmax (ug/mL)\",\n      NA_real_, AVAL\n    )\n  )\n\nadpp_x_tmp <- adpp_x %>%\n  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%\n  unique()\n\nadsl_x_splitvars <- adsl_tmp %>%\n  left_join(adpp_x_tmp, by = c(\"STUDYID\", \"USUBJID\", \"ARMCD\")) %>%\n  filter(!is.na(AVISIT))\n\n# Data for Plasma Drug Y example ----\nadpp_y <- adpp %>%\n  filter(PPCAT == \"Plasma Drug Y\")\n\nadpp_y_tmp <- adpp_y %>%\n  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%\n  unique()\n\nadsl_y_splitvars <- adsl_tmp %>%\n  left_join(adpp_y_tmp, by = c(\"STUDYID\", \"USUBJID\", \"ARMCD\")) %>%\n  filter(!is.na(AVISIT))\n# lyt creation\nlyt <- basic_table() %>%\n  split_rows_by(\n    var = \"AVISIT\",\n    split_fun = drop_split_levels,\n    split_label = \"Visit\",\n    page_by = TRUE\n  ) %>%\n  split_rows_by(\n    var = \"ARMCD\",\n    split_fun = trim_levels_in_group(\"PARAM\"),\n    label_pos = \"topleft\",\n    split_label = \"Treatment Arm\"\n  ) %>%\n  add_rowcounts(alt_counts = TRUE) %>%\n  split_rows_by(\n    var = \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = \"PK Parameter\",\n    child_labels = \"hidden\"\n  ) %>%\n  analyze_vars_in_cols(\n    vars = \"AVAL\",\n    .stats = c(\n      \"n\", \"mean\", \"sd\", \"cv\",\n      \"geom_mean\", \"geom_cv\", \"median\",\n      \"min\", \"max\"\n    ),\n    .labels = c(\n      n = \"n\",\n      mean = \"Mean\",\n      sd = \"SD\",\n      cv = \"CV (%)\",\n      geom_mean = \"Geometric Mean\",\n      geom_cv = \"CV % Geometric Mean\",\n      median = \"Median\",\n      min = \"Minimum\",\n      max = \"Maximum\"\n    ),\n    .formats = c(\n      n = \"xx.\",\n      mean = format_sigfig(3),\n      sd = format_sigfig(3),\n      cv = \"xx.x\",\n      median = format_sigfig(3),\n      geom_mean = format_sigfig(3),\n      geom_cv = \"xx.x\",\n      min = format_sigfig(3),\n      max = format_sigfig(3)\n    ),\n    na_str = \"NE\"\n  )\nresult <- build_table(lyt, df = adpp_x, alt_counts_df = adsl_x_splitvars)\nmain_title(result) <- paste(\"Summary of\", unique(adpp_x$PPSPEC), \"PK Parameter by Treatment Arm, PK Population\")\nsubtitles(result) <- paste(\"Analyte:\", unique(adpp_x$PPCAT))\nresult <- paginate_table(result, landscape = TRUE)\nresult"},{"id":2,"options":{"warning":"true","fig-height":5,"output":"true","editor-max-height":"500","classes":"","autorun":"true","fig-width":7,"results":"markup","out-width":"700px","dpi":72,"message":"true","comment":"","label":"unnamed-chunk-2","editor-font-scale":1,"read-only":"false","context":"interactive","fig-cap":"","editor-quick-suggestions":"false","out-height":""},"code":"library(dplyr)\nlibrary(tern)\n\n# Preprocess analysis data ----\nadpp <- random.cdisc.data::cadpp\nadpp <- adpp %>%\n  filter(PPSPEC == \"Plasma\") %>%\n  filter(AVISIT %in% c(\"CYCLE 1 DAY 1\", \"CYCLE 1 DAY 2\")) %>%\n  h_pkparam_sort() %>%\n  mutate(PARAM = factor(paste0(TLG_DISPLAY, \" (\", AVALU, \")\"))) %>%\n  mutate(PARAM = reorder(PARAM, TLG_ORDER))\n\n# Preprocess subject-level data ----\nadsl <- random.cdisc.data::cadsl\n\n# Workaround needed to include (N=xx) population counts\n# Repeat ADSL by the number of levels in AVISIT\n# Include AVISIT and dummy PARAM as it's needed for trim_levels_in_group\nadsl_tmp <- adsl %>%\n  select(STUDYID, USUBJID, ARMCD) %>%\n  unique() %>%\n  mutate(PARAM = factor(NA_character_, levels = levels(adpp$PARAM)))\n\n# Data for Plasma Drug X example ----\nadpp_x <- adpp %>%\n  filter(PPCAT == \"Plasma Drug X\") %>%\n  # Please do not replicate mutate statement below!\n  # It is used to make the random data in this example more realistic\n  # as not all parameters are always available across all visits.\n  mutate(\n    AVAL = if_else(\n      ARMCD == \"ARM A\" & AVISIT == \"CYCLE 1 DAY 1\" & PARAM == \"Cmax (ug/mL)\",\n      NA_real_, AVAL\n    )\n  )\n\nadpp_x_tmp <- adpp_x %>%\n  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%\n  unique()\n\nadsl_x_splitvars <- adsl_tmp %>%\n  left_join(adpp_x_tmp, by = c(\"STUDYID\", \"USUBJID\", \"ARMCD\")) %>%\n  filter(!is.na(AVISIT))\n\n# Data for Plasma Drug Y example ----\nadpp_y <- adpp %>%\n  filter(PPCAT == \"Plasma Drug Y\")\n\nadpp_y_tmp <- adpp_y %>%\n  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%\n  unique()\n\nadsl_y_splitvars <- adsl_tmp %>%\n  left_join(adpp_y_tmp, by = c(\"STUDYID\", \"USUBJID\", \"ARMCD\")) %>%\n  filter(!is.na(AVISIT))\n# lyt creation\nlyt <- basic_table() %>%\n  split_rows_by(\n    var = \"AVISIT\",\n    split_fun = drop_split_levels,\n    split_label = \"Visit\",\n    page_by = TRUE\n  ) %>%\n  split_rows_by(\n    var = \"ARMCD\",\n    split_fun = trim_levels_in_group(\"PARAM\"),\n    label_pos = \"topleft\",\n    split_label = \"Treatment Arm\"\n  ) %>%\n  add_rowcounts(alt_counts = TRUE) %>%\n  split_rows_by(\n    var = \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = \"PK Parameter\",\n    child_labels = \"hidden\"\n  ) %>%\n  analyze_vars_in_cols(\n    vars = \"AVAL\",\n    .stats = c(\n      \"n\", \"mean\", \"sd\", \"cv\",\n      \"geom_mean\", \"geom_cv\", \"median\",\n      \"min\", \"max\"\n    ),\n    .labels = c(\n      n = \"n\",\n      mean = \"Mean\",\n      sd = \"SD\",\n      cv = \"CV (%)\",\n      geom_mean = \"Geometric Mean\",\n      geom_cv = \"CV % Geometric Mean\",\n      median = \"Median\",\n      min = \"Minimum\",\n      max = \"Maximum\"\n    ),\n    .formats = c(\n      n = \"xx.\",\n      mean = format_sigfig(3),\n      sd = format_sigfig(3),\n      cv = \"xx.x\",\n      median = format_sigfig(3),\n      geom_mean = format_sigfig(3),\n      geom_cv = \"xx.x\",\n      min = format_sigfig(3),\n      max = format_sigfig(3)\n    ),\n    na_str = \"NE\"\n  )\nresult <- build_table(lyt, df = adpp_x, alt_counts_df = adsl_x_splitvars) %>%\n  prune_table()\n\nmain_title(result) <- paste(\"Summary of\", unique(adpp_x$PPSPEC), \"PK Parameter by Treatment Arm, PK Population\")\nsubtitles(result) <- paste(\"Analyte:\", unique(adpp_x$PPCAT))\nresult <- paginate_table(result, landscape = TRUE)\nresult"},{"id":3,"options":{"warning":"true","fig-height":5,"output":"true","editor-max-height":"500","classes":"","autorun":"true","fig-width":7,"results":"markup","out-width":"700px","dpi":72,"message":"true","comment":"","label":"unnamed-chunk-3","editor-font-scale":1,"read-only":"false","context":"interactive","fig-cap":"","editor-quick-suggestions":"false","out-height":""},"code":"library(dplyr)\nlibrary(tern)\n\n# Preprocess analysis data ----\nadpp <- random.cdisc.data::cadpp\nadpp <- adpp %>%\n  filter(PPSPEC == \"Plasma\") %>%\n  filter(AVISIT %in% c(\"CYCLE 1 DAY 1\", \"CYCLE 1 DAY 2\")) %>%\n  h_pkparam_sort() %>%\n  mutate(PARAM = factor(paste0(TLG_DISPLAY, \" (\", AVALU, \")\"))) %>%\n  mutate(PARAM = reorder(PARAM, TLG_ORDER))\n\n# Preprocess subject-level data ----\nadsl <- random.cdisc.data::cadsl\n\n# Workaround needed to include (N=xx) population counts\n# Repeat ADSL by the number of levels in AVISIT\n# Include AVISIT and dummy PARAM as it's needed for trim_levels_in_group\nadsl_tmp <- adsl %>%\n  select(STUDYID, USUBJID, ARMCD) %>%\n  unique() %>%\n  mutate(PARAM = factor(NA_character_, levels = levels(adpp$PARAM)))\n\n# Data for Plasma Drug X example ----\nadpp_x <- adpp %>%\n  filter(PPCAT == \"Plasma Drug X\") %>%\n  # Please do not replicate mutate statement below!\n  # It is used to make the random data in this example more realistic\n  # as not all parameters are always available across all visits.\n  mutate(\n    AVAL = if_else(\n      ARMCD == \"ARM A\" & AVISIT == \"CYCLE 1 DAY 1\" & PARAM == \"Cmax (ug/mL)\",\n      NA_real_, AVAL\n    )\n  )\n\nadpp_x_tmp <- adpp_x %>%\n  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%\n  unique()\n\nadsl_x_splitvars <- adsl_tmp %>%\n  left_join(adpp_x_tmp, by = c(\"STUDYID\", \"USUBJID\", \"ARMCD\")) %>%\n  filter(!is.na(AVISIT))\n\n# Data for Plasma Drug Y example ----\nadpp_y <- adpp %>%\n  filter(PPCAT == \"Plasma Drug Y\")\n\nadpp_y_tmp <- adpp_y %>%\n  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%\n  unique()\n\nadsl_y_splitvars <- adsl_tmp %>%\n  left_join(adpp_y_tmp, by = c(\"STUDYID\", \"USUBJID\", \"ARMCD\")) %>%\n  filter(!is.na(AVISIT))\n# lyt creation\nlyt <- basic_table() %>%\n  split_rows_by(\n    var = \"AVISIT\",\n    split_fun = drop_split_levels,\n    split_label = \"Visit\",\n    page_by = TRUE\n  ) %>%\n  split_rows_by(\n    var = \"ARMCD\",\n    split_fun = trim_levels_in_group(\"PARAM\"),\n    label_pos = \"topleft\",\n    split_label = \"Treatment Arm\"\n  ) %>%\n  add_rowcounts(alt_counts = TRUE) %>%\n  split_rows_by(\n    var = \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = \"PK Parameter\",\n    child_labels = \"hidden\"\n  ) %>%\n  analyze_vars_in_cols(\n    vars = \"AVAL\",\n    .stats = c(\n      \"n\", \"mean\", \"sd\", \"cv\",\n      \"geom_mean\", \"geom_cv\", \"median\",\n      \"min\", \"max\"\n    ),\n    .labels = c(\n      n = \"n\",\n      mean = \"Mean\",\n      sd = \"SD\",\n      cv = \"CV (%)\",\n      geom_mean = \"Geometric Mean\",\n      geom_cv = \"CV % Geometric Mean\",\n      median = \"Median\",\n      min = \"Minimum\",\n      max = \"Maximum\"\n    ),\n    .formats = c(\n      n = \"xx.\",\n      mean = format_sigfig(3),\n      sd = format_sigfig(3),\n      cv = \"xx.x\",\n      median = format_sigfig(3),\n      geom_mean = format_sigfig(3),\n      geom_cv = \"xx.x\",\n      min = format_sigfig(3),\n      max = format_sigfig(3)\n    ),\n    na_str = \"NE\"\n  )\nresult <- build_table(lyt, df = adpp_y, alt_counts_df = adsl_y_splitvars)\nmain_title(result) <- paste(\"Summary of\", unique(adpp_y$PPSPEC), \"PK Parameter by Treatment Arm, PK Population\")\nsubtitles(result) <- paste(\"Analyte:\", unique(adpp_y$PPCAT))\nresult <- paginate_table(result, landscape = TRUE)\nresult"}];
+globalThis.qwebrCellDetails = [{"code":"library(dplyr)\nlibrary(tern)\n\n# Preprocess analysis data ----\nadpp <- random.cdisc.data::cadpp\nadpp <- adpp %>%\n  filter(PPSPEC == \"Plasma\") %>%\n  filter(AVISIT %in% c(\"CYCLE 1 DAY 1\", \"CYCLE 1 DAY 2\")) %>%\n  h_pkparam_sort() %>%\n  mutate(PARAM = factor(paste0(TLG_DISPLAY, \" (\", AVALU, \")\"))) %>%\n  mutate(PARAM = reorder(PARAM, TLG_ORDER))\n\n# Preprocess subject-level data ----\nadsl <- random.cdisc.data::cadsl\n\n# Workaround needed to include (N=xx) population counts\n# Repeat ADSL by the number of levels in AVISIT\n# Include AVISIT and dummy PARAM as it's needed for trim_levels_in_group\nadsl_tmp <- adsl %>%\n  select(STUDYID, USUBJID, ARMCD) %>%\n  unique() %>%\n  mutate(PARAM = factor(NA_character_, levels = levels(adpp$PARAM)))\n\n# Data for Plasma Drug X example ----\nadpp_x <- adpp %>%\n  filter(PPCAT == \"Plasma Drug X\") %>%\n  # Please do not replicate mutate statement below!\n  # It is used to make the random data in this example more realistic\n  # as not all parameters are always available across all visits.\n  mutate(\n    AVAL = if_else(\n      ARMCD == \"ARM A\" & AVISIT == \"CYCLE 1 DAY 1\" & PARAM == \"Cmax (ug/mL)\",\n      NA_real_, AVAL\n    )\n  )\n\nadpp_x_tmp <- adpp_x %>%\n  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%\n  unique()\n\nadsl_x_splitvars <- adsl_tmp %>%\n  left_join(adpp_x_tmp, by = c(\"STUDYID\", \"USUBJID\", \"ARMCD\")) %>%\n  filter(!is.na(AVISIT))\n\n# Data for Plasma Drug Y example ----\nadpp_y <- adpp %>%\n  filter(PPCAT == \"Plasma Drug Y\")\n\nadpp_y_tmp <- adpp_y %>%\n  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%\n  unique()\n\nadsl_y_splitvars <- adsl_tmp %>%\n  left_join(adpp_y_tmp, by = c(\"STUDYID\", \"USUBJID\", \"ARMCD\")) %>%\n  filter(!is.na(AVISIT))\n# lyt creation\nlyt <- basic_table() %>%\n  split_rows_by(\n    var = \"AVISIT\",\n    split_fun = drop_split_levels,\n    split_label = \"Visit\",\n    page_by = TRUE\n  ) %>%\n  split_rows_by(\n    var = \"ARMCD\",\n    split_fun = trim_levels_in_group(\"PARAM\"),\n    label_pos = \"topleft\",\n    split_label = \"Treatment Arm\"\n  ) %>%\n  add_rowcounts(alt_counts = TRUE) %>%\n  split_rows_by(\n    var = \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = \"PK Parameter\",\n    child_labels = \"hidden\"\n  ) %>%\n  analyze_vars_in_cols(\n    vars = \"AVAL\",\n    .stats = c(\n      \"n\", \"mean\", \"sd\", \"cv\",\n      \"geom_mean\", \"geom_cv\", \"median\",\n      \"min\", \"max\"\n    ),\n    .labels = c(\n      n = \"n\",\n      mean = \"Mean\",\n      sd = \"SD\",\n      cv = \"CV (%)\",\n      geom_mean = \"Geometric Mean\",\n      geom_cv = \"CV % Geometric Mean\",\n      median = \"Median\",\n      min = \"Minimum\",\n      max = \"Maximum\"\n    ),\n    .formats = c(\n      n = \"xx.\",\n      mean = format_sigfig(3),\n      sd = format_sigfig(3),\n      cv = \"xx.x\",\n      median = format_sigfig(3),\n      geom_mean = format_sigfig(3),\n      geom_cv = \"xx.x\",\n      min = format_sigfig(3),\n      max = format_sigfig(3)\n    ),\n    na_str = \"NE\"\n  )\nresult <- build_table(lyt, df = adpp_x, alt_counts_df = adsl_x_splitvars)\nmain_title(result) <- paste(\"Summary of\", unique(adpp_x$PPSPEC), \"PK Parameter by Treatment Arm, PK Population\")\nsubtitles(result) <- paste(\"Analyte:\", unique(adpp_x$PPCAT))\nresult <- paginate_table(result, landscape = TRUE)\nresult","id":1,"options":{"out-height":"","output":"true","dpi":72,"context":"interactive","warning":"true","editor-quick-suggestions":"false","editor-font-scale":1,"fig-cap":"","fig-height":5,"read-only":"false","classes":"","fig-width":7,"label":"unnamed-chunk-1","comment":"","autorun":"true","out-width":"700px","editor-max-height":"500","results":"markup","message":"true"}},{"code":"library(dplyr)\nlibrary(tern)\n\n# Preprocess analysis data ----\nadpp <- random.cdisc.data::cadpp\nadpp <- adpp %>%\n  filter(PPSPEC == \"Plasma\") %>%\n  filter(AVISIT %in% c(\"CYCLE 1 DAY 1\", \"CYCLE 1 DAY 2\")) %>%\n  h_pkparam_sort() %>%\n  mutate(PARAM = factor(paste0(TLG_DISPLAY, \" (\", AVALU, \")\"))) %>%\n  mutate(PARAM = reorder(PARAM, TLG_ORDER))\n\n# Preprocess subject-level data ----\nadsl <- random.cdisc.data::cadsl\n\n# Workaround needed to include (N=xx) population counts\n# Repeat ADSL by the number of levels in AVISIT\n# Include AVISIT and dummy PARAM as it's needed for trim_levels_in_group\nadsl_tmp <- adsl %>%\n  select(STUDYID, USUBJID, ARMCD) %>%\n  unique() %>%\n  mutate(PARAM = factor(NA_character_, levels = levels(adpp$PARAM)))\n\n# Data for Plasma Drug X example ----\nadpp_x <- adpp %>%\n  filter(PPCAT == \"Plasma Drug X\") %>%\n  # Please do not replicate mutate statement below!\n  # It is used to make the random data in this example more realistic\n  # as not all parameters are always available across all visits.\n  mutate(\n    AVAL = if_else(\n      ARMCD == \"ARM A\" & AVISIT == \"CYCLE 1 DAY 1\" & PARAM == \"Cmax (ug/mL)\",\n      NA_real_, AVAL\n    )\n  )\n\nadpp_x_tmp <- adpp_x %>%\n  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%\n  unique()\n\nadsl_x_splitvars <- adsl_tmp %>%\n  left_join(adpp_x_tmp, by = c(\"STUDYID\", \"USUBJID\", \"ARMCD\")) %>%\n  filter(!is.na(AVISIT))\n\n# Data for Plasma Drug Y example ----\nadpp_y <- adpp %>%\n  filter(PPCAT == \"Plasma Drug Y\")\n\nadpp_y_tmp <- adpp_y %>%\n  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%\n  unique()\n\nadsl_y_splitvars <- adsl_tmp %>%\n  left_join(adpp_y_tmp, by = c(\"STUDYID\", \"USUBJID\", \"ARMCD\")) %>%\n  filter(!is.na(AVISIT))\n# lyt creation\nlyt <- basic_table() %>%\n  split_rows_by(\n    var = \"AVISIT\",\n    split_fun = drop_split_levels,\n    split_label = \"Visit\",\n    page_by = TRUE\n  ) %>%\n  split_rows_by(\n    var = \"ARMCD\",\n    split_fun = trim_levels_in_group(\"PARAM\"),\n    label_pos = \"topleft\",\n    split_label = \"Treatment Arm\"\n  ) %>%\n  add_rowcounts(alt_counts = TRUE) %>%\n  split_rows_by(\n    var = \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = \"PK Parameter\",\n    child_labels = \"hidden\"\n  ) %>%\n  analyze_vars_in_cols(\n    vars = \"AVAL\",\n    .stats = c(\n      \"n\", \"mean\", \"sd\", \"cv\",\n      \"geom_mean\", \"geom_cv\", \"median\",\n      \"min\", \"max\"\n    ),\n    .labels = c(\n      n = \"n\",\n      mean = \"Mean\",\n      sd = \"SD\",\n      cv = \"CV (%)\",\n      geom_mean = \"Geometric Mean\",\n      geom_cv = \"CV % Geometric Mean\",\n      median = \"Median\",\n      min = \"Minimum\",\n      max = \"Maximum\"\n    ),\n    .formats = c(\n      n = \"xx.\",\n      mean = format_sigfig(3),\n      sd = format_sigfig(3),\n      cv = \"xx.x\",\n      median = format_sigfig(3),\n      geom_mean = format_sigfig(3),\n      geom_cv = \"xx.x\",\n      min = format_sigfig(3),\n      max = format_sigfig(3)\n    ),\n    na_str = \"NE\"\n  )\nresult <- build_table(lyt, df = adpp_x, alt_counts_df = adsl_x_splitvars) %>%\n  prune_table()\n\nmain_title(result) <- paste(\"Summary of\", unique(adpp_x$PPSPEC), \"PK Parameter by Treatment Arm, PK Population\")\nsubtitles(result) <- paste(\"Analyte:\", unique(adpp_x$PPCAT))\nresult <- paginate_table(result, landscape = TRUE)\nresult","id":2,"options":{"out-height":"","output":"true","dpi":72,"context":"interactive","warning":"true","editor-quick-suggestions":"false","editor-font-scale":1,"fig-cap":"","fig-height":5,"read-only":"false","classes":"","fig-width":7,"label":"unnamed-chunk-2","comment":"","autorun":"true","out-width":"700px","editor-max-height":"500","results":"markup","message":"true"}},{"code":"library(dplyr)\nlibrary(tern)\n\n# Preprocess analysis data ----\nadpp <- random.cdisc.data::cadpp\nadpp <- adpp %>%\n  filter(PPSPEC == \"Plasma\") %>%\n  filter(AVISIT %in% c(\"CYCLE 1 DAY 1\", \"CYCLE 1 DAY 2\")) %>%\n  h_pkparam_sort() %>%\n  mutate(PARAM = factor(paste0(TLG_DISPLAY, \" (\", AVALU, \")\"))) %>%\n  mutate(PARAM = reorder(PARAM, TLG_ORDER))\n\n# Preprocess subject-level data ----\nadsl <- random.cdisc.data::cadsl\n\n# Workaround needed to include (N=xx) population counts\n# Repeat ADSL by the number of levels in AVISIT\n# Include AVISIT and dummy PARAM as it's needed for trim_levels_in_group\nadsl_tmp <- adsl %>%\n  select(STUDYID, USUBJID, ARMCD) %>%\n  unique() %>%\n  mutate(PARAM = factor(NA_character_, levels = levels(adpp$PARAM)))\n\n# Data for Plasma Drug X example ----\nadpp_x <- adpp %>%\n  filter(PPCAT == \"Plasma Drug X\") %>%\n  # Please do not replicate mutate statement below!\n  # It is used to make the random data in this example more realistic\n  # as not all parameters are always available across all visits.\n  mutate(\n    AVAL = if_else(\n      ARMCD == \"ARM A\" & AVISIT == \"CYCLE 1 DAY 1\" & PARAM == \"Cmax (ug/mL)\",\n      NA_real_, AVAL\n    )\n  )\n\nadpp_x_tmp <- adpp_x %>%\n  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%\n  unique()\n\nadsl_x_splitvars <- adsl_tmp %>%\n  left_join(adpp_x_tmp, by = c(\"STUDYID\", \"USUBJID\", \"ARMCD\")) %>%\n  filter(!is.na(AVISIT))\n\n# Data for Plasma Drug Y example ----\nadpp_y <- adpp %>%\n  filter(PPCAT == \"Plasma Drug Y\")\n\nadpp_y_tmp <- adpp_y %>%\n  select(STUDYID, USUBJID, ARMCD, AVISIT) %>%\n  unique()\n\nadsl_y_splitvars <- adsl_tmp %>%\n  left_join(adpp_y_tmp, by = c(\"STUDYID\", \"USUBJID\", \"ARMCD\")) %>%\n  filter(!is.na(AVISIT))\n# lyt creation\nlyt <- basic_table() %>%\n  split_rows_by(\n    var = \"AVISIT\",\n    split_fun = drop_split_levels,\n    split_label = \"Visit\",\n    page_by = TRUE\n  ) %>%\n  split_rows_by(\n    var = \"ARMCD\",\n    split_fun = trim_levels_in_group(\"PARAM\"),\n    label_pos = \"topleft\",\n    split_label = \"Treatment Arm\"\n  ) %>%\n  add_rowcounts(alt_counts = TRUE) %>%\n  split_rows_by(\n    var = \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = \"PK Parameter\",\n    child_labels = \"hidden\"\n  ) %>%\n  analyze_vars_in_cols(\n    vars = \"AVAL\",\n    .stats = c(\n      \"n\", \"mean\", \"sd\", \"cv\",\n      \"geom_mean\", \"geom_cv\", \"median\",\n      \"min\", \"max\"\n    ),\n    .labels = c(\n      n = \"n\",\n      mean = \"Mean\",\n      sd = \"SD\",\n      cv = \"CV (%)\",\n      geom_mean = \"Geometric Mean\",\n      geom_cv = \"CV % Geometric Mean\",\n      median = \"Median\",\n      min = \"Minimum\",\n      max = \"Maximum\"\n    ),\n    .formats = c(\n      n = \"xx.\",\n      mean = format_sigfig(3),\n      sd = format_sigfig(3),\n      cv = \"xx.x\",\n      median = format_sigfig(3),\n      geom_mean = format_sigfig(3),\n      geom_cv = \"xx.x\",\n      min = format_sigfig(3),\n      max = format_sigfig(3)\n    ),\n    na_str = \"NE\"\n  )\nresult <- build_table(lyt, df = adpp_y, alt_counts_df = adsl_y_splitvars)\nmain_title(result) <- paste(\"Summary of\", unique(adpp_y$PPSPEC), \"PK Parameter by Treatment Arm, PK Population\")\nsubtitles(result) <- paste(\"Analyte:\", unique(adpp_y$PPCAT))\nresult <- paginate_table(result, landscape = TRUE)\nresult","id":3,"options":{"out-height":"","output":"true","dpi":72,"context":"interactive","warning":"true","editor-quick-suggestions":"false","editor-font-scale":1,"fig-cap":"","fig-height":5,"read-only":"false","classes":"","fig-width":7,"label":"unnamed-chunk-3","comment":"","autorun":"true","out-width":"700px","editor-max-height":"500","results":"markup","message":"true"}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2752,8 +2752,10 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <span id="cb3-4"><a href="#cb3-4"></a>result <span class="ot">&lt;-</span> <span class="fu">paginate_table</span>(result, <span class="at">landscape =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb3-5"><a href="#cb3-5"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>$`CYCLE 1 DAY 1`
-Summary of Plasma PK Parameter by Treatment Arm, PK Population
+<pre><code>$`CYCLE 1 DAY 1`</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Summary of Plasma PK Parameter by Treatment Arm, PK Population
 Analyte: Plasma Drug X
 Visit: CYCLE 1 DAY 1
 
@@ -2770,8 +2772,10 @@ ARM C (N=132)
   AUCinf obs (day*ug/mL)   132   195    37.8     19.4         192                20.1            196       103       315  
   CL obs (ml/day/kg)       132   5.01   0.985    19.7         4.91               21.1            4.97     2.10      7.49  
 
-$`CYCLE 1 DAY 2`
-Summary of Plasma PK Parameter by Treatment Arm, PK Population
+$`CYCLE 1 DAY 2`</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Summary of Plasma PK Parameter by Treatment Arm, PK Population
 Analyte: Plasma Drug X
 Visit: CYCLE 1 DAY 2
 
@@ -2827,16 +2831,18 @@ Experimental use!
 <div class="tab-content nav-justified" data-group="webr">
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <div class="cell" data-test="{&quot;result_v2&quot;:&quot;result&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp_x, <span class="at">alt_counts_df =</span> adsl_x_splitvars) <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="#cb5-2"></a>  <span class="fu">prune_table</span>()</span>
-<span id="cb5-3"><a href="#cb5-3"></a></span>
-<span id="cb5-4"><a href="#cb5-4"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp_x<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
-<span id="cb5-5"><a href="#cb5-5"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp_x<span class="sc">$</span>PPCAT))</span>
-<span id="cb5-6"><a href="#cb5-6"></a>result <span class="ot">&lt;-</span> <span class="fu">paginate_table</span>(result, <span class="at">landscape =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb5-7"><a href="#cb5-7"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp_x, <span class="at">alt_counts_df =</span> adsl_x_splitvars) <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="fu">prune_table</span>()</span>
+<span id="cb7-3"><a href="#cb7-3"></a></span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp_x<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp_x<span class="sc">$</span>PPCAT))</span>
+<span id="cb7-6"><a href="#cb7-6"></a>result <span class="ot">&lt;-</span> <span class="fu">paginate_table</span>(result, <span class="at">landscape =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-7"><a href="#cb7-7"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>$`CYCLE 1 DAY 1`
-Summary of Plasma PK Parameter by Treatment Arm, PK Population
+<pre><code>$`CYCLE 1 DAY 1`</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Summary of Plasma PK Parameter by Treatment Arm, PK Population
 Analyte: Plasma Drug X
 Visit: CYCLE 1 DAY 1
 
@@ -2852,8 +2858,10 @@ ARM C (N=132)
   AUCinf obs (day*ug/mL)   132   195    37.8     19.4         192                20.1            196       103       315  
   CL obs (ml/day/kg)       132   5.01   0.985    19.7         4.91               21.1            4.97     2.10      7.49  
 
-$`CYCLE 1 DAY 2`
-Summary of Plasma PK Parameter by Treatment Arm, PK Population
+$`CYCLE 1 DAY 2`</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Summary of Plasma PK Parameter by Treatment Arm, PK Population
 Analyte: Plasma Drug X
 Visit: CYCLE 1 DAY 2
 
@@ -2909,14 +2917,16 @@ Experimental use!
 <div class="tab-content nav-justified" data-group="webr">
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <div class="cell" data-test="{&quot;result_v3&quot;:&quot;result&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp_y, <span class="at">alt_counts_df =</span> adsl_y_splitvars)</span>
-<span id="cb7-2"><a href="#cb7-2"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp_y<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
-<span id="cb7-3"><a href="#cb7-3"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp_y<span class="sc">$</span>PPCAT))</span>
-<span id="cb7-4"><a href="#cb7-4"></a>result <span class="ot">&lt;-</span> <span class="fu">paginate_table</span>(result, <span class="at">landscape =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb7-5"><a href="#cb7-5"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(lyt, <span class="at">df =</span> adpp_y, <span class="at">alt_counts_df =</span> adsl_y_splitvars)</span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="fu">main_title</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Summary of"</span>, <span class="fu">unique</span>(adpp_y<span class="sc">$</span>PPSPEC), <span class="st">"PK Parameter by Treatment Arm, PK Population"</span>)</span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="fu">subtitles</span>(result) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Analyte:"</span>, <span class="fu">unique</span>(adpp_y<span class="sc">$</span>PPCAT))</span>
+<span id="cb11-4"><a href="#cb11-4"></a>result <span class="ot">&lt;-</span> <span class="fu">paginate_table</span>(result, <span class="at">landscape =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-5"><a href="#cb11-5"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>$`CYCLE 1 DAY 1`
-Summary of Plasma PK Parameter by Treatment Arm, PK Population
+<pre><code>$`CYCLE 1 DAY 1`</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Summary of Plasma PK Parameter by Treatment Arm, PK Population
 Analyte: Plasma Drug Y
 Visit: CYCLE 1 DAY 1
 
@@ -2929,8 +2939,10 @@ ARM C (N=132)
   AUCinf obs (day*ug/mL)   132   199    37.9     19.1         195                18.9            195       126       318  
   CL obs (ml/day/kg)       132   4.96   0.895    18.1         4.87               18.7            4.94     2.99      7.21  
 
-$`CYCLE 1 DAY 2`
-Summary of Plasma PK Parameter by Treatment Arm, PK Population
+$`CYCLE 1 DAY 2`</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Summary of Plasma PK Parameter by Treatment Arm, PK Population
 Analyte: Plasma Drug Y
 Visit: CYCLE 1 DAY 2
 
@@ -2977,21 +2989,21 @@ Experimental use!
 </div>
 <div id="tabset-4-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-3-tab">
 <div class="cell" data-webshot="webshot2" data-screenshot.force="true" data-screenshot.opts="{&quot;delay&quot;:5}">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="co"># In progress</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="co"># In progress</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
 <div id="tabset-4-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-4-tab">
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-06-01 17:48:53 UTC"</code></pre>
+<pre><code>[1] "2024-06-05 17:44:36 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>R version 4.4.0 (2024-04-24)
 Platform: x86_64-pc-linux-gnu
@@ -3016,8 +3028,8 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] tern_0.9.4.9008       rtables_0.6.7.9002    magrittr_2.0.3       
-[4] formatters_0.5.7.9000 dplyr_1.1.4          
+[1] tern_0.9.4.9009       rtables_0.6.7.9003    magrittr_2.0.3       
+[4] formatters_0.5.7.9001 dplyr_1.1.4          
 
 loaded via a namespace (and not attached):
  [1] Matrix_1.7-0                  gtable_0.3.5                 
@@ -3051,31 +3063,31 @@ loaded via a namespace (and not attached):
 <code>.lock</code> file</h3>
 <p>Download the <code>.lock</code> file and use <a href="https://rstudio.github.io/renv/reference/restore.html"><code>renv::restore()</code></a> on it to recreate environment used to generate this website.</p>
 <div class="cell" data-renv.ignore="true">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb14-2"><a href="#cb14-2"></a></span>
-<span id="cb14-3"><a href="#cb14-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
-<span id="cb14-4"><a href="#cb14-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
-<span id="cb14-5"><a href="#cb14-5"></a></span>
-<span id="cb14-6"><a href="#cb14-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
-<span id="cb14-7"><a href="#cb14-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
-<span id="cb14-8"><a href="#cb14-8"></a>  <span class="fu">paste0</span>(</span>
-<span id="cb14-9"><a href="#cb14-9"></a>    <span class="fu">gsub</span>(</span>
-<span id="cb14-10"><a href="#cb14-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
-<span id="cb14-11"><a href="#cb14-11"></a>      <span class="st">""</span>,</span>
-<span id="cb14-12"><a href="#cb14-12"></a>      <span class="fu">gsub</span>(</span>
-<span id="cb14-13"><a href="#cb14-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
-<span id="cb14-14"><a href="#cb14-14"></a>        <span class="st">""</span>,</span>
-<span id="cb14-15"><a href="#cb14-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb14-16"><a href="#cb14-16"></a>      )</span>
-<span id="cb14-17"><a href="#cb14-17"></a>    ),</span>
-<span id="cb14-18"><a href="#cb14-18"></a>    <span class="st">".lock"</span></span>
-<span id="cb14-19"><a href="#cb14-19"></a>  )</span>
-<span id="cb14-20"><a href="#cb14-20"></a>)</span>
-<span id="cb14-21"><a href="#cb14-21"></a></span>
-<span id="cb14-22"><a href="#cb14-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
-<span id="cb14-23"><a href="#cb14-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb14-24"><a href="#cb14-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb14-25"><a href="#cb14-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
+<span id="cb20-5"><a href="#cb20-5"></a></span>
+<span id="cb20-6"><a href="#cb20-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
+<span id="cb20-7"><a href="#cb20-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
+<span id="cb20-8"><a href="#cb20-8"></a>  <span class="fu">paste0</span>(</span>
+<span id="cb20-9"><a href="#cb20-9"></a>    <span class="fu">gsub</span>(</span>
+<span id="cb20-10"><a href="#cb20-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
+<span id="cb20-11"><a href="#cb20-11"></a>      <span class="st">""</span>,</span>
+<span id="cb20-12"><a href="#cb20-12"></a>      <span class="fu">gsub</span>(</span>
+<span id="cb20-13"><a href="#cb20-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
+<span id="cb20-14"><a href="#cb20-14"></a>        <span class="st">""</span>,</span>
+<span id="cb20-15"><a href="#cb20-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb20-16"><a href="#cb20-16"></a>      )</span>
+<span id="cb20-17"><a href="#cb20-17"></a>    ),</span>
+<span id="cb20-18"><a href="#cb20-18"></a>    <span class="st">".lock"</span></span>
+<span id="cb20-19"><a href="#cb20-19"></a>  )</span>
+<span id="cb20-20"><a href="#cb20-20"></a>)</span>
+<span id="cb20-21"><a href="#cb20-21"></a></span>
+<span id="cb20-22"><a href="#cb20-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
+<span id="cb20-23"><a href="#cb20-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb20-24"><a href="#cb20-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb20-25"><a href="#cb20-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p><a href="../../assets/www/lock/tables/pharmacokinetic/pkpt03.lock">Download</a></p>
@@ -3703,202 +3715,202 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb15" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb15-1"><a href="#cb15-1"></a><span class="co">---</span></span>
-<span id="cb15-2"><a href="#cb15-2"></a><span class="an">title:</span><span class="co"> PKPT03</span></span>
-<span id="cb15-3"><a href="#cb15-3"></a><span class="an">subtitle:</span><span class="co"> Pharmacokinetic Parameter Summary of Plasma by Treatment (Stats in Columns)</span></span>
-<span id="cb15-4"><a href="#cb15-4"></a><span class="co">---</span></span>
-<span id="cb15-5"><a href="#cb15-5"></a></span>
-<span id="cb15-6"><a href="#cb15-6"></a>------------------------------------------------------------------------</span>
-<span id="cb15-7"><a href="#cb15-7"></a></span>
-<span id="cb15-8"><a href="#cb15-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb15-9"><a href="#cb15-9"></a></span>
-<span id="cb15-10"><a href="#cb15-10"></a>:::: {.panel-tabset}</span>
-<span id="cb15-11"><a href="#cb15-11"></a><span class="fu">## Data Setup</span></span>
-<span id="cb15-12"><a href="#cb15-12"></a></span>
-<span id="cb15-13"><a href="#cb15-13"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/pull/1182 --&gt;</span></span>
-<span id="cb15-14"><a href="#cb15-14"></a><span class="in">```{r setup, message = FALSE, opts.label = ifelse(packageVersion("tern") &lt; "0.9.3.9020", "skip_test_strict", "")}</span></span>
-<span id="cb15-15"><a href="#cb15-15"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb15-16"><a href="#cb15-16"></a></span>
-<span id="cb15-17"><a href="#cb15-17"></a><span class="in">library(dplyr)</span></span>
-<span id="cb15-18"><a href="#cb15-18"></a><span class="in">library(tern)</span></span>
-<span id="cb15-19"><a href="#cb15-19"></a></span>
-<span id="cb15-20"><a href="#cb15-20"></a><span class="in"># Preprocess analysis data ----</span></span>
-<span id="cb15-21"><a href="#cb15-21"></a><span class="in">adpp &lt;- random.cdisc.data::cadpp</span></span>
-<span id="cb15-22"><a href="#cb15-22"></a><span class="in">adpp &lt;- adpp %&gt;%</span></span>
-<span id="cb15-23"><a href="#cb15-23"></a><span class="in">  filter(PPSPEC == "Plasma") %&gt;%</span></span>
-<span id="cb15-24"><a href="#cb15-24"></a><span class="in">  filter(AVISIT %in% c("CYCLE 1 DAY 1", "CYCLE 1 DAY 2")) %&gt;%</span></span>
-<span id="cb15-25"><a href="#cb15-25"></a><span class="in">  h_pkparam_sort() %&gt;%</span></span>
-<span id="cb15-26"><a href="#cb15-26"></a><span class="in">  mutate(PARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %&gt;%</span></span>
-<span id="cb15-27"><a href="#cb15-27"></a><span class="in">  mutate(PARAM = reorder(PARAM, TLG_ORDER))</span></span>
-<span id="cb15-28"><a href="#cb15-28"></a></span>
-<span id="cb15-29"><a href="#cb15-29"></a><span class="in"># Preprocess subject-level data ----</span></span>
-<span id="cb15-30"><a href="#cb15-30"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb15-31"><a href="#cb15-31"></a></span>
-<span id="cb15-32"><a href="#cb15-32"></a><span class="in"># Workaround needed to include (N=xx) population counts</span></span>
-<span id="cb15-33"><a href="#cb15-33"></a><span class="in"># Repeat ADSL by the number of levels in AVISIT</span></span>
-<span id="cb15-34"><a href="#cb15-34"></a><span class="in"># Include AVISIT and dummy PARAM as it's needed for trim_levels_in_group</span></span>
-<span id="cb15-35"><a href="#cb15-35"></a><span class="in">adsl_tmp &lt;- adsl %&gt;%</span></span>
-<span id="cb15-36"><a href="#cb15-36"></a><span class="in">  select(STUDYID, USUBJID, ARMCD) %&gt;%</span></span>
-<span id="cb15-37"><a href="#cb15-37"></a><span class="in">  unique() %&gt;%</span></span>
-<span id="cb15-38"><a href="#cb15-38"></a><span class="in">  mutate(PARAM = factor(NA_character_, levels = levels(adpp$PARAM)))</span></span>
-<span id="cb15-39"><a href="#cb15-39"></a></span>
-<span id="cb15-40"><a href="#cb15-40"></a><span class="in"># Data for Plasma Drug X example ----</span></span>
-<span id="cb15-41"><a href="#cb15-41"></a><span class="in">adpp_x &lt;- adpp %&gt;%</span></span>
-<span id="cb15-42"><a href="#cb15-42"></a><span class="in">  filter(PPCAT == "Plasma Drug X") %&gt;%</span></span>
-<span id="cb15-43"><a href="#cb15-43"></a><span class="in">  # Please do not replicate mutate statement below!</span></span>
-<span id="cb15-44"><a href="#cb15-44"></a><span class="in">  # It is used to make the random data in this example more realistic</span></span>
-<span id="cb15-45"><a href="#cb15-45"></a><span class="in">  # as not all parameters are always available across all visits.</span></span>
-<span id="cb15-46"><a href="#cb15-46"></a><span class="in">  mutate(</span></span>
-<span id="cb15-47"><a href="#cb15-47"></a><span class="in">    AVAL = if_else(</span></span>
-<span id="cb15-48"><a href="#cb15-48"></a><span class="in">      ARMCD == "ARM A" &amp; AVISIT == "CYCLE 1 DAY 1" &amp; PARAM == "Cmax (ug/mL)",</span></span>
-<span id="cb15-49"><a href="#cb15-49"></a><span class="in">      NA_real_, AVAL</span></span>
-<span id="cb15-50"><a href="#cb15-50"></a><span class="in">    )</span></span>
-<span id="cb15-51"><a href="#cb15-51"></a><span class="in">  )</span></span>
-<span id="cb15-52"><a href="#cb15-52"></a></span>
-<span id="cb15-53"><a href="#cb15-53"></a><span class="in">adpp_x_tmp &lt;- adpp_x %&gt;%</span></span>
-<span id="cb15-54"><a href="#cb15-54"></a><span class="in">  select(STUDYID, USUBJID, ARMCD, AVISIT) %&gt;%</span></span>
-<span id="cb15-55"><a href="#cb15-55"></a><span class="in">  unique()</span></span>
-<span id="cb15-56"><a href="#cb15-56"></a></span>
-<span id="cb15-57"><a href="#cb15-57"></a><span class="in">adsl_x_splitvars &lt;- adsl_tmp %&gt;%</span></span>
-<span id="cb15-58"><a href="#cb15-58"></a><span class="in">  left_join(adpp_x_tmp, by = c("STUDYID", "USUBJID", "ARMCD")) %&gt;%</span></span>
-<span id="cb15-59"><a href="#cb15-59"></a><span class="in">  filter(!is.na(AVISIT))</span></span>
-<span id="cb15-60"><a href="#cb15-60"></a></span>
-<span id="cb15-61"><a href="#cb15-61"></a><span class="in"># Data for Plasma Drug Y example ----</span></span>
-<span id="cb15-62"><a href="#cb15-62"></a><span class="in">adpp_y &lt;- adpp %&gt;%</span></span>
-<span id="cb15-63"><a href="#cb15-63"></a><span class="in">  filter(PPCAT == "Plasma Drug Y")</span></span>
-<span id="cb15-64"><a href="#cb15-64"></a></span>
-<span id="cb15-65"><a href="#cb15-65"></a><span class="in">adpp_y_tmp &lt;- adpp_y %&gt;%</span></span>
-<span id="cb15-66"><a href="#cb15-66"></a><span class="in">  select(STUDYID, USUBJID, ARMCD, AVISIT) %&gt;%</span></span>
-<span id="cb15-67"><a href="#cb15-67"></a><span class="in">  unique()</span></span>
-<span id="cb15-68"><a href="#cb15-68"></a></span>
-<span id="cb15-69"><a href="#cb15-69"></a><span class="in">adsl_y_splitvars &lt;- adsl_tmp %&gt;%</span></span>
-<span id="cb15-70"><a href="#cb15-70"></a><span class="in">  left_join(adpp_y_tmp, by = c("STUDYID", "USUBJID", "ARMCD")) %&gt;%</span></span>
-<span id="cb15-71"><a href="#cb15-71"></a><span class="in">  filter(!is.na(AVISIT))</span></span>
-<span id="cb15-72"><a href="#cb15-72"></a><span class="in">```</span></span>
-<span id="cb15-73"><a href="#cb15-73"></a></span>
-<span id="cb15-74"><a href="#cb15-74"></a><span class="fu">## Standard Table</span></span>
-<span id="cb15-75"><a href="#cb15-75"></a></span>
-<span id="cb15-76"><a href="#cb15-76"></a><span class="in">```{r lyt}</span></span>
-<span id="cb15-77"><a href="#cb15-77"></a><span class="in"># lyt creation</span></span>
-<span id="cb15-78"><a href="#cb15-78"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
-<span id="cb15-79"><a href="#cb15-79"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb15-80"><a href="#cb15-80"></a><span class="in">    var = "AVISIT",</span></span>
-<span id="cb15-81"><a href="#cb15-81"></a><span class="in">    split_fun = drop_split_levels,</span></span>
-<span id="cb15-82"><a href="#cb15-82"></a><span class="in">    split_label = "Visit",</span></span>
-<span id="cb15-83"><a href="#cb15-83"></a><span class="in">    page_by = TRUE</span></span>
-<span id="cb15-84"><a href="#cb15-84"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb15-85"><a href="#cb15-85"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb15-86"><a href="#cb15-86"></a><span class="in">    var = "ARMCD",</span></span>
-<span id="cb15-87"><a href="#cb15-87"></a><span class="in">    split_fun = trim_levels_in_group("PARAM"),</span></span>
-<span id="cb15-88"><a href="#cb15-88"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb15-89"><a href="#cb15-89"></a><span class="in">    split_label = "Treatment Arm"</span></span>
-<span id="cb15-90"><a href="#cb15-90"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb15-91"><a href="#cb15-91"></a><span class="in">  add_rowcounts(alt_counts = TRUE) %&gt;%</span></span>
-<span id="cb15-92"><a href="#cb15-92"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb15-93"><a href="#cb15-93"></a><span class="in">    var = "PARAM",</span></span>
-<span id="cb15-94"><a href="#cb15-94"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb15-95"><a href="#cb15-95"></a><span class="in">    split_label = "PK Parameter",</span></span>
-<span id="cb15-96"><a href="#cb15-96"></a><span class="in">    child_labels = "hidden"</span></span>
-<span id="cb15-97"><a href="#cb15-97"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb15-98"><a href="#cb15-98"></a><span class="in">  analyze_vars_in_cols(</span></span>
-<span id="cb15-99"><a href="#cb15-99"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb15-100"><a href="#cb15-100"></a><span class="in">    .stats = c(</span></span>
-<span id="cb15-101"><a href="#cb15-101"></a><span class="in">      "n", "mean", "sd", "cv",</span></span>
-<span id="cb15-102"><a href="#cb15-102"></a><span class="in">      "geom_mean", "geom_cv", "median",</span></span>
-<span id="cb15-103"><a href="#cb15-103"></a><span class="in">      "min", "max"</span></span>
-<span id="cb15-104"><a href="#cb15-104"></a><span class="in">    ),</span></span>
-<span id="cb15-105"><a href="#cb15-105"></a><span class="in">    .labels = c(</span></span>
-<span id="cb15-106"><a href="#cb15-106"></a><span class="in">      n = "n",</span></span>
-<span id="cb15-107"><a href="#cb15-107"></a><span class="in">      mean = "Mean",</span></span>
-<span id="cb15-108"><a href="#cb15-108"></a><span class="in">      sd = "SD",</span></span>
-<span id="cb15-109"><a href="#cb15-109"></a><span class="in">      cv = "CV (%)",</span></span>
-<span id="cb15-110"><a href="#cb15-110"></a><span class="in">      geom_mean = "Geometric Mean",</span></span>
-<span id="cb15-111"><a href="#cb15-111"></a><span class="in">      geom_cv = "CV % Geometric Mean",</span></span>
-<span id="cb15-112"><a href="#cb15-112"></a><span class="in">      median = "Median",</span></span>
-<span id="cb15-113"><a href="#cb15-113"></a><span class="in">      min = "Minimum",</span></span>
-<span id="cb15-114"><a href="#cb15-114"></a><span class="in">      max = "Maximum"</span></span>
-<span id="cb15-115"><a href="#cb15-115"></a><span class="in">    ),</span></span>
-<span id="cb15-116"><a href="#cb15-116"></a><span class="in">    .formats = c(</span></span>
-<span id="cb15-117"><a href="#cb15-117"></a><span class="in">      n = "xx.",</span></span>
-<span id="cb15-118"><a href="#cb15-118"></a><span class="in">      mean = format_sigfig(3),</span></span>
-<span id="cb15-119"><a href="#cb15-119"></a><span class="in">      sd = format_sigfig(3),</span></span>
-<span id="cb15-120"><a href="#cb15-120"></a><span class="in">      cv = "xx.x",</span></span>
-<span id="cb15-121"><a href="#cb15-121"></a><span class="in">      median = format_sigfig(3),</span></span>
-<span id="cb15-122"><a href="#cb15-122"></a><span class="in">      geom_mean = format_sigfig(3),</span></span>
-<span id="cb15-123"><a href="#cb15-123"></a><span class="in">      geom_cv = "xx.x",</span></span>
-<span id="cb15-124"><a href="#cb15-124"></a><span class="in">      min = format_sigfig(3),</span></span>
-<span id="cb15-125"><a href="#cb15-125"></a><span class="in">      max = format_sigfig(3)</span></span>
-<span id="cb15-126"><a href="#cb15-126"></a><span class="in">    ),</span></span>
-<span id="cb15-127"><a href="#cb15-127"></a><span class="in">    na_str = "NE"</span></span>
-<span id="cb15-128"><a href="#cb15-128"></a><span class="in">  )</span></span>
-<span id="cb15-129"><a href="#cb15-129"></a><span class="in">```</span></span>
-<span id="cb15-130"><a href="#cb15-130"></a></span>
-<span id="cb15-131"><a href="#cb15-131"></a><span class="fu">#### Plasma Drug X</span></span>
-<span id="cb15-132"><a href="#cb15-132"></a></span>
-<span id="cb15-133"><a href="#cb15-133"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb15-134"><a href="#cb15-134"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb15-135"><a href="#cb15-135"></a></span>
-<span id="cb15-136"><a href="#cb15-136"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb15-137"><a href="#cb15-137"></a><span class="in">result &lt;- build_table(lyt, df = adpp_x, alt_counts_df = adsl_x_splitvars)</span></span>
-<span id="cb15-138"><a href="#cb15-138"></a><span class="in">main_title(result) &lt;- paste("Summary of", unique(adpp_x$PPSPEC), "PK Parameter by Treatment Arm, PK Population")</span></span>
-<span id="cb15-139"><a href="#cb15-139"></a><span class="in">subtitles(result) &lt;- paste("Analyte:", unique(adpp_x$PPCAT))</span></span>
-<span id="cb15-140"><a href="#cb15-140"></a><span class="in">result &lt;- paginate_table(result, landscape = TRUE)</span></span>
-<span id="cb15-141"><a href="#cb15-141"></a><span class="in">result</span></span>
-<span id="cb15-142"><a href="#cb15-142"></a><span class="in">```</span></span>
-<span id="cb15-143"><a href="#cb15-143"></a></span>
-<span id="cb15-144"><a href="#cb15-144"></a><span class="in">`r webr_code_labels &lt;- c("setup", "lyt", "variant1")`</span></span>
-<span id="cb15-145"><a href="#cb15-145"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb15-146"><a href="#cb15-146"></a>:::</span>
-<span id="cb15-147"><a href="#cb15-147"></a></span>
-<span id="cb15-148"><a href="#cb15-148"></a><span class="fu">#### Plasma Drug X: Remove Rows with 0s</span></span>
-<span id="cb15-149"><a href="#cb15-149"></a></span>
-<span id="cb15-150"><a href="#cb15-150"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb15-151"><a href="#cb15-151"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb15-152"><a href="#cb15-152"></a></span>
-<span id="cb15-153"><a href="#cb15-153"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb15-154"><a href="#cb15-154"></a><span class="in">result &lt;- build_table(lyt, df = adpp_x, alt_counts_df = adsl_x_splitvars) %&gt;%</span></span>
-<span id="cb15-155"><a href="#cb15-155"></a><span class="in">  prune_table()</span></span>
-<span id="cb15-156"><a href="#cb15-156"></a></span>
-<span id="cb15-157"><a href="#cb15-157"></a><span class="in">main_title(result) &lt;- paste("Summary of", unique(adpp_x$PPSPEC), "PK Parameter by Treatment Arm, PK Population")</span></span>
-<span id="cb15-158"><a href="#cb15-158"></a><span class="in">subtitles(result) &lt;- paste("Analyte:", unique(adpp_x$PPCAT))</span></span>
-<span id="cb15-159"><a href="#cb15-159"></a><span class="in">result &lt;- paginate_table(result, landscape = TRUE)</span></span>
-<span id="cb15-160"><a href="#cb15-160"></a><span class="in">result</span></span>
-<span id="cb15-161"><a href="#cb15-161"></a><span class="in">```</span></span>
-<span id="cb15-162"><a href="#cb15-162"></a></span>
-<span id="cb15-163"><a href="#cb15-163"></a><span class="in">`r webr_code_labels &lt;- c("setup", "lyt", "variant2")`</span></span>
-<span id="cb15-164"><a href="#cb15-164"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb15-165"><a href="#cb15-165"></a>:::</span>
-<span id="cb15-166"><a href="#cb15-166"></a></span>
-<span id="cb15-167"><a href="#cb15-167"></a><span class="fu">#### Plasma Drug Y</span></span>
-<span id="cb15-168"><a href="#cb15-168"></a></span>
-<span id="cb15-169"><a href="#cb15-169"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb15-170"><a href="#cb15-170"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb15-171"><a href="#cb15-171"></a></span>
-<span id="cb15-172"><a href="#cb15-172"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
-<span id="cb15-173"><a href="#cb15-173"></a><span class="in">result &lt;- build_table(lyt, df = adpp_y, alt_counts_df = adsl_y_splitvars)</span></span>
-<span id="cb15-174"><a href="#cb15-174"></a><span class="in">main_title(result) &lt;- paste("Summary of", unique(adpp_y$PPSPEC), "PK Parameter by Treatment Arm, PK Population")</span></span>
-<span id="cb15-175"><a href="#cb15-175"></a><span class="in">subtitles(result) &lt;- paste("Analyte:", unique(adpp_y$PPCAT))</span></span>
-<span id="cb15-176"><a href="#cb15-176"></a><span class="in">result &lt;- paginate_table(result, landscape = TRUE)</span></span>
-<span id="cb15-177"><a href="#cb15-177"></a><span class="in">result</span></span>
-<span id="cb15-178"><a href="#cb15-178"></a><span class="in">```</span></span>
-<span id="cb15-179"><a href="#cb15-179"></a></span>
-<span id="cb15-180"><a href="#cb15-180"></a><span class="in">`r webr_code_labels &lt;- c("setup", "lyt", "variant3")`</span></span>
-<span id="cb15-181"><a href="#cb15-181"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb15-182"><a href="#cb15-182"></a>:::</span>
-<span id="cb15-183"><a href="#cb15-183"></a></span>
-<span id="cb15-184"><a href="#cb15-184"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb15-185"><a href="#cb15-185"></a></span>
-<span id="cb15-186"><a href="#cb15-186"></a><span class="fu">## `teal` App</span></span>
-<span id="cb15-187"><a href="#cb15-187"></a></span>
-<span id="cb15-188"><a href="#cb15-188"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb15-189"><a href="#cb15-189"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb15-190"><a href="#cb15-190"></a></span>
-<span id="cb15-191"><a href="#cb15-191"></a><span class="in"># In progress</span></span>
-<span id="cb15-192"><a href="#cb15-192"></a><span class="in">```</span></span>
-<span id="cb15-193"><a href="#cb15-193"></a></span>
-<span id="cb15-194"><a href="#cb15-194"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb15-195"><a href="#cb15-195"></a></span>
-<span id="cb15-196"><a href="#cb15-196"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb21" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb21-1"><a href="#cb21-1"></a><span class="co">---</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a><span class="an">title:</span><span class="co"> PKPT03</span></span>
+<span id="cb21-3"><a href="#cb21-3"></a><span class="an">subtitle:</span><span class="co"> Pharmacokinetic Parameter Summary of Plasma by Treatment (Stats in Columns)</span></span>
+<span id="cb21-4"><a href="#cb21-4"></a><span class="co">---</span></span>
+<span id="cb21-5"><a href="#cb21-5"></a></span>
+<span id="cb21-6"><a href="#cb21-6"></a>------------------------------------------------------------------------</span>
+<span id="cb21-7"><a href="#cb21-7"></a></span>
+<span id="cb21-8"><a href="#cb21-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb21-9"><a href="#cb21-9"></a></span>
+<span id="cb21-10"><a href="#cb21-10"></a>:::: {.panel-tabset}</span>
+<span id="cb21-11"><a href="#cb21-11"></a><span class="fu">## Data Setup</span></span>
+<span id="cb21-12"><a href="#cb21-12"></a></span>
+<span id="cb21-13"><a href="#cb21-13"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/pull/1182 --&gt;</span></span>
+<span id="cb21-14"><a href="#cb21-14"></a><span class="in">```{r setup, message = FALSE, opts.label = ifelse(packageVersion("tern") &lt; "0.9.3.9020", "skip_test_strict", "")}</span></span>
+<span id="cb21-15"><a href="#cb21-15"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb21-16"><a href="#cb21-16"></a></span>
+<span id="cb21-17"><a href="#cb21-17"></a><span class="in">library(dplyr)</span></span>
+<span id="cb21-18"><a href="#cb21-18"></a><span class="in">library(tern)</span></span>
+<span id="cb21-19"><a href="#cb21-19"></a></span>
+<span id="cb21-20"><a href="#cb21-20"></a><span class="in"># Preprocess analysis data ----</span></span>
+<span id="cb21-21"><a href="#cb21-21"></a><span class="in">adpp &lt;- random.cdisc.data::cadpp</span></span>
+<span id="cb21-22"><a href="#cb21-22"></a><span class="in">adpp &lt;- adpp %&gt;%</span></span>
+<span id="cb21-23"><a href="#cb21-23"></a><span class="in">  filter(PPSPEC == "Plasma") %&gt;%</span></span>
+<span id="cb21-24"><a href="#cb21-24"></a><span class="in">  filter(AVISIT %in% c("CYCLE 1 DAY 1", "CYCLE 1 DAY 2")) %&gt;%</span></span>
+<span id="cb21-25"><a href="#cb21-25"></a><span class="in">  h_pkparam_sort() %&gt;%</span></span>
+<span id="cb21-26"><a href="#cb21-26"></a><span class="in">  mutate(PARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %&gt;%</span></span>
+<span id="cb21-27"><a href="#cb21-27"></a><span class="in">  mutate(PARAM = reorder(PARAM, TLG_ORDER))</span></span>
+<span id="cb21-28"><a href="#cb21-28"></a></span>
+<span id="cb21-29"><a href="#cb21-29"></a><span class="in"># Preprocess subject-level data ----</span></span>
+<span id="cb21-30"><a href="#cb21-30"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb21-31"><a href="#cb21-31"></a></span>
+<span id="cb21-32"><a href="#cb21-32"></a><span class="in"># Workaround needed to include (N=xx) population counts</span></span>
+<span id="cb21-33"><a href="#cb21-33"></a><span class="in"># Repeat ADSL by the number of levels in AVISIT</span></span>
+<span id="cb21-34"><a href="#cb21-34"></a><span class="in"># Include AVISIT and dummy PARAM as it's needed for trim_levels_in_group</span></span>
+<span id="cb21-35"><a href="#cb21-35"></a><span class="in">adsl_tmp &lt;- adsl %&gt;%</span></span>
+<span id="cb21-36"><a href="#cb21-36"></a><span class="in">  select(STUDYID, USUBJID, ARMCD) %&gt;%</span></span>
+<span id="cb21-37"><a href="#cb21-37"></a><span class="in">  unique() %&gt;%</span></span>
+<span id="cb21-38"><a href="#cb21-38"></a><span class="in">  mutate(PARAM = factor(NA_character_, levels = levels(adpp$PARAM)))</span></span>
+<span id="cb21-39"><a href="#cb21-39"></a></span>
+<span id="cb21-40"><a href="#cb21-40"></a><span class="in"># Data for Plasma Drug X example ----</span></span>
+<span id="cb21-41"><a href="#cb21-41"></a><span class="in">adpp_x &lt;- adpp %&gt;%</span></span>
+<span id="cb21-42"><a href="#cb21-42"></a><span class="in">  filter(PPCAT == "Plasma Drug X") %&gt;%</span></span>
+<span id="cb21-43"><a href="#cb21-43"></a><span class="in">  # Please do not replicate mutate statement below!</span></span>
+<span id="cb21-44"><a href="#cb21-44"></a><span class="in">  # It is used to make the random data in this example more realistic</span></span>
+<span id="cb21-45"><a href="#cb21-45"></a><span class="in">  # as not all parameters are always available across all visits.</span></span>
+<span id="cb21-46"><a href="#cb21-46"></a><span class="in">  mutate(</span></span>
+<span id="cb21-47"><a href="#cb21-47"></a><span class="in">    AVAL = if_else(</span></span>
+<span id="cb21-48"><a href="#cb21-48"></a><span class="in">      ARMCD == "ARM A" &amp; AVISIT == "CYCLE 1 DAY 1" &amp; PARAM == "Cmax (ug/mL)",</span></span>
+<span id="cb21-49"><a href="#cb21-49"></a><span class="in">      NA_real_, AVAL</span></span>
+<span id="cb21-50"><a href="#cb21-50"></a><span class="in">    )</span></span>
+<span id="cb21-51"><a href="#cb21-51"></a><span class="in">  )</span></span>
+<span id="cb21-52"><a href="#cb21-52"></a></span>
+<span id="cb21-53"><a href="#cb21-53"></a><span class="in">adpp_x_tmp &lt;- adpp_x %&gt;%</span></span>
+<span id="cb21-54"><a href="#cb21-54"></a><span class="in">  select(STUDYID, USUBJID, ARMCD, AVISIT) %&gt;%</span></span>
+<span id="cb21-55"><a href="#cb21-55"></a><span class="in">  unique()</span></span>
+<span id="cb21-56"><a href="#cb21-56"></a></span>
+<span id="cb21-57"><a href="#cb21-57"></a><span class="in">adsl_x_splitvars &lt;- adsl_tmp %&gt;%</span></span>
+<span id="cb21-58"><a href="#cb21-58"></a><span class="in">  left_join(adpp_x_tmp, by = c("STUDYID", "USUBJID", "ARMCD")) %&gt;%</span></span>
+<span id="cb21-59"><a href="#cb21-59"></a><span class="in">  filter(!is.na(AVISIT))</span></span>
+<span id="cb21-60"><a href="#cb21-60"></a></span>
+<span id="cb21-61"><a href="#cb21-61"></a><span class="in"># Data for Plasma Drug Y example ----</span></span>
+<span id="cb21-62"><a href="#cb21-62"></a><span class="in">adpp_y &lt;- adpp %&gt;%</span></span>
+<span id="cb21-63"><a href="#cb21-63"></a><span class="in">  filter(PPCAT == "Plasma Drug Y")</span></span>
+<span id="cb21-64"><a href="#cb21-64"></a></span>
+<span id="cb21-65"><a href="#cb21-65"></a><span class="in">adpp_y_tmp &lt;- adpp_y %&gt;%</span></span>
+<span id="cb21-66"><a href="#cb21-66"></a><span class="in">  select(STUDYID, USUBJID, ARMCD, AVISIT) %&gt;%</span></span>
+<span id="cb21-67"><a href="#cb21-67"></a><span class="in">  unique()</span></span>
+<span id="cb21-68"><a href="#cb21-68"></a></span>
+<span id="cb21-69"><a href="#cb21-69"></a><span class="in">adsl_y_splitvars &lt;- adsl_tmp %&gt;%</span></span>
+<span id="cb21-70"><a href="#cb21-70"></a><span class="in">  left_join(adpp_y_tmp, by = c("STUDYID", "USUBJID", "ARMCD")) %&gt;%</span></span>
+<span id="cb21-71"><a href="#cb21-71"></a><span class="in">  filter(!is.na(AVISIT))</span></span>
+<span id="cb21-72"><a href="#cb21-72"></a><span class="in">```</span></span>
+<span id="cb21-73"><a href="#cb21-73"></a></span>
+<span id="cb21-74"><a href="#cb21-74"></a><span class="fu">## Standard Table</span></span>
+<span id="cb21-75"><a href="#cb21-75"></a></span>
+<span id="cb21-76"><a href="#cb21-76"></a><span class="in">```{r lyt}</span></span>
+<span id="cb21-77"><a href="#cb21-77"></a><span class="in"># lyt creation</span></span>
+<span id="cb21-78"><a href="#cb21-78"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
+<span id="cb21-79"><a href="#cb21-79"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb21-80"><a href="#cb21-80"></a><span class="in">    var = "AVISIT",</span></span>
+<span id="cb21-81"><a href="#cb21-81"></a><span class="in">    split_fun = drop_split_levels,</span></span>
+<span id="cb21-82"><a href="#cb21-82"></a><span class="in">    split_label = "Visit",</span></span>
+<span id="cb21-83"><a href="#cb21-83"></a><span class="in">    page_by = TRUE</span></span>
+<span id="cb21-84"><a href="#cb21-84"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-85"><a href="#cb21-85"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb21-86"><a href="#cb21-86"></a><span class="in">    var = "ARMCD",</span></span>
+<span id="cb21-87"><a href="#cb21-87"></a><span class="in">    split_fun = trim_levels_in_group("PARAM"),</span></span>
+<span id="cb21-88"><a href="#cb21-88"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb21-89"><a href="#cb21-89"></a><span class="in">    split_label = "Treatment Arm"</span></span>
+<span id="cb21-90"><a href="#cb21-90"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-91"><a href="#cb21-91"></a><span class="in">  add_rowcounts(alt_counts = TRUE) %&gt;%</span></span>
+<span id="cb21-92"><a href="#cb21-92"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb21-93"><a href="#cb21-93"></a><span class="in">    var = "PARAM",</span></span>
+<span id="cb21-94"><a href="#cb21-94"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb21-95"><a href="#cb21-95"></a><span class="in">    split_label = "PK Parameter",</span></span>
+<span id="cb21-96"><a href="#cb21-96"></a><span class="in">    child_labels = "hidden"</span></span>
+<span id="cb21-97"><a href="#cb21-97"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-98"><a href="#cb21-98"></a><span class="in">  analyze_vars_in_cols(</span></span>
+<span id="cb21-99"><a href="#cb21-99"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb21-100"><a href="#cb21-100"></a><span class="in">    .stats = c(</span></span>
+<span id="cb21-101"><a href="#cb21-101"></a><span class="in">      "n", "mean", "sd", "cv",</span></span>
+<span id="cb21-102"><a href="#cb21-102"></a><span class="in">      "geom_mean", "geom_cv", "median",</span></span>
+<span id="cb21-103"><a href="#cb21-103"></a><span class="in">      "min", "max"</span></span>
+<span id="cb21-104"><a href="#cb21-104"></a><span class="in">    ),</span></span>
+<span id="cb21-105"><a href="#cb21-105"></a><span class="in">    .labels = c(</span></span>
+<span id="cb21-106"><a href="#cb21-106"></a><span class="in">      n = "n",</span></span>
+<span id="cb21-107"><a href="#cb21-107"></a><span class="in">      mean = "Mean",</span></span>
+<span id="cb21-108"><a href="#cb21-108"></a><span class="in">      sd = "SD",</span></span>
+<span id="cb21-109"><a href="#cb21-109"></a><span class="in">      cv = "CV (%)",</span></span>
+<span id="cb21-110"><a href="#cb21-110"></a><span class="in">      geom_mean = "Geometric Mean",</span></span>
+<span id="cb21-111"><a href="#cb21-111"></a><span class="in">      geom_cv = "CV % Geometric Mean",</span></span>
+<span id="cb21-112"><a href="#cb21-112"></a><span class="in">      median = "Median",</span></span>
+<span id="cb21-113"><a href="#cb21-113"></a><span class="in">      min = "Minimum",</span></span>
+<span id="cb21-114"><a href="#cb21-114"></a><span class="in">      max = "Maximum"</span></span>
+<span id="cb21-115"><a href="#cb21-115"></a><span class="in">    ),</span></span>
+<span id="cb21-116"><a href="#cb21-116"></a><span class="in">    .formats = c(</span></span>
+<span id="cb21-117"><a href="#cb21-117"></a><span class="in">      n = "xx.",</span></span>
+<span id="cb21-118"><a href="#cb21-118"></a><span class="in">      mean = format_sigfig(3),</span></span>
+<span id="cb21-119"><a href="#cb21-119"></a><span class="in">      sd = format_sigfig(3),</span></span>
+<span id="cb21-120"><a href="#cb21-120"></a><span class="in">      cv = "xx.x",</span></span>
+<span id="cb21-121"><a href="#cb21-121"></a><span class="in">      median = format_sigfig(3),</span></span>
+<span id="cb21-122"><a href="#cb21-122"></a><span class="in">      geom_mean = format_sigfig(3),</span></span>
+<span id="cb21-123"><a href="#cb21-123"></a><span class="in">      geom_cv = "xx.x",</span></span>
+<span id="cb21-124"><a href="#cb21-124"></a><span class="in">      min = format_sigfig(3),</span></span>
+<span id="cb21-125"><a href="#cb21-125"></a><span class="in">      max = format_sigfig(3)</span></span>
+<span id="cb21-126"><a href="#cb21-126"></a><span class="in">    ),</span></span>
+<span id="cb21-127"><a href="#cb21-127"></a><span class="in">    na_str = "NE"</span></span>
+<span id="cb21-128"><a href="#cb21-128"></a><span class="in">  )</span></span>
+<span id="cb21-129"><a href="#cb21-129"></a><span class="in">```</span></span>
+<span id="cb21-130"><a href="#cb21-130"></a></span>
+<span id="cb21-131"><a href="#cb21-131"></a><span class="fu">#### Plasma Drug X</span></span>
+<span id="cb21-132"><a href="#cb21-132"></a></span>
+<span id="cb21-133"><a href="#cb21-133"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-134"><a href="#cb21-134"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-135"><a href="#cb21-135"></a></span>
+<span id="cb21-136"><a href="#cb21-136"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb21-137"><a href="#cb21-137"></a><span class="in">result &lt;- build_table(lyt, df = adpp_x, alt_counts_df = adsl_x_splitvars)</span></span>
+<span id="cb21-138"><a href="#cb21-138"></a><span class="in">main_title(result) &lt;- paste("Summary of", unique(adpp_x$PPSPEC), "PK Parameter by Treatment Arm, PK Population")</span></span>
+<span id="cb21-139"><a href="#cb21-139"></a><span class="in">subtitles(result) &lt;- paste("Analyte:", unique(adpp_x$PPCAT))</span></span>
+<span id="cb21-140"><a href="#cb21-140"></a><span class="in">result &lt;- paginate_table(result, landscape = TRUE)</span></span>
+<span id="cb21-141"><a href="#cb21-141"></a><span class="in">result</span></span>
+<span id="cb21-142"><a href="#cb21-142"></a><span class="in">```</span></span>
+<span id="cb21-143"><a href="#cb21-143"></a></span>
+<span id="cb21-144"><a href="#cb21-144"></a><span class="in">`r webr_code_labels &lt;- c("setup", "lyt", "variant1")`</span></span>
+<span id="cb21-145"><a href="#cb21-145"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-146"><a href="#cb21-146"></a>:::</span>
+<span id="cb21-147"><a href="#cb21-147"></a></span>
+<span id="cb21-148"><a href="#cb21-148"></a><span class="fu">#### Plasma Drug X: Remove Rows with 0s</span></span>
+<span id="cb21-149"><a href="#cb21-149"></a></span>
+<span id="cb21-150"><a href="#cb21-150"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-151"><a href="#cb21-151"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-152"><a href="#cb21-152"></a></span>
+<span id="cb21-153"><a href="#cb21-153"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb21-154"><a href="#cb21-154"></a><span class="in">result &lt;- build_table(lyt, df = adpp_x, alt_counts_df = adsl_x_splitvars) %&gt;%</span></span>
+<span id="cb21-155"><a href="#cb21-155"></a><span class="in">  prune_table()</span></span>
+<span id="cb21-156"><a href="#cb21-156"></a></span>
+<span id="cb21-157"><a href="#cb21-157"></a><span class="in">main_title(result) &lt;- paste("Summary of", unique(adpp_x$PPSPEC), "PK Parameter by Treatment Arm, PK Population")</span></span>
+<span id="cb21-158"><a href="#cb21-158"></a><span class="in">subtitles(result) &lt;- paste("Analyte:", unique(adpp_x$PPCAT))</span></span>
+<span id="cb21-159"><a href="#cb21-159"></a><span class="in">result &lt;- paginate_table(result, landscape = TRUE)</span></span>
+<span id="cb21-160"><a href="#cb21-160"></a><span class="in">result</span></span>
+<span id="cb21-161"><a href="#cb21-161"></a><span class="in">```</span></span>
+<span id="cb21-162"><a href="#cb21-162"></a></span>
+<span id="cb21-163"><a href="#cb21-163"></a><span class="in">`r webr_code_labels &lt;- c("setup", "lyt", "variant2")`</span></span>
+<span id="cb21-164"><a href="#cb21-164"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-165"><a href="#cb21-165"></a>:::</span>
+<span id="cb21-166"><a href="#cb21-166"></a></span>
+<span id="cb21-167"><a href="#cb21-167"></a><span class="fu">#### Plasma Drug Y</span></span>
+<span id="cb21-168"><a href="#cb21-168"></a></span>
+<span id="cb21-169"><a href="#cb21-169"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-170"><a href="#cb21-170"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-171"><a href="#cb21-171"></a></span>
+<span id="cb21-172"><a href="#cb21-172"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
+<span id="cb21-173"><a href="#cb21-173"></a><span class="in">result &lt;- build_table(lyt, df = adpp_y, alt_counts_df = adsl_y_splitvars)</span></span>
+<span id="cb21-174"><a href="#cb21-174"></a><span class="in">main_title(result) &lt;- paste("Summary of", unique(adpp_y$PPSPEC), "PK Parameter by Treatment Arm, PK Population")</span></span>
+<span id="cb21-175"><a href="#cb21-175"></a><span class="in">subtitles(result) &lt;- paste("Analyte:", unique(adpp_y$PPCAT))</span></span>
+<span id="cb21-176"><a href="#cb21-176"></a><span class="in">result &lt;- paginate_table(result, landscape = TRUE)</span></span>
+<span id="cb21-177"><a href="#cb21-177"></a><span class="in">result</span></span>
+<span id="cb21-178"><a href="#cb21-178"></a><span class="in">```</span></span>
+<span id="cb21-179"><a href="#cb21-179"></a></span>
+<span id="cb21-180"><a href="#cb21-180"></a><span class="in">`r webr_code_labels &lt;- c("setup", "lyt", "variant3")`</span></span>
+<span id="cb21-181"><a href="#cb21-181"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-182"><a href="#cb21-182"></a>:::</span>
+<span id="cb21-183"><a href="#cb21-183"></a></span>
+<span id="cb21-184"><a href="#cb21-184"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb21-185"><a href="#cb21-185"></a></span>
+<span id="cb21-186"><a href="#cb21-186"></a><span class="fu">## `teal` App</span></span>
+<span id="cb21-187"><a href="#cb21-187"></a></span>
+<span id="cb21-188"><a href="#cb21-188"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb21-189"><a href="#cb21-189"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb21-190"><a href="#cb21-190"></a></span>
+<span id="cb21-191"><a href="#cb21-191"></a><span class="in"># In progress</span></span>
+<span id="cb21-192"><a href="#cb21-192"></a><span class="in">```</span></span>
+<span id="cb21-193"><a href="#cb21-193"></a></span>
+<span id="cb21-194"><a href="#cb21-194"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb21-195"><a href="#cb21-195"></a></span>
+<span id="cb21-196"><a href="#cb21-196"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
