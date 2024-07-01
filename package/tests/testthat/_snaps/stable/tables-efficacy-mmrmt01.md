@@ -149,3 +149,32 @@
           Relative Increase (%)                                      8.7%               4.3%      
           p-value (MMRM)                                            0.0324             0.2924     
 
+# tables/efficacy/mmrmt01.qmd result_baseline stable
+
+    Code
+      print(data_snap[[i]])
+    Output
+      Visit                    All Patients  
+        Statistics               (N=400)     
+      ———————————————————————————————————————
+      WEEK 1 DAY 8                           
+        n                          400       
+        Adjusted Mean (SE)    3.615 (0.620)  
+          95% CI              (2.396, 4.834) 
+      WEEK 2 DAY 15                          
+        n                          400       
+        Adjusted Mean (SE)    8.870 (0.602)  
+          95% CI             (7.687, 10.053) 
+      WEEK 3 DAY 22                          
+        n                          400       
+        Adjusted Mean (SE)    15.094 (0.683) 
+          95% CI             (13.751, 16.437)
+      WEEK 4 DAY 29                          
+        n                          400       
+        Adjusted Mean (SE)    19.009 (0.717) 
+          95% CI             (17.599, 20.418)
+      WEEK 5 DAY 36                          
+        n                          400       
+        Adjusted Mean (SE)    24.028 (0.747) 
+          95% CI             (22.560, 25.496)
+

@@ -13,24 +13,24 @@
           Relative Reduction (%)                                     5.7%      
           p-value (RBMI)                                            0.8932     
       5                                                                        
-        Adjusted Mean (SE)                   -4.241 (0.646)     -2.814 (0.643) 
-          95% CI                            (-5.537, -2.984)   (-4.084, -1.545)
-        Difference in Adjusted Means (SE)                       1.447 (0.915)  
-          95% CI                                               (-0.360, 3.254) 
+        Adjusted Mean (SE)                   -4.251 (0.647)     -2.805 (0.644) 
+          95% CI                            (-5.528, -2.974)   (-4.077, -1.533)
+        Difference in Adjusted Means (SE)                       1.446 (0.914)  
+          95% CI                                               (-0.358, 3.250) 
           Relative Reduction (%)                                    -34.0%     
-          p-value (RBMI)                                            0.1159     
+          p-value (RBMI)                                            0.1155     
       6                                                                        
-        Adjusted Mean (SE)                   -6.365 (0.721)     -4.123 (0.689) 
-          95% CI                            (-7.791, -4.939)   (-5.484, -2.761)
-        Difference in Adjusted Means (SE)                       2.242 (0.998)  
-          95% CI                                                (0.269, 4.216) 
-          Relative Reduction (%)                                    -35.2%     
-          p-value (RBMI)                                            0.0262     
+        Adjusted Mean (SE)                   -6.366 (0.721)     -4.095 (0.696) 
+          95% CI                            (-7.793, -4.939)   (-5.471, -2.720)
+        Difference in Adjusted Means (SE)                       2.270 (0.996)  
+          95% CI                                                (0.301, 4.239) 
+          Relative Reduction (%)                                    -35.7%     
+          p-value (RBMI)                                            0.0241     
       7                                                                        
-        Adjusted Mean (SE)                   -7.665 (0.831)     -4.802 (0.762) 
-          95% CI                            (-9.314, -6.017)   (-6.308, -3.296)
-        Difference in Adjusted Means (SE)                       2.863 (1.120)  
-          95% CI                                                (0.645, 5.082) 
-          Relative Reduction (%)                                    -37.4%     
-          p-value (RBMI)                                            0.0118     
+        Adjusted Mean (SE)                   -7.689 (0.797)     -4.776 (0.752) 
+          95% CI                            (-9.266, -6.112)   (-6.261, -3.290)
+        Difference in Adjusted Means (SE)                       2.913 (1.073)  
+          95% CI                                                (0.792, 5.035) 
+          Relative Reduction (%)                                    -37.9%     
+          p-value (RBMI)                                            0.0074     
 

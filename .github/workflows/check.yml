@@ -27,9 +27,10 @@ jobs:
     secrets:
       REPO_GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
     with:
+      install-deps-from-package-repositories: "R-universe=https://pharmaverse.r-universe.dev/,CRAN=https://cloud.r-project.org/"
       package-subdirectory: package
       additional-env-vars: |
-        _R_CHECK_CRAN_INCOMING_REMOTE_=false
+        NOT_CRAN=true
         QUARTO_PROFILE=development
       concurrency-group: development
   r-cmd-stable:
@@ -42,8 +43,8 @@ jobs:
       install-deps-from-package-repositories: "R-universe=https://insightsengineering.r-universe.dev/,CRAN=https://cloud.r-project.org/"
       package-subdirectory: package
       additional-env-vars: |
-        _R_CHECK_CRAN_INCOMING_REMOTE_=false
-          QUARTO_PROFILE=stable
+        NOT_CRAN=true
+        QUARTO_PROFILE=stable
       concurrency-group: stable
   linter:
     if: github.event_name != 'push'
@@ -53,6 +54,8 @@ jobs:
     if: github.event_name != 'push'
     name: Check URLs 🌐
     uses: insightsengineering/r.pkg.template/.github/workflows/links.yaml@main
+    with:
+      package-subdirectory: package
   vbump:
     name: Version Bump 🤜🤛
     if: github.event_name == 'push'
