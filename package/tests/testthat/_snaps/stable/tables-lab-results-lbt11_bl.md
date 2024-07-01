@@ -64,9 +64,9 @@
         Hazard Ratio                                            1.27               0.84      
         95% CI                                              (0.63, 2.56)       (0.40, 1.75)  
       Stratified By: RACE, SEX                                                               
-        p-value (log-rank)                                     0.0858             0.1605     
-        Hazard Ratio                                            0.51               0.57      
-        95% CI                                              (0.23, 1.12)       (0.26, 1.26)  
+        p-value (log-rank)                                     0.3886             0.7970     
+        Hazard Ratio                                            1.39               0.91      
+        95% CI                                              (0.65, 2.97)       (0.43, 1.93)  
       ———————————————————————————————————————————————————————————————————————————————————————
       
       {1} - Censored observations: range minimum & maximum
