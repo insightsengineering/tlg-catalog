@@ -44,7 +44,10 @@ test_article <- function(article_path) {
         withr::with_seed(
           123,
           suppressMessages(
-            ggplot2::ggsave(plot_file, data_snap[[i]], width = plot_dims[["width"]], height = plot_dims[["height"]])
+            ggplot2::ggsave(plot_file, data_snap[[i]],
+              width = plot_dims[["width"]], height = plot_dims[["height"]],
+              create.dir = TRUE
+            )
           )
         )
 
