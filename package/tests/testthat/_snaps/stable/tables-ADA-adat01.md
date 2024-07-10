@@ -5,22 +5,22 @@
     Output
       Baseline Prevalence and Incidence of Treatment Emergent ADA
       
-      —————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-                                                     A: Drug X    C: Combination   <Missing>   B: Placebo   All Drug X 
-                                                      (N=134)        (N=132)         (N=0)      (N=134)       (N=266)  
-      —————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-      Baseline Prevalence of ADAs                                                                                      
-        Baseline evaluable patients                     134            132             0           0            266    
-      Patient with a positive sample at baseline     63 (47.0%)     64 (48.5%)         0           0        127 (47.7%)
-      Patient with no positive samples at baseline       71             68             0           0            139    
-      Incidence of Treatment Emergent ADAs                                                                             
-        Post-baseline evaluable patients                134            132             0           0            266    
-      Patient positive for Treatment Emergent ADA        0              0              0           0             0     
-      Treatment-induced ADA                              0              0              0           0             0     
-      Treatment-enhanced ADA                             0              0              0           0             0     
-      Patient negative for Treatment Emergent ADA        0              0              0           0             0     
-      Treatment unaffected                               0              0              0           0             0     
-      —————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+                                                       A: Drug X    C: Combination   <Missing>   B: Placebo   All Drug X 
+                                                        (N=134)        (N=132)         (N=0)      (N=134)       (N=266)  
+      ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      Baseline Prevalence of ADAs                                                                                        
+        Baseline evaluable patients                       134            132             0           0            266    
+        Patient with a positive sample at baseline     63 (47.0%)     64 (48.5%)         0           0        127 (47.7%)
+        Patient with no positive samples at baseline       71             68             0           0            139    
+      Incidence of Treatment Emergent ADAs                                                                               
+        Post-baseline evaluable patients                  134            132             0           0            266    
+        Patient positive for Treatment Emergent ADA        0              0              0           0             0     
+          Treatment-induced ADA                            0              0              0           0             0     
+          Treatment-enhanced ADA                           0              0              0           0             0     
+        Patient negative for Treatment Emergent ADA        0              0              0           0             0     
+          Treatment unaffected                             0              0              0           0             0     
+      ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       
       ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies) Baseline evaluable patient = a patient with an ADA assay result from a baseline sample(s)
         Post-baseline evaluable patient = a patient with an ADA assay result from at least one post-baseline sample Number of patients positive for Treatment Emergent

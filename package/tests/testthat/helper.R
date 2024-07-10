@@ -25,7 +25,7 @@ test_article <- function(article_path) {
           print(data_snap[[i]]),
           variant = test_profile
         )
-      } else if (ggplot2::is.ggplot(data_snap[[i]]) || grid::is.grob(data_snap[[i]])) {
+      } else if (isTRUE(if_test_plots) && (ggplot2::is.ggplot(data_snap[[i]]) || grid::is.grob(data_snap[[i]]))) {
         testthat::skip_if_not_installed("svglite")
         testthat::skip_on_ci()
 
