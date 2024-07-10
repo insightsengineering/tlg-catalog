@@ -10,7 +10,7 @@ Sys.setenv("QUARTO_TESTTHAT_DATA_PATH" = normalizePath(test_data_path))
 # (ii) set if_render_article to TRUE
 # (iii) assure proper value of `test_profile` ("development" or "stable")
 # (iv) run `devtools::test(filter = "test-<article_name>")`
-if_render_book <- FALSE
+if_render_book <- TRUE
 if_render_articles <- FALSE
 if_test_plots <- TRUE # Additional option for optional skip of local plot tests
 
