@@ -2,9 +2,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.554">
+<meta name="generator" content="quarto-1.5.55">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>TLG Catalog - Dev - AET01_AESI</title>
+<title>AET01_AESI – TLG Catalog - Dev</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -30,7 +30,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -76,9 +76,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="../../site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <meta name="shinylive:serviceworker_dir" content="../..">
-<script src="../../site_libs/quarto-contrib/shinylive-0.2.3/shinylive/load-shinylive-sw.js" type="module"></script>
-<script src="../../site_libs/quarto-contrib/shinylive-0.2.3/shinylive/run-python-blocks.js" type="module"></script>
-<link href="../../site_libs/quarto-contrib/shinylive-0.2.3/shinylive/shinylive.css" rel="stylesheet">
+<script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/load-shinylive-sw.js" type="module"></script>
+<script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/run-python-blocks.js" type="module"></script>
+<link href="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/shinylive.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/shinylive-quarto-css/shinylive-quarto.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"fig-cap":"","editor-max-height":"500","editor-quick-suggestions":"false","fig-height":5,"read-only":"false","results":"markup","warning":"true","label":"unnamed-chunk-1","dpi":72,"editor-font-scale":1,"autorun":"true","out-height":"","context":"interactive","fig-width":7,"out-width":"700px","output":"true","comment":"","classes":"","message":"true"},"id":1,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\nadsl <- filter(adsl, SAFFL == \"Y\")\nadae <- filter(adae, ANL01FL == \"Y\" & SAFFL == \"Y\")\n\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(adae)\n\nnot_resolved <- adae %>%\n  filter(!(AEOUT %in% c(\"RECOVERED/RESOLVED\", \"FATAL\", \"RECOVERED/RESOLVED WITH SEQUELAE\"))) %>%\n  distinct(USUBJID) %>%\n  mutate(NOT_RESOLVED = \"Y\")\n\nadae <- adae %>%\n  left_join(not_resolved, by = c(\"USUBJID\")) %>%\n  mutate(\n    ALL_RESOLVED = with_label(\n      is.na(NOT_RESOLVED),\n      \"Total number of patients with all non-fatal AEs resolved\"\n    ),\n    NOT_RESOLVED = with_label(\n      !is.na(NOT_RESOLVED),\n      \"Total number of patients with at least one unresolved or ongoing non-fatal AE\"\n    )\n  )\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = as.character(AEDECOD),\n    WD = with_label(\n      AEACN == \"DRUG WITHDRAWN\",\n      \"Total number of patients with study drug withdrawn due to AE\"\n    ),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Total number of patients with dose modified/interrupted due to AE\"\n    ),\n    CONTRT = with_label(\n      AECONTRT == \"Y\",\n      \"Total number of patients with treatment received for AE\"\n    ),\n    SER = with_label(\n      AESER == \"Y\",\n      \"Total number of patients with at least one serious AE\"\n    ),\n    REL = with_label(\n      AEREL == \"Y\",\n      \"Total number of patients with at least one related AE\"\n    ),\n    ALL_RESOLVED_WD = with_label(\n      WD == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to resolved AE\"\n    ),\n    ALL_RESOLVED_DSM = with_label(\n      DSM == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to resolved AE\"\n    ),\n    ALL_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with treatment received for resolved AE\"\n    ),\n    NOT_RESOLVED_WD = with_label(\n      WD == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_DSM = with_label(\n      DSM == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with treatment received for unresolved or ongoing AE\"\n    ),\n    SERWD = with_label(\n      AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to serious AE\"\n    ),\n    SERCONTRT = with_label(\n      AECONTRT == \"Y\" & AESER == \"Y\",\n      \"No. of patients with dose modified/interrupted due to serious AE\"\n    ),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with treatment received for serious AE\"\n    ),\n    RELWD = with_label(\n      AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to related AE\"\n    ),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose modified/interrupted due to related AE\"\n    ),\n    RELCONTRT = with_label(\n      AECONTRT == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with treatment received for related AE\"\n    ),\n    RELSER = with_label(\n      AESER == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with serious, related AE\"\n    )\n  )\n\nadae <- adae %>%\n  mutate(\n    AETOXGR = forcats::fct_recode(AETOXGR,\n      \"Grade 1\" = \"1\",\n      \"Grade 2\" = \"2\",\n      \"Grade 3\" = \"3\",\n      \"Grade 4\" = \"4\",\n      \"Grade 5 (fatal outcome)\" = \"5\"\n    )\n  )\naesi_vars <- c(\"WD\", \"DSM\", \"CONTRT\", \"ALL_RESOLVED\", \"NOT_RESOLVED\", \"SER\", \"REL\")\n\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    vars = \"USUBJID\",\n    filters = c(\"ANL01FL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients with at least one AE\")\n  ) %>%\n  count_values(\n    \"ANL01FL\",\n    values = \"Y\",\n    .stats = \"count\",\n    .labels = c(count = \"Total number of AEs\"),\n    table_names = \"total_aes\"\n  ) %>%\n  count_occurrences_by_grade(\n    var = \"AETOXGR\",\n    var_labels = \"Total number of patients with at least one AE by worst grade\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\"USUBJID\", flag_variables = aesi_vars, denom = \"N_col\")\n\nresult <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)\nresult"},{"options":{"fig-cap":"","editor-max-height":"500","editor-quick-suggestions":"false","fig-height":5,"read-only":"false","results":"markup","warning":"true","label":"unnamed-chunk-2","dpi":72,"editor-font-scale":1,"autorun":"true","out-height":"","context":"interactive","fig-width":7,"out-width":"700px","output":"true","comment":"","classes":"","message":"true"},"id":2,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\nadsl <- filter(adsl, SAFFL == \"Y\")\nadae <- filter(adae, ANL01FL == \"Y\" & SAFFL == \"Y\")\n\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(adae)\n\nnot_resolved <- adae %>%\n  filter(!(AEOUT %in% c(\"RECOVERED/RESOLVED\", \"FATAL\", \"RECOVERED/RESOLVED WITH SEQUELAE\"))) %>%\n  distinct(USUBJID) %>%\n  mutate(NOT_RESOLVED = \"Y\")\n\nadae <- adae %>%\n  left_join(not_resolved, by = c(\"USUBJID\")) %>%\n  mutate(\n    ALL_RESOLVED = with_label(\n      is.na(NOT_RESOLVED),\n      \"Total number of patients with all non-fatal AEs resolved\"\n    ),\n    NOT_RESOLVED = with_label(\n      !is.na(NOT_RESOLVED),\n      \"Total number of patients with at least one unresolved or ongoing non-fatal AE\"\n    )\n  )\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = as.character(AEDECOD),\n    WD = with_label(\n      AEACN == \"DRUG WITHDRAWN\",\n      \"Total number of patients with study drug withdrawn due to AE\"\n    ),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Total number of patients with dose modified/interrupted due to AE\"\n    ),\n    CONTRT = with_label(\n      AECONTRT == \"Y\",\n      \"Total number of patients with treatment received for AE\"\n    ),\n    SER = with_label(\n      AESER == \"Y\",\n      \"Total number of patients with at least one serious AE\"\n    ),\n    REL = with_label(\n      AEREL == \"Y\",\n      \"Total number of patients with at least one related AE\"\n    ),\n    ALL_RESOLVED_WD = with_label(\n      WD == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to resolved AE\"\n    ),\n    ALL_RESOLVED_DSM = with_label(\n      DSM == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to resolved AE\"\n    ),\n    ALL_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with treatment received for resolved AE\"\n    ),\n    NOT_RESOLVED_WD = with_label(\n      WD == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_DSM = with_label(\n      DSM == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with treatment received for unresolved or ongoing AE\"\n    ),\n    SERWD = with_label(\n      AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to serious AE\"\n    ),\n    SERCONTRT = with_label(\n      AECONTRT == \"Y\" & AESER == \"Y\",\n      \"No. of patients with dose modified/interrupted due to serious AE\"\n    ),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with treatment received for serious AE\"\n    ),\n    RELWD = with_label(\n      AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to related AE\"\n    ),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose modified/interrupted due to related AE\"\n    ),\n    RELCONTRT = with_label(\n      AECONTRT == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with treatment received for related AE\"\n    ),\n    RELSER = with_label(\n      AESER == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with serious, related AE\"\n    )\n  )\n\nadae <- adae %>%\n  mutate(\n    AETOXGR = forcats::fct_recode(AETOXGR,\n      \"Grade 1\" = \"1\",\n      \"Grade 2\" = \"2\",\n      \"Grade 3\" = \"3\",\n      \"Grade 4\" = \"4\",\n      \"Grade 5 (fatal outcome)\" = \"5\"\n    )\n  )\naesi_vars <- c(\"WD\", \"DSM\", \"CONTRT\")\naesi_resolved <- c(\"ALL_RESOLVED\", \"ALL_RESOLVED_WD\", \"ALL_RESOLVED_DSM\", \"ALL_RESOLVED_CONTRT\")\naesi_not_resolved <- c(\"NOT_RESOLVED\", \"NOT_RESOLVED_WD\", \"NOT_RESOLVED_DSM\", \"NOT_RESOLVED_CONTRT\")\naesi_ser <- c(\"SER\", \"SERWD\", \"SERDSM\", \"SERCONTRT\")\naesi_rel <- c(\"REL\", \"RELWD\", \"RELDSM\", \"RELCONTRT\", \"RELSER\")\n\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    vars = \"USUBJID\",\n    filters = c(\"ANL01FL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients with at least one AE\")\n  ) %>%\n  count_values(\n    \"ANL01FL\",\n    values = \"Y\",\n    .stats = \"count\",\n    .labels = c(count = \"Total number of AEs\"),\n    table_names = \"total_aes\"\n  ) %>%\n  count_occurrences_by_grade(\n    var = \"AETOXGR\",\n    var_labels = \"Total number of patients with at least one AE by worst grade\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(aesi_vars, aesi_resolved[1]), denom = \"N_col\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_resolved[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_res\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_not_resolved[1], denom = \"N_col\", table_names = \"fl_notres_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_not_resolved[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_notres\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_ser[1], denom = \"N_col\", table_names = \"fl_ser_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_ser[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_ser\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_rel[1], denom = \"N_col\", table_names = \"fl_rel_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_rel[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_rel\"\n  )\n\nresult <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)\nresult"},{"options":{"fig-cap":"","editor-max-height":"500","editor-quick-suggestions":"false","fig-height":5,"read-only":"false","results":"markup","warning":"true","label":"unnamed-chunk-3","dpi":72,"editor-font-scale":1,"autorun":"true","out-height":"","context":"interactive","fig-width":7,"out-width":"700px","output":"true","comment":"","classes":"","message":"true"},"id":3,"code":"adsl <- random.cdisc.data::cadsl\nadae_mult <- random.cdisc.data::cadae\n\nadsl <- filter(adsl, SAFFL == \"Y\")\nadae_mult <- filter(adae_mult, ANL01FL == \"Y\" & SAFFL == \"Y\")\n\nadsl <- df_explicit_na(adsl)\nadae_mult <- df_explicit_na(adae_mult)\n\n# for illustration purposes only, create AEREL1, AEREL2, AEACN1, AEACN2 from respective variables\nadae_mult <- adae_mult %>%\n  mutate(\n    AEREL1 = AEREL,\n    AEREL2 = AEREL,\n    AEACN1 = AEACN,\n    AEACN2 = AEACN\n  )\n\nnot_resolved <- adae_mult %>%\n  filter(!(AEOUT %in% c(\"RECOVERED/RESOLVED\", \"FATAL\", \"RECOVERED/RESOLVED WITH SEQUELAE\"))) %>%\n  distinct(USUBJID) %>%\n  mutate(NOT_RESOLVED = \"Y\")\n\nadae_mult <- adae_mult %>%\n  left_join(not_resolved, by = c(\"USUBJID\")) %>%\n  mutate(\n    ALL_RESOLVED = with_label(\n      is.na(NOT_RESOLVED),\n      \"Total number of patients with all non-fatal AEs resolved\"\n    ),\n    NOT_RESOLVED = with_label(\n      !is.na(NOT_RESOLVED),\n      \"Total number of patients with at least one non-fatal unresolved or ongoing AE\"\n    )\n  )\n\nadae_mult <- adae_mult %>%\n  mutate(\n    AEDECOD = as.character(AEDECOD),\n    WD1 = with_label(\n      AEACN1 == \"DRUG WITHDRAWN\",\n      \"Total number of patients with study drug 1 withdrawn due to AE\"\n    ),\n    WD2 = with_label(\n      AEACN2 == \"DRUG WITHDRAWN\",\n      \"Total number of patients with study drug 2 withdrawn due to AE\"\n    ),\n    DSM1 = with_label(\n      AEACN1 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Total number of patients with dose of study drug 1 modified/interrupted due to AE\"\n    ),\n    DSM2 = with_label(\n      AEACN2 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Total number of patients with dose of study drug 2 modified/interrupted due to AE\"\n    ),\n    CONTRT = with_label(\n      AECONTRT == \"Y\",\n      \"Total number of patients with treatment received for AE\"\n    ),\n    SER = with_label(\n      AESER == \"Y\",\n      \"Total number of patients with at least one serious AE\"\n    ),\n    REL1 = with_label(\n      AEREL1 == \"Y\",\n      \"Total number of patients with at least one AE related to study drug 1\"\n    ),\n    REL2 = with_label(\n      AEREL2 == \"Y\",\n      \"Total number of patients with at least one AE related to study drug 2\"\n    ),\n    ALL_RESOLVED_WD1 = with_label(\n      WD1 == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with study drug 1 withdrawn due to resolved AE\"\n    ),\n    ALL_RESOLVED_DSM1 = with_label(\n      DSM1 == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with dose of study drug 1 modified/interrupted due to resolved AE\"\n    ),\n    ALL_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with treatment received for resolved AE\"\n    ),\n    ALL_RESOLVED_WD2 = with_label(\n      WD2 == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with study drug 2 withdrawn due to resolved AE\"\n    ),\n    ALL_RESOLVED_DSM2 = with_label(\n      DSM2 == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with dose of study drug 2 modified/interrupted due to resolved AE\"\n    ),\n    NOT_RESOLVED_WD1 = with_label(\n      WD1 == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with study drug 1 withdrawn due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_DSM1 = with_label(\n      DSM1 == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with dose of study drug 1 modified/interrupted due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with treatment received for unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_WD2 = with_label(\n      WD2 == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with study drug 2 withdrawn due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_DSM2 = with_label(\n      DSM2 == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with dose of study drug 2 modified/interrupted due to unresolved or ongoing AE\"\n    ),\n    SERWD1 = with_label(\n      AESER == \"Y\" & AEACN1 == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug 1 withdrawn due to serious AE\"\n    ),\n    SERWD2 = with_label(\n      AESER == \"Y\" & AEACN2 == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug 2 withdrawn due to serious AE\"\n    ),\n    SERCONTRT = with_label(\n      AECONTRT == \"Y\" & AESER == \"Y\",\n      \"No. of patients with treatment received for serious AE\"\n    ),\n    SERDSM1 = with_label(\n      AESER == \"Y\" & AEACN1 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose of study drug 1 modified/interrupted due to serious AE\"\n    ),\n    SERDSM2 = with_label(\n      AESER == \"Y\" & AEACN2 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose of study drug 2 modified/interrupted due to serious AE\"\n    ),\n    REL1WD1 = with_label(\n      AEREL1 == \"Y\" & AEACN1 == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug 1 withdrawn due to AE related to study drug 1\"\n    ),\n    REL1WD2 = with_label(\n      AEREL1 == \"Y\" & AEACN2 == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug 1 withdrawn due to AE related to study drug 2\"\n    ),\n    REL2WD1 = with_label(\n      AEREL1 == \"Y\" & AEACN1 == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug 2 withdrawn due to AE related to study drug 1\"\n    ),\n    REL2WD2 = with_label(\n      AEREL1 == \"Y\" & AEACN2 == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug 2 withdrawn due to AE related to study drug 2\"\n    ),\n    REL1DSM1 = with_label(\n      AEREL1 == \"Y\" & AEACN1 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose of study drug 1 modified/interrupted due to AE related to study drug 1\"\n    ),\n    REL2DSM1 = with_label(\n      AEREL2 == \"Y\" & AEACN1 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose of study drug 2 modified/interrupted due to AE related to study drug 1\"\n    ),\n    REL1DSM2 = with_label(\n      AEREL1 == \"Y\" & AEACN2 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose of study drug 1 modified/interrupted due to AE related to study drug 2\"\n    ),\n    REL2DSM2 = with_label(\n      AEREL2 == \"Y\" & AEACN2 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose of study drug 2 modified/interrupted due to AE related to study drug 2\"\n    ),\n    REL1CONTRT = with_label(\n      AECONTRT == \"Y\" & AEREL1 == \"Y\",\n      \"No. of patients with treatment received for AE related to study drug 1\"\n    ),\n    REL2CONTRT = with_label(\n      AECONTRT == \"Y\" & AEREL2 == \"Y\",\n      \"No. of patients with treatment received for AE related to study drug 2\"\n    ),\n    REL1SER = with_label(\n      AESER == \"Y\" & AEREL1 == \"Y\",\n      \"No. of patients with serious AE related to study drug 1\"\n    ),\n    REL2SER = with_label(\n      AESER == \"Y\" & AEREL2 == \"Y\",\n      \"No. of patients with serious AE related to study drug 2\"\n    )\n  )\n\nadae_mult <- adae_mult %>%\n  mutate(AETOXGR = forcats::fct_recode(\n    AETOXGR,\n    \"Grade 1\" = \"1\",\n    \"Grade 2\" = \"2\",\n    \"Grade 3\" = \"3\",\n    \"Grade 4\" = \"4\",\n    \"Grade 5 (fatal outcome)\" = \"5\"\n  ))\n\naesi_vars <- c(\"WD1\", \"WD2\", \"DSM1\", \"DSM2\", \"CONTRT\")\naesi_res <- c(\n  \"ALL_RESOLVED\",\n  \"ALL_RESOLVED_WD1\",\n  \"ALL_RESOLVED_WD2\",\n  \"ALL_RESOLVED_DSM1\",\n  \"ALL_RESOLVED_DSM2\",\n  \"ALL_RESOLVED_CONTRT\"\n)\naesi_not_res <- c(\n  \"NOT_RESOLVED\",\n  \"NOT_RESOLVED_WD1\",\n  \"NOT_RESOLVED_WD2\",\n  \"NOT_RESOLVED_DSM1\",\n  \"NOT_RESOLVED_DSM2\",\n  \"NOT_RESOLVED_CONTRT\"\n)\naesi_ser <- c(\"SER\", \"SERWD1\", \"SERWD2\", \"SERDSM1\", \"SERDSM2\", \"SERCONTRT\")\naesi_rel1 <- c(\"REL1\", \"REL1WD1\", \"REL1WD2\", \"REL1DSM1\", \"REL1DSM2\", \"REL1CONTRT\", \"REL1SER\")\naesi_rel2 <- c(\"REL2\", \"REL2WD1\", \"REL2WD2\", \"REL2DSM1\", \"REL2DSM2\", \"REL2CONTRT\", \"REL2SER\")\n\nlyt_adae_mult <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    vars = \"USUBJID\",\n    filters = c(\"ANL01FL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients with at least one AE\")\n  ) %>%\n  count_values(\n    \"ANL01FL\",\n    values = \"Y\",\n    .stats = \"count\",\n    .labels = c(count = \"Total number of AEs\"),\n    table_names = \"total_aes\"\n  ) %>%\n  count_occurrences_by_grade(\n    var = \"AETOXGR\",\n    var_labels = \"Total number of patients with at least one AE by worst grade\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(aesi_vars, aesi_res[1]), denom = \"N_col\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_res[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_res\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_not_res[1], denom = \"N_col\", table_names = \"fl_notres_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_not_res[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_notres\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_ser[1], denom = \"N_col\", table_names = \"fl_ser_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_ser[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_ser\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_rel1[1], denom = \"N_col\", table_names = \"fl_rel1_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_rel1[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_rel1\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_rel2[1], denom = \"N_col\", table_names = \"fl_rel2_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_rel2[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_rel2\"\n  )\n\nresult <- build_table(lyt_adae_mult, df = adae_mult, alt_counts_df = adsl)\nresult"},{"options":{"fig-cap":"","editor-max-height":"500","editor-quick-suggestions":"false","fig-height":5,"read-only":"false","results":"markup","warning":"true","label":"unnamed-chunk-4","dpi":72,"editor-font-scale":1,"autorun":"true","out-height":"","context":"interactive","fig-width":7,"out-width":"700px","output":"true","comment":"","classes":"","message":"true"},"id":4,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\nadsl <- filter(adsl, SAFFL == \"Y\")\nadae <- filter(adae, ANL01FL == \"Y\" & SAFFL == \"Y\")\n\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(adae)\n\nnot_resolved <- adae %>%\n  filter(!(AEOUT %in% c(\"RECOVERED/RESOLVED\", \"FATAL\", \"RECOVERED/RESOLVED WITH SEQUELAE\"))) %>%\n  distinct(USUBJID) %>%\n  mutate(NOT_RESOLVED = \"Y\")\n\nadae <- adae %>%\n  left_join(not_resolved, by = c(\"USUBJID\")) %>%\n  mutate(\n    ALL_RESOLVED = with_label(\n      is.na(NOT_RESOLVED),\n      \"Total number of patients with all non-fatal AEs resolved\"\n    ),\n    NOT_RESOLVED = with_label(\n      !is.na(NOT_RESOLVED),\n      \"Total number of patients with at least one unresolved or ongoing non-fatal AE\"\n    )\n  )\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = as.character(AEDECOD),\n    WD = with_label(\n      AEACN == \"DRUG WITHDRAWN\",\n      \"Total number of patients with study drug withdrawn due to AE\"\n    ),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Total number of patients with dose modified/interrupted due to AE\"\n    ),\n    CONTRT = with_label(\n      AECONTRT == \"Y\",\n      \"Total number of patients with treatment received for AE\"\n    ),\n    SER = with_label(\n      AESER == \"Y\",\n      \"Total number of patients with at least one serious AE\"\n    ),\n    REL = with_label(\n      AEREL == \"Y\",\n      \"Total number of patients with at least one related AE\"\n    ),\n    ALL_RESOLVED_WD = with_label(\n      WD == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to resolved AE\"\n    ),\n    ALL_RESOLVED_DSM = with_label(\n      DSM == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to resolved AE\"\n    ),\n    ALL_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with treatment received for resolved AE\"\n    ),\n    NOT_RESOLVED_WD = with_label(\n      WD == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_DSM = with_label(\n      DSM == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with treatment received for unresolved or ongoing AE\"\n    ),\n    SERWD = with_label(\n      AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to serious AE\"\n    ),\n    SERCONTRT = with_label(\n      AECONTRT == \"Y\" & AESER == \"Y\",\n      \"No. of patients with dose modified/interrupted due to serious AE\"\n    ),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with treatment received for serious AE\"\n    ),\n    RELWD = with_label(\n      AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to related AE\"\n    ),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose modified/interrupted due to related AE\"\n    ),\n    RELCONTRT = with_label(\n      AECONTRT == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with treatment received for related AE\"\n    ),\n    RELSER = with_label(\n      AESER == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with serious, related AE\"\n    )\n  )\n\nadae <- adae %>%\n  mutate(\n    AETOXGR = forcats::fct_recode(AETOXGR,\n      \"Grade 1\" = \"1\",\n      \"Grade 2\" = \"2\",\n      \"Grade 3\" = \"3\",\n      \"Grade 4\" = \"4\",\n      \"Grade 5 (fatal outcome)\" = \"5\"\n    )\n  )\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\nadsl <- filter(adsl, SAFFL == \"Y\")\nadae <- filter(adae, ANL01FL == \"Y\" & SAFFL == \"Y\")\n\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(adae)\n\nstack_adae_by_smq <- function(adae, smq) {\n  adae_labels <- c(var_labels(adae), \"Standardized MedDRA Query\")\n  l_df <- lapply(smq, function(ae_grp) {\n    ae_scope <- gsub(\"NAM\", \"SC\", ae_grp)\n    keep <- adae[[ae_grp]] != \"<Missing>\"\n    df <- adae[keep, ]\n    if (substr(ae_grp, 1, 3) == \"SMQ\") {\n      df[[\"SMQ\"]] <- aesi_label(as.character(df[[ae_grp]]), scope = as.character(df[[ae_scope]]))\n    } else {\n      df[[\"SMQ\"]] <- df[[ae_grp]]\n    }\n    df\n  })\n  result <- do.call(rbind, l_df)\n  var_labels(result) <- adae_labels\n  result\n}\n\nadae_smq <- stack_adae_by_smq(adae, c(\"SMQ01NAM\", \"SMQ02NAM\", \"CQ01NAM\"))\n\nnot_resolved <- adae_smq %>%\n  filter(!(AEOUT %in% c(\"RECOVERED/RESOLVED\", \"FATAL\", \"RECOVERED/RESOLVED WITH SEQUELAE\"))) %>%\n  distinct(USUBJID) %>%\n  mutate(NOT_RESOLVED = \"Y\")\n\nadae_smq <- adae_smq %>%\n  left_join(not_resolved, by = c(\"USUBJID\")) %>%\n  mutate(\n    ALL_RESOLVED = with_label(\n      is.na(NOT_RESOLVED),\n      \"Total number of patients with all non-fatal AEs resolved\"\n    ),\n    NOT_RESOLVED = with_label(\n      !is.na(NOT_RESOLVED),\n      \"Total number of patients with at least one non-fatal unresolved or ongoing AE\"\n    )\n  )\n\nadae_smq <- adae_smq %>%\n  mutate(\n    AEDECOD = as.character(AEDECOD),\n    WD = with_label(\n      AEACN == \"DRUG WITHDRAWN\",\n      \"Total number of patients with study drug withdrawn due to AE\"\n    ),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Total number of patients with dose modified/interrupted due to AE\"\n    ),\n    CONTRT = with_label(\n      AECONTRT == \"Y\",\n      \"Total number of patients with treatment received for AE\"\n    ),\n    SER = with_label(\n      AESER == \"Y\",\n      \"Total number of patients with at least one serious AE\"\n    ),\n    REL = with_label(\n      AEREL == \"Y\",\n      \"Total number of patients with at least one related AE\"\n    ),\n    ALL_RESOLVED_WD = with_label(\n      WD == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to resolved AE\"\n    ),\n    ALL_RESOLVED_DSM = with_label(\n      DSM == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to resolved AE\"\n    ),\n    ALL_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with treatment received for resolved AE\"\n    ),\n    NOT_RESOLVED_WD = with_label(\n      WD == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_DSM = with_label(\n      DSM == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with treatment received for unresolved or ongoing AE\"\n    ),\n    SERWD = with_label(\n      AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to serious AE\"\n    ),\n    SERCONTRT = with_label(\n      AECONTRT == \"Y\" & AESER == \"Y\",\n      \"No. of patients with treatment received for serious AE\"\n    ),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose modified/interrupted due to serious AE\"\n    ),\n    RELWD = with_label(\n      AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to related AE\"\n    ),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose modified/interrupted due to related AE\"\n    ),\n    RELCONTRT = with_label(\n      AECONTRT == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with treatment received for related AE\"\n    ),\n    RELSER = with_label(\n      AESER == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with serious, related AE\"\n    )\n  )\n\nadae_smq <- adae_smq %>%\n  mutate(\n    AETOXGR = forcats::fct_recode(AETOXGR,\n      \"Grade 1\" = \"1\",\n      \"Grade 2\" = \"2\",\n      \"Grade 3\" = \"3\",\n      \"Grade 4\" = \"4\",\n      \"Grade 5 (fatal outcome)\" = \"5\"\n    )\n  )\n\nsplit_fun <- remove_split_levels(\"<Missing>\")\naesi_vars <- c(\"WD\", \"DSM\", \"CONTRT\", \"ALL_RESOLVED\", \"NOT_RESOLVED\", \"SER\", \"REL\")\n\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\n    \"SMQ\",\n    child_labels = \"visible\",\n    split_fun = split_fun,\n    split_label = \"Standardized MedDRA Query\",\n    label_pos = \"topleft\"\n  ) %>%\n  count_patients_with_event(\n    vars = \"USUBJID\",\n    filters = c(\"ANL01FL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients with at least one AE\")\n  ) %>%\n  count_values(\n    \"ANL01FL\",\n    values = \"Y\",\n    .stats = \"count\",\n    .labels = c(count = \"Total number of AEs\"),\n    table_names = \"total_aes\"\n  ) %>%\n  count_occurrences_by_grade(\n    var = \"AETOXGR\",\n    var_labels = \"Total number of patients with at least one AE by worst grade\",\n    .show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\"USUBJID\", flag_variables = aesi_vars, denom = \"N_col\")\n\nresult <- build_table(lyt_adae, df = adae_smq, alt_counts_df = adsl)\nresult"}];
+globalThis.qwebrCellDetails = [{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\nadsl <- filter(adsl, SAFFL == \"Y\")\nadae <- filter(adae, ANL01FL == \"Y\" & SAFFL == \"Y\")\n\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(adae)\n\nnot_resolved <- adae %>%\n  filter(!(AEOUT %in% c(\"RECOVERED/RESOLVED\", \"FATAL\", \"RECOVERED/RESOLVED WITH SEQUELAE\"))) %>%\n  distinct(USUBJID) %>%\n  mutate(NOT_RESOLVED = \"Y\")\n\nadae <- adae %>%\n  left_join(not_resolved, by = c(\"USUBJID\")) %>%\n  mutate(\n    ALL_RESOLVED = with_label(\n      is.na(NOT_RESOLVED),\n      \"Total number of patients with all non-fatal AEs resolved\"\n    ),\n    NOT_RESOLVED = with_label(\n      !is.na(NOT_RESOLVED),\n      \"Total number of patients with at least one unresolved or ongoing non-fatal AE\"\n    )\n  )\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = as.character(AEDECOD),\n    WD = with_label(\n      AEACN == \"DRUG WITHDRAWN\",\n      \"Total number of patients with study drug withdrawn due to AE\"\n    ),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Total number of patients with dose modified/interrupted due to AE\"\n    ),\n    CONTRT = with_label(\n      AECONTRT == \"Y\",\n      \"Total number of patients with treatment received for AE\"\n    ),\n    SER = with_label(\n      AESER == \"Y\",\n      \"Total number of patients with at least one serious AE\"\n    ),\n    REL = with_label(\n      AEREL == \"Y\",\n      \"Total number of patients with at least one related AE\"\n    ),\n    ALL_RESOLVED_WD = with_label(\n      WD == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to resolved AE\"\n    ),\n    ALL_RESOLVED_DSM = with_label(\n      DSM == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to resolved AE\"\n    ),\n    ALL_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with treatment received for resolved AE\"\n    ),\n    NOT_RESOLVED_WD = with_label(\n      WD == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_DSM = with_label(\n      DSM == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with treatment received for unresolved or ongoing AE\"\n    ),\n    SERWD = with_label(\n      AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to serious AE\"\n    ),\n    SERCONTRT = with_label(\n      AECONTRT == \"Y\" & AESER == \"Y\",\n      \"No. of patients with dose modified/interrupted due to serious AE\"\n    ),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with treatment received for serious AE\"\n    ),\n    RELWD = with_label(\n      AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to related AE\"\n    ),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose modified/interrupted due to related AE\"\n    ),\n    RELCONTRT = with_label(\n      AECONTRT == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with treatment received for related AE\"\n    ),\n    RELSER = with_label(\n      AESER == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with serious, related AE\"\n    )\n  )\n\nadae <- adae %>%\n  mutate(\n    AETOXGR = forcats::fct_recode(AETOXGR,\n      \"Grade 1\" = \"1\",\n      \"Grade 2\" = \"2\",\n      \"Grade 3\" = \"3\",\n      \"Grade 4\" = \"4\",\n      \"Grade 5 (fatal outcome)\" = \"5\"\n    )\n  )\naesi_vars <- c(\"WD\", \"DSM\", \"CONTRT\", \"ALL_RESOLVED\", \"NOT_RESOLVED\", \"SER\", \"REL\")\n\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    vars = \"USUBJID\",\n    filters = c(\"ANL01FL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients with at least one AE\")\n  ) %>%\n  count_values(\n    \"ANL01FL\",\n    values = \"Y\",\n    .stats = \"count\",\n    .labels = c(count = \"Total number of AEs\"),\n    table_names = \"total_aes\"\n  ) %>%\n  count_occurrences_by_grade(\n    var = \"AETOXGR\",\n    var_labels = \"Total number of patients with at least one AE by worst grade\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\"USUBJID\", flag_variables = aesi_vars, denom = \"N_col\")\n\nresult <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)\nresult","id":1,"options":{"output":"true","label":"unnamed-chunk-1","fig-height":5,"out-height":"","results":"markup","context":"interactive","warning":"true","editor-quick-suggestions":"false","comment":"","message":"true","classes":"","autorun":"true","read-only":"false","fig-width":7,"editor-font-scale":1,"out-width":"700px","dpi":72,"editor-max-height":"500","fig-cap":""}},{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\nadsl <- filter(adsl, SAFFL == \"Y\")\nadae <- filter(adae, ANL01FL == \"Y\" & SAFFL == \"Y\")\n\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(adae)\n\nnot_resolved <- adae %>%\n  filter(!(AEOUT %in% c(\"RECOVERED/RESOLVED\", \"FATAL\", \"RECOVERED/RESOLVED WITH SEQUELAE\"))) %>%\n  distinct(USUBJID) %>%\n  mutate(NOT_RESOLVED = \"Y\")\n\nadae <- adae %>%\n  left_join(not_resolved, by = c(\"USUBJID\")) %>%\n  mutate(\n    ALL_RESOLVED = with_label(\n      is.na(NOT_RESOLVED),\n      \"Total number of patients with all non-fatal AEs resolved\"\n    ),\n    NOT_RESOLVED = with_label(\n      !is.na(NOT_RESOLVED),\n      \"Total number of patients with at least one unresolved or ongoing non-fatal AE\"\n    )\n  )\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = as.character(AEDECOD),\n    WD = with_label(\n      AEACN == \"DRUG WITHDRAWN\",\n      \"Total number of patients with study drug withdrawn due to AE\"\n    ),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Total number of patients with dose modified/interrupted due to AE\"\n    ),\n    CONTRT = with_label(\n      AECONTRT == \"Y\",\n      \"Total number of patients with treatment received for AE\"\n    ),\n    SER = with_label(\n      AESER == \"Y\",\n      \"Total number of patients with at least one serious AE\"\n    ),\n    REL = with_label(\n      AEREL == \"Y\",\n      \"Total number of patients with at least one related AE\"\n    ),\n    ALL_RESOLVED_WD = with_label(\n      WD == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to resolved AE\"\n    ),\n    ALL_RESOLVED_DSM = with_label(\n      DSM == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to resolved AE\"\n    ),\n    ALL_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with treatment received for resolved AE\"\n    ),\n    NOT_RESOLVED_WD = with_label(\n      WD == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_DSM = with_label(\n      DSM == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with treatment received for unresolved or ongoing AE\"\n    ),\n    SERWD = with_label(\n      AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to serious AE\"\n    ),\n    SERCONTRT = with_label(\n      AECONTRT == \"Y\" & AESER == \"Y\",\n      \"No. of patients with dose modified/interrupted due to serious AE\"\n    ),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with treatment received for serious AE\"\n    ),\n    RELWD = with_label(\n      AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to related AE\"\n    ),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose modified/interrupted due to related AE\"\n    ),\n    RELCONTRT = with_label(\n      AECONTRT == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with treatment received for related AE\"\n    ),\n    RELSER = with_label(\n      AESER == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with serious, related AE\"\n    )\n  )\n\nadae <- adae %>%\n  mutate(\n    AETOXGR = forcats::fct_recode(AETOXGR,\n      \"Grade 1\" = \"1\",\n      \"Grade 2\" = \"2\",\n      \"Grade 3\" = \"3\",\n      \"Grade 4\" = \"4\",\n      \"Grade 5 (fatal outcome)\" = \"5\"\n    )\n  )\naesi_vars <- c(\"WD\", \"DSM\", \"CONTRT\")\naesi_resolved <- c(\"ALL_RESOLVED\", \"ALL_RESOLVED_WD\", \"ALL_RESOLVED_DSM\", \"ALL_RESOLVED_CONTRT\")\naesi_not_resolved <- c(\"NOT_RESOLVED\", \"NOT_RESOLVED_WD\", \"NOT_RESOLVED_DSM\", \"NOT_RESOLVED_CONTRT\")\naesi_ser <- c(\"SER\", \"SERWD\", \"SERDSM\", \"SERCONTRT\")\naesi_rel <- c(\"REL\", \"RELWD\", \"RELDSM\", \"RELCONTRT\", \"RELSER\")\n\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    vars = \"USUBJID\",\n    filters = c(\"ANL01FL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients with at least one AE\")\n  ) %>%\n  count_values(\n    \"ANL01FL\",\n    values = \"Y\",\n    .stats = \"count\",\n    .labels = c(count = \"Total number of AEs\"),\n    table_names = \"total_aes\"\n  ) %>%\n  count_occurrences_by_grade(\n    var = \"AETOXGR\",\n    var_labels = \"Total number of patients with at least one AE by worst grade\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(aesi_vars, aesi_resolved[1]), denom = \"N_col\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_resolved[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_res\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_not_resolved[1], denom = \"N_col\", table_names = \"fl_notres_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_not_resolved[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_notres\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_ser[1], denom = \"N_col\", table_names = \"fl_ser_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_ser[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_ser\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_rel[1], denom = \"N_col\", table_names = \"fl_rel_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_rel[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_rel\"\n  )\n\nresult <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)\nresult","id":2,"options":{"output":"true","label":"unnamed-chunk-2","fig-height":5,"out-height":"","results":"markup","context":"interactive","warning":"true","editor-quick-suggestions":"false","comment":"","message":"true","classes":"","autorun":"true","read-only":"false","fig-width":7,"editor-font-scale":1,"out-width":"700px","dpi":72,"editor-max-height":"500","fig-cap":""}},{"code":"adsl <- random.cdisc.data::cadsl\nadae_mult <- random.cdisc.data::cadae\n\nadsl <- filter(adsl, SAFFL == \"Y\")\nadae_mult <- filter(adae_mult, ANL01FL == \"Y\" & SAFFL == \"Y\")\n\nadsl <- df_explicit_na(adsl)\nadae_mult <- df_explicit_na(adae_mult)\n\n# for illustration purposes only, create AEREL1, AEREL2, AEACN1, AEACN2 from respective variables\nadae_mult <- adae_mult %>%\n  mutate(\n    AEREL1 = AEREL,\n    AEREL2 = AEREL,\n    AEACN1 = AEACN,\n    AEACN2 = AEACN\n  )\n\nnot_resolved <- adae_mult %>%\n  filter(!(AEOUT %in% c(\"RECOVERED/RESOLVED\", \"FATAL\", \"RECOVERED/RESOLVED WITH SEQUELAE\"))) %>%\n  distinct(USUBJID) %>%\n  mutate(NOT_RESOLVED = \"Y\")\n\nadae_mult <- adae_mult %>%\n  left_join(not_resolved, by = c(\"USUBJID\")) %>%\n  mutate(\n    ALL_RESOLVED = with_label(\n      is.na(NOT_RESOLVED),\n      \"Total number of patients with all non-fatal AEs resolved\"\n    ),\n    NOT_RESOLVED = with_label(\n      !is.na(NOT_RESOLVED),\n      \"Total number of patients with at least one non-fatal unresolved or ongoing AE\"\n    )\n  )\n\nadae_mult <- adae_mult %>%\n  mutate(\n    AEDECOD = as.character(AEDECOD),\n    WD1 = with_label(\n      AEACN1 == \"DRUG WITHDRAWN\",\n      \"Total number of patients with study drug 1 withdrawn due to AE\"\n    ),\n    WD2 = with_label(\n      AEACN2 == \"DRUG WITHDRAWN\",\n      \"Total number of patients with study drug 2 withdrawn due to AE\"\n    ),\n    DSM1 = with_label(\n      AEACN1 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Total number of patients with dose of study drug 1 modified/interrupted due to AE\"\n    ),\n    DSM2 = with_label(\n      AEACN2 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Total number of patients with dose of study drug 2 modified/interrupted due to AE\"\n    ),\n    CONTRT = with_label(\n      AECONTRT == \"Y\",\n      \"Total number of patients with treatment received for AE\"\n    ),\n    SER = with_label(\n      AESER == \"Y\",\n      \"Total number of patients with at least one serious AE\"\n    ),\n    REL1 = with_label(\n      AEREL1 == \"Y\",\n      \"Total number of patients with at least one AE related to study drug 1\"\n    ),\n    REL2 = with_label(\n      AEREL2 == \"Y\",\n      \"Total number of patients with at least one AE related to study drug 2\"\n    ),\n    ALL_RESOLVED_WD1 = with_label(\n      WD1 == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with study drug 1 withdrawn due to resolved AE\"\n    ),\n    ALL_RESOLVED_DSM1 = with_label(\n      DSM1 == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with dose of study drug 1 modified/interrupted due to resolved AE\"\n    ),\n    ALL_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with treatment received for resolved AE\"\n    ),\n    ALL_RESOLVED_WD2 = with_label(\n      WD2 == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with study drug 2 withdrawn due to resolved AE\"\n    ),\n    ALL_RESOLVED_DSM2 = with_label(\n      DSM2 == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with dose of study drug 2 modified/interrupted due to resolved AE\"\n    ),\n    NOT_RESOLVED_WD1 = with_label(\n      WD1 == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with study drug 1 withdrawn due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_DSM1 = with_label(\n      DSM1 == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with dose of study drug 1 modified/interrupted due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with treatment received for unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_WD2 = with_label(\n      WD2 == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with study drug 2 withdrawn due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_DSM2 = with_label(\n      DSM2 == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with dose of study drug 2 modified/interrupted due to unresolved or ongoing AE\"\n    ),\n    SERWD1 = with_label(\n      AESER == \"Y\" & AEACN1 == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug 1 withdrawn due to serious AE\"\n    ),\n    SERWD2 = with_label(\n      AESER == \"Y\" & AEACN2 == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug 2 withdrawn due to serious AE\"\n    ),\n    SERCONTRT = with_label(\n      AECONTRT == \"Y\" & AESER == \"Y\",\n      \"No. of patients with treatment received for serious AE\"\n    ),\n    SERDSM1 = with_label(\n      AESER == \"Y\" & AEACN1 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose of study drug 1 modified/interrupted due to serious AE\"\n    ),\n    SERDSM2 = with_label(\n      AESER == \"Y\" & AEACN2 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose of study drug 2 modified/interrupted due to serious AE\"\n    ),\n    REL1WD1 = with_label(\n      AEREL1 == \"Y\" & AEACN1 == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug 1 withdrawn due to AE related to study drug 1\"\n    ),\n    REL1WD2 = with_label(\n      AEREL1 == \"Y\" & AEACN2 == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug 1 withdrawn due to AE related to study drug 2\"\n    ),\n    REL2WD1 = with_label(\n      AEREL1 == \"Y\" & AEACN1 == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug 2 withdrawn due to AE related to study drug 1\"\n    ),\n    REL2WD2 = with_label(\n      AEREL1 == \"Y\" & AEACN2 == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug 2 withdrawn due to AE related to study drug 2\"\n    ),\n    REL1DSM1 = with_label(\n      AEREL1 == \"Y\" & AEACN1 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose of study drug 1 modified/interrupted due to AE related to study drug 1\"\n    ),\n    REL2DSM1 = with_label(\n      AEREL2 == \"Y\" & AEACN1 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose of study drug 2 modified/interrupted due to AE related to study drug 1\"\n    ),\n    REL1DSM2 = with_label(\n      AEREL1 == \"Y\" & AEACN2 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose of study drug 1 modified/interrupted due to AE related to study drug 2\"\n    ),\n    REL2DSM2 = with_label(\n      AEREL2 == \"Y\" & AEACN2 %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose of study drug 2 modified/interrupted due to AE related to study drug 2\"\n    ),\n    REL1CONTRT = with_label(\n      AECONTRT == \"Y\" & AEREL1 == \"Y\",\n      \"No. of patients with treatment received for AE related to study drug 1\"\n    ),\n    REL2CONTRT = with_label(\n      AECONTRT == \"Y\" & AEREL2 == \"Y\",\n      \"No. of patients with treatment received for AE related to study drug 2\"\n    ),\n    REL1SER = with_label(\n      AESER == \"Y\" & AEREL1 == \"Y\",\n      \"No. of patients with serious AE related to study drug 1\"\n    ),\n    REL2SER = with_label(\n      AESER == \"Y\" & AEREL2 == \"Y\",\n      \"No. of patients with serious AE related to study drug 2\"\n    )\n  )\n\nadae_mult <- adae_mult %>%\n  mutate(AETOXGR = forcats::fct_recode(\n    AETOXGR,\n    \"Grade 1\" = \"1\",\n    \"Grade 2\" = \"2\",\n    \"Grade 3\" = \"3\",\n    \"Grade 4\" = \"4\",\n    \"Grade 5 (fatal outcome)\" = \"5\"\n  ))\n\naesi_vars <- c(\"WD1\", \"WD2\", \"DSM1\", \"DSM2\", \"CONTRT\")\naesi_res <- c(\n  \"ALL_RESOLVED\",\n  \"ALL_RESOLVED_WD1\",\n  \"ALL_RESOLVED_WD2\",\n  \"ALL_RESOLVED_DSM1\",\n  \"ALL_RESOLVED_DSM2\",\n  \"ALL_RESOLVED_CONTRT\"\n)\naesi_not_res <- c(\n  \"NOT_RESOLVED\",\n  \"NOT_RESOLVED_WD1\",\n  \"NOT_RESOLVED_WD2\",\n  \"NOT_RESOLVED_DSM1\",\n  \"NOT_RESOLVED_DSM2\",\n  \"NOT_RESOLVED_CONTRT\"\n)\naesi_ser <- c(\"SER\", \"SERWD1\", \"SERWD2\", \"SERDSM1\", \"SERDSM2\", \"SERCONTRT\")\naesi_rel1 <- c(\"REL1\", \"REL1WD1\", \"REL1WD2\", \"REL1DSM1\", \"REL1DSM2\", \"REL1CONTRT\", \"REL1SER\")\naesi_rel2 <- c(\"REL2\", \"REL2WD1\", \"REL2WD2\", \"REL2DSM1\", \"REL2DSM2\", \"REL2CONTRT\", \"REL2SER\")\n\nlyt_adae_mult <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    vars = \"USUBJID\",\n    filters = c(\"ANL01FL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients with at least one AE\")\n  ) %>%\n  count_values(\n    \"ANL01FL\",\n    values = \"Y\",\n    .stats = \"count\",\n    .labels = c(count = \"Total number of AEs\"),\n    table_names = \"total_aes\"\n  ) %>%\n  count_occurrences_by_grade(\n    var = \"AETOXGR\",\n    var_labels = \"Total number of patients with at least one AE by worst grade\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(aesi_vars, aesi_res[1]), denom = \"N_col\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_res[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_res\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_not_res[1], denom = \"N_col\", table_names = \"fl_notres_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_not_res[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_notres\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_ser[1], denom = \"N_col\", table_names = \"fl_ser_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_ser[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_ser\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_rel1[1], denom = \"N_col\", table_names = \"fl_rel1_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_rel1[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_rel1\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_rel2[1], denom = \"N_col\", table_names = \"fl_rel2_main\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_rel2[-1], denom = \"N_col\", .indent_mods = 1L, table_names = \"fl_rel2\"\n  )\n\nresult <- build_table(lyt_adae_mult, df = adae_mult, alt_counts_df = adsl)\nresult","id":3,"options":{"output":"true","label":"unnamed-chunk-3","fig-height":5,"out-height":"","results":"markup","context":"interactive","warning":"true","editor-quick-suggestions":"false","comment":"","message":"true","classes":"","autorun":"true","read-only":"false","fig-width":7,"editor-font-scale":1,"out-width":"700px","dpi":72,"editor-max-height":"500","fig-cap":""}},{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\nadsl <- filter(adsl, SAFFL == \"Y\")\nadae <- filter(adae, ANL01FL == \"Y\" & SAFFL == \"Y\")\n\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(adae)\n\nnot_resolved <- adae %>%\n  filter(!(AEOUT %in% c(\"RECOVERED/RESOLVED\", \"FATAL\", \"RECOVERED/RESOLVED WITH SEQUELAE\"))) %>%\n  distinct(USUBJID) %>%\n  mutate(NOT_RESOLVED = \"Y\")\n\nadae <- adae %>%\n  left_join(not_resolved, by = c(\"USUBJID\")) %>%\n  mutate(\n    ALL_RESOLVED = with_label(\n      is.na(NOT_RESOLVED),\n      \"Total number of patients with all non-fatal AEs resolved\"\n    ),\n    NOT_RESOLVED = with_label(\n      !is.na(NOT_RESOLVED),\n      \"Total number of patients with at least one unresolved or ongoing non-fatal AE\"\n    )\n  )\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = as.character(AEDECOD),\n    WD = with_label(\n      AEACN == \"DRUG WITHDRAWN\",\n      \"Total number of patients with study drug withdrawn due to AE\"\n    ),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Total number of patients with dose modified/interrupted due to AE\"\n    ),\n    CONTRT = with_label(\n      AECONTRT == \"Y\",\n      \"Total number of patients with treatment received for AE\"\n    ),\n    SER = with_label(\n      AESER == \"Y\",\n      \"Total number of patients with at least one serious AE\"\n    ),\n    REL = with_label(\n      AEREL == \"Y\",\n      \"Total number of patients with at least one related AE\"\n    ),\n    ALL_RESOLVED_WD = with_label(\n      WD == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to resolved AE\"\n    ),\n    ALL_RESOLVED_DSM = with_label(\n      DSM == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to resolved AE\"\n    ),\n    ALL_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with treatment received for resolved AE\"\n    ),\n    NOT_RESOLVED_WD = with_label(\n      WD == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_DSM = with_label(\n      DSM == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with treatment received for unresolved or ongoing AE\"\n    ),\n    SERWD = with_label(\n      AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to serious AE\"\n    ),\n    SERCONTRT = with_label(\n      AECONTRT == \"Y\" & AESER == \"Y\",\n      \"No. of patients with dose modified/interrupted due to serious AE\"\n    ),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with treatment received for serious AE\"\n    ),\n    RELWD = with_label(\n      AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to related AE\"\n    ),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose modified/interrupted due to related AE\"\n    ),\n    RELCONTRT = with_label(\n      AECONTRT == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with treatment received for related AE\"\n    ),\n    RELSER = with_label(\n      AESER == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with serious, related AE\"\n    )\n  )\n\nadae <- adae %>%\n  mutate(\n    AETOXGR = forcats::fct_recode(AETOXGR,\n      \"Grade 1\" = \"1\",\n      \"Grade 2\" = \"2\",\n      \"Grade 3\" = \"3\",\n      \"Grade 4\" = \"4\",\n      \"Grade 5 (fatal outcome)\" = \"5\"\n    )\n  )\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\nadsl <- filter(adsl, SAFFL == \"Y\")\nadae <- filter(adae, ANL01FL == \"Y\" & SAFFL == \"Y\")\n\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(adae)\n\nstack_adae_by_smq <- function(adae, smq) {\n  adae_labels <- c(var_labels(adae), \"Standardized MedDRA Query\")\n  l_df <- lapply(smq, function(ae_grp) {\n    ae_scope <- gsub(\"NAM\", \"SC\", ae_grp)\n    keep <- adae[[ae_grp]] != \"<Missing>\"\n    df <- adae[keep, ]\n    if (substr(ae_grp, 1, 3) == \"SMQ\") {\n      df[[\"SMQ\"]] <- aesi_label(as.character(df[[ae_grp]]), scope = as.character(df[[ae_scope]]))\n    } else {\n      df[[\"SMQ\"]] <- df[[ae_grp]]\n    }\n    df\n  })\n  result <- do.call(rbind, l_df)\n  var_labels(result) <- adae_labels\n  result\n}\n\nadae_smq <- stack_adae_by_smq(adae, c(\"SMQ01NAM\", \"SMQ02NAM\", \"CQ01NAM\"))\n\nnot_resolved <- adae_smq %>%\n  filter(!(AEOUT %in% c(\"RECOVERED/RESOLVED\", \"FATAL\", \"RECOVERED/RESOLVED WITH SEQUELAE\"))) %>%\n  distinct(USUBJID) %>%\n  mutate(NOT_RESOLVED = \"Y\")\n\nadae_smq <- adae_smq %>%\n  left_join(not_resolved, by = c(\"USUBJID\")) %>%\n  mutate(\n    ALL_RESOLVED = with_label(\n      is.na(NOT_RESOLVED),\n      \"Total number of patients with all non-fatal AEs resolved\"\n    ),\n    NOT_RESOLVED = with_label(\n      !is.na(NOT_RESOLVED),\n      \"Total number of patients with at least one non-fatal unresolved or ongoing AE\"\n    )\n  )\n\nadae_smq <- adae_smq %>%\n  mutate(\n    AEDECOD = as.character(AEDECOD),\n    WD = with_label(\n      AEACN == \"DRUG WITHDRAWN\",\n      \"Total number of patients with study drug withdrawn due to AE\"\n    ),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Total number of patients with dose modified/interrupted due to AE\"\n    ),\n    CONTRT = with_label(\n      AECONTRT == \"Y\",\n      \"Total number of patients with treatment received for AE\"\n    ),\n    SER = with_label(\n      AESER == \"Y\",\n      \"Total number of patients with at least one serious AE\"\n    ),\n    REL = with_label(\n      AEREL == \"Y\",\n      \"Total number of patients with at least one related AE\"\n    ),\n    ALL_RESOLVED_WD = with_label(\n      WD == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to resolved AE\"\n    ),\n    ALL_RESOLVED_DSM = with_label(\n      DSM == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to resolved AE\"\n    ),\n    ALL_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & ALL_RESOLVED == TRUE,\n      \"No. of patients with treatment received for resolved AE\"\n    ),\n    NOT_RESOLVED_WD = with_label(\n      WD == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with study drug withdrawn due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_DSM = with_label(\n      DSM == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with dose modified/interrupted due to unresolved or ongoing AE\"\n    ),\n    NOT_RESOLVED_CONTRT = with_label(\n      CONTRT == TRUE & NOT_RESOLVED == TRUE,\n      \"No. of patients with treatment received for unresolved or ongoing AE\"\n    ),\n    SERWD = with_label(\n      AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to serious AE\"\n    ),\n    SERCONTRT = with_label(\n      AECONTRT == \"Y\" & AESER == \"Y\",\n      \"No. of patients with treatment received for serious AE\"\n    ),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose modified/interrupted due to serious AE\"\n    ),\n    RELWD = with_label(\n      AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\",\n      \"No. of patients with study drug withdrawn due to related AE\"\n    ),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"No. of patients with dose modified/interrupted due to related AE\"\n    ),\n    RELCONTRT = with_label(\n      AECONTRT == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with treatment received for related AE\"\n    ),\n    RELSER = with_label(\n      AESER == \"Y\" & AEREL == \"Y\",\n      \"No. of patients with serious, related AE\"\n    )\n  )\n\nadae_smq <- adae_smq %>%\n  mutate(\n    AETOXGR = forcats::fct_recode(AETOXGR,\n      \"Grade 1\" = \"1\",\n      \"Grade 2\" = \"2\",\n      \"Grade 3\" = \"3\",\n      \"Grade 4\" = \"4\",\n      \"Grade 5 (fatal outcome)\" = \"5\"\n    )\n  )\n\nsplit_fun <- remove_split_levels(\"<Missing>\")\naesi_vars <- c(\"WD\", \"DSM\", \"CONTRT\", \"ALL_RESOLVED\", \"NOT_RESOLVED\", \"SER\", \"REL\")\n\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\n    \"SMQ\",\n    child_labels = \"visible\",\n    split_fun = split_fun,\n    split_label = \"Standardized MedDRA Query\",\n    label_pos = \"topleft\"\n  ) %>%\n  count_patients_with_event(\n    vars = \"USUBJID\",\n    filters = c(\"ANL01FL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients with at least one AE\")\n  ) %>%\n  count_values(\n    \"ANL01FL\",\n    values = \"Y\",\n    .stats = \"count\",\n    .labels = c(count = \"Total number of AEs\"),\n    table_names = \"total_aes\"\n  ) %>%\n  count_occurrences_by_grade(\n    var = \"AETOXGR\",\n    var_labels = \"Total number of patients with at least one AE by worst grade\",\n    .show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\"USUBJID\", flag_variables = aesi_vars, denom = \"N_col\")\n\nresult <- build_table(lyt_adae, df = adae_smq, alt_counts_df = adsl)\nresult","id":4,"options":{"output":"true","label":"unnamed-chunk-4","fig-height":5,"out-height":"","results":"markup","context":"interactive","warning":"true","editor-quick-suggestions":"false","comment":"","message":"true","classes":"","autorun":"true","read-only":"false","fig-width":7,"editor-font-scale":1,"out-width":"700px","dpi":72,"editor-max-height":"500","fig-cap":""}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -1086,7 +1086,7 @@ globalThis.qwebrExecuteCode = async function (
 }
 
 </script><link rel="stylesheet" href="../../assets/css/style.css">
-<meta property="og:title" content="TLG Catalog - Dev - AET01_AESI">
+<meta property="og:title" content="AET01_AESI – TLG Catalog - Dev">
 <meta property="og:description" content="Safety Summary (Adverse Events of Special Interest)">
 <meta property="og:image" content="https://insightsengineering.github.io/tlg-catalog/tables/adverse-events/assets/img/logo.png">
 <meta property="og:site_name" content="TLG Catalog - Dev">
@@ -1102,7 +1102,7 @@ globalThis.qwebrExecuteCode = async function (
   </div>
           <ul class="navbar-nav navbar-nav-scroll ms-auto">
 <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-dev" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-dev" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Dev</span>
     </a>
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-dev">
@@ -1134,11 +1134,11 @@ globalThis.qwebrExecuteCode = async function (
             <div id="quarto-search" class="" title="Search"></div>
       </div> <!-- /container-fluid -->
     </nav><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Tables</li><li class="breadcrumb-item"><a href="../../tables/adverse-events/aet01.html">Adverse Events</a></li><li class="breadcrumb-item"><a href="../../tables/adverse-events/aet01_aesi.html">AET01_AESI</a></li></ol></nav>
-        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
   </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
@@ -1158,18 +1158,18 @@ globalThis.qwebrExecuteCode = async function (
         <li class="px-0"><hr class="sidebar-divider hi "></li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
  <span class="menu-text">Tables</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
  <span class="menu-text">ADA</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1208,9 +1208,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
  <span class="menu-text">Adverse Events</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1309,9 +1309,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
  <span class="menu-text">Concomitant Medications</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1344,9 +1344,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
  <span class="menu-text">Deaths</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1361,9 +1361,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
  <span class="menu-text">Demography</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1378,9 +1378,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
  <span class="menu-text">Disclosures</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1407,9 +1407,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
  <span class="menu-text">Disposition</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1436,9 +1436,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
  <span class="menu-text">ECG</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1477,9 +1477,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
  <span class="menu-text">Efficacy</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1578,9 +1578,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
  <span class="menu-text">Exposure</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1595,9 +1595,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false">
  <span class="menu-text">Lab Results</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1714,9 +1714,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false">
  <span class="menu-text">Medical History</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1731,9 +1731,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false">
  <span class="menu-text">Pharmacokinetic</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1796,9 +1796,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="false">
  <span class="menu-text">Risk Management Plan</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1837,9 +1837,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="false">
  <span class="menu-text">Safety</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1854,9 +1854,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="false">
  <span class="menu-text">Vital Signs</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1879,18 +1879,18 @@ globalThis.qwebrExecuteCode = async function (
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-18" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-18" role="navigation" aria-expanded="false">
  <span class="menu-text">Listings</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-18" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-18" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-18" class="collapse list-unstyled sidebar-section depth1 ">
 <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-19" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-19" role="navigation" aria-expanded="false">
  <span class="menu-text">ADA</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-19" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-19" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1905,9 +1905,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-20" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-20" role="navigation" aria-expanded="false">
  <span class="menu-text">Adverse Events</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-20" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-20" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1952,9 +1952,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-21" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-21" role="navigation" aria-expanded="false">
  <span class="menu-text">Concomitant Medications</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-21" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-21" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1981,9 +1981,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-22" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-22" role="navigation" aria-expanded="false">
  <span class="menu-text">Development Safety Update Report</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-22" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-22" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1998,9 +1998,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-23" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-23" role="navigation" aria-expanded="false">
  <span class="menu-text">Disposition</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-23" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-23" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2021,9 +2021,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-24" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-24" role="navigation" aria-expanded="false">
  <span class="menu-text">ECG</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-24" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-24" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2038,9 +2038,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-25" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-25" role="navigation" aria-expanded="false">
  <span class="menu-text">Efficacy</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-25" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-25" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2055,9 +2055,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-26" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-26" role="navigation" aria-expanded="false">
  <span class="menu-text">Exposure</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-26" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-26" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2072,9 +2072,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-27" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-27" role="navigation" aria-expanded="false">
  <span class="menu-text">Lab Results</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-27" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-27" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2113,9 +2113,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-28" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-28" role="navigation" aria-expanded="false">
  <span class="menu-text">Medical History</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-28" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-28" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2130,9 +2130,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-29" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-29" role="navigation" aria-expanded="false">
  <span class="menu-text">Pharmacokinetic</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-29" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-29" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2171,9 +2171,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-30" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-30" role="navigation" aria-expanded="false">
  <span class="menu-text">Vital Signs</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-30" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-30" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2190,18 +2190,18 @@ globalThis.qwebrExecuteCode = async function (
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-31" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-31" role="navigation" aria-expanded="false">
  <span class="menu-text">Graphs</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-31" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-31" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-31" class="collapse list-unstyled sidebar-section depth1 ">
 <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-32" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-32" role="navigation" aria-expanded="false">
  <span class="menu-text">Efficacy</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-32" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-32" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2240,9 +2240,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-33" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-33" role="navigation" aria-expanded="false">
  <span class="menu-text">Other</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-33" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-33" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2287,9 +2287,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-34" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-34" role="navigation" aria-expanded="false">
  <span class="menu-text">Pharmacokinetic</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-34" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-34" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2349,9 +2349,9 @@ globalThis.qwebrExecuteCode = async function (
         <li class="px-0"><hr class="sidebar-divider hi "></li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-35" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-35" role="navigation" aria-expanded="false">
  <span class="menu-text">Appendix</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-35" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-35" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -3883,14 +3883,14 @@ we have to put some code upfront
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-06-15 17:54:48 UTC"</code></pre>
+<pre><code>[1] "2024-07-24 15:20:24 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>R version 4.4.0 (2024-04-24)
+<pre><code>R version 4.4.1 (2024-06-14)
 Platform: x86_64-pc-linux-gnu
 Running under: Ubuntu 22.04.4 LTS
 
@@ -3913,59 +3913,62 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] teal.modules.clinical_0.9.1.9009 teal.transform_0.5.0.9006       
- [3] teal_0.15.2.9041                 teal.slice_0.5.1.9004           
+ [1] teal.modules.clinical_0.9.1.9013 teal.transform_0.5.0.9007       
+ [3] teal_0.15.2.9047                 teal.slice_0.5.1.9005           
  [5] teal.data_0.6.0.9005             teal.code_0.5.0.9006            
  [7] shiny_1.8.1.1                    dplyr_1.1.4                     
- [9] tern_0.9.4.9009                  rtables_0.6.7.9006              
-[11] magrittr_2.0.3                   formatters_0.5.7.9002           
+ [9] tern_0.9.5.9007                  rtables_0.6.9.9002              
+[11] magrittr_2.0.3                   formatters_0.5.8.9000           
 
 loaded via a namespace (and not attached):
- [1] tidyselect_1.2.1              fastmap_1.2.0                
- [3] random.cdisc.data_0.3.15.9004 TH.data_1.1-2                
- [5] webshot2_0.1.1                shinyjs_2.1.0                
- [7] promises_1.3.0                digest_0.6.35                
- [9] estimability_1.5.1            mime_0.12                    
-[11] tern.gee_0.1.4.9001           lifecycle_1.0.4              
-[13] survival_3.6-4                processx_3.8.4               
-[15] compiler_4.4.0                sass_0.4.9                   
-[17] rlang_1.1.3                   tools_4.4.0                  
-[19] utf8_1.2.4                    yaml_2.3.8                   
-[21] knitr_1.46                    htmlwidgets_1.6.4            
-[23] multcomp_1.4-25               websocket_1.4.1              
-[25] withr_3.0.0                   purrr_1.0.2                  
-[27] shinyWidgets_0.8.6            geepack_1.3.10               
-[29] grid_4.4.0                    fansi_1.0.6                  
-[31] teal.logger_0.2.0.9003        xtable_1.8-4                 
-[33] colorspace_2.1-0              ggplot2_3.5.1                
-[35] emmeans_1.10.2                scales_1.3.0                 
-[37] MASS_7.3-60.2                 cli_3.6.2                    
-[39] mvtnorm_1.2-5                 rmarkdown_2.27               
-[41] generics_0.1.3                cachem_1.1.0                 
-[43] chromote_0.2.0                stringr_1.5.1                
-[45] splines_4.4.0                 formatR_1.14                 
-[47] vctrs_0.6.5                   webshot_0.5.5                
-[49] Matrix_1.7-0                  sandwich_3.1-0               
-[51] jsonlite_1.8.8                callr_3.7.6                  
-[53] teal.widgets_0.4.2.9012       testthat_3.2.1.1             
-[55] fontawesome_0.5.2             jquerylib_0.1.4              
-[57] tidyr_1.3.1                   glue_1.7.0                   
-[59] codetools_0.2-20              ps_1.7.6                     
-[61] stringi_1.8.4                 gtable_0.3.5                 
-[63] later_1.3.2                   shinycssloaders_1.0.0        
-[65] munsell_0.5.1                 tibble_3.2.1                 
-[67] logger_0.3.0                  pillar_1.9.0                 
-[69] htmltools_0.5.8.1             brio_1.1.5                   
-[71] R6_2.5.1                      Rdpack_2.6                   
-[73] evaluate_0.23                 lattice_0.22-6               
-[75] rbibutils_2.2.16              backports_1.4.1              
-[77] memoise_2.0.1                 broom_1.0.6                  
-[79] teal.reporter_0.3.1.9010      bslib_0.7.0                  
-[81] httpuv_1.6.15                 Rcpp_1.0.12                  
-[83] shinyvalidate_0.1.3           coda_0.19-4.1                
-[85] nlme_3.1-164                  checkmate_2.3.1              
-[87] xfun_0.44                     zoo_1.8-12                   
-[89] forcats_1.0.0                 pkgconfig_2.0.3              </code></pre>
+ [1] Rdpack_2.6                    formatR_1.14                 
+ [3] tern.gee_0.1.4.9001           logger_0.3.0                 
+ [5] testthat_3.2.1.1              sandwich_3.1-0               
+ [7] rlang_1.1.4                   multcomp_1.4-26              
+ [9] compiler_4.4.1                callr_3.7.6                  
+[11] vctrs_0.6.5                   stringr_1.5.1                
+[13] pkgconfig_2.0.3               fastmap_1.2.0                
+[15] backports_1.5.0               fontawesome_0.5.2            
+[17] utf8_1.2.4                    promises_1.3.0               
+[19] rmarkdown_2.27                ps_1.7.7                     
+[21] purrr_1.0.2                   xfun_0.46                    
+[23] shinyvalidate_0.1.3           cachem_1.1.0                 
+[25] teal.reporter_0.3.1.9010      jsonlite_1.8.8               
+[27] later_1.3.2                   broom_1.0.6                  
+[29] parallel_4.4.1                R6_2.5.1                     
+[31] bslib_0.7.0                   stringi_1.8.4                
+[33] parallelly_1.37.1             brio_1.1.5                   
+[35] jquerylib_0.1.4               estimability_1.5.1           
+[37] Rcpp_1.0.13                   knitr_1.48                   
+[39] zoo_1.8-12                    teal.logger_0.2.0.9005       
+[41] httpuv_1.6.15                 Matrix_1.7-0                 
+[43] splines_4.4.1                 tidyselect_1.2.1             
+[45] yaml_2.3.9                    codetools_0.2-20             
+[47] websocket_1.4.1               processx_3.8.4               
+[49] teal.widgets_0.4.2.9014       listenv_0.9.1                
+[51] lattice_0.22-6                tibble_3.2.1                 
+[53] withr_3.0.0                   coda_0.19-4.1                
+[55] evaluate_0.24.0               future_1.33.2                
+[57] survival_3.7-0                pillar_1.9.0                 
+[59] shinycssloaders_1.0.0         checkmate_2.3.1              
+[61] shinyjs_2.1.0                 generics_0.1.3               
+[63] chromote_0.2.0                ggplot2_3.5.1                
+[65] munsell_0.5.1                 scales_1.3.0                 
+[67] globals_0.16.3                xtable_1.8-4                 
+[69] glue_1.7.0                    emmeans_1.10.3               
+[71] tools_4.4.1                   webshot2_0.1.1               
+[73] webshot_0.5.5                 forcats_1.0.0                
+[75] mvtnorm_1.2-5                 grid_4.4.1                   
+[77] tidyr_1.3.1                   rbibutils_2.2.16             
+[79] colorspace_2.1-0              nlme_3.1-165                 
+[81] random.cdisc.data_0.3.15.9004 cli_3.6.3                    
+[83] fansi_1.0.6                   geepack_1.3.11               
+[85] gtable_0.3.5                  sass_0.4.9                   
+[87] digest_0.6.36                 TH.data_1.1-2                
+[89] htmlwidgets_1.6.4             memoise_2.0.1                
+[91] htmltools_0.5.8.1             lifecycle_1.0.4              
+[93] shinyWidgets_0.8.6            mime_0.12                    
+[95] MASS_7.3-61                  </code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
@@ -4188,18 +4191,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -4231,7 +4223,29 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
   const viewSource = window.document.getElementById('quarto-view-source') ||
                      window.document.getElementById('quarto-code-tools-source');
   if (viewSource) {
@@ -4290,7 +4304,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }
     // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
     for (var i=0; i<links.length; i++) {
       const link = links[i];
       if (!isInternal(link.href)) {
@@ -5471,7 +5485,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb17-845"><a href="#cb17-845"></a></span>
 <span id="cb17-846"><a href="#cb17-846"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
 <span id="cb17-847"><a href="#cb17-847"></a></span>
-<span id="cb17-848"><a href="#cb17-848"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-848"><a href="#cb17-848"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

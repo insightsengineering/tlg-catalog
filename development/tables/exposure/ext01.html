@@ -2,9 +2,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.554">
+<meta name="generator" content="quarto-1.5.55">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>TLG Catalog - Dev - EXT01</title>
+<title>EXT01 – TLG Catalog - Dev</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -30,7 +30,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -76,9 +76,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="../../site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <meta name="shinylive:serviceworker_dir" content="../..">
-<script src="../../site_libs/quarto-contrib/shinylive-0.2.3/shinylive/load-shinylive-sw.js" type="module"></script>
-<script src="../../site_libs/quarto-contrib/shinylive-0.2.3/shinylive/run-python-blocks.js" type="module"></script>
-<link href="../../site_libs/quarto-contrib/shinylive-0.2.3/shinylive/shinylive.css" rel="stylesheet">
+<script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/load-shinylive-sw.js" type="module"></script>
+<script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/run-python-blocks.js" type="module"></script>
+<link href="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/shinylive.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/shinylive-quarto-css/shinylive-quarto.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"classes":"","warning":"true","editor-max-height":"500","out-height":"","out-width":"700px","comment":"","editor-quick-suggestions":"false","fig-width":7,"context":"interactive","editor-font-scale":1,"read-only":"false","dpi":72,"fig-cap":"","output":"true","message":"true","fig-height":5,"results":"markup","label":"unnamed-chunk-1","autorun":"true"},"id":1,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\nadex <- adex %>%\n  filter(PARCAT1 == \"OVERALL\") %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %>%\n  mutate(\n    PARAMCD = as.character(PARAMCD),\n    AVALC = \"\"\n  ) %>%\n  droplevels()\n\n# Add new param tdurd for treatment duration.\nset.seed(99)\ntdurd_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),\n    AVALC = case_when(\n      0 <= AVAL & AVAL <= 30 ~ \"0 - 30\",\n      31 <= AVAL & AVAL <= 60 ~ \"31 - 60\",\n      61 <= AVAL & AVAL <= 90 ~ \"61 - 90\",\n      TRUE ~ \">= 91\"\n    )\n  )\ntdurd <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tdurd_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\n# Add new param tndosmis for missed doses.\ntndosmis_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TNDOSMIS\",\n    PARAM = \"Total number of missed doses during study\",\n    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),\n    AVALC = \"\"\n  )\ntndosmis <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tndosmis_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\nadex <- dplyr::bind_rows(adex, tdurd, tndosmis) %>%\n  mutate(PARAM = factor(\n    PARAM,\n    levels = c(\n      \"Overall duration (days)\", \"Total dose administered\", \"Total number of doses administered\",\n      \"Total number of missed doses during study\"\n    )\n  ))\n# When summary table contains only categorical or only numeric parameters\n\nsplit_fun <- drop_split_levels\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARCAT2\", split_label = \"\\nParameter Category (Drug A/Drug B)\", label_pos = \"topleft\") %>%\n  split_rows_by(\"PARAM\", split_fun = split_fun) %>%\n  analyze_vars(vars = \"AVAL\")\n\nresult <- build_table(lyt = lyt, df = adex, alt_counts_df = adsl)\n\nresult"},{"options":{"classes":"","warning":"true","editor-max-height":"500","out-height":"","out-width":"700px","comment":"","editor-quick-suggestions":"false","fig-width":7,"context":"interactive","editor-font-scale":1,"read-only":"false","dpi":72,"fig-cap":"","output":"true","message":"true","fig-height":5,"results":"markup","label":"unnamed-chunk-2","autorun":"true"},"id":2,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\nadex <- adex %>%\n  filter(PARCAT1 == \"OVERALL\") %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %>%\n  mutate(\n    PARAMCD = as.character(PARAMCD),\n    AVALC = \"\"\n  ) %>%\n  droplevels()\n\n# Add new param tdurd for treatment duration.\nset.seed(99)\ntdurd_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),\n    AVALC = case_when(\n      0 <= AVAL & AVAL <= 30 ~ \"0 - 30\",\n      31 <= AVAL & AVAL <= 60 ~ \"31 - 60\",\n      61 <= AVAL & AVAL <= 90 ~ \"61 - 90\",\n      TRUE ~ \">= 91\"\n    )\n  )\ntdurd <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tdurd_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\n# Add new param tndosmis for missed doses.\ntndosmis_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TNDOSMIS\",\n    PARAM = \"Total number of missed doses during study\",\n    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),\n    AVALC = \"\"\n  )\ntndosmis <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tndosmis_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\nadex <- dplyr::bind_rows(adex, tdurd, tndosmis) %>%\n  mutate(PARAM = factor(\n    PARAM,\n    levels = c(\n      \"Overall duration (days)\", \"Total dose administered\", \"Total number of doses administered\",\n      \"Total number of missed doses during study\"\n    )\n  ))\n# When summary table contains both categorical and numeric parameters,\n# developer needs to do pre-processing to transform dataset to wide format.\nadex_avalc_wide <- adex %>%\n  filter(PARAMCD == \"TDURD\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVALC, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVALC\n  ) %>%\n  mutate(\n    TDURDC = factor(TDURD, levels = c(\"0 - 30\", \"31 - 60\", \"61 - 90\", \">= 91\"))\n  ) %>%\n  select(-TDURD)\n\nanl <- adex %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, AVAL, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, ACTARM, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVAL\n  ) %>%\n  left_join(adex_avalc_wide, by = c(\"STUDYID\", \"USUBJID\", \"PARCAT2\")) %>%\n  var_relabel(\n    TDOSE = \"Total dose administered\",\n    TNDOSE = \"Total number of doses administered\",\n    TDURD = \"Overall duration (days)\",\n    TNDOSMIS = \"Total number of missed doses during study\",\n    TDURDC = \"Overall duration (days)\"\n  )\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARCAT2\", split_label = \"\\nParameter Category (Drug A/Drug B)\", label_pos = \"topleft\") %>%\n  analyze_vars(\n    vars = c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\"),\n    var_labels = var_labels(anl)[c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\")]\n  )\n\nresult <- build_table(lyt = lyt, df = anl, alt_counts_df = adsl)\n\nresult"},{"options":{"classes":"","warning":"true","editor-max-height":"500","out-height":"","out-width":"700px","comment":"","editor-quick-suggestions":"false","fig-width":7,"context":"interactive","editor-font-scale":1,"read-only":"false","dpi":72,"fig-cap":"","output":"true","message":"true","fig-height":5,"results":"markup","label":"unnamed-chunk-3","autorun":"true"},"id":3,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\nadex <- adex %>%\n  filter(PARCAT1 == \"OVERALL\") %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %>%\n  mutate(\n    PARAMCD = as.character(PARAMCD),\n    AVALC = \"\"\n  ) %>%\n  droplevels()\n\n# Add new param tdurd for treatment duration.\nset.seed(99)\ntdurd_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),\n    AVALC = case_when(\n      0 <= AVAL & AVAL <= 30 ~ \"0 - 30\",\n      31 <= AVAL & AVAL <= 60 ~ \"31 - 60\",\n      61 <= AVAL & AVAL <= 90 ~ \"61 - 90\",\n      TRUE ~ \">= 91\"\n    )\n  )\ntdurd <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tdurd_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\n# Add new param tndosmis for missed doses.\ntndosmis_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TNDOSMIS\",\n    PARAM = \"Total number of missed doses during study\",\n    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),\n    AVALC = \"\"\n  )\ntndosmis <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tndosmis_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\nadex <- dplyr::bind_rows(adex, tdurd, tndosmis) %>%\n  mutate(PARAM = factor(\n    PARAM,\n    levels = c(\n      \"Overall duration (days)\", \"Total dose administered\", \"Total number of doses administered\",\n      \"Total number of missed doses during study\"\n    )\n  ))\n# When summary table contains both categorical and numeric parameters,\n# developer needs to do pre-processing to transform dataset to wide format.\nadex_avalc_wide <- adex %>%\n  filter(PARAMCD == \"TDURD\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVALC, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVALC\n  ) %>%\n  mutate(\n    TDURDC = factor(TDURD, levels = c(\"0 - 30\", \"31 - 60\", \"61 - 90\", \">= 91\"))\n  ) %>%\n  select(-TDURD)\n\nanl <- adex %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, AVAL, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, ACTARM, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVAL\n  ) %>%\n  left_join(adex_avalc_wide, by = c(\"STUDYID\", \"USUBJID\", \"PARCAT2\")) %>%\n  var_relabel(\n    TDOSE = \"Total dose administered\",\n    TNDOSE = \"Total number of doses administered\",\n    TDURD = \"Overall duration (days)\",\n    TNDOSMIS = \"Total number of missed doses during study\",\n    TDURDC = \"Overall duration (days)\"\n  )\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARCAT2\", split_label = \"\\nParameter Category (Drug A/Drug B)\", label_pos = \"topleft\") %>%\n  analyze_vars(\n    vars = c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\"),\n    var_labels = var_labels(anl)[c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\")]\n  ) %>%\n  count_missed_doses(\n    \"TNDOSMIS\",\n    thresholds = c(1, 5, 10, 15),\n    var_labels = \"Missed Doses\"\n  )\n\nresult <- build_table(lyt = lyt, df = anl, alt_counts_df = adsl)\n\nresult"}];
+globalThis.qwebrCellDetails = [{"options":{"read-only":"false","label":"unnamed-chunk-1","results":"markup","output":"true","fig-width":7,"fig-cap":"","autorun":"true","classes":"","dpi":72,"comment":"","editor-font-scale":1,"editor-quick-suggestions":"false","out-width":"700px","warning":"true","editor-max-height":"500","context":"interactive","fig-height":5,"out-height":"","message":"true"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\nadex <- adex %>%\n  filter(PARCAT1 == \"OVERALL\") %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %>%\n  mutate(\n    PARAMCD = as.character(PARAMCD),\n    AVALC = \"\"\n  ) %>%\n  droplevels()\n\n# Add new param tdurd for treatment duration.\nset.seed(99)\ntdurd_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),\n    AVALC = case_when(\n      0 <= AVAL & AVAL <= 30 ~ \"0 - 30\",\n      31 <= AVAL & AVAL <= 60 ~ \"31 - 60\",\n      61 <= AVAL & AVAL <= 90 ~ \"61 - 90\",\n      TRUE ~ \">= 91\"\n    )\n  )\ntdurd <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tdurd_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\n# Add new param tndosmis for missed doses.\ntndosmis_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TNDOSMIS\",\n    PARAM = \"Total number of missed doses during study\",\n    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),\n    AVALC = \"\"\n  )\ntndosmis <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tndosmis_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\nadex <- dplyr::bind_rows(adex, tdurd, tndosmis) %>%\n  mutate(PARAM = factor(\n    PARAM,\n    levels = c(\n      \"Overall duration (days)\", \"Total dose administered\", \"Total number of doses administered\",\n      \"Total number of missed doses during study\"\n    )\n  ))\n# When summary table contains only categorical or only numeric parameters\n\nsplit_fun <- drop_split_levels\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARCAT2\", split_label = \"\\nParameter Category (Drug A/Drug B)\", label_pos = \"topleft\") %>%\n  split_rows_by(\"PARAM\", split_fun = split_fun) %>%\n  analyze_vars(vars = \"AVAL\")\n\nresult <- build_table(lyt = lyt, df = adex, alt_counts_df = adsl)\n\nresult","id":1},{"options":{"read-only":"false","label":"unnamed-chunk-2","results":"markup","output":"true","fig-width":7,"fig-cap":"","autorun":"true","classes":"","dpi":72,"comment":"","editor-font-scale":1,"editor-quick-suggestions":"false","out-width":"700px","warning":"true","editor-max-height":"500","context":"interactive","fig-height":5,"out-height":"","message":"true"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\nadex <- adex %>%\n  filter(PARCAT1 == \"OVERALL\") %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %>%\n  mutate(\n    PARAMCD = as.character(PARAMCD),\n    AVALC = \"\"\n  ) %>%\n  droplevels()\n\n# Add new param tdurd for treatment duration.\nset.seed(99)\ntdurd_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),\n    AVALC = case_when(\n      0 <= AVAL & AVAL <= 30 ~ \"0 - 30\",\n      31 <= AVAL & AVAL <= 60 ~ \"31 - 60\",\n      61 <= AVAL & AVAL <= 90 ~ \"61 - 90\",\n      TRUE ~ \">= 91\"\n    )\n  )\ntdurd <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tdurd_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\n# Add new param tndosmis for missed doses.\ntndosmis_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TNDOSMIS\",\n    PARAM = \"Total number of missed doses during study\",\n    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),\n    AVALC = \"\"\n  )\ntndosmis <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tndosmis_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\nadex <- dplyr::bind_rows(adex, tdurd, tndosmis) %>%\n  mutate(PARAM = factor(\n    PARAM,\n    levels = c(\n      \"Overall duration (days)\", \"Total dose administered\", \"Total number of doses administered\",\n      \"Total number of missed doses during study\"\n    )\n  ))\n# When summary table contains both categorical and numeric parameters,\n# developer needs to do pre-processing to transform dataset to wide format.\nadex_avalc_wide <- adex %>%\n  filter(PARAMCD == \"TDURD\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVALC, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVALC\n  ) %>%\n  mutate(\n    TDURDC = factor(TDURD, levels = c(\"0 - 30\", \"31 - 60\", \"61 - 90\", \">= 91\"))\n  ) %>%\n  select(-TDURD)\n\nanl <- adex %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, AVAL, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, ACTARM, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVAL\n  ) %>%\n  left_join(adex_avalc_wide, by = c(\"STUDYID\", \"USUBJID\", \"PARCAT2\")) %>%\n  var_relabel(\n    TDOSE = \"Total dose administered\",\n    TNDOSE = \"Total number of doses administered\",\n    TDURD = \"Overall duration (days)\",\n    TNDOSMIS = \"Total number of missed doses during study\",\n    TDURDC = \"Overall duration (days)\"\n  )\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARCAT2\", split_label = \"\\nParameter Category (Drug A/Drug B)\", label_pos = \"topleft\") %>%\n  analyze_vars(\n    vars = c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\"),\n    var_labels = var_labels(anl)[c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\")]\n  )\n\nresult <- build_table(lyt = lyt, df = anl, alt_counts_df = adsl)\n\nresult","id":2},{"options":{"read-only":"false","label":"unnamed-chunk-3","results":"markup","output":"true","fig-width":7,"fig-cap":"","autorun":"true","classes":"","dpi":72,"comment":"","editor-font-scale":1,"editor-quick-suggestions":"false","out-width":"700px","warning":"true","editor-max-height":"500","context":"interactive","fig-height":5,"out-height":"","message":"true"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\nadex <- adex %>%\n  filter(PARCAT1 == \"OVERALL\") %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %>%\n  mutate(\n    PARAMCD = as.character(PARAMCD),\n    AVALC = \"\"\n  ) %>%\n  droplevels()\n\n# Add new param tdurd for treatment duration.\nset.seed(99)\ntdurd_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),\n    AVALC = case_when(\n      0 <= AVAL & AVAL <= 30 ~ \"0 - 30\",\n      31 <= AVAL & AVAL <= 60 ~ \"31 - 60\",\n      61 <= AVAL & AVAL <= 90 ~ \"61 - 90\",\n      TRUE ~ \">= 91\"\n    )\n  )\ntdurd <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tdurd_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\n# Add new param tndosmis for missed doses.\ntndosmis_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TNDOSMIS\",\n    PARAM = \"Total number of missed doses during study\",\n    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),\n    AVALC = \"\"\n  )\ntndosmis <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tndosmis_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\nadex <- dplyr::bind_rows(adex, tdurd, tndosmis) %>%\n  mutate(PARAM = factor(\n    PARAM,\n    levels = c(\n      \"Overall duration (days)\", \"Total dose administered\", \"Total number of doses administered\",\n      \"Total number of missed doses during study\"\n    )\n  ))\n# When summary table contains both categorical and numeric parameters,\n# developer needs to do pre-processing to transform dataset to wide format.\nadex_avalc_wide <- adex %>%\n  filter(PARAMCD == \"TDURD\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVALC, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVALC\n  ) %>%\n  mutate(\n    TDURDC = factor(TDURD, levels = c(\"0 - 30\", \"31 - 60\", \"61 - 90\", \">= 91\"))\n  ) %>%\n  select(-TDURD)\n\nanl <- adex %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, AVAL, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, ACTARM, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVAL\n  ) %>%\n  left_join(adex_avalc_wide, by = c(\"STUDYID\", \"USUBJID\", \"PARCAT2\")) %>%\n  var_relabel(\n    TDOSE = \"Total dose administered\",\n    TNDOSE = \"Total number of doses administered\",\n    TDURD = \"Overall duration (days)\",\n    TNDOSMIS = \"Total number of missed doses during study\",\n    TDURDC = \"Overall duration (days)\"\n  )\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARCAT2\", split_label = \"\\nParameter Category (Drug A/Drug B)\", label_pos = \"topleft\") %>%\n  analyze_vars(\n    vars = c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\"),\n    var_labels = var_labels(anl)[c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\")]\n  ) %>%\n  count_missed_doses(\n    \"TNDOSMIS\",\n    thresholds = c(1, 5, 10, 15),\n    var_labels = \"Missed Doses\"\n  )\n\nresult <- build_table(lyt = lyt, df = anl, alt_counts_df = adsl)\n\nresult","id":3}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -1086,7 +1086,7 @@ globalThis.qwebrExecuteCode = async function (
 }
 
 </script><link rel="stylesheet" href="../../assets/css/style.css">
-<meta property="og:title" content="TLG Catalog - Dev - EXT01">
+<meta property="og:title" content="EXT01 – TLG Catalog - Dev">
 <meta property="og:description" content="Study Drug Exposure Table">
 <meta property="og:image" content="https://insightsengineering.github.io/tlg-catalog/tables/exposure/assets/img/logo.png">
 <meta property="og:site_name" content="TLG Catalog - Dev">
@@ -1102,7 +1102,7 @@ globalThis.qwebrExecuteCode = async function (
   </div>
           <ul class="navbar-nav navbar-nav-scroll ms-auto">
 <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-dev" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-dev" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Dev</span>
     </a>
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-dev">
@@ -1134,11 +1134,11 @@ globalThis.qwebrExecuteCode = async function (
             <div id="quarto-search" class="" title="Search"></div>
       </div> <!-- /container-fluid -->
     </nav><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Tables</li><li class="breadcrumb-item"><a href="../../tables/exposure/ext01.html">Exposure</a></li><li class="breadcrumb-item"><a href="../../tables/exposure/ext01.html">EXT01</a></li></ol></nav>
-        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
   </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
@@ -1158,18 +1158,18 @@ globalThis.qwebrExecuteCode = async function (
         <li class="px-0"><hr class="sidebar-divider hi "></li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
  <span class="menu-text">Tables</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
  <span class="menu-text">ADA</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1208,9 +1208,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
  <span class="menu-text">Adverse Events</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1309,9 +1309,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
  <span class="menu-text">Concomitant Medications</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1344,9 +1344,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
  <span class="menu-text">Deaths</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1361,9 +1361,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
  <span class="menu-text">Demography</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1378,9 +1378,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
  <span class="menu-text">Disclosures</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1407,9 +1407,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
  <span class="menu-text">Disposition</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1436,9 +1436,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
  <span class="menu-text">ECG</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1477,9 +1477,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
  <span class="menu-text">Efficacy</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1578,9 +1578,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="true">
  <span class="menu-text">Exposure</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1595,9 +1595,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false">
  <span class="menu-text">Lab Results</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1714,9 +1714,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false">
  <span class="menu-text">Medical History</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1731,9 +1731,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false">
  <span class="menu-text">Pharmacokinetic</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1796,9 +1796,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="false">
  <span class="menu-text">Risk Management Plan</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1837,9 +1837,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="false">
  <span class="menu-text">Safety</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1854,9 +1854,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="false">
  <span class="menu-text">Vital Signs</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1879,18 +1879,18 @@ globalThis.qwebrExecuteCode = async function (
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-18" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-18" role="navigation" aria-expanded="false">
  <span class="menu-text">Listings</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-18" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-18" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-18" class="collapse list-unstyled sidebar-section depth1 ">
 <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-19" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-19" role="navigation" aria-expanded="false">
  <span class="menu-text">ADA</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-19" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-19" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1905,9 +1905,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-20" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-20" role="navigation" aria-expanded="false">
  <span class="menu-text">Adverse Events</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-20" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-20" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1952,9 +1952,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-21" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-21" role="navigation" aria-expanded="false">
  <span class="menu-text">Concomitant Medications</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-21" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-21" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1981,9 +1981,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-22" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-22" role="navigation" aria-expanded="false">
  <span class="menu-text">Development Safety Update Report</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-22" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-22" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -1998,9 +1998,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-23" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-23" role="navigation" aria-expanded="false">
  <span class="menu-text">Disposition</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-23" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-23" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2021,9 +2021,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-24" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-24" role="navigation" aria-expanded="false">
  <span class="menu-text">ECG</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-24" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-24" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2038,9 +2038,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-25" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-25" role="navigation" aria-expanded="false">
  <span class="menu-text">Efficacy</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-25" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-25" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2055,9 +2055,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-26" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-26" role="navigation" aria-expanded="false">
  <span class="menu-text">Exposure</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-26" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-26" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2072,9 +2072,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-27" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-27" role="navigation" aria-expanded="false">
  <span class="menu-text">Lab Results</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-27" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-27" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2113,9 +2113,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-28" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-28" role="navigation" aria-expanded="false">
  <span class="menu-text">Medical History</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-28" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-28" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2130,9 +2130,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-29" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-29" role="navigation" aria-expanded="false">
  <span class="menu-text">Pharmacokinetic</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-29" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-29" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2171,9 +2171,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-30" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-30" role="navigation" aria-expanded="false">
  <span class="menu-text">Vital Signs</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-30" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-30" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2190,18 +2190,18 @@ globalThis.qwebrExecuteCode = async function (
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-31" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-31" role="navigation" aria-expanded="false">
  <span class="menu-text">Graphs</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-31" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-31" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-31" class="collapse list-unstyled sidebar-section depth1 ">
 <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-32" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-32" role="navigation" aria-expanded="false">
  <span class="menu-text">Efficacy</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-32" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-32" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2240,9 +2240,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-33" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-33" role="navigation" aria-expanded="false">
  <span class="menu-text">Other</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-33" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-33" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2287,9 +2287,9 @@ globalThis.qwebrExecuteCode = async function (
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-34" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-34" role="navigation" aria-expanded="false">
  <span class="menu-text">Pharmacokinetic</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-34" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-34" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -2349,9 +2349,9 @@ globalThis.qwebrExecuteCode = async function (
         <li class="px-0"><hr class="sidebar-divider hi "></li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-35" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-35" role="navigation" aria-expanded="false">
  <span class="menu-text">Appendix</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-35" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-35" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -3282,14 +3282,14 @@ we have to put some code upfront
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-06-15 17:59:30 UTC"</code></pre>
+<pre><code>[1] "2024-07-24 14:47:20 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>R version 4.4.0 (2024-04-24)
+<pre><code>R version 4.4.1 (2024-06-14)
 Platform: x86_64-pc-linux-gnu
 Running under: Ubuntu 22.04.4 LTS
 
@@ -3312,62 +3312,65 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] teal.modules.clinical_0.9.1.9009 teal.transform_0.5.0.9006       
- [3] teal_0.15.2.9041                 teal.slice_0.5.1.9004           
+ [1] teal.modules.clinical_0.9.1.9013 teal.transform_0.5.0.9007       
+ [3] teal_0.15.2.9047                 teal.slice_0.5.1.9005           
  [5] teal.data_0.6.0.9005             teal.code_0.5.0.9006            
  [7] shiny_1.8.1.1                    tidyr_1.3.1                     
- [9] dplyr_1.1.4                      tern_0.9.4.9009                 
-[11] rtables_0.6.7.9006               magrittr_2.0.3                  
-[13] formatters_0.5.7.9002           
+ [9] dplyr_1.1.4                      tern_0.9.5.9007                 
+[11] rtables_0.6.9.9002               magrittr_2.0.3                  
+[13] formatters_0.5.8.9000           
 
 loaded via a namespace (and not attached):
  [1] Rdpack_2.6                    formatR_1.14                 
  [3] tern.gee_0.1.4.9001           logger_0.3.0                 
  [5] testthat_3.2.1.1              sandwich_3.1-0               
- [7] rlang_1.1.3                   multcomp_1.4-25              
- [9] compiler_4.4.0                callr_3.7.6                  
+ [7] rlang_1.1.4                   multcomp_1.4-26              
+ [9] compiler_4.4.1                callr_3.7.6                  
 [11] vctrs_0.6.5                   stringr_1.5.1                
 [13] pkgconfig_2.0.3               fastmap_1.2.0                
-[15] backports_1.4.1               fontawesome_0.5.2            
+[15] backports_1.5.0               fontawesome_0.5.2            
 [17] utf8_1.2.4                    promises_1.3.0               
-[19] rmarkdown_2.27                ps_1.7.6                     
-[21] purrr_1.0.2                   xfun_0.44                    
+[19] rmarkdown_2.27                ps_1.7.7                     
+[21] purrr_1.0.2                   xfun_0.46                    
 [23] shinyvalidate_0.1.3           cachem_1.1.0                 
 [25] teal.reporter_0.3.1.9010      jsonlite_1.8.8               
 [27] later_1.3.2                   broom_1.0.6                  
-[29] R6_2.5.1                      bslib_0.7.0                  
-[31] stringi_1.8.4                 brio_1.1.5                   
-[33] jquerylib_0.1.4               estimability_1.5.1           
-[35] Rcpp_1.0.12                   knitr_1.46                   
-[37] zoo_1.8-12                    teal.logger_0.2.0.9003       
-[39] httpuv_1.6.15                 Matrix_1.7-0                 
-[41] splines_4.4.0                 tidyselect_1.2.1             
-[43] yaml_2.3.8                    codetools_0.2-20             
-[45] websocket_1.4.1               processx_3.8.4               
-[47] teal.widgets_0.4.2.9012       lattice_0.22-6               
-[49] tibble_3.2.1                  withr_3.0.0                  
-[51] coda_0.19-4.1                 evaluate_0.23                
-[53] survival_3.6-4                pillar_1.9.0                 
-[55] shinycssloaders_1.0.0         checkmate_2.3.1              
-[57] shinyjs_2.1.0                 plotly_4.10.4                
-[59] generics_0.1.3                chromote_0.2.0               
-[61] ggplot2_3.5.1                 munsell_0.5.1                
-[63] scales_1.3.0                  xtable_1.8-4                 
-[65] glue_1.7.0                    emmeans_1.10.2               
-[67] lazyeval_0.2.2                tools_4.4.0                  
-[69] webshot2_0.1.1                data.table_1.15.4            
-[71] webshot_0.5.5                 forcats_1.0.0                
-[73] mvtnorm_1.2-5                 grid_4.4.0                   
-[75] rbibutils_2.2.16              colorspace_2.1-0             
-[77] nlme_3.1-164                  random.cdisc.data_0.3.15.9004
-[79] cli_3.6.2                     fansi_1.0.6                  
-[81] viridisLite_0.4.2             geepack_1.3.10               
-[83] gtable_0.3.5                  sass_0.4.9                   
-[85] digest_0.6.35                 TH.data_1.1-2                
-[87] htmlwidgets_1.6.4             memoise_2.0.1                
-[89] htmltools_0.5.8.1             lifecycle_1.0.4              
-[91] httr_1.4.7                    shinyWidgets_0.8.6           
-[93] mime_0.12                     MASS_7.3-60.2                </code></pre>
+[29] parallel_4.4.1                R6_2.5.1                     
+[31] bslib_0.7.0                   stringi_1.8.4                
+[33] parallelly_1.37.1             brio_1.1.5                   
+[35] jquerylib_0.1.4               estimability_1.5.1           
+[37] Rcpp_1.0.13                   knitr_1.48                   
+[39] zoo_1.8-12                    teal.logger_0.2.0.9005       
+[41] httpuv_1.6.15                 Matrix_1.7-0                 
+[43] splines_4.4.1                 tidyselect_1.2.1             
+[45] yaml_2.3.9                    codetools_0.2-20             
+[47] websocket_1.4.1               processx_3.8.4               
+[49] teal.widgets_0.4.2.9014       listenv_0.9.1                
+[51] lattice_0.22-6                tibble_3.2.1                 
+[53] withr_3.0.0                   coda_0.19-4.1                
+[55] evaluate_0.24.0               future_1.33.2                
+[57] survival_3.7-0                pillar_1.9.0                 
+[59] shinycssloaders_1.0.0         checkmate_2.3.1              
+[61] shinyjs_2.1.0                 plotly_4.10.4                
+[63] generics_0.1.3                chromote_0.2.0               
+[65] ggplot2_3.5.1                 munsell_0.5.1                
+[67] scales_1.3.0                  globals_0.16.3               
+[69] xtable_1.8-4                  glue_1.7.0                   
+[71] lazyeval_0.2.2                emmeans_1.10.3               
+[73] tools_4.4.1                   webshot2_0.1.1               
+[75] data.table_1.15.4             webshot_0.5.5                
+[77] forcats_1.0.0                 mvtnorm_1.2-5                
+[79] grid_4.4.1                    rbibutils_2.2.16             
+[81] colorspace_2.1-0              nlme_3.1-165                 
+[83] random.cdisc.data_0.3.15.9004 cli_3.6.3                    
+[85] fansi_1.0.6                   viridisLite_0.4.2            
+[87] geepack_1.3.11                gtable_0.3.5                 
+[89] sass_0.4.9                    digest_0.6.36                
+[91] TH.data_1.1-2                 htmlwidgets_1.6.4            
+[93] memoise_2.0.1                 htmltools_0.5.8.1            
+[95] lifecycle_1.0.4               httr_1.4.7                   
+[97] shinyWidgets_0.8.6            mime_0.12                    
+[99] MASS_7.3-61                  </code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
@@ -3590,18 +3593,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -3633,7 +3625,29 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
   const viewSource = window.document.getElementById('quarto-view-source') ||
                      window.document.getElementById('quarto-code-tools-source');
   if (viewSource) {
@@ -3692,7 +3706,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }
     // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
     for (var i=0; i<links.length; i++) {
       const link = links[i];
       if (!isInternal(link.href)) {
@@ -4323,7 +4337,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb16-295"><a href="#cb16-295"></a></span>
 <span id="cb16-296"><a href="#cb16-296"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
 <span id="cb16-297"><a href="#cb16-297"></a></span>
-<span id="cb16-298"><a href="#cb16-298"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb16-298"><a href="#cb16-298"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
