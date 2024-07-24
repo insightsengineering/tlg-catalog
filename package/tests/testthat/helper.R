@@ -25,7 +25,7 @@ test_article <- function(article_path) {
           print(data_snap[[i]]),
           variant = test_profile
         )
-      } else if (ggplot2::is.ggplot(data_snap[[i]]) || grid::is.grob(data_snap[[i]])) {
+      } else if (isTRUE(if_test_plots) && (ggplot2::is.ggplot(data_snap[[i]]) || grid::is.grob(data_snap[[i]]))) {
         testthat::skip_if_not_installed("svglite")
         testthat::skip_on_ci()
 
@@ -44,7 +44,10 @@ test_article <- function(article_path) {
         withr::with_seed(
           123,
           suppressMessages(
-            ggplot2::ggsave(plot_file, data_snap[[i]], width = plot_dims[["width"]], height = plot_dims[["height"]])
+            ggplot2::ggsave(plot_file, data_snap[[i]],
+              width = plot_dims[["width"]], height = plot_dims[["height"]],
+              create.dir = TRUE
+            )
           )
         )
 

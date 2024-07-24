@@ -20,11 +20,31 @@ library(tibble)
 adsl <- random.cdisc.data::cadsl
 adab <- random.cdisc.data::cadab
 
-combodf <- tribble(
-  ~valname, ~label, ~levelcombo, ~exargs,
-  "all_X", "All Drug X", c("A: Drug X", "C: Combination"), list(),
-  "all_pt", "All Patients", c("A: Drug X", "B: Placebo", "C: Combination"), list()
+# Order needed for the columns is c(1, 3, 4, 2, 5)
+reorder_facets <- function(splret, spl, fulldf, ...) {
+  ord <- c(1, 3, 4, 2, 5)
+  make_split_result(
+    splret$values[ord],
+    splret$datasplit[ord],
+    splret$labels[ord]
+  )
+}
+
+# Create a custom split function for adding the new columns (facets) and sorting them
+custom_column_split_fun <- make_split_fun(
+  post = list(
+    add_combo_facet("all_X",
+      label = "All Drug X",
+      levels = c("A: Drug X", "C: Combination")
+    ),
+    add_combo_facet("all_pt",
+      label = "All Patients",
+      levels = c("A: Drug X", "B: Placebo", "C: Combination")
+    ),
+    reorder_facets
+  )
 )
+
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -133,12 +153,13 @@ adab_pb <- df_explicit_na(adab) %>%
 ## {{< fa regular file-lines sm fw >}} Preview
 
 <!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 -->
+
 ```{r variant1, test = list(result_v1 = "result"), opts.label = ifelse(packageVersion("rtables") < "0.6.6.9011", "skip_test_strict", "")}
 # Layout for Baseline Prevalence of NAbs
 lyt_bl <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(
     "ACTARM",
-    split_fun = add_combo_levels(combodf)
+    split_fun = custom_column_split_fun
   ) %>%
   count_patients_with_flags(
     "USUBJID",
@@ -169,7 +190,7 @@ lyt_bl <- basic_table(show_colcounts = TRUE) %>%
 lyt_pb <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(
     "ACTARM",
-    split_fun = add_combo_levels(combodf)
+    split_fun = custom_column_split_fun
   ) %>%
   count_patients_with_flags(
     "USUBJID",
@@ -216,12 +237,6 @@ result_2 <- build_table(lyt_pb, df = adab_pb, alt_counts_df = adsl)
 # Combine tables.
 result_1@col_info <- result_2@col_info
 result <- rbind(result_1, result_2)
-
-# Change the column order.
-result <- cbind_rtables(result[, 1], result[, 3]) %>%
-  cbind_rtables(result[, 4]) %>%
-  cbind_rtables(result[, 2]) %>%
-  cbind_rtables(result[, 5])
 
 main_title(result) <- paste(
   "Baseline Prevalence and Incidence of Treatment Emergent ADA"
