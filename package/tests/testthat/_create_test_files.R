@@ -1,7 +1,7 @@
 # Script to create test files for all articles in the test book.
 # It would not remove existing test files so in case article location or name is changed, the old test file should be removed manually.
 # run with `source()`, e.g.:
-# source("./tests//testthat/_create_test_files.R")
+# source("./tests/testthat/_create_test_files.R")
 
 article_files <- list.files(
   test_book_path,
@@ -11,6 +11,14 @@ article_files <- list.files(
   pattern = "*.qmd"
 ) |>
   grep("tables/|listings/|graphs/", x = _, value = TRUE)
+
+excluded_articles <- c(
+  # Stan is not reproducible on different platforms
+  # https://mc-stan.org/docs/2_27/reference-manual/reproducibility-chapter.html
+  "tables/efficacy/rbmit01.qmd"
+)
+
+article_files <- setdiff(article_files, excluded_articles)
 
 test_files <- article_files |>
   vapply(
