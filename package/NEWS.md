@@ -1,4 +1,4 @@
-# `tlg-catalog` 0.1.0.9023
+# `tlg-catalog` 0.1.0.9024
 
 -   Reorganize files into `/book` and `/package` for testability purposes.
 -   The TLG Catalog is here!
