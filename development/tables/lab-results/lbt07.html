@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\n\nadsl <- random.cdisc.data::cadsl\nadlb <- random.cdisc.data::cadlb\n\nadlb_labels <- var_labels(adlb)\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadlb <- df_explicit_na(adlb)\n\n# Select worst post-baseline records.\nadlb_f <- adlb %>%\n  filter(ATOXGR != \"<Missing>\") %>%\n  filter(ONTRTFL == \"Y\") %>%\n  filter(WGRLOFL == \"Y\" | WGRHIFL == \"Y\")\n\nvar_labels(adlb_f) <- adlb_labels\n\n# Derive GRADE_DIR and GRADE_ANL to use in layout from ATOXGR\nadlb_f <- adlb_f %>%\n  mutate(\n    GRADE_DIR = factor(\n      case_when(\n        ATOXGR %in% c(\"-1\", \"-2\", \"-3\", \"-4\") & .data$WGRLOFL == \"Y\" ~ \"LOW\",\n        ATOXGR == \"0\" ~ \"ZERO\",\n        ATOXGR %in% c(\"1\", \"2\", \"3\", \"4\") & .data$WGRHIFL == \"Y\" ~ \"HIGH\",\n        TRUE ~ \"NONE\"\n      ),\n      levels = c(\"LOW\", \"ZERO\", \"HIGH\", \"NONE\")\n    ),\n    GRADE_ANL = forcats::fct_relevel(\n      forcats::fct_recode(ATOXGR,\n        `1` = \"-1\", `2` = \"-2\", `3` = \"-3\", `4` = \"-4\"\n      ),\n      c(\"0\", \"1\", \"2\", \"3\", \"4\")\n    )\n  ) %>%\n  var_relabel(\n    GRADE_DIR = \"Direction of Abnormality\",\n    GRADE_ANL = \"Analysis Grade\"\n  )\n\n# Construct analysis map\nmap <- expand.grid(\n  PARAM = levels(adlb$PARAM),\n  GRADE_DIR = c(\"LOW\", \"HIGH\"),\n  GRADE_ANL = as.character(1:4),\n  stringsAsFactors = FALSE\n) %>%\n  arrange(PARAM, desc(GRADE_DIR), GRADE_ANL)\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\n    \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$PARAM)\n  ) %>%\n  summarize_num_patients(\n    var = \"USUBJID\",\n    required = \"ATOXGR\",\n    .stats = \"unique_count\"\n  ) %>%\n  split_rows_by(\n    \"GRADE_DIR\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$GRADE_DIR),\n    split_fun = trim_levels_to_map(map)\n  ) %>%\n  count_abnormal_by_worst_grade(\n    var = \"GRADE_ANL\",\n    variables = list(id = \"USUBJID\", param = \"PARAM\", grade_dir = \"GRADE_DIR\"),\n    .indent_mods = 4L\n  ) %>%\n  append_topleft(\"            Highest NCI CTCAE Grade\")\n\nresult <- build_table(lyt = lyt, df = adlb_f, alt_counts_df = adsl)\nresult <- result %>% prune_table()\n\nresult","id":1,"options":{"fig-height":5,"classes":"","out-height":"","output":"true","out-width":"700px","context":"interactive","fig-width":7,"message":"true","warning":"true","read-only":"false","comment":"","results":"markup","dpi":72,"fig-cap":"","autorun":"true","editor-max-height":"500","label":"unnamed-chunk-1","editor-font-scale":1,"editor-quick-suggestions":"false"}}];
+globalThis.qwebrCellDetails = [{"options":{"read-only":"false","warning":"true","classes":"","editor-max-height":"500","autorun":"true","fig-height":5,"out-height":"","dpi":72,"context":"interactive","fig-width":7,"results":"markup","comment":"","output":"true","out-width":"700px","label":"unnamed-chunk-1","message":"true","fig-cap":"","editor-quick-suggestions":"false","editor-font-scale":1},"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\n\nadsl <- random.cdisc.data::cadsl\nadlb <- random.cdisc.data::cadlb\n\nadlb_labels <- var_labels(adlb)\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadlb <- df_explicit_na(adlb)\n\n# Select worst post-baseline records.\nadlb_f <- adlb %>%\n  filter(ATOXGR != \"<Missing>\") %>%\n  filter(ONTRTFL == \"Y\") %>%\n  filter(WGRLOFL == \"Y\" | WGRHIFL == \"Y\")\n\nvar_labels(adlb_f) <- adlb_labels\n\n# Derive GRADE_DIR and GRADE_ANL to use in layout from ATOXGR\nadlb_f <- adlb_f %>%\n  mutate(\n    GRADE_DIR = factor(\n      case_when(\n        ATOXGR %in% c(\"-1\", \"-2\", \"-3\", \"-4\") & .data$WGRLOFL == \"Y\" ~ \"LOW\",\n        ATOXGR == \"0\" ~ \"ZERO\",\n        ATOXGR %in% c(\"1\", \"2\", \"3\", \"4\") & .data$WGRHIFL == \"Y\" ~ \"HIGH\",\n        TRUE ~ \"NONE\"\n      ),\n      levels = c(\"LOW\", \"ZERO\", \"HIGH\", \"NONE\")\n    ),\n    GRADE_ANL = forcats::fct_relevel(\n      forcats::fct_recode(ATOXGR,\n        `1` = \"-1\", `2` = \"-2\", `3` = \"-3\", `4` = \"-4\"\n      ),\n      c(\"0\", \"1\", \"2\", \"3\", \"4\")\n    )\n  ) %>%\n  var_relabel(\n    GRADE_DIR = \"Direction of Abnormality\",\n    GRADE_ANL = \"Analysis Grade\"\n  )\n\n# Construct analysis map\nmap <- expand.grid(\n  PARAM = levels(adlb$PARAM),\n  GRADE_DIR = c(\"LOW\", \"HIGH\"),\n  GRADE_ANL = as.character(1:4),\n  stringsAsFactors = FALSE\n) %>%\n  arrange(PARAM, desc(GRADE_DIR), GRADE_ANL)\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\n    \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$PARAM)\n  ) %>%\n  summarize_num_patients(\n    var = \"USUBJID\",\n    required = \"ATOXGR\",\n    .stats = \"unique_count\"\n  ) %>%\n  split_rows_by(\n    \"GRADE_DIR\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$GRADE_DIR),\n    split_fun = trim_levels_to_map(map)\n  ) %>%\n  count_abnormal_by_worst_grade(\n    var = \"GRADE_ANL\",\n    variables = list(id = \"USUBJID\", param = \"PARAM\", grade_dir = \"GRADE_DIR\"),\n    .indent_mods = 4L\n  ) %>%\n  append_topleft(\"            Highest NCI CTCAE Grade\")\n\nresult <- build_table(lyt = lyt, df = adlb_f, alt_counts_df = adsl)\nresult <- result %>% prune_table()\n\nresult","id":1}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2377,7 +2377,7 @@ globalThis.qwebrExecuteCode = async function (
 <!-- margin-sidebar -->
     
 <!-- main -->
-<main class="content column-page-right" id="quarto-document-content"><script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/loader.js"></script><script type="module" id="qwebr-monaco-editor-init">
+<main class="content page-columns page-full column-body" id="quarto-document-content"><script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/loader.js"></script><script type="module" id="qwebr-monaco-editor-init">
 
   // Configure the Monaco Editor's loader
   require.config({
@@ -2607,7 +2607,7 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 
 
 
-<div class="quarto-title-meta column-page-right">
+<div class="quarto-title-meta column-body">
 
     
   
@@ -2617,14 +2617,14 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 
 
 </header><hr>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
+<div class="tabset-margin-container"></div><div class="panel-tabset page-columns page-full">
 <ul class="nav nav-tabs" role="tablist">
 <li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" aria-current="page">Data Setup</a></li>
 <li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false">Standard Table</a></li>
 <li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-3" role="tab" aria-controls="tabset-3-3" aria-selected="false"><code>teal</code> App</a></li>
 <li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-4" role="tab" aria-controls="tabset-3-4" aria-selected="false">Reproducibility</a></li>
 </ul>
-<div class="tab-content">
+<div class="tab-content page-columns page-full">
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <div class="cell">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(tern)</span>
@@ -2785,13 +2785,13 @@ Experimental use!
 </div>
 </div>
 </div>
-<div id="tabset-3-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-3-tab">
-<div class="tabset-margin-container"></div><div class="panel-tabset nav-justified">
+<div id="tabset-3-3" class="tab-pane page-columns page-full" role="tabpanel" aria-labelledby="tabset-3-3-tab">
+<div class="tabset-margin-container"></div><div class="panel-tabset nav-justified page-columns page-full">
 <ul class="nav nav-tabs" role="tablist">
 <li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true"><i class="fa-regular fa-file-lines" aria-label="file-lines"></i> Preview</a></li>
 <li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false"><i class="fa-regular fa-terminal" aria-label="terminal"></i> Try this using <code>shinylive</code></a></li>
 </ul>
-<div class="tab-content nav-justified">
+<div class="tab-content nav-justified page-columns page-full">
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <div class="cell" data-webshot="webshot2" data-screenshot.force="true" data-screenshot.opts="{&quot;delay&quot;:5}">
 <details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
@@ -2853,7 +2853,7 @@ This shortcode will include chunk returning WebR instance.
 Global shinylive configuration is available in the `_quarto.yaml` file.
 -->
 </div>
-<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<div id="tabset-2-2" class="tab-pane page-columns page-full" role="tabpanel" aria-labelledby="tabset-2-2-tab">
 <div class="callout callout-style-simple callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -2873,73 +2873,65 @@ Experimental use!
 <!--
 we have to put some code upfront
 - need to setup repos on r-universe - currently it's not possible to setup this elsewhere (e.g. shinylive config or chunk attribute)
-- currently shinylive is using webr@v0.2.2 which is missing a feature of shimming `library()` calls - need to add this manually
 -->
+<div class="column-screen-inset-right">
 <div class="sourceCode" id="cb5" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb5-1"><a href="#cb5-1"></a>#| standalone: true</span>
 <span id="cb5-2"><a href="#cb5-2"></a>#| viewerHeight: 800</span>
-<span id="cb5-3"><a href="#cb5-3"></a>#| components: [viewer, editor]</span>
-<span id="cb5-4"><a href="#cb5-4"></a>#| layout: vertical</span>
-<span id="cb5-5"><a href="#cb5-5"></a></span>
-<span id="cb5-6"><a href="#cb5-6"></a># -- WEBR HELPERS --</span>
-<span id="cb5-7"><a href="#cb5-7"></a>options(webr_pkg_repos = c("r-universe" = "https://pharmaverse.r-universe.dev", getOption("webr_pkg_repos")))</span>
-<span id="cb5-8"><a href="#cb5-8"></a>if (packageVersion("webr") &lt; "0.3.0") {</span>
-<span id="cb5-9"><a href="#cb5-9"></a>  .e &lt;- as.environment("webr_shims")</span>
-<span id="cb5-10"><a href="#cb5-10"></a>  .e[["library"]] &lt;- function(pkg, ...) {</span>
-<span id="cb5-11"><a href="#cb5-11"></a>    package &lt;- as.character(substitute(pkg))</span>
-<span id="cb5-12"><a href="#cb5-12"></a>    if (length(find.package(package, quiet = TRUE)) == 0) {</span>
-<span id="cb5-13"><a href="#cb5-13"></a>      webr::install(package)</span>
-<span id="cb5-14"><a href="#cb5-14"></a>    }</span>
-<span id="cb5-15"><a href="#cb5-15"></a>    base::library(package, character.only = TRUE, ...)</span>
-<span id="cb5-16"><a href="#cb5-16"></a>  }</span>
-<span id="cb5-17"><a href="#cb5-17"></a>}</span>
-<span id="cb5-18"><a href="#cb5-18"></a></span>
-<span id="cb5-19"><a href="#cb5-19"></a># -- APP CODE --</span>
-<span id="cb5-20"><a href="#cb5-20"></a>library(teal.modules.clinical)</span>
-<span id="cb5-21"><a href="#cb5-21"></a></span>
-<span id="cb5-22"><a href="#cb5-22"></a>## Data reproducible code</span>
-<span id="cb5-23"><a href="#cb5-23"></a>data &lt;- teal_data()</span>
-<span id="cb5-24"><a href="#cb5-24"></a>data &lt;- within(data, {</span>
-<span id="cb5-25"><a href="#cb5-25"></a>  library(dplyr)</span>
-<span id="cb5-26"><a href="#cb5-26"></a></span>
-<span id="cb5-27"><a href="#cb5-27"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
-<span id="cb5-28"><a href="#cb5-28"></a>  ADLB &lt;- random.cdisc.data::cadlb %&gt;%</span>
-<span id="cb5-29"><a href="#cb5-29"></a>    filter(!AVISIT %in% c("SCREENING", "BASELINE"))</span>
-<span id="cb5-30"><a href="#cb5-30"></a>})</span>
-<span id="cb5-31"><a href="#cb5-31"></a>datanames &lt;- c("ADSL", "ADLB")</span>
-<span id="cb5-32"><a href="#cb5-32"></a>datanames(data) &lt;- datanames</span>
-<span id="cb5-33"><a href="#cb5-33"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
-<span id="cb5-34"><a href="#cb5-34"></a></span>
-<span id="cb5-35"><a href="#cb5-35"></a>## Reusable Configuration For Modules</span>
-<span id="cb5-36"><a href="#cb5-36"></a>ADSL &lt;- data[["ADSL"]]</span>
-<span id="cb5-37"><a href="#cb5-37"></a>ADLB &lt;- data[["ADLB"]]</span>
-<span id="cb5-38"><a href="#cb5-38"></a></span>
-<span id="cb5-39"><a href="#cb5-39"></a>## Setup App</span>
-<span id="cb5-40"><a href="#cb5-40"></a>app &lt;- init(</span>
-<span id="cb5-41"><a href="#cb5-41"></a>  data = data,</span>
-<span id="cb5-42"><a href="#cb5-42"></a>  modules = modules(</span>
-<span id="cb5-43"><a href="#cb5-43"></a>    tm_t_abnormality_by_worst_grade(</span>
-<span id="cb5-44"><a href="#cb5-44"></a>      label = "Laboratory Test Results with Highest Grade Post-Baseline",</span>
-<span id="cb5-45"><a href="#cb5-45"></a>      dataname = "ADLB",</span>
-<span id="cb5-46"><a href="#cb5-46"></a>      arm_var = choices_selected(</span>
-<span id="cb5-47"><a href="#cb5-47"></a>        choices = variable_choices(ADSL, subset = c("ARM", "ARMCD")),</span>
-<span id="cb5-48"><a href="#cb5-48"></a>        selected = "ARM"</span>
-<span id="cb5-49"><a href="#cb5-49"></a>      ),</span>
-<span id="cb5-50"><a href="#cb5-50"></a>      paramcd = choices_selected(</span>
-<span id="cb5-51"><a href="#cb5-51"></a>        choices = value_choices(ADLB, "PARAMCD", "PARAM"),</span>
-<span id="cb5-52"><a href="#cb5-52"></a>        selected = c("ALT", "CRP", "IGA")</span>
-<span id="cb5-53"><a href="#cb5-53"></a>      ),</span>
-<span id="cb5-54"><a href="#cb5-54"></a>      add_total = FALSE</span>
-<span id="cb5-55"><a href="#cb5-55"></a>    )</span>
-<span id="cb5-56"><a href="#cb5-56"></a>  ),</span>
-<span id="cb5-57"><a href="#cb5-57"></a>  filter = (</span>
-<span id="cb5-58"><a href="#cb5-58"></a>    teal_slices(</span>
-<span id="cb5-59"><a href="#cb5-59"></a>      teal_slice("ADSL", "SAFFL", selected = "Y"),</span>
-<span id="cb5-60"><a href="#cb5-60"></a>      teal_slice("ADLB", "ONTRTFL", selected = "Y")</span>
-<span id="cb5-61"><a href="#cb5-61"></a>    )</span>
-<span id="cb5-62"><a href="#cb5-62"></a>  )</span>
-<span id="cb5-63"><a href="#cb5-63"></a>)</span>
-<span id="cb5-64"><a href="#cb5-64"></a></span>
-<span id="cb5-65"><a href="#cb5-65"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-3"><a href="#cb5-3"></a>#| editorHeight: 200</span>
+<span id="cb5-4"><a href="#cb5-4"></a>#| components: [viewer, editor]</span>
+<span id="cb5-5"><a href="#cb5-5"></a>#| layout: vertical</span>
+<span id="cb5-6"><a href="#cb5-6"></a></span>
+<span id="cb5-7"><a href="#cb5-7"></a># -- WEBR HELPERS --</span>
+<span id="cb5-8"><a href="#cb5-8"></a>options(webr_pkg_repos = c("r-universe" = "https://pharmaverse.r-universe.dev", getOption("webr_pkg_repos")))</span>
+<span id="cb5-9"><a href="#cb5-9"></a></span>
+<span id="cb5-10"><a href="#cb5-10"></a># -- APP CODE --</span>
+<span id="cb5-11"><a href="#cb5-11"></a>library(teal.modules.clinical)</span>
+<span id="cb5-12"><a href="#cb5-12"></a></span>
+<span id="cb5-13"><a href="#cb5-13"></a>## Data reproducible code</span>
+<span id="cb5-14"><a href="#cb5-14"></a>data &lt;- teal_data()</span>
+<span id="cb5-15"><a href="#cb5-15"></a>data &lt;- within(data, {</span>
+<span id="cb5-16"><a href="#cb5-16"></a>  library(dplyr)</span>
+<span id="cb5-17"><a href="#cb5-17"></a></span>
+<span id="cb5-18"><a href="#cb5-18"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
+<span id="cb5-19"><a href="#cb5-19"></a>  ADLB &lt;- random.cdisc.data::cadlb %&gt;%</span>
+<span id="cb5-20"><a href="#cb5-20"></a>    filter(!AVISIT %in% c("SCREENING", "BASELINE"))</span>
+<span id="cb5-21"><a href="#cb5-21"></a>})</span>
+<span id="cb5-22"><a href="#cb5-22"></a>datanames &lt;- c("ADSL", "ADLB")</span>
+<span id="cb5-23"><a href="#cb5-23"></a>datanames(data) &lt;- datanames</span>
+<span id="cb5-24"><a href="#cb5-24"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
+<span id="cb5-25"><a href="#cb5-25"></a></span>
+<span id="cb5-26"><a href="#cb5-26"></a>## Reusable Configuration For Modules</span>
+<span id="cb5-27"><a href="#cb5-27"></a>ADSL &lt;- data[["ADSL"]]</span>
+<span id="cb5-28"><a href="#cb5-28"></a>ADLB &lt;- data[["ADLB"]]</span>
+<span id="cb5-29"><a href="#cb5-29"></a></span>
+<span id="cb5-30"><a href="#cb5-30"></a>## Setup App</span>
+<span id="cb5-31"><a href="#cb5-31"></a>app &lt;- init(</span>
+<span id="cb5-32"><a href="#cb5-32"></a>  data = data,</span>
+<span id="cb5-33"><a href="#cb5-33"></a>  modules = modules(</span>
+<span id="cb5-34"><a href="#cb5-34"></a>    tm_t_abnormality_by_worst_grade(</span>
+<span id="cb5-35"><a href="#cb5-35"></a>      label = "Laboratory Test Results with Highest Grade Post-Baseline",</span>
+<span id="cb5-36"><a href="#cb5-36"></a>      dataname = "ADLB",</span>
+<span id="cb5-37"><a href="#cb5-37"></a>      arm_var = choices_selected(</span>
+<span id="cb5-38"><a href="#cb5-38"></a>        choices = variable_choices(ADSL, subset = c("ARM", "ARMCD")),</span>
+<span id="cb5-39"><a href="#cb5-39"></a>        selected = "ARM"</span>
+<span id="cb5-40"><a href="#cb5-40"></a>      ),</span>
+<span id="cb5-41"><a href="#cb5-41"></a>      paramcd = choices_selected(</span>
+<span id="cb5-42"><a href="#cb5-42"></a>        choices = value_choices(ADLB, "PARAMCD", "PARAM"),</span>
+<span id="cb5-43"><a href="#cb5-43"></a>        selected = c("ALT", "CRP", "IGA")</span>
+<span id="cb5-44"><a href="#cb5-44"></a>      ),</span>
+<span id="cb5-45"><a href="#cb5-45"></a>      add_total = FALSE</span>
+<span id="cb5-46"><a href="#cb5-46"></a>    )</span>
+<span id="cb5-47"><a href="#cb5-47"></a>  ),</span>
+<span id="cb5-48"><a href="#cb5-48"></a>  filter = (</span>
+<span id="cb5-49"><a href="#cb5-49"></a>    teal_slices(</span>
+<span id="cb5-50"><a href="#cb5-50"></a>      teal_slice("ADSL", "SAFFL", selected = "Y"),</span>
+<span id="cb5-51"><a href="#cb5-51"></a>      teal_slice("ADLB", "ONTRTFL", selected = "Y")</span>
+<span id="cb5-52"><a href="#cb5-52"></a>    )</span>
+<span id="cb5-53"><a href="#cb5-53"></a>  )</span>
+<span id="cb5-54"><a href="#cb5-54"></a>)</span>
+<span id="cb5-55"><a href="#cb5-55"></a></span>
+<span id="cb5-56"><a href="#cb5-56"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -2949,7 +2941,7 @@ we have to put some code upfront
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-07-29 12:13:34 UTC"</code></pre>
+<pre><code>[1] "2024-07-31 18:08:07 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2980,11 +2972,11 @@ attached base packages:
 
 other attached packages:
  [1] teal.modules.clinical_0.9.1.9014 teal.transform_0.5.0.9007       
- [3] teal_0.15.2.9047                 teal.slice_0.5.1.9005           
+ [3] teal_0.15.2.9047                 teal.slice_0.5.1.9006           
  [5] teal.data_0.6.0.9005             teal.code_0.5.0.9006            
  [7] shiny_1.8.1.1                    forcats_1.0.0                   
  [9] dplyr_1.1.4                      tern_0.9.5.9008                 
-[11] rtables_0.6.9.9002               magrittr_2.0.3                  
+[11] rtables_0.6.9.9003               magrittr_2.0.3                  
 [13] formatters_0.5.8.9000           
 
 loaded via a namespace (and not attached):
@@ -3004,7 +2996,7 @@ loaded via a namespace (and not attached):
 [27] later_1.3.2                   broom_1.0.6                  
 [29] parallel_4.4.1                R6_2.5.1                     
 [31] bslib_0.7.0                   stringi_1.8.4                
-[33] parallelly_1.37.1             brio_1.1.5                   
+[33] parallelly_1.38.0             brio_1.1.5                   
 [35] jquerylib_0.1.4               estimability_1.5.1           
 [37] Rcpp_1.0.13                   knitr_1.48                   
 [39] zoo_1.8-12                    teal.logger_0.2.0.9005       
@@ -3015,7 +3007,7 @@ loaded via a namespace (and not attached):
 [49] teal.widgets_0.4.2.9014       listenv_0.9.1                
 [51] lattice_0.22-6                tibble_3.2.1                 
 [53] withr_3.0.0                   coda_0.19-4.1                
-[55] evaluate_0.24.0               future_1.33.2                
+[55] evaluate_0.24.0               future_1.34.0                
 [57] survival_3.7-0                pillar_1.9.0                 
 [59] shinycssloaders_1.0.0         checkmate_2.3.1              
 [61] shinyjs_2.1.0                 generics_0.1.3               
@@ -3693,7 +3685,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script><script src="https://giscus.app/client.js" data-repo="insightsengineering/tlg-catalog" data-repo-id="MDEwOlJlcG9zaXRvcnk0MDYxNTcwMjg=" data-category="General" data-category-id="DIC_kwDOGDV25M4CVBzs" data-mapping="pathname" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" data-loading="lazy" async="">
-</script><input type="hidden" id="giscus-base-theme" value="light"><input type="hidden" id="giscus-alt-theme" value="light"><nav class="page-navigation column-page-right"><div class="nav-page nav-page-previous">
+</script><input type="hidden" id="giscus-base-theme" value="light"><input type="hidden" id="giscus-alt-theme" value="light"><nav class="page-navigation column-body"><div class="nav-page nav-page-previous">
       <a href="../../tables/lab-results/lbt06.html" class="pagination-link" aria-label="LBT06">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">LBT06</span>
       </a>          
