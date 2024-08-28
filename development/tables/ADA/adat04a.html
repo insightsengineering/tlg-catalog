@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"fig-height":5,"fig-cap":"","out-width":"700px","message":"true","results":"markup","editor-max-height":"500","output":"true","read-only":"false","out-height":"","autorun":"true","classes":"","editor-font-scale":1,"warning":"true","context":"interactive","editor-quick-suggestions":"false","comment":"","fig-width":7,"dpi":72,"label":"unnamed-chunk-1"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(tibble)\n\nadsl <- random.cdisc.data::cadsl\nadab <- random.cdisc.data::cadab\n\n\n# Order needed for the columns is c(1, 3, 4, 2, 5)\nreorder_facets <- function(splret, spl, fulldf, ...) {\n  ord <- c(1, 3, 4, 2, 5)\n  make_split_result(\n    splret$values[ord],\n    splret$datasplit[ord],\n    splret$labels[ord]\n  )\n}\n\n# Create a custom split function for adding the new columns (facets) and sorting them\ncustom_column_split_fun <- make_split_fun(\n  post = list(\n    add_combo_facet(\"all_X\",\n      label = \"All Drug X\",\n      levels = c(\"A: Drug X\", \"C: Combination\")\n    ),\n    add_combo_facet(\"all_pt\",\n      label = \"All Patients\",\n      levels = c(\"A: Drug X\", \"B: Placebo\", \"C: Combination\")\n    ),\n    reorder_facets\n  )\n)\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\n\n# Baseline Pts\nadab_b <- df_explicit_na(adab) %>%\n  filter(\n    ABLFL == \"Y\",\n    ADABLPFL == \"Y\",\n    PARAM %in% c(\n      \"ADA interpreted per sample result\",\n      \"NAB interpreted per sample result\"\n    )\n  ) %>%\n  select(-PARAMCD, -AVALC, -AVALU) %>%\n  tidyr::pivot_wider(\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate(\n    across(\n      any_of(c(\n        \"ADA interpreted per sample result\",\n        \"NAB interpreted per sample result\"\n      )),\n      as.logical\n    )\n  ) %>%\n  mutate(\n    ADABLPFL = ADABLPFL == \"Y\",\n    PADABLPFL = if (exists(\"ADA interpreted per sample result\", where = .)) {\n      `ADA interpreted per sample result` == \"TRUE\"\n    } else {\n      FALSE\n    },\n    PNABBLFL = if (exists(\"NAB interpreted per sample result\", where = .)) {\n      `NAB interpreted per sample result` == \"TRUE\"\n    } else {\n      FALSE\n    },\n    NNABBLFL = if (exists(\"NAB interpreted per sample result\", where = .)) {\n      `NAB interpreted per sample result` == \"FALSE\"\n    } else {\n      FALSE\n    }\n  ) %>%\n  var_relabel(\n    ADABLPFL = \"Baseline evaluable patients for ADA\",\n    PADABLPFL = \"Patients with a positive ADA sample at baseline\",\n    PNABBLFL = \"Patients with a positive NAb sample at baseline\",\n    NNABBLFL = \"Patient with no positive NAb samples at baseline\"\n  )\n\n# Post Baseline Treatment Enhanced NAb positive Pts\nadab_pb <- df_explicit_na(adab) %>%\n  filter(\n    ABLFL != \"Y\",\n    ADPBLPFL == \"Y\",\n    PARAM %in% c(\n      \"ADA interpreted per sample result\",\n      \"Treatment Emergent - Positive, Neutralizing Antibody\",\n      \"Treatment induced ADA, Neutralizing Antibody\",\n      \"Treatment enhanced ADA, Neutralizing Antibody\",\n      \"NAB interpreted per sample result\",\n      \"Treatment unaffected, Neutralizing Antibody\"\n    )\n  ) %>%\n  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%\n  unique() %>%\n  tidyr::pivot_wider(\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate(\n    across(\n      any_of(c(\n        \"ADA interpreted per sample result\", \"NAB interpreted per sample result\",\n        \"Treatment Emergent - Positive, Neutralizing Antibody\",\n        \"Treatment induced ADA, Neutralizing Antibody\",\n        \"Treatment enhanced ADA, Neutralizing Antibody\",\n        \"Treatment unaffected, Neutralizing Antibody\"\n      )),\n      as.logical\n    )\n  ) %>%\n  mutate(\n    ADPBLPFL = ADPBLPFL == \"Y\",\n    ADAPFL = if (exists(\"ADA interpreted per sample result\", where = .)) {\n      `ADA interpreted per sample result` == \"TRUE\"\n    } else {\n      FALSE\n    },\n    TENABPFL = if (exists(\"Treatment Emergent - Positive, Neutralizing Antibody\", where = .)) {\n      `Treatment Emergent - Positive, Neutralizing Antibody` == \"TRUE\"\n    } else {\n      FALSE\n    },\n    TINPBFL = if (exists(\"Treatment induced ADA, Neutralizing Antibody\", where = .)) {\n      `Treatment induced ADA, Neutralizing Antibody` == \"TRUE\"\n    } else {\n      FALSE\n    },\n    TENPBFL = if (exists(\"Treatment enhanced ADA, Neutralizing Antibody\", where = .)) {\n      `Treatment enhanced ADA, Neutralizing Antibody` == \"TRUE\"\n    } else {\n      FALSE\n    },\n    NABNFL = if (exists(\"NAB interpreted per sample result\", where = .)) {\n      `NAB interpreted per sample result` == \"FALSE\"\n    } else {\n      FALSE\n    },\n    TUNPBFL = if (exists(\"Treatment unaffected, Neutralizing Antibody\", where = .)) {\n      `Treatment unaffected, Neutralizing Antibody` == \"TRUE\"\n    } else {\n      FALSE\n    }\n  ) %>%\n  var_relabel(\n    ADPBLPFL = \"Post-baseline evaluable patients for ADA\",\n    ADAPFL = \"Patients positive for ADA\",\n    TENABPFL = \"Patients positive for Treatment Emergent NAb\",\n    TINPBFL = \"Treatment-induced NAb\",\n    TENPBFL = \"Treatment-enhanced NAb\",\n    NABNFL = \"Patients negative for NAb\",\n    TUNPBFL = \"Treatment unaffected\"\n  )\n# Layout for Baseline Prevalence of NAbs\nlyt_bl <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ACTARM\",\n    split_fun = custom_column_split_fun\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(\"ADABLPFL\", \"PADABLPFL\"),\n    table_names = \"t1\",\n    .stats = \"count\",\n    var_labels = \"Baseline Prevalence of NAbs\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"PNABBLFL\",\n    table_names = \"t2\",\n    .indent_mods = 1L\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"NNABBLFL\",\n    .stats = \"count\",\n    table_names = \"t3\",\n    .indent_mods = 1L,\n    show_labels = \"hidden\"\n  )\n\n# Layout for incidence of NAbs\nlyt_pb <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ACTARM\",\n    split_fun = custom_column_split_fun\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(\"ADPBLPFL\", \"ADAPFL\"),\n    .stats = \"count\",\n    var_labels = \"Incidence of Treatment Emergent NAbs\",\n    show_labels = \"visible\",\n    table_names = \"tb1\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"TENABPFL\",\n    table_names = \"tb2\",\n    .indent_mods = 1L,\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(\"TINPBFL\", \"TENPBFL\"),\n    .stats = \"count\",\n    table_names = \"tb3\",\n    .indent_mods = 1L,\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"NABNFL\",\n    table_names = \"tb4\",\n    .indent_mods = 1L,\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"TUNPBFL\",\n    .stats = \"count\",\n    table_names = \"tb5\",\n    .indent_mods = 1L,\n    show_labels = \"hidden\"\n  )\n\nresult_1 <- build_table(lyt_bl, df = adab_b, alt_counts_df = adsl)\nresult_2 <- build_table(lyt_pb, df = adab_pb, alt_counts_df = adsl)\n\n# Combine tables\nresult <- rbind(result_1, result_2)\n\nmain_title(result) <- paste(\n  \"Baseline Prevalence and Incidence of Treatment Emergent NAbs\"\n)\nsubtitles(result) <- paste(\"Protocol:\", unique(adab$PARCAT1)[1])\n# nolint start: line_length.\nmain_footer(result) <- \"NAb = Neutralizing Antibodies ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies) Baseline evaluable patient for ADA = a patient with an ADA assay result from a baseline sample(s)\n  Baseline evaluable patient for NAb = a patient with a NAb assay result from a baseline sample(s)\n  Post-baseline evaluable patient for ADA = a patient with an ADA assay result from at least one post-baseline sample\n  Post-baseline evaluable patient for NAb = a patient with a NAb assay result from at least one post-baseline sample\n  Number of patients positive for ADA = the number of post-baseline evaluable patients for ADA determined to have Treatment Emergent ADA during the study period.\nNumber of patients positive for Treatment Emergent NAb = the number (and percentage) of post-baseline evaluable patients for ADA determined to have treatment-induced NAb or treatment-enhanced NAb during the study period.\nTreatment-induced = a patient with negative or missing baseline result(s) and at least one positive post-baseline result. Treatment-enhanced = a patient with positive result at baseline who has one or more post-baseline titer results that are at least 0.60 t.u. greater than the baseline titer result.\nNumber of patients negative for Treatment Emergent NAb = number of post-baseline evaluable patients with negative or missing baseline NAb result(s) and all negative post-baseline NAb results, or a patient who is NAb treatment unaffected.\nTreatment unaffected = A post-baseline evaluable patient with a positive result at baseline and (a) where all post-baseline titer results are less than 0.60 t.u. greater than the baseline titer result, OR (b) where all post-baseline results are negative or missing. For any positive sample with titer result less than the minimum reportable titer or any positive sample where a titer cannot be obtained, titer value is imputed as equal to the minimum reportable titer.\"\n# nolint end: line_length.\nresult","id":1}];
+globalThis.qwebrCellDetails = [{"code":"library(tern)\nlibrary(dplyr)\nlibrary(tibble)\n\nadsl <- random.cdisc.data::cadsl\nadab <- random.cdisc.data::cadab\n\n\n# Order needed for the columns is c(1, 3, 4, 2, 5)\nreorder_facets <- function(splret, spl, fulldf, ...) {\n  ord <- c(1, 3, 4, 2, 5)\n  make_split_result(\n    splret$values[ord],\n    splret$datasplit[ord],\n    splret$labels[ord]\n  )\n}\n\n# Create a custom split function for adding the new columns (facets) and sorting them\ncustom_column_split_fun <- make_split_fun(\n  post = list(\n    add_combo_facet(\"all_X\",\n      label = \"All Drug X\",\n      levels = c(\"A: Drug X\", \"C: Combination\")\n    ),\n    add_combo_facet(\"all_pt\",\n      label = \"All Patients\",\n      levels = c(\"A: Drug X\", \"B: Placebo\", \"C: Combination\")\n    ),\n    reorder_facets\n  )\n)\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\n\n# Baseline Pts\nadab_b <- df_explicit_na(adab) %>%\n  filter(\n    ABLFL == \"Y\",\n    ADABLPFL == \"Y\",\n    PARAM %in% c(\n      \"ADA interpreted per sample result\",\n      \"NAB interpreted per sample result\"\n    )\n  ) %>%\n  select(-PARAMCD, -AVALC, -AVALU) %>%\n  tidyr::pivot_wider(\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate(\n    across(\n      any_of(c(\n        \"ADA interpreted per sample result\",\n        \"NAB interpreted per sample result\"\n      )),\n      as.logical\n    )\n  ) %>%\n  mutate(\n    ADABLPFL = ADABLPFL == \"Y\",\n    PADABLPFL = if (exists(\"ADA interpreted per sample result\", where = .)) {\n      `ADA interpreted per sample result` == \"TRUE\"\n    } else {\n      FALSE\n    },\n    PNABBLFL = if (exists(\"NAB interpreted per sample result\", where = .)) {\n      `NAB interpreted per sample result` == \"TRUE\"\n    } else {\n      FALSE\n    },\n    NNABBLFL = if (exists(\"NAB interpreted per sample result\", where = .)) {\n      `NAB interpreted per sample result` == \"FALSE\"\n    } else {\n      FALSE\n    }\n  ) %>%\n  var_relabel(\n    ADABLPFL = \"Baseline evaluable patients for ADA\",\n    PADABLPFL = \"Patients with a positive ADA sample at baseline\",\n    PNABBLFL = \"Patients with a positive NAb sample at baseline\",\n    NNABBLFL = \"Patient with no positive NAb samples at baseline\"\n  )\n\n# Post Baseline Treatment Enhanced NAb positive Pts\nadab_pb <- df_explicit_na(adab) %>%\n  filter(\n    ABLFL != \"Y\",\n    ADPBLPFL == \"Y\",\n    PARAM %in% c(\n      \"ADA interpreted per sample result\",\n      \"Treatment Emergent - Positive, Neutralizing Antibody\",\n      \"Treatment induced ADA, Neutralizing Antibody\",\n      \"Treatment enhanced ADA, Neutralizing Antibody\",\n      \"NAB interpreted per sample result\",\n      \"Treatment unaffected, Neutralizing Antibody\"\n    )\n  ) %>%\n  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%\n  unique() %>%\n  tidyr::pivot_wider(\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate(\n    across(\n      any_of(c(\n        \"ADA interpreted per sample result\", \"NAB interpreted per sample result\",\n        \"Treatment Emergent - Positive, Neutralizing Antibody\",\n        \"Treatment induced ADA, Neutralizing Antibody\",\n        \"Treatment enhanced ADA, Neutralizing Antibody\",\n        \"Treatment unaffected, Neutralizing Antibody\"\n      )),\n      as.logical\n    )\n  ) %>%\n  mutate(\n    ADPBLPFL = ADPBLPFL == \"Y\",\n    ADAPFL = if (exists(\"ADA interpreted per sample result\", where = .)) {\n      `ADA interpreted per sample result` == \"TRUE\"\n    } else {\n      FALSE\n    },\n    TENABPFL = if (exists(\"Treatment Emergent - Positive, Neutralizing Antibody\", where = .)) {\n      `Treatment Emergent - Positive, Neutralizing Antibody` == \"TRUE\"\n    } else {\n      FALSE\n    },\n    TINPBFL = if (exists(\"Treatment induced ADA, Neutralizing Antibody\", where = .)) {\n      `Treatment induced ADA, Neutralizing Antibody` == \"TRUE\"\n    } else {\n      FALSE\n    },\n    TENPBFL = if (exists(\"Treatment enhanced ADA, Neutralizing Antibody\", where = .)) {\n      `Treatment enhanced ADA, Neutralizing Antibody` == \"TRUE\"\n    } else {\n      FALSE\n    },\n    NABNFL = if (exists(\"NAB interpreted per sample result\", where = .)) {\n      `NAB interpreted per sample result` == \"FALSE\"\n    } else {\n      FALSE\n    },\n    TUNPBFL = if (exists(\"Treatment unaffected, Neutralizing Antibody\", where = .)) {\n      `Treatment unaffected, Neutralizing Antibody` == \"TRUE\"\n    } else {\n      FALSE\n    }\n  ) %>%\n  var_relabel(\n    ADPBLPFL = \"Post-baseline evaluable patients for ADA\",\n    ADAPFL = \"Patients positive for ADA\",\n    TENABPFL = \"Patients positive for Treatment Emergent NAb\",\n    TINPBFL = \"Treatment-induced NAb\",\n    TENPBFL = \"Treatment-enhanced NAb\",\n    NABNFL = \"Patients negative for NAb\",\n    TUNPBFL = \"Treatment unaffected\"\n  )\n# Layout for Baseline Prevalence of NAbs\nlyt_bl <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ACTARM\",\n    split_fun = custom_column_split_fun\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(\"ADABLPFL\", \"PADABLPFL\"),\n    table_names = \"t1\",\n    .stats = \"count\",\n    var_labels = \"Baseline Prevalence of NAbs\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"PNABBLFL\",\n    table_names = \"t2\",\n    .indent_mods = 1L\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"NNABBLFL\",\n    .stats = \"count\",\n    table_names = \"t3\",\n    .indent_mods = 1L,\n    show_labels = \"hidden\"\n  )\n\n# Layout for incidence of NAbs\nlyt_pb <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ACTARM\",\n    split_fun = custom_column_split_fun\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(\"ADPBLPFL\", \"ADAPFL\"),\n    .stats = \"count\",\n    var_labels = \"Incidence of Treatment Emergent NAbs\",\n    show_labels = \"visible\",\n    table_names = \"tb1\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"TENABPFL\",\n    table_names = \"tb2\",\n    .indent_mods = 1L,\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(\"TINPBFL\", \"TENPBFL\"),\n    .stats = \"count\",\n    table_names = \"tb3\",\n    .indent_mods = 1L,\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"NABNFL\",\n    table_names = \"tb4\",\n    .indent_mods = 1L,\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"TUNPBFL\",\n    .stats = \"count\",\n    table_names = \"tb5\",\n    .indent_mods = 1L,\n    show_labels = \"hidden\"\n  )\n\nresult_1 <- build_table(lyt_bl, df = adab_b, alt_counts_df = adsl)\nresult_2 <- build_table(lyt_pb, df = adab_pb, alt_counts_df = adsl)\n\n# Combine tables\nresult <- rbind(result_1, result_2)\n\nmain_title(result) <- paste(\n  \"Baseline Prevalence and Incidence of Treatment Emergent NAbs\"\n)\nsubtitles(result) <- paste(\"Protocol:\", unique(adab$PARCAT1)[1])\n# nolint start: line_length.\nmain_footer(result) <- \"NAb = Neutralizing Antibodies ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies) Baseline evaluable patient for ADA = a patient with an ADA assay result from a baseline sample(s)\n  Baseline evaluable patient for NAb = a patient with a NAb assay result from a baseline sample(s)\n  Post-baseline evaluable patient for ADA = a patient with an ADA assay result from at least one post-baseline sample\n  Post-baseline evaluable patient for NAb = a patient with a NAb assay result from at least one post-baseline sample\n  Number of patients positive for ADA = the number of post-baseline evaluable patients for ADA determined to have Treatment Emergent ADA during the study period.\nNumber of patients positive for Treatment Emergent NAb = the number (and percentage) of post-baseline evaluable patients for ADA determined to have treatment-induced NAb or treatment-enhanced NAb during the study period.\nTreatment-induced = a patient with negative or missing baseline result(s) and at least one positive post-baseline result. Treatment-enhanced = a patient with positive result at baseline who has one or more post-baseline titer results that are at least 0.60 t.u. greater than the baseline titer result.\nNumber of patients negative for Treatment Emergent NAb = number of post-baseline evaluable patients with negative or missing baseline NAb result(s) and all negative post-baseline NAb results, or a patient who is NAb treatment unaffected.\nTreatment unaffected = A post-baseline evaluable patient with a positive result at baseline and (a) where all post-baseline titer results are less than 0.60 t.u. greater than the baseline titer result, OR (b) where all post-baseline results are negative or missing. For any positive sample with titer result less than the minimum reportable titer or any positive sample where a titer cannot be obtained, titer value is imputed as equal to the minimum reportable titer.\"\n# nolint end: line_length.\nresult","id":1,"options":{"autorun":"true","results":"markup","fig-height":5,"output":"true","classes":"","read-only":"false","comment":"","editor-max-height":"500","editor-quick-suggestions":"false","warning":"true","fig-width":7,"message":"true","dpi":72,"fig-cap":"","label":"unnamed-chunk-1","out-width":"700px","editor-font-scale":1,"out-height":"","context":"interactive"}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2965,7 +2965,7 @@ Experimental use!
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-08-24 18:18:45 UTC"</code></pre>
+<pre><code>[1] "2024-08-28 18:20:43 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2995,8 +2995,8 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] tibble_3.2.1          dplyr_1.1.4           tern_0.9.5.9013      
-[4] rtables_0.6.9.9007    magrittr_2.0.3        formatters_0.5.8.9003
+[1] tibble_3.2.1          dplyr_1.1.4           tern_0.9.5.9016      
+[4] rtables_0.6.9.9010    magrittr_2.0.3        formatters_0.5.8.9005
 
 loaded via a namespace (and not attached):
  [1] Matrix_1.7-0                  gtable_0.3.5                 
@@ -3012,14 +3012,14 @@ loaded via a namespace (and not attached):
 [21] backports_1.5.0               checkmate_2.3.2              
 [23] munsell_0.5.1                 pillar_1.9.0                 
 [25] rlang_1.1.4                   utf8_1.2.4                   
-[27] testthat_3.2.1.1              stringi_1.8.4                
-[29] broom_1.0.6                   xfun_0.46                    
+[27] testthat_3.2.1.1              broom_1.0.6                  
+[29] stringi_1.8.4                 xfun_0.46                    
 [31] cli_3.6.3                     withr_3.0.1                  
 [33] Rdpack_2.6                    digest_0.6.36                
 [35] grid_4.4.1                    lifecycle_1.0.4              
 [37] vctrs_0.6.5                   evaluate_0.24.0              
 [39] glue_1.7.0                    codetools_0.2-20             
-[41] survival_3.7-0                random.cdisc.data_0.3.15.9007
+[41] survival_3.7-0                random.cdisc.data_0.3.15.9008
 [43] fansi_1.0.6                   colorspace_2.1-1             
 [45] purrr_1.0.2                   rmarkdown_2.27               
 [47] tools_4.4.1                   pkgconfig_2.0.3              
@@ -3055,7 +3055,11 @@ loaded via a namespace (and not attached):
 <span id="cb9-23"><a href="#cb9-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
 <span id="cb9-24"><a href="#cb9-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb9-25"><a href="#cb9-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>The following package(s) have unsatisfied dependencies:
+- tern requires emmeans (&gt;= 1.10.4), but version 1.10.3 is installed
+Consider updating the required dependencies as appropriate.</code></pre>
+</div>
 </div>
 <p><a href="../../assets/www/lock/tables/ADA/adat04a.lock">Download</a></p>
 </section>
@@ -3693,305 +3697,305 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb10" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb10-1"><a href="#cb10-1"></a><span class="co">---</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a><span class="an">title:</span><span class="co"> ADAT04A</span></span>
-<span id="cb10-3"><a href="#cb10-3"></a><span class="an">subtitle:</span><span class="co"> Baseline Prevalence and Incidence of Treatment Emergent NAbs</span></span>
-<span id="cb10-4"><a href="#cb10-4"></a><span class="co">---</span></span>
-<span id="cb10-5"><a href="#cb10-5"></a></span>
-<span id="cb10-6"><a href="#cb10-6"></a>------------------------------------------------------------------------</span>
-<span id="cb10-7"><a href="#cb10-7"></a></span>
-<span id="cb10-8"><a href="#cb10-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb10-9"><a href="#cb10-9"></a></span>
-<span id="cb10-10"><a href="#cb10-10"></a>:::: {.panel-tabset}</span>
-<span id="cb10-11"><a href="#cb10-11"></a><span class="fu">## Data Setup</span></span>
-<span id="cb10-12"><a href="#cb10-12"></a></span>
-<span id="cb10-13"><a href="#cb10-13"></a><span class="in">```{r setup, message = FALSE}</span></span>
-<span id="cb10-14"><a href="#cb10-14"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb10-15"><a href="#cb10-15"></a></span>
-<span id="cb10-16"><a href="#cb10-16"></a><span class="in">library(tern)</span></span>
-<span id="cb10-17"><a href="#cb10-17"></a><span class="in">library(dplyr)</span></span>
-<span id="cb10-18"><a href="#cb10-18"></a><span class="in">library(tibble)</span></span>
-<span id="cb10-19"><a href="#cb10-19"></a></span>
-<span id="cb10-20"><a href="#cb10-20"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb10-21"><a href="#cb10-21"></a><span class="in">adab &lt;- random.cdisc.data::cadab</span></span>
-<span id="cb10-22"><a href="#cb10-22"></a></span>
-<span id="cb10-23"><a href="#cb10-23"></a></span>
-<span id="cb10-24"><a href="#cb10-24"></a><span class="in"># Order needed for the columns is c(1, 3, 4, 2, 5)</span></span>
-<span id="cb10-25"><a href="#cb10-25"></a><span class="in">reorder_facets &lt;- function(splret, spl, fulldf, ...) {</span></span>
-<span id="cb10-26"><a href="#cb10-26"></a><span class="in">  ord &lt;- c(1, 3, 4, 2, 5)</span></span>
-<span id="cb10-27"><a href="#cb10-27"></a><span class="in">  make_split_result(</span></span>
-<span id="cb10-28"><a href="#cb10-28"></a><span class="in">    splret$values[ord],</span></span>
-<span id="cb10-29"><a href="#cb10-29"></a><span class="in">    splret$datasplit[ord],</span></span>
-<span id="cb10-30"><a href="#cb10-30"></a><span class="in">    splret$labels[ord]</span></span>
-<span id="cb10-31"><a href="#cb10-31"></a><span class="in">  )</span></span>
-<span id="cb10-32"><a href="#cb10-32"></a><span class="in">}</span></span>
-<span id="cb10-33"><a href="#cb10-33"></a></span>
-<span id="cb10-34"><a href="#cb10-34"></a><span class="in"># Create a custom split function for adding the new columns (facets) and sorting them</span></span>
-<span id="cb10-35"><a href="#cb10-35"></a><span class="in">custom_column_split_fun &lt;- make_split_fun(</span></span>
-<span id="cb10-36"><a href="#cb10-36"></a><span class="in">  post = list(</span></span>
-<span id="cb10-37"><a href="#cb10-37"></a><span class="in">    add_combo_facet("all_X",</span></span>
-<span id="cb10-38"><a href="#cb10-38"></a><span class="in">      label = "All Drug X",</span></span>
-<span id="cb10-39"><a href="#cb10-39"></a><span class="in">      levels = c("A: Drug X", "C: Combination")</span></span>
-<span id="cb10-40"><a href="#cb10-40"></a><span class="in">    ),</span></span>
-<span id="cb10-41"><a href="#cb10-41"></a><span class="in">    add_combo_facet("all_pt",</span></span>
-<span id="cb10-42"><a href="#cb10-42"></a><span class="in">      label = "All Patients",</span></span>
-<span id="cb10-43"><a href="#cb10-43"></a><span class="in">      levels = c("A: Drug X", "B: Placebo", "C: Combination")</span></span>
-<span id="cb10-44"><a href="#cb10-44"></a><span class="in">    ),</span></span>
-<span id="cb10-45"><a href="#cb10-45"></a><span class="in">    reorder_facets</span></span>
-<span id="cb10-46"><a href="#cb10-46"></a><span class="in">  )</span></span>
-<span id="cb10-47"><a href="#cb10-47"></a><span class="in">)</span></span>
-<span id="cb10-48"><a href="#cb10-48"></a></span>
-<span id="cb10-49"><a href="#cb10-49"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb10-50"><a href="#cb10-50"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb10-51"><a href="#cb10-51"></a></span>
-<span id="cb10-52"><a href="#cb10-52"></a><span class="in"># Baseline Pts</span></span>
-<span id="cb10-53"><a href="#cb10-53"></a><span class="in">adab_b &lt;- df_explicit_na(adab) %&gt;%</span></span>
-<span id="cb10-54"><a href="#cb10-54"></a><span class="in">  filter(</span></span>
-<span id="cb10-55"><a href="#cb10-55"></a><span class="in">    ABLFL == "Y",</span></span>
-<span id="cb10-56"><a href="#cb10-56"></a><span class="in">    ADABLPFL == "Y",</span></span>
-<span id="cb10-57"><a href="#cb10-57"></a><span class="in">    PARAM %in% c(</span></span>
-<span id="cb10-58"><a href="#cb10-58"></a><span class="in">      "ADA interpreted per sample result",</span></span>
-<span id="cb10-59"><a href="#cb10-59"></a><span class="in">      "NAB interpreted per sample result"</span></span>
-<span id="cb10-60"><a href="#cb10-60"></a><span class="in">    )</span></span>
-<span id="cb10-61"><a href="#cb10-61"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-62"><a href="#cb10-62"></a><span class="in">  select(-PARAMCD, -AVALC, -AVALU) %&gt;%</span></span>
-<span id="cb10-63"><a href="#cb10-63"></a><span class="in">  tidyr::pivot_wider(</span></span>
-<span id="cb10-64"><a href="#cb10-64"></a><span class="in">    names_from = PARAM,</span></span>
-<span id="cb10-65"><a href="#cb10-65"></a><span class="in">    values_from = AVAL</span></span>
-<span id="cb10-66"><a href="#cb10-66"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-67"><a href="#cb10-67"></a><span class="in">  mutate(</span></span>
-<span id="cb10-68"><a href="#cb10-68"></a><span class="in">    across(</span></span>
-<span id="cb10-69"><a href="#cb10-69"></a><span class="in">      any_of(c(</span></span>
-<span id="cb10-70"><a href="#cb10-70"></a><span class="in">        "ADA interpreted per sample result",</span></span>
-<span id="cb10-71"><a href="#cb10-71"></a><span class="in">        "NAB interpreted per sample result"</span></span>
-<span id="cb10-72"><a href="#cb10-72"></a><span class="in">      )),</span></span>
-<span id="cb10-73"><a href="#cb10-73"></a><span class="in">      as.logical</span></span>
-<span id="cb10-74"><a href="#cb10-74"></a><span class="in">    )</span></span>
-<span id="cb10-75"><a href="#cb10-75"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-76"><a href="#cb10-76"></a><span class="in">  mutate(</span></span>
-<span id="cb10-77"><a href="#cb10-77"></a><span class="in">    ADABLPFL = ADABLPFL == "Y",</span></span>
-<span id="cb10-78"><a href="#cb10-78"></a><span class="in">    PADABLPFL = if (exists("ADA interpreted per sample result", where = .)) {</span></span>
-<span id="cb10-79"><a href="#cb10-79"></a><span class="in">      `ADA interpreted per sample result` == "TRUE"</span></span>
-<span id="cb10-80"><a href="#cb10-80"></a><span class="in">    } else {</span></span>
-<span id="cb10-81"><a href="#cb10-81"></a><span class="in">      FALSE</span></span>
-<span id="cb10-82"><a href="#cb10-82"></a><span class="in">    },</span></span>
-<span id="cb10-83"><a href="#cb10-83"></a><span class="in">    PNABBLFL = if (exists("NAB interpreted per sample result", where = .)) {</span></span>
-<span id="cb10-84"><a href="#cb10-84"></a><span class="in">      `NAB interpreted per sample result` == "TRUE"</span></span>
-<span id="cb10-85"><a href="#cb10-85"></a><span class="in">    } else {</span></span>
-<span id="cb10-86"><a href="#cb10-86"></a><span class="in">      FALSE</span></span>
-<span id="cb10-87"><a href="#cb10-87"></a><span class="in">    },</span></span>
-<span id="cb10-88"><a href="#cb10-88"></a><span class="in">    NNABBLFL = if (exists("NAB interpreted per sample result", where = .)) {</span></span>
-<span id="cb10-89"><a href="#cb10-89"></a><span class="in">      `NAB interpreted per sample result` == "FALSE"</span></span>
-<span id="cb10-90"><a href="#cb10-90"></a><span class="in">    } else {</span></span>
-<span id="cb10-91"><a href="#cb10-91"></a><span class="in">      FALSE</span></span>
-<span id="cb10-92"><a href="#cb10-92"></a><span class="in">    }</span></span>
-<span id="cb10-93"><a href="#cb10-93"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-94"><a href="#cb10-94"></a><span class="in">  var_relabel(</span></span>
-<span id="cb10-95"><a href="#cb10-95"></a><span class="in">    ADABLPFL = "Baseline evaluable patients for ADA",</span></span>
-<span id="cb10-96"><a href="#cb10-96"></a><span class="in">    PADABLPFL = "Patients with a positive ADA sample at baseline",</span></span>
-<span id="cb10-97"><a href="#cb10-97"></a><span class="in">    PNABBLFL = "Patients with a positive NAb sample at baseline",</span></span>
-<span id="cb10-98"><a href="#cb10-98"></a><span class="in">    NNABBLFL = "Patient with no positive NAb samples at baseline"</span></span>
-<span id="cb10-99"><a href="#cb10-99"></a><span class="in">  )</span></span>
-<span id="cb10-100"><a href="#cb10-100"></a></span>
-<span id="cb10-101"><a href="#cb10-101"></a><span class="in"># Post Baseline Treatment Enhanced NAb positive Pts</span></span>
-<span id="cb10-102"><a href="#cb10-102"></a><span class="in">adab_pb &lt;- df_explicit_na(adab) %&gt;%</span></span>
-<span id="cb10-103"><a href="#cb10-103"></a><span class="in">  filter(</span></span>
-<span id="cb10-104"><a href="#cb10-104"></a><span class="in">    ABLFL != "Y",</span></span>
-<span id="cb10-105"><a href="#cb10-105"></a><span class="in">    ADPBLPFL == "Y",</span></span>
-<span id="cb10-106"><a href="#cb10-106"></a><span class="in">    PARAM %in% c(</span></span>
-<span id="cb10-107"><a href="#cb10-107"></a><span class="in">      "ADA interpreted per sample result",</span></span>
-<span id="cb10-108"><a href="#cb10-108"></a><span class="in">      "Treatment Emergent - Positive, Neutralizing Antibody",</span></span>
-<span id="cb10-109"><a href="#cb10-109"></a><span class="in">      "Treatment induced ADA, Neutralizing Antibody",</span></span>
-<span id="cb10-110"><a href="#cb10-110"></a><span class="in">      "Treatment enhanced ADA, Neutralizing Antibody",</span></span>
-<span id="cb10-111"><a href="#cb10-111"></a><span class="in">      "NAB interpreted per sample result",</span></span>
-<span id="cb10-112"><a href="#cb10-112"></a><span class="in">      "Treatment unaffected, Neutralizing Antibody"</span></span>
-<span id="cb10-113"><a href="#cb10-113"></a><span class="in">    )</span></span>
-<span id="cb10-114"><a href="#cb10-114"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-115"><a href="#cb10-115"></a><span class="in">  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %&gt;%</span></span>
-<span id="cb10-116"><a href="#cb10-116"></a><span class="in">  unique() %&gt;%</span></span>
-<span id="cb10-117"><a href="#cb10-117"></a><span class="in">  tidyr::pivot_wider(</span></span>
-<span id="cb10-118"><a href="#cb10-118"></a><span class="in">    names_from = PARAM,</span></span>
-<span id="cb10-119"><a href="#cb10-119"></a><span class="in">    values_from = AVAL</span></span>
-<span id="cb10-120"><a href="#cb10-120"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-121"><a href="#cb10-121"></a><span class="in">  mutate(</span></span>
-<span id="cb10-122"><a href="#cb10-122"></a><span class="in">    across(</span></span>
-<span id="cb10-123"><a href="#cb10-123"></a><span class="in">      any_of(c(</span></span>
-<span id="cb10-124"><a href="#cb10-124"></a><span class="in">        "ADA interpreted per sample result", "NAB interpreted per sample result",</span></span>
-<span id="cb10-125"><a href="#cb10-125"></a><span class="in">        "Treatment Emergent - Positive, Neutralizing Antibody",</span></span>
-<span id="cb10-126"><a href="#cb10-126"></a><span class="in">        "Treatment induced ADA, Neutralizing Antibody",</span></span>
-<span id="cb10-127"><a href="#cb10-127"></a><span class="in">        "Treatment enhanced ADA, Neutralizing Antibody",</span></span>
-<span id="cb10-128"><a href="#cb10-128"></a><span class="in">        "Treatment unaffected, Neutralizing Antibody"</span></span>
-<span id="cb10-129"><a href="#cb10-129"></a><span class="in">      )),</span></span>
-<span id="cb10-130"><a href="#cb10-130"></a><span class="in">      as.logical</span></span>
-<span id="cb10-131"><a href="#cb10-131"></a><span class="in">    )</span></span>
-<span id="cb10-132"><a href="#cb10-132"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-133"><a href="#cb10-133"></a><span class="in">  mutate(</span></span>
-<span id="cb10-134"><a href="#cb10-134"></a><span class="in">    ADPBLPFL = ADPBLPFL == "Y",</span></span>
-<span id="cb10-135"><a href="#cb10-135"></a><span class="in">    ADAPFL = if (exists("ADA interpreted per sample result", where = .)) {</span></span>
-<span id="cb10-136"><a href="#cb10-136"></a><span class="in">      `ADA interpreted per sample result` == "TRUE"</span></span>
-<span id="cb10-137"><a href="#cb10-137"></a><span class="in">    } else {</span></span>
-<span id="cb10-138"><a href="#cb10-138"></a><span class="in">      FALSE</span></span>
-<span id="cb10-139"><a href="#cb10-139"></a><span class="in">    },</span></span>
-<span id="cb10-140"><a href="#cb10-140"></a><span class="in">    TENABPFL = if (exists("Treatment Emergent - Positive, Neutralizing Antibody", where = .)) {</span></span>
-<span id="cb10-141"><a href="#cb10-141"></a><span class="in">      `Treatment Emergent - Positive, Neutralizing Antibody` == "TRUE"</span></span>
-<span id="cb10-142"><a href="#cb10-142"></a><span class="in">    } else {</span></span>
-<span id="cb10-143"><a href="#cb10-143"></a><span class="in">      FALSE</span></span>
-<span id="cb10-144"><a href="#cb10-144"></a><span class="in">    },</span></span>
-<span id="cb10-145"><a href="#cb10-145"></a><span class="in">    TINPBFL = if (exists("Treatment induced ADA, Neutralizing Antibody", where = .)) {</span></span>
-<span id="cb10-146"><a href="#cb10-146"></a><span class="in">      `Treatment induced ADA, Neutralizing Antibody` == "TRUE"</span></span>
-<span id="cb10-147"><a href="#cb10-147"></a><span class="in">    } else {</span></span>
-<span id="cb10-148"><a href="#cb10-148"></a><span class="in">      FALSE</span></span>
-<span id="cb10-149"><a href="#cb10-149"></a><span class="in">    },</span></span>
-<span id="cb10-150"><a href="#cb10-150"></a><span class="in">    TENPBFL = if (exists("Treatment enhanced ADA, Neutralizing Antibody", where = .)) {</span></span>
-<span id="cb10-151"><a href="#cb10-151"></a><span class="in">      `Treatment enhanced ADA, Neutralizing Antibody` == "TRUE"</span></span>
-<span id="cb10-152"><a href="#cb10-152"></a><span class="in">    } else {</span></span>
-<span id="cb10-153"><a href="#cb10-153"></a><span class="in">      FALSE</span></span>
-<span id="cb10-154"><a href="#cb10-154"></a><span class="in">    },</span></span>
-<span id="cb10-155"><a href="#cb10-155"></a><span class="in">    NABNFL = if (exists("NAB interpreted per sample result", where = .)) {</span></span>
-<span id="cb10-156"><a href="#cb10-156"></a><span class="in">      `NAB interpreted per sample result` == "FALSE"</span></span>
-<span id="cb10-157"><a href="#cb10-157"></a><span class="in">    } else {</span></span>
-<span id="cb10-158"><a href="#cb10-158"></a><span class="in">      FALSE</span></span>
-<span id="cb10-159"><a href="#cb10-159"></a><span class="in">    },</span></span>
-<span id="cb10-160"><a href="#cb10-160"></a><span class="in">    TUNPBFL = if (exists("Treatment unaffected, Neutralizing Antibody", where = .)) {</span></span>
-<span id="cb10-161"><a href="#cb10-161"></a><span class="in">      `Treatment unaffected, Neutralizing Antibody` == "TRUE"</span></span>
-<span id="cb10-162"><a href="#cb10-162"></a><span class="in">    } else {</span></span>
-<span id="cb10-163"><a href="#cb10-163"></a><span class="in">      FALSE</span></span>
-<span id="cb10-164"><a href="#cb10-164"></a><span class="in">    }</span></span>
-<span id="cb10-165"><a href="#cb10-165"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-166"><a href="#cb10-166"></a><span class="in">  var_relabel(</span></span>
-<span id="cb10-167"><a href="#cb10-167"></a><span class="in">    ADPBLPFL = "Post-baseline evaluable patients for ADA",</span></span>
-<span id="cb10-168"><a href="#cb10-168"></a><span class="in">    ADAPFL = "Patients positive for ADA",</span></span>
-<span id="cb10-169"><a href="#cb10-169"></a><span class="in">    TENABPFL = "Patients positive for Treatment Emergent NAb",</span></span>
-<span id="cb10-170"><a href="#cb10-170"></a><span class="in">    TINPBFL = "Treatment-induced NAb",</span></span>
-<span id="cb10-171"><a href="#cb10-171"></a><span class="in">    TENPBFL = "Treatment-enhanced NAb",</span></span>
-<span id="cb10-172"><a href="#cb10-172"></a><span class="in">    NABNFL = "Patients negative for NAb",</span></span>
-<span id="cb10-173"><a href="#cb10-173"></a><span class="in">    TUNPBFL = "Treatment unaffected"</span></span>
-<span id="cb10-174"><a href="#cb10-174"></a><span class="in">  )</span></span>
-<span id="cb10-175"><a href="#cb10-175"></a><span class="in">```</span></span>
-<span id="cb10-176"><a href="#cb10-176"></a></span>
-<span id="cb10-177"><a href="#cb10-177"></a><span class="fu">## Summary of Treatment Emergent NAbs</span></span>
-<span id="cb10-178"><a href="#cb10-178"></a></span>
-<span id="cb10-179"><a href="#cb10-179"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb10-180"><a href="#cb10-180"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb10-181"><a href="#cb10-181"></a></span>
-<span id="cb10-182"><a href="#cb10-182"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 --&gt;</span></span>
-<span id="cb10-183"><a href="#cb10-183"></a></span>
-<span id="cb10-184"><a href="#cb10-184"></a><span class="in">```{r variant1, test = list(result_v1 = "result"), opts.label = ifelse(packageVersion("rtables") &lt; "0.6.6.9011", "skip_test_strict", "")}</span></span>
-<span id="cb10-185"><a href="#cb10-185"></a><span class="in"># Layout for Baseline Prevalence of NAbs</span></span>
-<span id="cb10-186"><a href="#cb10-186"></a><span class="in">lyt_bl &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb10-187"><a href="#cb10-187"></a><span class="in">  split_cols_by(</span></span>
-<span id="cb10-188"><a href="#cb10-188"></a><span class="in">    "ACTARM",</span></span>
-<span id="cb10-189"><a href="#cb10-189"></a><span class="in">    split_fun = custom_column_split_fun</span></span>
-<span id="cb10-190"><a href="#cb10-190"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-191"><a href="#cb10-191"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb10-192"><a href="#cb10-192"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb10-193"><a href="#cb10-193"></a><span class="in">    flag_variables = c("ADABLPFL", "PADABLPFL"),</span></span>
-<span id="cb10-194"><a href="#cb10-194"></a><span class="in">    table_names = "t1",</span></span>
-<span id="cb10-195"><a href="#cb10-195"></a><span class="in">    .stats = "count",</span></span>
-<span id="cb10-196"><a href="#cb10-196"></a><span class="in">    var_labels = "Baseline Prevalence of NAbs",</span></span>
-<span id="cb10-197"><a href="#cb10-197"></a><span class="in">    show_labels = "visible"</span></span>
-<span id="cb10-198"><a href="#cb10-198"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-199"><a href="#cb10-199"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb10-200"><a href="#cb10-200"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb10-201"><a href="#cb10-201"></a><span class="in">    flag_variables = "PNABBLFL",</span></span>
-<span id="cb10-202"><a href="#cb10-202"></a><span class="in">    table_names = "t2",</span></span>
-<span id="cb10-203"><a href="#cb10-203"></a><span class="in">    .indent_mods = 1L</span></span>
-<span id="cb10-204"><a href="#cb10-204"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-205"><a href="#cb10-205"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb10-206"><a href="#cb10-206"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb10-207"><a href="#cb10-207"></a><span class="in">    flag_variables = "NNABBLFL",</span></span>
-<span id="cb10-208"><a href="#cb10-208"></a><span class="in">    .stats = "count",</span></span>
-<span id="cb10-209"><a href="#cb10-209"></a><span class="in">    table_names = "t3",</span></span>
-<span id="cb10-210"><a href="#cb10-210"></a><span class="in">    .indent_mods = 1L,</span></span>
-<span id="cb10-211"><a href="#cb10-211"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb10-212"><a href="#cb10-212"></a><span class="in">  )</span></span>
-<span id="cb10-213"><a href="#cb10-213"></a></span>
-<span id="cb10-214"><a href="#cb10-214"></a><span class="in"># Layout for incidence of NAbs</span></span>
-<span id="cb10-215"><a href="#cb10-215"></a><span class="in">lyt_pb &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb10-216"><a href="#cb10-216"></a><span class="in">  split_cols_by(</span></span>
-<span id="cb10-217"><a href="#cb10-217"></a><span class="in">    "ACTARM",</span></span>
-<span id="cb10-218"><a href="#cb10-218"></a><span class="in">    split_fun = custom_column_split_fun</span></span>
-<span id="cb10-219"><a href="#cb10-219"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-220"><a href="#cb10-220"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb10-221"><a href="#cb10-221"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb10-222"><a href="#cb10-222"></a><span class="in">    flag_variables = c("ADPBLPFL", "ADAPFL"),</span></span>
-<span id="cb10-223"><a href="#cb10-223"></a><span class="in">    .stats = "count",</span></span>
-<span id="cb10-224"><a href="#cb10-224"></a><span class="in">    var_labels = "Incidence of Treatment Emergent NAbs",</span></span>
-<span id="cb10-225"><a href="#cb10-225"></a><span class="in">    show_labels = "visible",</span></span>
-<span id="cb10-226"><a href="#cb10-226"></a><span class="in">    table_names = "tb1"</span></span>
-<span id="cb10-227"><a href="#cb10-227"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-228"><a href="#cb10-228"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb10-229"><a href="#cb10-229"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb10-230"><a href="#cb10-230"></a><span class="in">    flag_variables = "TENABPFL",</span></span>
-<span id="cb10-231"><a href="#cb10-231"></a><span class="in">    table_names = "tb2",</span></span>
-<span id="cb10-232"><a href="#cb10-232"></a><span class="in">    .indent_mods = 1L,</span></span>
-<span id="cb10-233"><a href="#cb10-233"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb10-234"><a href="#cb10-234"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-235"><a href="#cb10-235"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb10-236"><a href="#cb10-236"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb10-237"><a href="#cb10-237"></a><span class="in">    flag_variables = c("TINPBFL", "TENPBFL"),</span></span>
-<span id="cb10-238"><a href="#cb10-238"></a><span class="in">    .stats = "count",</span></span>
-<span id="cb10-239"><a href="#cb10-239"></a><span class="in">    table_names = "tb3",</span></span>
-<span id="cb10-240"><a href="#cb10-240"></a><span class="in">    .indent_mods = 1L,</span></span>
-<span id="cb10-241"><a href="#cb10-241"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb10-242"><a href="#cb10-242"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-243"><a href="#cb10-243"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb10-244"><a href="#cb10-244"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb10-245"><a href="#cb10-245"></a><span class="in">    flag_variables = "NABNFL",</span></span>
-<span id="cb10-246"><a href="#cb10-246"></a><span class="in">    table_names = "tb4",</span></span>
-<span id="cb10-247"><a href="#cb10-247"></a><span class="in">    .indent_mods = 1L,</span></span>
-<span id="cb10-248"><a href="#cb10-248"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb10-249"><a href="#cb10-249"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-250"><a href="#cb10-250"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb10-251"><a href="#cb10-251"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb10-252"><a href="#cb10-252"></a><span class="in">    flag_variables = "TUNPBFL",</span></span>
-<span id="cb10-253"><a href="#cb10-253"></a><span class="in">    .stats = "count",</span></span>
-<span id="cb10-254"><a href="#cb10-254"></a><span class="in">    table_names = "tb5",</span></span>
-<span id="cb10-255"><a href="#cb10-255"></a><span class="in">    .indent_mods = 1L,</span></span>
-<span id="cb10-256"><a href="#cb10-256"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb10-257"><a href="#cb10-257"></a><span class="in">  )</span></span>
-<span id="cb10-258"><a href="#cb10-258"></a></span>
-<span id="cb10-259"><a href="#cb10-259"></a><span class="in">result_1 &lt;- build_table(lyt_bl, df = adab_b, alt_counts_df = adsl)</span></span>
-<span id="cb10-260"><a href="#cb10-260"></a><span class="in">result_2 &lt;- build_table(lyt_pb, df = adab_pb, alt_counts_df = adsl)</span></span>
-<span id="cb10-261"><a href="#cb10-261"></a></span>
-<span id="cb10-262"><a href="#cb10-262"></a><span class="in"># Combine tables</span></span>
-<span id="cb10-263"><a href="#cb10-263"></a><span class="in">result &lt;- rbind(result_1, result_2)</span></span>
-<span id="cb10-264"><a href="#cb10-264"></a></span>
-<span id="cb10-265"><a href="#cb10-265"></a><span class="in">main_title(result) &lt;- paste(</span></span>
-<span id="cb10-266"><a href="#cb10-266"></a><span class="in">  "Baseline Prevalence and Incidence of Treatment Emergent NAbs"</span></span>
-<span id="cb10-267"><a href="#cb10-267"></a><span class="in">)</span></span>
-<span id="cb10-268"><a href="#cb10-268"></a><span class="in">subtitles(result) &lt;- paste("Protocol:", unique(adab$PARCAT1)[1])</span></span>
-<span id="cb10-269"><a href="#cb10-269"></a><span class="in"># nolint start: line_length.</span></span>
-<span id="cb10-270"><a href="#cb10-270"></a><span class="in">main_footer(result) &lt;- "NAb = Neutralizing Antibodies ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies) Baseline evaluable patient for ADA = a patient with an ADA assay result from a baseline sample(s)</span></span>
-<span id="cb10-271"><a href="#cb10-271"></a><span class="in">  Baseline evaluable patient for NAb = a patient with a NAb assay result from a baseline sample(s)</span></span>
-<span id="cb10-272"><a href="#cb10-272"></a><span class="in">  Post-baseline evaluable patient for ADA = a patient with an ADA assay result from at least one post-baseline sample</span></span>
-<span id="cb10-273"><a href="#cb10-273"></a><span class="in">  Post-baseline evaluable patient for NAb = a patient with a NAb assay result from at least one post-baseline sample</span></span>
-<span id="cb10-274"><a href="#cb10-274"></a><span class="in">  Number of patients positive for ADA = the number of post-baseline evaluable patients for ADA determined to have Treatment Emergent ADA during the study period.</span></span>
-<span id="cb10-275"><a href="#cb10-275"></a><span class="in">Number of patients positive for Treatment Emergent NAb = the number (and percentage) of post-baseline evaluable patients for ADA determined to have treatment-induced NAb or treatment-enhanced NAb during the study period.</span></span>
-<span id="cb10-276"><a href="#cb10-276"></a><span class="in">Treatment-induced = a patient with negative or missing baseline result(s) and at least one positive post-baseline result. Treatment-enhanced = a patient with positive result at baseline who has one or more post-baseline titer results that are at least 0.60 t.u. greater than the baseline titer result.</span></span>
-<span id="cb10-277"><a href="#cb10-277"></a><span class="in">Number of patients negative for Treatment Emergent NAb = number of post-baseline evaluable patients with negative or missing baseline NAb result(s) and all negative post-baseline NAb results, or a patient who is NAb treatment unaffected.</span></span>
-<span id="cb10-278"><a href="#cb10-278"></a><span class="in">Treatment unaffected = A post-baseline evaluable patient with a positive result at baseline and (a) where all post-baseline titer results are less than 0.60 t.u. greater than the baseline titer result, OR (b) where all post-baseline results are negative or missing. For any positive sample with titer result less than the minimum reportable titer or any positive sample where a titer cannot be obtained, titer value is imputed as equal to the minimum reportable titer."</span></span>
-<span id="cb10-279"><a href="#cb10-279"></a><span class="in"># nolint end: line_length.</span></span>
-<span id="cb10-280"><a href="#cb10-280"></a><span class="in">result</span></span>
-<span id="cb10-281"><a href="#cb10-281"></a><span class="in">```</span></span>
-<span id="cb10-282"><a href="#cb10-282"></a></span>
-<span id="cb10-283"><a href="#cb10-283"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
-<span id="cb10-284"><a href="#cb10-284"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb10-285"><a href="#cb10-285"></a>:::</span>
-<span id="cb10-286"><a href="#cb10-286"></a></span>
-<span id="cb10-287"><a href="#cb10-287"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb10-288"><a href="#cb10-288"></a></span>
-<span id="cb10-289"><a href="#cb10-289"></a><span class="fu">## `teal` App</span></span>
-<span id="cb10-290"><a href="#cb10-290"></a></span>
-<span id="cb10-291"><a href="#cb10-291"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb10-292"><a href="#cb10-292"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb10-293"><a href="#cb10-293"></a></span>
-<span id="cb10-294"><a href="#cb10-294"></a><span class="in"># In progress</span></span>
-<span id="cb10-295"><a href="#cb10-295"></a><span class="in">```</span></span>
-<span id="cb10-296"><a href="#cb10-296"></a></span>
-<span id="cb10-297"><a href="#cb10-297"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb10-298"><a href="#cb10-298"></a></span>
-<span id="cb10-299"><a href="#cb10-299"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb11" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">---</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="an">title:</span><span class="co"> ADAT04A</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="an">subtitle:</span><span class="co"> Baseline Prevalence and Incidence of Treatment Emergent NAbs</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="co">---</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a></span>
+<span id="cb11-6"><a href="#cb11-6"></a>------------------------------------------------------------------------</span>
+<span id="cb11-7"><a href="#cb11-7"></a></span>
+<span id="cb11-8"><a href="#cb11-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb11-9"><a href="#cb11-9"></a></span>
+<span id="cb11-10"><a href="#cb11-10"></a>:::: {.panel-tabset}</span>
+<span id="cb11-11"><a href="#cb11-11"></a><span class="fu">## Data Setup</span></span>
+<span id="cb11-12"><a href="#cb11-12"></a></span>
+<span id="cb11-13"><a href="#cb11-13"></a><span class="in">```{r setup, message = FALSE}</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb11-15"><a href="#cb11-15"></a></span>
+<span id="cb11-16"><a href="#cb11-16"></a><span class="in">library(tern)</span></span>
+<span id="cb11-17"><a href="#cb11-17"></a><span class="in">library(dplyr)</span></span>
+<span id="cb11-18"><a href="#cb11-18"></a><span class="in">library(tibble)</span></span>
+<span id="cb11-19"><a href="#cb11-19"></a></span>
+<span id="cb11-20"><a href="#cb11-20"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb11-21"><a href="#cb11-21"></a><span class="in">adab &lt;- random.cdisc.data::cadab</span></span>
+<span id="cb11-22"><a href="#cb11-22"></a></span>
+<span id="cb11-23"><a href="#cb11-23"></a></span>
+<span id="cb11-24"><a href="#cb11-24"></a><span class="in"># Order needed for the columns is c(1, 3, 4, 2, 5)</span></span>
+<span id="cb11-25"><a href="#cb11-25"></a><span class="in">reorder_facets &lt;- function(splret, spl, fulldf, ...) {</span></span>
+<span id="cb11-26"><a href="#cb11-26"></a><span class="in">  ord &lt;- c(1, 3, 4, 2, 5)</span></span>
+<span id="cb11-27"><a href="#cb11-27"></a><span class="in">  make_split_result(</span></span>
+<span id="cb11-28"><a href="#cb11-28"></a><span class="in">    splret$values[ord],</span></span>
+<span id="cb11-29"><a href="#cb11-29"></a><span class="in">    splret$datasplit[ord],</span></span>
+<span id="cb11-30"><a href="#cb11-30"></a><span class="in">    splret$labels[ord]</span></span>
+<span id="cb11-31"><a href="#cb11-31"></a><span class="in">  )</span></span>
+<span id="cb11-32"><a href="#cb11-32"></a><span class="in">}</span></span>
+<span id="cb11-33"><a href="#cb11-33"></a></span>
+<span id="cb11-34"><a href="#cb11-34"></a><span class="in"># Create a custom split function for adding the new columns (facets) and sorting them</span></span>
+<span id="cb11-35"><a href="#cb11-35"></a><span class="in">custom_column_split_fun &lt;- make_split_fun(</span></span>
+<span id="cb11-36"><a href="#cb11-36"></a><span class="in">  post = list(</span></span>
+<span id="cb11-37"><a href="#cb11-37"></a><span class="in">    add_combo_facet("all_X",</span></span>
+<span id="cb11-38"><a href="#cb11-38"></a><span class="in">      label = "All Drug X",</span></span>
+<span id="cb11-39"><a href="#cb11-39"></a><span class="in">      levels = c("A: Drug X", "C: Combination")</span></span>
+<span id="cb11-40"><a href="#cb11-40"></a><span class="in">    ),</span></span>
+<span id="cb11-41"><a href="#cb11-41"></a><span class="in">    add_combo_facet("all_pt",</span></span>
+<span id="cb11-42"><a href="#cb11-42"></a><span class="in">      label = "All Patients",</span></span>
+<span id="cb11-43"><a href="#cb11-43"></a><span class="in">      levels = c("A: Drug X", "B: Placebo", "C: Combination")</span></span>
+<span id="cb11-44"><a href="#cb11-44"></a><span class="in">    ),</span></span>
+<span id="cb11-45"><a href="#cb11-45"></a><span class="in">    reorder_facets</span></span>
+<span id="cb11-46"><a href="#cb11-46"></a><span class="in">  )</span></span>
+<span id="cb11-47"><a href="#cb11-47"></a><span class="in">)</span></span>
+<span id="cb11-48"><a href="#cb11-48"></a></span>
+<span id="cb11-49"><a href="#cb11-49"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb11-50"><a href="#cb11-50"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb11-51"><a href="#cb11-51"></a></span>
+<span id="cb11-52"><a href="#cb11-52"></a><span class="in"># Baseline Pts</span></span>
+<span id="cb11-53"><a href="#cb11-53"></a><span class="in">adab_b &lt;- df_explicit_na(adab) %&gt;%</span></span>
+<span id="cb11-54"><a href="#cb11-54"></a><span class="in">  filter(</span></span>
+<span id="cb11-55"><a href="#cb11-55"></a><span class="in">    ABLFL == "Y",</span></span>
+<span id="cb11-56"><a href="#cb11-56"></a><span class="in">    ADABLPFL == "Y",</span></span>
+<span id="cb11-57"><a href="#cb11-57"></a><span class="in">    PARAM %in% c(</span></span>
+<span id="cb11-58"><a href="#cb11-58"></a><span class="in">      "ADA interpreted per sample result",</span></span>
+<span id="cb11-59"><a href="#cb11-59"></a><span class="in">      "NAB interpreted per sample result"</span></span>
+<span id="cb11-60"><a href="#cb11-60"></a><span class="in">    )</span></span>
+<span id="cb11-61"><a href="#cb11-61"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-62"><a href="#cb11-62"></a><span class="in">  select(-PARAMCD, -AVALC, -AVALU) %&gt;%</span></span>
+<span id="cb11-63"><a href="#cb11-63"></a><span class="in">  tidyr::pivot_wider(</span></span>
+<span id="cb11-64"><a href="#cb11-64"></a><span class="in">    names_from = PARAM,</span></span>
+<span id="cb11-65"><a href="#cb11-65"></a><span class="in">    values_from = AVAL</span></span>
+<span id="cb11-66"><a href="#cb11-66"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-67"><a href="#cb11-67"></a><span class="in">  mutate(</span></span>
+<span id="cb11-68"><a href="#cb11-68"></a><span class="in">    across(</span></span>
+<span id="cb11-69"><a href="#cb11-69"></a><span class="in">      any_of(c(</span></span>
+<span id="cb11-70"><a href="#cb11-70"></a><span class="in">        "ADA interpreted per sample result",</span></span>
+<span id="cb11-71"><a href="#cb11-71"></a><span class="in">        "NAB interpreted per sample result"</span></span>
+<span id="cb11-72"><a href="#cb11-72"></a><span class="in">      )),</span></span>
+<span id="cb11-73"><a href="#cb11-73"></a><span class="in">      as.logical</span></span>
+<span id="cb11-74"><a href="#cb11-74"></a><span class="in">    )</span></span>
+<span id="cb11-75"><a href="#cb11-75"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-76"><a href="#cb11-76"></a><span class="in">  mutate(</span></span>
+<span id="cb11-77"><a href="#cb11-77"></a><span class="in">    ADABLPFL = ADABLPFL == "Y",</span></span>
+<span id="cb11-78"><a href="#cb11-78"></a><span class="in">    PADABLPFL = if (exists("ADA interpreted per sample result", where = .)) {</span></span>
+<span id="cb11-79"><a href="#cb11-79"></a><span class="in">      `ADA interpreted per sample result` == "TRUE"</span></span>
+<span id="cb11-80"><a href="#cb11-80"></a><span class="in">    } else {</span></span>
+<span id="cb11-81"><a href="#cb11-81"></a><span class="in">      FALSE</span></span>
+<span id="cb11-82"><a href="#cb11-82"></a><span class="in">    },</span></span>
+<span id="cb11-83"><a href="#cb11-83"></a><span class="in">    PNABBLFL = if (exists("NAB interpreted per sample result", where = .)) {</span></span>
+<span id="cb11-84"><a href="#cb11-84"></a><span class="in">      `NAB interpreted per sample result` == "TRUE"</span></span>
+<span id="cb11-85"><a href="#cb11-85"></a><span class="in">    } else {</span></span>
+<span id="cb11-86"><a href="#cb11-86"></a><span class="in">      FALSE</span></span>
+<span id="cb11-87"><a href="#cb11-87"></a><span class="in">    },</span></span>
+<span id="cb11-88"><a href="#cb11-88"></a><span class="in">    NNABBLFL = if (exists("NAB interpreted per sample result", where = .)) {</span></span>
+<span id="cb11-89"><a href="#cb11-89"></a><span class="in">      `NAB interpreted per sample result` == "FALSE"</span></span>
+<span id="cb11-90"><a href="#cb11-90"></a><span class="in">    } else {</span></span>
+<span id="cb11-91"><a href="#cb11-91"></a><span class="in">      FALSE</span></span>
+<span id="cb11-92"><a href="#cb11-92"></a><span class="in">    }</span></span>
+<span id="cb11-93"><a href="#cb11-93"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-94"><a href="#cb11-94"></a><span class="in">  var_relabel(</span></span>
+<span id="cb11-95"><a href="#cb11-95"></a><span class="in">    ADABLPFL = "Baseline evaluable patients for ADA",</span></span>
+<span id="cb11-96"><a href="#cb11-96"></a><span class="in">    PADABLPFL = "Patients with a positive ADA sample at baseline",</span></span>
+<span id="cb11-97"><a href="#cb11-97"></a><span class="in">    PNABBLFL = "Patients with a positive NAb sample at baseline",</span></span>
+<span id="cb11-98"><a href="#cb11-98"></a><span class="in">    NNABBLFL = "Patient with no positive NAb samples at baseline"</span></span>
+<span id="cb11-99"><a href="#cb11-99"></a><span class="in">  )</span></span>
+<span id="cb11-100"><a href="#cb11-100"></a></span>
+<span id="cb11-101"><a href="#cb11-101"></a><span class="in"># Post Baseline Treatment Enhanced NAb positive Pts</span></span>
+<span id="cb11-102"><a href="#cb11-102"></a><span class="in">adab_pb &lt;- df_explicit_na(adab) %&gt;%</span></span>
+<span id="cb11-103"><a href="#cb11-103"></a><span class="in">  filter(</span></span>
+<span id="cb11-104"><a href="#cb11-104"></a><span class="in">    ABLFL != "Y",</span></span>
+<span id="cb11-105"><a href="#cb11-105"></a><span class="in">    ADPBLPFL == "Y",</span></span>
+<span id="cb11-106"><a href="#cb11-106"></a><span class="in">    PARAM %in% c(</span></span>
+<span id="cb11-107"><a href="#cb11-107"></a><span class="in">      "ADA interpreted per sample result",</span></span>
+<span id="cb11-108"><a href="#cb11-108"></a><span class="in">      "Treatment Emergent - Positive, Neutralizing Antibody",</span></span>
+<span id="cb11-109"><a href="#cb11-109"></a><span class="in">      "Treatment induced ADA, Neutralizing Antibody",</span></span>
+<span id="cb11-110"><a href="#cb11-110"></a><span class="in">      "Treatment enhanced ADA, Neutralizing Antibody",</span></span>
+<span id="cb11-111"><a href="#cb11-111"></a><span class="in">      "NAB interpreted per sample result",</span></span>
+<span id="cb11-112"><a href="#cb11-112"></a><span class="in">      "Treatment unaffected, Neutralizing Antibody"</span></span>
+<span id="cb11-113"><a href="#cb11-113"></a><span class="in">    )</span></span>
+<span id="cb11-114"><a href="#cb11-114"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-115"><a href="#cb11-115"></a><span class="in">  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %&gt;%</span></span>
+<span id="cb11-116"><a href="#cb11-116"></a><span class="in">  unique() %&gt;%</span></span>
+<span id="cb11-117"><a href="#cb11-117"></a><span class="in">  tidyr::pivot_wider(</span></span>
+<span id="cb11-118"><a href="#cb11-118"></a><span class="in">    names_from = PARAM,</span></span>
+<span id="cb11-119"><a href="#cb11-119"></a><span class="in">    values_from = AVAL</span></span>
+<span id="cb11-120"><a href="#cb11-120"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-121"><a href="#cb11-121"></a><span class="in">  mutate(</span></span>
+<span id="cb11-122"><a href="#cb11-122"></a><span class="in">    across(</span></span>
+<span id="cb11-123"><a href="#cb11-123"></a><span class="in">      any_of(c(</span></span>
+<span id="cb11-124"><a href="#cb11-124"></a><span class="in">        "ADA interpreted per sample result", "NAB interpreted per sample result",</span></span>
+<span id="cb11-125"><a href="#cb11-125"></a><span class="in">        "Treatment Emergent - Positive, Neutralizing Antibody",</span></span>
+<span id="cb11-126"><a href="#cb11-126"></a><span class="in">        "Treatment induced ADA, Neutralizing Antibody",</span></span>
+<span id="cb11-127"><a href="#cb11-127"></a><span class="in">        "Treatment enhanced ADA, Neutralizing Antibody",</span></span>
+<span id="cb11-128"><a href="#cb11-128"></a><span class="in">        "Treatment unaffected, Neutralizing Antibody"</span></span>
+<span id="cb11-129"><a href="#cb11-129"></a><span class="in">      )),</span></span>
+<span id="cb11-130"><a href="#cb11-130"></a><span class="in">      as.logical</span></span>
+<span id="cb11-131"><a href="#cb11-131"></a><span class="in">    )</span></span>
+<span id="cb11-132"><a href="#cb11-132"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-133"><a href="#cb11-133"></a><span class="in">  mutate(</span></span>
+<span id="cb11-134"><a href="#cb11-134"></a><span class="in">    ADPBLPFL = ADPBLPFL == "Y",</span></span>
+<span id="cb11-135"><a href="#cb11-135"></a><span class="in">    ADAPFL = if (exists("ADA interpreted per sample result", where = .)) {</span></span>
+<span id="cb11-136"><a href="#cb11-136"></a><span class="in">      `ADA interpreted per sample result` == "TRUE"</span></span>
+<span id="cb11-137"><a href="#cb11-137"></a><span class="in">    } else {</span></span>
+<span id="cb11-138"><a href="#cb11-138"></a><span class="in">      FALSE</span></span>
+<span id="cb11-139"><a href="#cb11-139"></a><span class="in">    },</span></span>
+<span id="cb11-140"><a href="#cb11-140"></a><span class="in">    TENABPFL = if (exists("Treatment Emergent - Positive, Neutralizing Antibody", where = .)) {</span></span>
+<span id="cb11-141"><a href="#cb11-141"></a><span class="in">      `Treatment Emergent - Positive, Neutralizing Antibody` == "TRUE"</span></span>
+<span id="cb11-142"><a href="#cb11-142"></a><span class="in">    } else {</span></span>
+<span id="cb11-143"><a href="#cb11-143"></a><span class="in">      FALSE</span></span>
+<span id="cb11-144"><a href="#cb11-144"></a><span class="in">    },</span></span>
+<span id="cb11-145"><a href="#cb11-145"></a><span class="in">    TINPBFL = if (exists("Treatment induced ADA, Neutralizing Antibody", where = .)) {</span></span>
+<span id="cb11-146"><a href="#cb11-146"></a><span class="in">      `Treatment induced ADA, Neutralizing Antibody` == "TRUE"</span></span>
+<span id="cb11-147"><a href="#cb11-147"></a><span class="in">    } else {</span></span>
+<span id="cb11-148"><a href="#cb11-148"></a><span class="in">      FALSE</span></span>
+<span id="cb11-149"><a href="#cb11-149"></a><span class="in">    },</span></span>
+<span id="cb11-150"><a href="#cb11-150"></a><span class="in">    TENPBFL = if (exists("Treatment enhanced ADA, Neutralizing Antibody", where = .)) {</span></span>
+<span id="cb11-151"><a href="#cb11-151"></a><span class="in">      `Treatment enhanced ADA, Neutralizing Antibody` == "TRUE"</span></span>
+<span id="cb11-152"><a href="#cb11-152"></a><span class="in">    } else {</span></span>
+<span id="cb11-153"><a href="#cb11-153"></a><span class="in">      FALSE</span></span>
+<span id="cb11-154"><a href="#cb11-154"></a><span class="in">    },</span></span>
+<span id="cb11-155"><a href="#cb11-155"></a><span class="in">    NABNFL = if (exists("NAB interpreted per sample result", where = .)) {</span></span>
+<span id="cb11-156"><a href="#cb11-156"></a><span class="in">      `NAB interpreted per sample result` == "FALSE"</span></span>
+<span id="cb11-157"><a href="#cb11-157"></a><span class="in">    } else {</span></span>
+<span id="cb11-158"><a href="#cb11-158"></a><span class="in">      FALSE</span></span>
+<span id="cb11-159"><a href="#cb11-159"></a><span class="in">    },</span></span>
+<span id="cb11-160"><a href="#cb11-160"></a><span class="in">    TUNPBFL = if (exists("Treatment unaffected, Neutralizing Antibody", where = .)) {</span></span>
+<span id="cb11-161"><a href="#cb11-161"></a><span class="in">      `Treatment unaffected, Neutralizing Antibody` == "TRUE"</span></span>
+<span id="cb11-162"><a href="#cb11-162"></a><span class="in">    } else {</span></span>
+<span id="cb11-163"><a href="#cb11-163"></a><span class="in">      FALSE</span></span>
+<span id="cb11-164"><a href="#cb11-164"></a><span class="in">    }</span></span>
+<span id="cb11-165"><a href="#cb11-165"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-166"><a href="#cb11-166"></a><span class="in">  var_relabel(</span></span>
+<span id="cb11-167"><a href="#cb11-167"></a><span class="in">    ADPBLPFL = "Post-baseline evaluable patients for ADA",</span></span>
+<span id="cb11-168"><a href="#cb11-168"></a><span class="in">    ADAPFL = "Patients positive for ADA",</span></span>
+<span id="cb11-169"><a href="#cb11-169"></a><span class="in">    TENABPFL = "Patients positive for Treatment Emergent NAb",</span></span>
+<span id="cb11-170"><a href="#cb11-170"></a><span class="in">    TINPBFL = "Treatment-induced NAb",</span></span>
+<span id="cb11-171"><a href="#cb11-171"></a><span class="in">    TENPBFL = "Treatment-enhanced NAb",</span></span>
+<span id="cb11-172"><a href="#cb11-172"></a><span class="in">    NABNFL = "Patients negative for NAb",</span></span>
+<span id="cb11-173"><a href="#cb11-173"></a><span class="in">    TUNPBFL = "Treatment unaffected"</span></span>
+<span id="cb11-174"><a href="#cb11-174"></a><span class="in">  )</span></span>
+<span id="cb11-175"><a href="#cb11-175"></a><span class="in">```</span></span>
+<span id="cb11-176"><a href="#cb11-176"></a></span>
+<span id="cb11-177"><a href="#cb11-177"></a><span class="fu">## Summary of Treatment Emergent NAbs</span></span>
+<span id="cb11-178"><a href="#cb11-178"></a></span>
+<span id="cb11-179"><a href="#cb11-179"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb11-180"><a href="#cb11-180"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb11-181"><a href="#cb11-181"></a></span>
+<span id="cb11-182"><a href="#cb11-182"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 --&gt;</span></span>
+<span id="cb11-183"><a href="#cb11-183"></a></span>
+<span id="cb11-184"><a href="#cb11-184"></a><span class="in">```{r variant1, test = list(result_v1 = "result"), opts.label = ifelse(packageVersion("rtables") &lt; "0.6.6.9011", "skip_test_strict", "")}</span></span>
+<span id="cb11-185"><a href="#cb11-185"></a><span class="in"># Layout for Baseline Prevalence of NAbs</span></span>
+<span id="cb11-186"><a href="#cb11-186"></a><span class="in">lyt_bl &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb11-187"><a href="#cb11-187"></a><span class="in">  split_cols_by(</span></span>
+<span id="cb11-188"><a href="#cb11-188"></a><span class="in">    "ACTARM",</span></span>
+<span id="cb11-189"><a href="#cb11-189"></a><span class="in">    split_fun = custom_column_split_fun</span></span>
+<span id="cb11-190"><a href="#cb11-190"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-191"><a href="#cb11-191"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb11-192"><a href="#cb11-192"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb11-193"><a href="#cb11-193"></a><span class="in">    flag_variables = c("ADABLPFL", "PADABLPFL"),</span></span>
+<span id="cb11-194"><a href="#cb11-194"></a><span class="in">    table_names = "t1",</span></span>
+<span id="cb11-195"><a href="#cb11-195"></a><span class="in">    .stats = "count",</span></span>
+<span id="cb11-196"><a href="#cb11-196"></a><span class="in">    var_labels = "Baseline Prevalence of NAbs",</span></span>
+<span id="cb11-197"><a href="#cb11-197"></a><span class="in">    show_labels = "visible"</span></span>
+<span id="cb11-198"><a href="#cb11-198"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-199"><a href="#cb11-199"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb11-200"><a href="#cb11-200"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb11-201"><a href="#cb11-201"></a><span class="in">    flag_variables = "PNABBLFL",</span></span>
+<span id="cb11-202"><a href="#cb11-202"></a><span class="in">    table_names = "t2",</span></span>
+<span id="cb11-203"><a href="#cb11-203"></a><span class="in">    .indent_mods = 1L</span></span>
+<span id="cb11-204"><a href="#cb11-204"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-205"><a href="#cb11-205"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb11-206"><a href="#cb11-206"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb11-207"><a href="#cb11-207"></a><span class="in">    flag_variables = "NNABBLFL",</span></span>
+<span id="cb11-208"><a href="#cb11-208"></a><span class="in">    .stats = "count",</span></span>
+<span id="cb11-209"><a href="#cb11-209"></a><span class="in">    table_names = "t3",</span></span>
+<span id="cb11-210"><a href="#cb11-210"></a><span class="in">    .indent_mods = 1L,</span></span>
+<span id="cb11-211"><a href="#cb11-211"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb11-212"><a href="#cb11-212"></a><span class="in">  )</span></span>
+<span id="cb11-213"><a href="#cb11-213"></a></span>
+<span id="cb11-214"><a href="#cb11-214"></a><span class="in"># Layout for incidence of NAbs</span></span>
+<span id="cb11-215"><a href="#cb11-215"></a><span class="in">lyt_pb &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb11-216"><a href="#cb11-216"></a><span class="in">  split_cols_by(</span></span>
+<span id="cb11-217"><a href="#cb11-217"></a><span class="in">    "ACTARM",</span></span>
+<span id="cb11-218"><a href="#cb11-218"></a><span class="in">    split_fun = custom_column_split_fun</span></span>
+<span id="cb11-219"><a href="#cb11-219"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-220"><a href="#cb11-220"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb11-221"><a href="#cb11-221"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb11-222"><a href="#cb11-222"></a><span class="in">    flag_variables = c("ADPBLPFL", "ADAPFL"),</span></span>
+<span id="cb11-223"><a href="#cb11-223"></a><span class="in">    .stats = "count",</span></span>
+<span id="cb11-224"><a href="#cb11-224"></a><span class="in">    var_labels = "Incidence of Treatment Emergent NAbs",</span></span>
+<span id="cb11-225"><a href="#cb11-225"></a><span class="in">    show_labels = "visible",</span></span>
+<span id="cb11-226"><a href="#cb11-226"></a><span class="in">    table_names = "tb1"</span></span>
+<span id="cb11-227"><a href="#cb11-227"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-228"><a href="#cb11-228"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb11-229"><a href="#cb11-229"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb11-230"><a href="#cb11-230"></a><span class="in">    flag_variables = "TENABPFL",</span></span>
+<span id="cb11-231"><a href="#cb11-231"></a><span class="in">    table_names = "tb2",</span></span>
+<span id="cb11-232"><a href="#cb11-232"></a><span class="in">    .indent_mods = 1L,</span></span>
+<span id="cb11-233"><a href="#cb11-233"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb11-234"><a href="#cb11-234"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-235"><a href="#cb11-235"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb11-236"><a href="#cb11-236"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb11-237"><a href="#cb11-237"></a><span class="in">    flag_variables = c("TINPBFL", "TENPBFL"),</span></span>
+<span id="cb11-238"><a href="#cb11-238"></a><span class="in">    .stats = "count",</span></span>
+<span id="cb11-239"><a href="#cb11-239"></a><span class="in">    table_names = "tb3",</span></span>
+<span id="cb11-240"><a href="#cb11-240"></a><span class="in">    .indent_mods = 1L,</span></span>
+<span id="cb11-241"><a href="#cb11-241"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb11-242"><a href="#cb11-242"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-243"><a href="#cb11-243"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb11-244"><a href="#cb11-244"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb11-245"><a href="#cb11-245"></a><span class="in">    flag_variables = "NABNFL",</span></span>
+<span id="cb11-246"><a href="#cb11-246"></a><span class="in">    table_names = "tb4",</span></span>
+<span id="cb11-247"><a href="#cb11-247"></a><span class="in">    .indent_mods = 1L,</span></span>
+<span id="cb11-248"><a href="#cb11-248"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb11-249"><a href="#cb11-249"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-250"><a href="#cb11-250"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb11-251"><a href="#cb11-251"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb11-252"><a href="#cb11-252"></a><span class="in">    flag_variables = "TUNPBFL",</span></span>
+<span id="cb11-253"><a href="#cb11-253"></a><span class="in">    .stats = "count",</span></span>
+<span id="cb11-254"><a href="#cb11-254"></a><span class="in">    table_names = "tb5",</span></span>
+<span id="cb11-255"><a href="#cb11-255"></a><span class="in">    .indent_mods = 1L,</span></span>
+<span id="cb11-256"><a href="#cb11-256"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb11-257"><a href="#cb11-257"></a><span class="in">  )</span></span>
+<span id="cb11-258"><a href="#cb11-258"></a></span>
+<span id="cb11-259"><a href="#cb11-259"></a><span class="in">result_1 &lt;- build_table(lyt_bl, df = adab_b, alt_counts_df = adsl)</span></span>
+<span id="cb11-260"><a href="#cb11-260"></a><span class="in">result_2 &lt;- build_table(lyt_pb, df = adab_pb, alt_counts_df = adsl)</span></span>
+<span id="cb11-261"><a href="#cb11-261"></a></span>
+<span id="cb11-262"><a href="#cb11-262"></a><span class="in"># Combine tables</span></span>
+<span id="cb11-263"><a href="#cb11-263"></a><span class="in">result &lt;- rbind(result_1, result_2)</span></span>
+<span id="cb11-264"><a href="#cb11-264"></a></span>
+<span id="cb11-265"><a href="#cb11-265"></a><span class="in">main_title(result) &lt;- paste(</span></span>
+<span id="cb11-266"><a href="#cb11-266"></a><span class="in">  "Baseline Prevalence and Incidence of Treatment Emergent NAbs"</span></span>
+<span id="cb11-267"><a href="#cb11-267"></a><span class="in">)</span></span>
+<span id="cb11-268"><a href="#cb11-268"></a><span class="in">subtitles(result) &lt;- paste("Protocol:", unique(adab$PARCAT1)[1])</span></span>
+<span id="cb11-269"><a href="#cb11-269"></a><span class="in"># nolint start: line_length.</span></span>
+<span id="cb11-270"><a href="#cb11-270"></a><span class="in">main_footer(result) &lt;- "NAb = Neutralizing Antibodies ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies) Baseline evaluable patient for ADA = a patient with an ADA assay result from a baseline sample(s)</span></span>
+<span id="cb11-271"><a href="#cb11-271"></a><span class="in">  Baseline evaluable patient for NAb = a patient with a NAb assay result from a baseline sample(s)</span></span>
+<span id="cb11-272"><a href="#cb11-272"></a><span class="in">  Post-baseline evaluable patient for ADA = a patient with an ADA assay result from at least one post-baseline sample</span></span>
+<span id="cb11-273"><a href="#cb11-273"></a><span class="in">  Post-baseline evaluable patient for NAb = a patient with a NAb assay result from at least one post-baseline sample</span></span>
+<span id="cb11-274"><a href="#cb11-274"></a><span class="in">  Number of patients positive for ADA = the number of post-baseline evaluable patients for ADA determined to have Treatment Emergent ADA during the study period.</span></span>
+<span id="cb11-275"><a href="#cb11-275"></a><span class="in">Number of patients positive for Treatment Emergent NAb = the number (and percentage) of post-baseline evaluable patients for ADA determined to have treatment-induced NAb or treatment-enhanced NAb during the study period.</span></span>
+<span id="cb11-276"><a href="#cb11-276"></a><span class="in">Treatment-induced = a patient with negative or missing baseline result(s) and at least one positive post-baseline result. Treatment-enhanced = a patient with positive result at baseline who has one or more post-baseline titer results that are at least 0.60 t.u. greater than the baseline titer result.</span></span>
+<span id="cb11-277"><a href="#cb11-277"></a><span class="in">Number of patients negative for Treatment Emergent NAb = number of post-baseline evaluable patients with negative or missing baseline NAb result(s) and all negative post-baseline NAb results, or a patient who is NAb treatment unaffected.</span></span>
+<span id="cb11-278"><a href="#cb11-278"></a><span class="in">Treatment unaffected = A post-baseline evaluable patient with a positive result at baseline and (a) where all post-baseline titer results are less than 0.60 t.u. greater than the baseline titer result, OR (b) where all post-baseline results are negative or missing. For any positive sample with titer result less than the minimum reportable titer or any positive sample where a titer cannot be obtained, titer value is imputed as equal to the minimum reportable titer."</span></span>
+<span id="cb11-279"><a href="#cb11-279"></a><span class="in"># nolint end: line_length.</span></span>
+<span id="cb11-280"><a href="#cb11-280"></a><span class="in">result</span></span>
+<span id="cb11-281"><a href="#cb11-281"></a><span class="in">```</span></span>
+<span id="cb11-282"><a href="#cb11-282"></a></span>
+<span id="cb11-283"><a href="#cb11-283"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
+<span id="cb11-284"><a href="#cb11-284"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb11-285"><a href="#cb11-285"></a>:::</span>
+<span id="cb11-286"><a href="#cb11-286"></a></span>
+<span id="cb11-287"><a href="#cb11-287"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb11-288"><a href="#cb11-288"></a></span>
+<span id="cb11-289"><a href="#cb11-289"></a><span class="fu">## `teal` App</span></span>
+<span id="cb11-290"><a href="#cb11-290"></a></span>
+<span id="cb11-291"><a href="#cb11-291"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb11-292"><a href="#cb11-292"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb11-293"><a href="#cb11-293"></a></span>
+<span id="cb11-294"><a href="#cb11-294"></a><span class="in"># In progress</span></span>
+<span id="cb11-295"><a href="#cb11-295"></a><span class="in">```</span></span>
+<span id="cb11-296"><a href="#cb11-296"></a></span>
+<span id="cb11-297"><a href="#cb11-297"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb11-298"><a href="#cb11-298"></a></span>
+<span id="cb11-299"><a href="#cb11-299"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
