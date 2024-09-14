@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.5.56">
+<meta name="generator" content="quarto-1.5.57">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>AET01 – TLG Catalog - Dev</title>
 <style>
@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(\n  adae,\n  omit_columns = c(\"SMQ01NAM\", \"SMQ01SC\", \"SMQ02NAM\", \"SMQ02SC\", \"CQ01NAM\", \"STUDYID\", \"USUBJID\")\n)\n\nset.seed(99)\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = with_label(as.character(AEDECOD), \"Dictionary-Derived Term\"),\n    AESDTH = with_label(\n      sample(c(\"N\", \"Y\"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)),\n      \"Results in Death\"\n    ),\n    AEACN = with_label(\n      sample(\n        c(\"DOSE NOT CHANGED\", \"DOSE INCREASED\", \"DRUG INTERRUPTED\", \"DRUG WITHDRAWN\"),\n        size = nrow(adae),\n        replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)\n      ),\n      \"Action Taken with Study Treatment\"\n    ),\n    FATAL = with_label(AESDTH == \"Y\", \"AE with fatal outcome\"),\n    SEV = with_label(AESEV == \"SEVERE\", \"Severe AE (at greatest intensity)\"),\n    SER = with_label(AESER == \"Y\", \"Serious AE\"),\n    SERWD = with_label(AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Serious AE leading to withdrawal from treatment\"),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Serious AE leading to dose modification/interruption\"\n    ),\n    RELSER = with_label(AESER == \"Y\" & AEREL == \"Y\", \"Related Serious AE\"),\n    WD = with_label(AEACN == \"DRUG WITHDRAWN\", \"AE leading to withdrawal from treatment\"),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"), \"AE leading to dose modification/interruption\"\n    ),\n    REL = with_label(AEREL == \"Y\", \"Related AE\"),\n    RELWD = with_label(AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Related AE leading to withdrawal from treatment\"),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Related AE leading to dose modification/interruption\"\n    ),\n    CTC35 = with_label(AETOXGR %in% c(\"3\", \"4\", \"5\"), \"Grade 3-5 AE\"),\n    CTC45 = with_label(AETOXGR %in% c(\"4\", \"5\"), \"Grade 4/5 AE\"),\n    SMQ01 = with_label(SMQ01NAM != \"\", aesi_label(adae$SMQ01NAM, adae$SMQ01SC)),\n    SMQ02 = with_label(SMQ02NAM != \"\", aesi_label(adae$SMQ02NAM, adae$SMQ02SC)),\n    CQ01 = with_label(CQ01NAM != \"\", aesi_label(adae$CQ01NAM)),\n    USUBJID_AESEQ = paste(USUBJID, AESEQ, sep = \"@@\") # Create unique ID per AE in dataset.\n  ) %>%\n  filter(ANL01FL == \"Y\")\naesi_vars <- c(\"FATAL\", \"SER\", \"SERWD\", \"SERDSM\", \"RELSER\", \"WD\", \"DSM\", \"REL\", \"RELWD\", \"RELDSM\", \"SEV\")\n\n# Layout for variables from adsl dataset.\nlyt_adsl <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DTHFL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of deaths\")\n  ) %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DCSREAS\" = \"ADVERSE EVENT\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients withdrawn from study due to an AE\"),\n    table_names = \"tot_wd\"\n  )\n\nresult_adsl <- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)\n\n# Layout for variables from adae dataset.\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  analyze_num_patients(\n    vars = \"USUBJID\",\n    .stats = c(\"unique\", \"nonunique\"),\n    .labels = c(\n      unique = \"Total number of patients with at least one AE\",\n      nonunique = \"Total number of AEs\"\n    ),\n    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = \"xx\"),\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_vars,\n    denom = \"N_col\",\n    var_labels = \"Total number of patients with at least one\",\n    show_labels = \"visible\"\n  )\n\nresult_adae <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)\n\n# Combine tables.\ncol_info(result_adsl) <- col_info(result_adae)\nresult <- rbind(\n  result_adae[1:2, ],\n  result_adsl,\n  result_adae[3:nrow(result_adae), ]\n)\n\nresult","id":1,"options":{"read-only":"false","label":"unnamed-chunk-1","comment":"","output":"true","out-width":"700px","warning":"true","editor-quick-suggestions":"false","out-height":"","classes":"","autorun":"true","results":"markup","fig-height":5,"fig-width":7,"editor-font-scale":1,"context":"interactive","editor-max-height":"500","message":"true","dpi":72,"fig-cap":""}},{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(\n  adae,\n  omit_columns = c(\"SMQ01NAM\", \"SMQ01SC\", \"SMQ02NAM\", \"SMQ02SC\", \"CQ01NAM\", \"STUDYID\", \"USUBJID\")\n)\n\nset.seed(99)\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = with_label(as.character(AEDECOD), \"Dictionary-Derived Term\"),\n    AESDTH = with_label(\n      sample(c(\"N\", \"Y\"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)),\n      \"Results in Death\"\n    ),\n    AEACN = with_label(\n      sample(\n        c(\"DOSE NOT CHANGED\", \"DOSE INCREASED\", \"DRUG INTERRUPTED\", \"DRUG WITHDRAWN\"),\n        size = nrow(adae),\n        replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)\n      ),\n      \"Action Taken with Study Treatment\"\n    ),\n    FATAL = with_label(AESDTH == \"Y\", \"AE with fatal outcome\"),\n    SEV = with_label(AESEV == \"SEVERE\", \"Severe AE (at greatest intensity)\"),\n    SER = with_label(AESER == \"Y\", \"Serious AE\"),\n    SERWD = with_label(AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Serious AE leading to withdrawal from treatment\"),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Serious AE leading to dose modification/interruption\"\n    ),\n    RELSER = with_label(AESER == \"Y\" & AEREL == \"Y\", \"Related Serious AE\"),\n    WD = with_label(AEACN == \"DRUG WITHDRAWN\", \"AE leading to withdrawal from treatment\"),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"), \"AE leading to dose modification/interruption\"\n    ),\n    REL = with_label(AEREL == \"Y\", \"Related AE\"),\n    RELWD = with_label(AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Related AE leading to withdrawal from treatment\"),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Related AE leading to dose modification/interruption\"\n    ),\n    CTC35 = with_label(AETOXGR %in% c(\"3\", \"4\", \"5\"), \"Grade 3-5 AE\"),\n    CTC45 = with_label(AETOXGR %in% c(\"4\", \"5\"), \"Grade 4/5 AE\"),\n    SMQ01 = with_label(SMQ01NAM != \"\", aesi_label(adae$SMQ01NAM, adae$SMQ01SC)),\n    SMQ02 = with_label(SMQ02NAM != \"\", aesi_label(adae$SMQ02NAM, adae$SMQ02SC)),\n    CQ01 = with_label(CQ01NAM != \"\", aesi_label(adae$CQ01NAM)),\n    USUBJID_AESEQ = paste(USUBJID, AESEQ, sep = \"@@\") # Create unique ID per AE in dataset.\n  ) %>%\n  filter(ANL01FL == \"Y\")\naesi_vars <- c(\"FATAL\", \"SER\", \"SERWD\", \"SERDSM\", \"RELSER\", \"WD\", \"DSM\", \"REL\", \"RELWD\", \"RELDSM\", \"CTC35\")\nbasket_vars <- c(\"SMQ01\", \"SMQ02\", \"CQ01\")\n\n# Layout for variables from adsl dataset.\nlyt_adsl <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DTHFL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of deaths\")\n  ) %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DCSREAS\" = \"ADVERSE EVENT\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients withdrawn from study due to an AE\"),\n    table_names = \"tot_wd\"\n  )\n\nresult_adsl <- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)\n\n# Layout for variables from adae dataset.\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  analyze_num_patients(\n    vars = \"USUBJID\",\n    .stats = c(\"unique\", \"nonunique\"),\n    .labels = c(\n      unique = \"Total number of patients with at least one AE\",\n      nonunique = \"Total number of AEs\"\n    ),\n    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = \"xx\"),\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_vars,\n    denom = \"N_col\",\n    var_labels = \"Total number of patients with at least one\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = basket_vars,\n    table_names = \"table_aesi\",\n    denom = \"N_col\",\n    var_labels = \"Total number of patients with at least one\",\n    show_labels = \"visible\"\n  )\n\nresult_adae <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)\n\n# Combine tables.\ncol_info(result_adsl) <- col_info(result_adae)\nresult <- rbind(\n  result_adae[1:2, ],\n  result_adsl,\n  result_adae[3:nrow(result_adae), ]\n)\n\nresult","id":2,"options":{"read-only":"false","label":"unnamed-chunk-2","comment":"","output":"true","out-width":"700px","warning":"true","editor-quick-suggestions":"false","out-height":"","classes":"","autorun":"true","results":"markup","fig-height":5,"fig-width":7,"editor-font-scale":1,"context":"interactive","editor-max-height":"500","message":"true","dpi":72,"fig-cap":""}},{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(\n  adae,\n  omit_columns = c(\"SMQ01NAM\", \"SMQ01SC\", \"SMQ02NAM\", \"SMQ02SC\", \"CQ01NAM\", \"STUDYID\", \"USUBJID\")\n)\n\nset.seed(99)\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = with_label(as.character(AEDECOD), \"Dictionary-Derived Term\"),\n    AESDTH = with_label(\n      sample(c(\"N\", \"Y\"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)),\n      \"Results in Death\"\n    ),\n    AEACN = with_label(\n      sample(\n        c(\"DOSE NOT CHANGED\", \"DOSE INCREASED\", \"DRUG INTERRUPTED\", \"DRUG WITHDRAWN\"),\n        size = nrow(adae),\n        replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)\n      ),\n      \"Action Taken with Study Treatment\"\n    ),\n    FATAL = with_label(AESDTH == \"Y\", \"AE with fatal outcome\"),\n    SEV = with_label(AESEV == \"SEVERE\", \"Severe AE (at greatest intensity)\"),\n    SER = with_label(AESER == \"Y\", \"Serious AE\"),\n    SERWD = with_label(AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Serious AE leading to withdrawal from treatment\"),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Serious AE leading to dose modification/interruption\"\n    ),\n    RELSER = with_label(AESER == \"Y\" & AEREL == \"Y\", \"Related Serious AE\"),\n    WD = with_label(AEACN == \"DRUG WITHDRAWN\", \"AE leading to withdrawal from treatment\"),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"), \"AE leading to dose modification/interruption\"\n    ),\n    REL = with_label(AEREL == \"Y\", \"Related AE\"),\n    RELWD = with_label(AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Related AE leading to withdrawal from treatment\"),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Related AE leading to dose modification/interruption\"\n    ),\n    CTC35 = with_label(AETOXGR %in% c(\"3\", \"4\", \"5\"), \"Grade 3-5 AE\"),\n    CTC45 = with_label(AETOXGR %in% c(\"4\", \"5\"), \"Grade 4/5 AE\"),\n    SMQ01 = with_label(SMQ01NAM != \"\", aesi_label(adae$SMQ01NAM, adae$SMQ01SC)),\n    SMQ02 = with_label(SMQ02NAM != \"\", aesi_label(adae$SMQ02NAM, adae$SMQ02SC)),\n    CQ01 = with_label(CQ01NAM != \"\", aesi_label(adae$CQ01NAM)),\n    USUBJID_AESEQ = paste(USUBJID, AESEQ, sep = \"@@\") # Create unique ID per AE in dataset.\n  ) %>%\n  filter(ANL01FL == \"Y\")\naesi_vars <- c(\"FATAL\", \"SER\", \"WD\", \"REL\", \"CTC35\", \"CTC45\")\n# Layout for variables from adsl dataset.\nlyt_adsl <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DTHFL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of deaths\")\n  ) %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DCSREAS\" = \"ADVERSE EVENT\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients withdrawn from study due to an AE\"),\n    table_names = \"tot_wd\"\n  ) %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DCSREAS\" = \"WITHDRAWAL BY SUBJECT\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients withdrawn informed consent\"),\n    table_names = \"tot_dscsreas_wd\"\n  )\nresult_adsl <- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)\n\n# Layout for variables from adae dataset.\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  analyze_num_patients(\n    vars = \"USUBJID\",\n    .stats = c(\"unique\", \"nonunique\"),\n    .labels = c(\n      unique = \"Total number of patients with at least one AE\",\n      nonunique = \"Total number of AEs\"\n    ),\n    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = \"xx\"),\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_vars,\n    denom = \"N_col\",\n    var_labels = \"Total number of patients with at least one\",\n    show_labels = \"visible\"\n  )\nresult_adae <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)\n\n# Combine tables.\ncol_info(result_adsl) <- col_info(result_adae)\nresult <- rbind(\n  result_adae[1:2, ],\n  result_adsl,\n  result_adae[3:nrow(result_adae), ]\n)\n\nresult","id":3,"options":{"read-only":"false","label":"unnamed-chunk-3","comment":"","output":"true","out-width":"700px","warning":"true","editor-quick-suggestions":"false","out-height":"","classes":"","autorun":"true","results":"markup","fig-height":5,"fig-width":7,"editor-font-scale":1,"context":"interactive","editor-max-height":"500","message":"true","dpi":72,"fig-cap":""}},{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(\n  adae,\n  omit_columns = c(\"SMQ01NAM\", \"SMQ01SC\", \"SMQ02NAM\", \"SMQ02SC\", \"CQ01NAM\", \"STUDYID\", \"USUBJID\")\n)\n\nset.seed(99)\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = with_label(as.character(AEDECOD), \"Dictionary-Derived Term\"),\n    AESDTH = with_label(\n      sample(c(\"N\", \"Y\"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)),\n      \"Results in Death\"\n    ),\n    AEACN = with_label(\n      sample(\n        c(\"DOSE NOT CHANGED\", \"DOSE INCREASED\", \"DRUG INTERRUPTED\", \"DRUG WITHDRAWN\"),\n        size = nrow(adae),\n        replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)\n      ),\n      \"Action Taken with Study Treatment\"\n    ),\n    FATAL = with_label(AESDTH == \"Y\", \"AE with fatal outcome\"),\n    SEV = with_label(AESEV == \"SEVERE\", \"Severe AE (at greatest intensity)\"),\n    SER = with_label(AESER == \"Y\", \"Serious AE\"),\n    SERWD = with_label(AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Serious AE leading to withdrawal from treatment\"),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Serious AE leading to dose modification/interruption\"\n    ),\n    RELSER = with_label(AESER == \"Y\" & AEREL == \"Y\", \"Related Serious AE\"),\n    WD = with_label(AEACN == \"DRUG WITHDRAWN\", \"AE leading to withdrawal from treatment\"),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"), \"AE leading to dose modification/interruption\"\n    ),\n    REL = with_label(AEREL == \"Y\", \"Related AE\"),\n    RELWD = with_label(AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Related AE leading to withdrawal from treatment\"),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Related AE leading to dose modification/interruption\"\n    ),\n    CTC35 = with_label(AETOXGR %in% c(\"3\", \"4\", \"5\"), \"Grade 3-5 AE\"),\n    CTC45 = with_label(AETOXGR %in% c(\"4\", \"5\"), \"Grade 4/5 AE\"),\n    SMQ01 = with_label(SMQ01NAM != \"\", aesi_label(adae$SMQ01NAM, adae$SMQ01SC)),\n    SMQ02 = with_label(SMQ02NAM != \"\", aesi_label(adae$SMQ02NAM, adae$SMQ02SC)),\n    CQ01 = with_label(CQ01NAM != \"\", aesi_label(adae$CQ01NAM)),\n    USUBJID_AESEQ = paste(USUBJID, AESEQ, sep = \"@@\") # Create unique ID per AE in dataset.\n  ) %>%\n  filter(ANL01FL == \"Y\")\ncount_subj_vars <- c(\"FATAL\", \"SER\", \"WD\", \"DSM\", \"REL\", \"CTC35\")\ncount_term_vars <- c(\"SER\", \"DSM\", \"REL\", \"CTC35\", \"CTC45\")\ncount_ae_vars <- c(\"SER\", \"DSM\", \"REL\", \"CTC35\", \"CTC45\")\n\n# Layout for variables from adsl dataset.\nlyt_adsl <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DTHFL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of deaths\")\n  ) %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DCSREAS\" = \"ADVERSE EVENT\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients withdrawn from study due to an AE\"),\n    table_names = \"tot_wd\"\n  )\n\nresult_adsl <- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)\n\n# Layout for variables from adae dataset.\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  analyze_num_patients(\n    vars = \"USUBJID\",\n    .stats = c(\"unique\", \"nonunique\"),\n    .labels = c(\n      unique = \"Total number of patients with at least one AE\",\n      nonunique = \"Total number of AEs\"\n    ),\n    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = \"xx\"),\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = count_subj_vars,\n    denom = \"N_col\",\n    var_labels = \"Total number of patients with at least one\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\n    \"AEDECOD\",\n    flag_variables = count_term_vars,\n    .stats = \"count\",\n    .formats = c(count = \"xx\"),\n    table_names = \"table_term\",\n    var_labels = \"Total number of unique preferred terms which are\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID_AESEQ\",\n    flag_variables = count_ae_vars,\n    .stats = \"count\",\n    .formats = c(count = \"xx\"),\n    table_names = \"table_ae\",\n    var_labels = \"Total number of adverse events which are\",\n    show_labels = \"visible\"\n  )\n\nresult_adae <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)\n\n# Combine tables.\ncol_info(result_adsl) <- col_info(result_adae)\nresult <- rbind(\n  result_adae[1:2, ],\n  result_adsl,\n  result_adae[3:nrow(result_adae), ]\n)\n\nresult","id":4,"options":{"read-only":"false","label":"unnamed-chunk-4","comment":"","output":"true","out-width":"700px","warning":"true","editor-quick-suggestions":"false","out-height":"","classes":"","autorun":"true","results":"markup","fig-height":5,"fig-width":7,"editor-font-scale":1,"context":"interactive","editor-max-height":"500","message":"true","dpi":72,"fig-cap":""}}];
+globalThis.qwebrCellDetails = [{"id":1,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(\n  adae,\n  omit_columns = c(\"SMQ01NAM\", \"SMQ01SC\", \"SMQ02NAM\", \"SMQ02SC\", \"CQ01NAM\", \"STUDYID\", \"USUBJID\")\n)\n\nset.seed(99)\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = with_label(as.character(AEDECOD), \"Dictionary-Derived Term\"),\n    AESDTH = with_label(\n      sample(c(\"N\", \"Y\"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)),\n      \"Results in Death\"\n    ),\n    AEACN = with_label(\n      sample(\n        c(\"DOSE NOT CHANGED\", \"DOSE INCREASED\", \"DRUG INTERRUPTED\", \"DRUG WITHDRAWN\"),\n        size = nrow(adae),\n        replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)\n      ),\n      \"Action Taken with Study Treatment\"\n    ),\n    FATAL = with_label(AESDTH == \"Y\", \"AE with fatal outcome\"),\n    SEV = with_label(AESEV == \"SEVERE\", \"Severe AE (at greatest intensity)\"),\n    SER = with_label(AESER == \"Y\", \"Serious AE\"),\n    SERWD = with_label(AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Serious AE leading to withdrawal from treatment\"),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Serious AE leading to dose modification/interruption\"\n    ),\n    RELSER = with_label(AESER == \"Y\" & AEREL == \"Y\", \"Related Serious AE\"),\n    WD = with_label(AEACN == \"DRUG WITHDRAWN\", \"AE leading to withdrawal from treatment\"),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"), \"AE leading to dose modification/interruption\"\n    ),\n    REL = with_label(AEREL == \"Y\", \"Related AE\"),\n    RELWD = with_label(AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Related AE leading to withdrawal from treatment\"),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Related AE leading to dose modification/interruption\"\n    ),\n    CTC35 = with_label(AETOXGR %in% c(\"3\", \"4\", \"5\"), \"Grade 3-5 AE\"),\n    CTC45 = with_label(AETOXGR %in% c(\"4\", \"5\"), \"Grade 4/5 AE\"),\n    SMQ01 = with_label(SMQ01NAM != \"\", aesi_label(adae$SMQ01NAM, adae$SMQ01SC)),\n    SMQ02 = with_label(SMQ02NAM != \"\", aesi_label(adae$SMQ02NAM, adae$SMQ02SC)),\n    CQ01 = with_label(CQ01NAM != \"\", aesi_label(adae$CQ01NAM)),\n    USUBJID_AESEQ = paste(USUBJID, AESEQ, sep = \"@@\") # Create unique ID per AE in dataset.\n  ) %>%\n  filter(ANL01FL == \"Y\")\naesi_vars <- c(\"FATAL\", \"SER\", \"SERWD\", \"SERDSM\", \"RELSER\", \"WD\", \"DSM\", \"REL\", \"RELWD\", \"RELDSM\", \"SEV\")\n\n# Layout for variables from adsl dataset.\nlyt_adsl <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DTHFL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of deaths\")\n  ) %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DCSREAS\" = \"ADVERSE EVENT\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients withdrawn from study due to an AE\"),\n    table_names = \"tot_wd\"\n  )\n\nresult_adsl <- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)\n\n# Layout for variables from adae dataset.\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  analyze_num_patients(\n    vars = \"USUBJID\",\n    .stats = c(\"unique\", \"nonunique\"),\n    .labels = c(\n      unique = \"Total number of patients with at least one AE\",\n      nonunique = \"Total number of AEs\"\n    ),\n    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = \"xx\"),\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_vars,\n    denom = \"N_col\",\n    var_labels = \"Total number of patients with at least one\",\n    show_labels = \"visible\"\n  )\n\nresult_adae <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)\n\n# Combine tables.\ncol_info(result_adsl) <- col_info(result_adae)\nresult <- rbind(\n  result_adae[1:2, ],\n  result_adsl,\n  result_adae[3:nrow(result_adae), ]\n)\n\nresult","options":{"fig-width":7,"classes":"","autorun":"true","dpi":72,"editor-max-height":"500","fig-height":5,"out-height":"","output":"true","context":"interactive","editor-quick-suggestions":"false","label":"unnamed-chunk-1","warning":"true","message":"true","read-only":"false","results":"markup","editor-font-scale":1,"comment":"","out-width":"700px","fig-cap":""}},{"id":2,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(\n  adae,\n  omit_columns = c(\"SMQ01NAM\", \"SMQ01SC\", \"SMQ02NAM\", \"SMQ02SC\", \"CQ01NAM\", \"STUDYID\", \"USUBJID\")\n)\n\nset.seed(99)\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = with_label(as.character(AEDECOD), \"Dictionary-Derived Term\"),\n    AESDTH = with_label(\n      sample(c(\"N\", \"Y\"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)),\n      \"Results in Death\"\n    ),\n    AEACN = with_label(\n      sample(\n        c(\"DOSE NOT CHANGED\", \"DOSE INCREASED\", \"DRUG INTERRUPTED\", \"DRUG WITHDRAWN\"),\n        size = nrow(adae),\n        replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)\n      ),\n      \"Action Taken with Study Treatment\"\n    ),\n    FATAL = with_label(AESDTH == \"Y\", \"AE with fatal outcome\"),\n    SEV = with_label(AESEV == \"SEVERE\", \"Severe AE (at greatest intensity)\"),\n    SER = with_label(AESER == \"Y\", \"Serious AE\"),\n    SERWD = with_label(AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Serious AE leading to withdrawal from treatment\"),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Serious AE leading to dose modification/interruption\"\n    ),\n    RELSER = with_label(AESER == \"Y\" & AEREL == \"Y\", \"Related Serious AE\"),\n    WD = with_label(AEACN == \"DRUG WITHDRAWN\", \"AE leading to withdrawal from treatment\"),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"), \"AE leading to dose modification/interruption\"\n    ),\n    REL = with_label(AEREL == \"Y\", \"Related AE\"),\n    RELWD = with_label(AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Related AE leading to withdrawal from treatment\"),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Related AE leading to dose modification/interruption\"\n    ),\n    CTC35 = with_label(AETOXGR %in% c(\"3\", \"4\", \"5\"), \"Grade 3-5 AE\"),\n    CTC45 = with_label(AETOXGR %in% c(\"4\", \"5\"), \"Grade 4/5 AE\"),\n    SMQ01 = with_label(SMQ01NAM != \"\", aesi_label(adae$SMQ01NAM, adae$SMQ01SC)),\n    SMQ02 = with_label(SMQ02NAM != \"\", aesi_label(adae$SMQ02NAM, adae$SMQ02SC)),\n    CQ01 = with_label(CQ01NAM != \"\", aesi_label(adae$CQ01NAM)),\n    USUBJID_AESEQ = paste(USUBJID, AESEQ, sep = \"@@\") # Create unique ID per AE in dataset.\n  ) %>%\n  filter(ANL01FL == \"Y\")\naesi_vars <- c(\"FATAL\", \"SER\", \"SERWD\", \"SERDSM\", \"RELSER\", \"WD\", \"DSM\", \"REL\", \"RELWD\", \"RELDSM\", \"CTC35\")\nbasket_vars <- c(\"SMQ01\", \"SMQ02\", \"CQ01\")\n\n# Layout for variables from adsl dataset.\nlyt_adsl <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DTHFL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of deaths\")\n  ) %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DCSREAS\" = \"ADVERSE EVENT\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients withdrawn from study due to an AE\"),\n    table_names = \"tot_wd\"\n  )\n\nresult_adsl <- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)\n\n# Layout for variables from adae dataset.\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  analyze_num_patients(\n    vars = \"USUBJID\",\n    .stats = c(\"unique\", \"nonunique\"),\n    .labels = c(\n      unique = \"Total number of patients with at least one AE\",\n      nonunique = \"Total number of AEs\"\n    ),\n    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = \"xx\"),\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_vars,\n    denom = \"N_col\",\n    var_labels = \"Total number of patients with at least one\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = basket_vars,\n    table_names = \"table_aesi\",\n    denom = \"N_col\",\n    var_labels = \"Total number of patients with at least one\",\n    show_labels = \"visible\"\n  )\n\nresult_adae <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)\n\n# Combine tables.\ncol_info(result_adsl) <- col_info(result_adae)\nresult <- rbind(\n  result_adae[1:2, ],\n  result_adsl,\n  result_adae[3:nrow(result_adae), ]\n)\n\nresult","options":{"fig-width":7,"classes":"","autorun":"true","dpi":72,"editor-max-height":"500","fig-height":5,"out-height":"","output":"true","context":"interactive","editor-quick-suggestions":"false","label":"unnamed-chunk-2","warning":"true","message":"true","read-only":"false","results":"markup","editor-font-scale":1,"comment":"","out-width":"700px","fig-cap":""}},{"id":3,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(\n  adae,\n  omit_columns = c(\"SMQ01NAM\", \"SMQ01SC\", \"SMQ02NAM\", \"SMQ02SC\", \"CQ01NAM\", \"STUDYID\", \"USUBJID\")\n)\n\nset.seed(99)\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = with_label(as.character(AEDECOD), \"Dictionary-Derived Term\"),\n    AESDTH = with_label(\n      sample(c(\"N\", \"Y\"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)),\n      \"Results in Death\"\n    ),\n    AEACN = with_label(\n      sample(\n        c(\"DOSE NOT CHANGED\", \"DOSE INCREASED\", \"DRUG INTERRUPTED\", \"DRUG WITHDRAWN\"),\n        size = nrow(adae),\n        replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)\n      ),\n      \"Action Taken with Study Treatment\"\n    ),\n    FATAL = with_label(AESDTH == \"Y\", \"AE with fatal outcome\"),\n    SEV = with_label(AESEV == \"SEVERE\", \"Severe AE (at greatest intensity)\"),\n    SER = with_label(AESER == \"Y\", \"Serious AE\"),\n    SERWD = with_label(AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Serious AE leading to withdrawal from treatment\"),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Serious AE leading to dose modification/interruption\"\n    ),\n    RELSER = with_label(AESER == \"Y\" & AEREL == \"Y\", \"Related Serious AE\"),\n    WD = with_label(AEACN == \"DRUG WITHDRAWN\", \"AE leading to withdrawal from treatment\"),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"), \"AE leading to dose modification/interruption\"\n    ),\n    REL = with_label(AEREL == \"Y\", \"Related AE\"),\n    RELWD = with_label(AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Related AE leading to withdrawal from treatment\"),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Related AE leading to dose modification/interruption\"\n    ),\n    CTC35 = with_label(AETOXGR %in% c(\"3\", \"4\", \"5\"), \"Grade 3-5 AE\"),\n    CTC45 = with_label(AETOXGR %in% c(\"4\", \"5\"), \"Grade 4/5 AE\"),\n    SMQ01 = with_label(SMQ01NAM != \"\", aesi_label(adae$SMQ01NAM, adae$SMQ01SC)),\n    SMQ02 = with_label(SMQ02NAM != \"\", aesi_label(adae$SMQ02NAM, adae$SMQ02SC)),\n    CQ01 = with_label(CQ01NAM != \"\", aesi_label(adae$CQ01NAM)),\n    USUBJID_AESEQ = paste(USUBJID, AESEQ, sep = \"@@\") # Create unique ID per AE in dataset.\n  ) %>%\n  filter(ANL01FL == \"Y\")\naesi_vars <- c(\"FATAL\", \"SER\", \"WD\", \"REL\", \"CTC35\", \"CTC45\")\n# Layout for variables from adsl dataset.\nlyt_adsl <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DTHFL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of deaths\")\n  ) %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DCSREAS\" = \"ADVERSE EVENT\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients withdrawn from study due to an AE\"),\n    table_names = \"tot_wd\"\n  ) %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DCSREAS\" = \"WITHDRAWAL BY SUBJECT\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients withdrawn informed consent\"),\n    table_names = \"tot_dscsreas_wd\"\n  )\nresult_adsl <- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)\n\n# Layout for variables from adae dataset.\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  analyze_num_patients(\n    vars = \"USUBJID\",\n    .stats = c(\"unique\", \"nonunique\"),\n    .labels = c(\n      unique = \"Total number of patients with at least one AE\",\n      nonunique = \"Total number of AEs\"\n    ),\n    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = \"xx\"),\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = aesi_vars,\n    denom = \"N_col\",\n    var_labels = \"Total number of patients with at least one\",\n    show_labels = \"visible\"\n  )\nresult_adae <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)\n\n# Combine tables.\ncol_info(result_adsl) <- col_info(result_adae)\nresult <- rbind(\n  result_adae[1:2, ],\n  result_adsl,\n  result_adae[3:nrow(result_adae), ]\n)\n\nresult","options":{"fig-width":7,"classes":"","autorun":"true","dpi":72,"editor-max-height":"500","fig-height":5,"out-height":"","output":"true","context":"interactive","editor-quick-suggestions":"false","label":"unnamed-chunk-3","warning":"true","message":"true","read-only":"false","results":"markup","editor-font-scale":1,"comment":"","out-width":"700px","fig-cap":""}},{"id":4,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(\n  adae,\n  omit_columns = c(\"SMQ01NAM\", \"SMQ01SC\", \"SMQ02NAM\", \"SMQ02SC\", \"CQ01NAM\", \"STUDYID\", \"USUBJID\")\n)\n\nset.seed(99)\n\nadae <- adae %>%\n  mutate(\n    AEDECOD = with_label(as.character(AEDECOD), \"Dictionary-Derived Term\"),\n    AESDTH = with_label(\n      sample(c(\"N\", \"Y\"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)),\n      \"Results in Death\"\n    ),\n    AEACN = with_label(\n      sample(\n        c(\"DOSE NOT CHANGED\", \"DOSE INCREASED\", \"DRUG INTERRUPTED\", \"DRUG WITHDRAWN\"),\n        size = nrow(adae),\n        replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)\n      ),\n      \"Action Taken with Study Treatment\"\n    ),\n    FATAL = with_label(AESDTH == \"Y\", \"AE with fatal outcome\"),\n    SEV = with_label(AESEV == \"SEVERE\", \"Severe AE (at greatest intensity)\"),\n    SER = with_label(AESER == \"Y\", \"Serious AE\"),\n    SERWD = with_label(AESER == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Serious AE leading to withdrawal from treatment\"),\n    SERDSM = with_label(\n      AESER == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Serious AE leading to dose modification/interruption\"\n    ),\n    RELSER = with_label(AESER == \"Y\" & AEREL == \"Y\", \"Related Serious AE\"),\n    WD = with_label(AEACN == \"DRUG WITHDRAWN\", \"AE leading to withdrawal from treatment\"),\n    DSM = with_label(\n      AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"), \"AE leading to dose modification/interruption\"\n    ),\n    REL = with_label(AEREL == \"Y\", \"Related AE\"),\n    RELWD = with_label(AEREL == \"Y\" & AEACN == \"DRUG WITHDRAWN\", \"Related AE leading to withdrawal from treatment\"),\n    RELDSM = with_label(\n      AEREL == \"Y\" & AEACN %in% c(\"DRUG INTERRUPTED\", \"DOSE INCREASED\", \"DOSE REDUCED\"),\n      \"Related AE leading to dose modification/interruption\"\n    ),\n    CTC35 = with_label(AETOXGR %in% c(\"3\", \"4\", \"5\"), \"Grade 3-5 AE\"),\n    CTC45 = with_label(AETOXGR %in% c(\"4\", \"5\"), \"Grade 4/5 AE\"),\n    SMQ01 = with_label(SMQ01NAM != \"\", aesi_label(adae$SMQ01NAM, adae$SMQ01SC)),\n    SMQ02 = with_label(SMQ02NAM != \"\", aesi_label(adae$SMQ02NAM, adae$SMQ02SC)),\n    CQ01 = with_label(CQ01NAM != \"\", aesi_label(adae$CQ01NAM)),\n    USUBJID_AESEQ = paste(USUBJID, AESEQ, sep = \"@@\") # Create unique ID per AE in dataset.\n  ) %>%\n  filter(ANL01FL == \"Y\")\ncount_subj_vars <- c(\"FATAL\", \"SER\", \"WD\", \"DSM\", \"REL\", \"CTC35\")\ncount_term_vars <- c(\"SER\", \"DSM\", \"REL\", \"CTC35\", \"CTC45\")\ncount_ae_vars <- c(\"SER\", \"DSM\", \"REL\", \"CTC35\", \"CTC45\")\n\n# Layout for variables from adsl dataset.\nlyt_adsl <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DTHFL\" = \"Y\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of deaths\")\n  ) %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"DCSREAS\" = \"ADVERSE EVENT\"),\n    denom = \"N_col\",\n    .labels = c(count_fraction = \"Total number of patients withdrawn from study due to an AE\"),\n    table_names = \"tot_wd\"\n  )\n\nresult_adsl <- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)\n\n# Layout for variables from adae dataset.\nlyt_adae <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  analyze_num_patients(\n    vars = \"USUBJID\",\n    .stats = c(\"unique\", \"nonunique\"),\n    .labels = c(\n      unique = \"Total number of patients with at least one AE\",\n      nonunique = \"Total number of AEs\"\n    ),\n    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = \"xx\"),\n    show_labels = \"hidden\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = count_subj_vars,\n    denom = \"N_col\",\n    var_labels = \"Total number of patients with at least one\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\n    \"AEDECOD\",\n    flag_variables = count_term_vars,\n    .stats = \"count\",\n    .formats = c(count = \"xx\"),\n    table_names = \"table_term\",\n    var_labels = \"Total number of unique preferred terms which are\",\n    show_labels = \"visible\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID_AESEQ\",\n    flag_variables = count_ae_vars,\n    .stats = \"count\",\n    .formats = c(count = \"xx\"),\n    table_names = \"table_ae\",\n    var_labels = \"Total number of adverse events which are\",\n    show_labels = \"visible\"\n  )\n\nresult_adae <- build_table(lyt_adae, df = adae, alt_counts_df = adsl)\n\n# Combine tables.\ncol_info(result_adsl) <- col_info(result_adae)\nresult <- rbind(\n  result_adae[1:2, ],\n  result_adsl,\n  result_adae[3:nrow(result_adae), ]\n)\n\nresult","options":{"fig-width":7,"classes":"","autorun":"true","dpi":72,"editor-max-height":"500","fig-height":5,"out-height":"","output":"true","context":"interactive","editor-quick-suggestions":"false","label":"unnamed-chunk-4","warning":"true","message":"true","read-only":"false","results":"markup","editor-font-scale":1,"comment":"","out-width":"700px","fig-cap":""}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -3403,7 +3403,7 @@ we have to put some code upfront
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-09-07 18:06:13 UTC"</code></pre>
+<pre><code>[1] "2024-09-14 18:07:41 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -3433,16 +3433,16 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] teal.modules.clinical_0.9.1 teal.transform_0.5.0.9012  
- [3] teal_0.15.2.9060            teal.slice_0.5.1.9011      
- [5] teal.data_0.6.0.9010        teal.code_0.5.0.9009       
- [7] shiny_1.9.1                 dplyr_1.1.4                
- [9] tern_0.9.5.9021             rtables_0.6.9.9013         
-[11] magrittr_2.0.3              formatters_0.5.8.9006      
+ [1] teal.modules.clinical_0.9.1.9025 teal.transform_0.5.0.9012       
+ [3] teal_0.15.2.9061                 teal.slice_0.5.1.9011           
+ [5] teal.data_0.6.0.9010             teal.code_0.5.0.9009            
+ [7] shiny_1.9.1                      dplyr_1.1.4                     
+ [9] tern_0.9.5.9022                  rtables_0.6.9.9014              
+[11] magrittr_2.0.3                   formatters_0.5.9.9001           
 
 loaded via a namespace (and not attached):
- [1] Rdpack_2.6                    formatR_1.14                 
- [3] tern.gee_0.1.4                logger_0.3.0                 
+ [1] Rdpack_2.6.1                  formatR_1.14                 
+ [3] tern.gee_0.1.5.9002           logger_0.3.0                 
  [5] testthat_3.2.1.1              sandwich_3.1-0               
  [7] rlang_1.1.4                   multcomp_1.4-26              
  [9] compiler_4.4.1                callr_3.7.6                  
@@ -3450,8 +3450,8 @@ loaded via a namespace (and not attached):
 [13] pkgconfig_2.0.3               fastmap_1.2.0                
 [15] backports_1.5.0               fontawesome_0.5.2            
 [17] utf8_1.2.4                    promises_1.3.0               
-[19] rmarkdown_2.27                ps_1.7.7                     
-[21] purrr_1.0.2                   xfun_0.46                    
+[19] rmarkdown_2.28                ps_1.8.0                     
+[21] purrr_1.0.2                   xfun_0.47                    
 [23] shinyvalidate_0.1.3           cachem_1.1.0                 
 [25] teal.reporter_0.3.1.9015      jsonlite_1.8.8               
 [27] later_1.3.2                   broom_1.0.6                  
@@ -3460,7 +3460,7 @@ loaded via a namespace (and not attached):
 [33] parallelly_1.38.0             brio_1.1.5                   
 [35] jquerylib_0.1.4               estimability_1.5.1           
 [37] Rcpp_1.0.13                   knitr_1.48                   
-[39] zoo_1.8-12                    teal.logger_0.2.0.9008       
+[39] zoo_1.8-12                    teal.logger_0.2.0.9009       
 [41] httpuv_1.6.15                 Matrix_1.7-0                 
 [43] splines_4.4.1                 tidyselect_1.2.1             
 [45] yaml_2.3.10                   codetools_0.2-20             
@@ -3472,19 +3472,19 @@ loaded via a namespace (and not attached):
 [57] survival_3.7-0                pillar_1.9.0                 
 [59] shinycssloaders_1.1.0         checkmate_2.3.2              
 [61] shinyjs_2.1.0                 generics_0.1.3               
-[63] chromote_0.2.0                ggplot2_3.5.1                
+[63] chromote_0.3.1                ggplot2_3.5.1                
 [65] munsell_0.5.1                 scales_1.3.0                 
 [67] globals_0.16.3                xtable_1.8-4                 
-[69] glue_1.7.0                    emmeans_1.10.3               
+[69] glue_1.7.0                    emmeans_1.10.4               
 [71] tools_4.4.1                   webshot2_0.1.1               
 [73] webshot_0.5.5                 forcats_1.0.0                
-[75] mvtnorm_1.2-5                 grid_4.4.1                   
+[75] mvtnorm_1.3-1                 grid_4.4.1                   
 [77] tidyr_1.3.1                   rbibutils_2.2.16             
-[79] colorspace_2.1-1              nlme_3.1-165                 
-[81] random.cdisc.data_0.3.15.9008 cli_3.6.3                    
-[83] fansi_1.0.6                   geepack_1.3.11               
+[79] colorspace_2.1-1              nlme_3.1-166                 
+[81] random.cdisc.data_0.3.15.9009 cli_3.6.3                    
+[83] fansi_1.0.6                   geepack_1.3.11.1             
 [85] gtable_0.3.5                  sass_0.4.9                   
-[87] digest_0.6.36                 TH.data_1.1-2                
+[87] digest_0.6.37                 TH.data_1.1-2                
 [89] htmlwidgets_1.6.4             memoise_2.0.1                
 [91] htmltools_0.5.8.1             lifecycle_1.0.4              
 [93] shinyWidgets_0.8.6            mime_0.12                    
@@ -3520,12 +3520,7 @@ loaded via a namespace (and not attached):
 <span id="cb19-23"><a href="#cb19-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
 <span id="cb19-24"><a href="#cb19-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb19-25"><a href="#cb19-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output cell-output-stdout">
-<pre><code>The following package(s) have unsatisfied dependencies:
-- tern      requires emmeans (&gt;= 1.10.4), but version 1.10.3 is installed
-- tern.mmrm requires emmeans (&gt;= 1.10.4), but version 1.10.3 is installed
-Consider updating the required dependencies as appropriate.</code></pre>
-</div>
+</details>
 </div>
 <p><a href="../../assets/www/lock/tables/adverse-events/aet01.lock">Download</a></p>
 </section>
@@ -4163,464 +4158,464 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb21" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb21-1"><a href="#cb21-1"></a><span class="co">---</span></span>
-<span id="cb21-2"><a href="#cb21-2"></a><span class="an">title:</span><span class="co"> AET01</span></span>
-<span id="cb21-3"><a href="#cb21-3"></a><span class="an">subtitle:</span><span class="co"> Safety Summary</span></span>
-<span id="cb21-4"><a href="#cb21-4"></a><span class="co">---</span></span>
-<span id="cb21-5"><a href="#cb21-5"></a></span>
-<span id="cb21-6"><a href="#cb21-6"></a>------------------------------------------------------------------------</span>
-<span id="cb21-7"><a href="#cb21-7"></a></span>
-<span id="cb21-8"><a href="#cb21-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb21-9"><a href="#cb21-9"></a></span>
-<span id="cb21-10"><a href="#cb21-10"></a>:::: {.panel-tabset}</span>
-<span id="cb21-11"><a href="#cb21-11"></a><span class="fu">## Data Setup</span></span>
-<span id="cb21-12"><a href="#cb21-12"></a></span>
-<span id="cb21-13"><a href="#cb21-13"></a>To illustrate, additional variables such as flags (TRUE/FALSE) for select AEs of interest and select AE baskets are added to the <span class="in">`adae`</span> dataset.</span>
-<span id="cb21-14"><a href="#cb21-14"></a></span>
-<span id="cb21-15"><a href="#cb21-15"></a><span class="in">```{r setup, message = FALSE}</span></span>
-<span id="cb21-16"><a href="#cb21-16"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb21-17"><a href="#cb21-17"></a></span>
-<span id="cb21-18"><a href="#cb21-18"></a><span class="in">library(tern)</span></span>
-<span id="cb21-19"><a href="#cb21-19"></a><span class="in">library(dplyr)</span></span>
-<span id="cb21-20"><a href="#cb21-20"></a></span>
-<span id="cb21-21"><a href="#cb21-21"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb21-22"><a href="#cb21-22"></a><span class="in">adae &lt;- random.cdisc.data::cadae</span></span>
-<span id="cb21-23"><a href="#cb21-23"></a></span>
-<span id="cb21-24"><a href="#cb21-24"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb21-25"><a href="#cb21-25"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb21-26"><a href="#cb21-26"></a><span class="in">adae &lt;- df_explicit_na(</span></span>
-<span id="cb21-27"><a href="#cb21-27"></a><span class="in">  adae,</span></span>
-<span id="cb21-28"><a href="#cb21-28"></a><span class="in">  omit_columns = c("SMQ01NAM", "SMQ01SC", "SMQ02NAM", "SMQ02SC", "CQ01NAM", "STUDYID", "USUBJID")</span></span>
-<span id="cb21-29"><a href="#cb21-29"></a><span class="in">)</span></span>
-<span id="cb21-30"><a href="#cb21-30"></a></span>
-<span id="cb21-31"><a href="#cb21-31"></a><span class="in">set.seed(99)</span></span>
-<span id="cb21-32"><a href="#cb21-32"></a></span>
-<span id="cb21-33"><a href="#cb21-33"></a><span class="in">adae &lt;- adae %&gt;%</span></span>
-<span id="cb21-34"><a href="#cb21-34"></a><span class="in">  mutate(</span></span>
-<span id="cb21-35"><a href="#cb21-35"></a><span class="in">    AEDECOD = with_label(as.character(AEDECOD), "Dictionary-Derived Term"),</span></span>
-<span id="cb21-36"><a href="#cb21-36"></a><span class="in">    AESDTH = with_label(</span></span>
-<span id="cb21-37"><a href="#cb21-37"></a><span class="in">      sample(c("N", "Y"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)),</span></span>
-<span id="cb21-38"><a href="#cb21-38"></a><span class="in">      "Results in Death"</span></span>
-<span id="cb21-39"><a href="#cb21-39"></a><span class="in">    ),</span></span>
-<span id="cb21-40"><a href="#cb21-40"></a><span class="in">    AEACN = with_label(</span></span>
-<span id="cb21-41"><a href="#cb21-41"></a><span class="in">      sample(</span></span>
-<span id="cb21-42"><a href="#cb21-42"></a><span class="in">        c("DOSE NOT CHANGED", "DOSE INCREASED", "DRUG INTERRUPTED", "DRUG WITHDRAWN"),</span></span>
-<span id="cb21-43"><a href="#cb21-43"></a><span class="in">        size = nrow(adae),</span></span>
-<span id="cb21-44"><a href="#cb21-44"></a><span class="in">        replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)</span></span>
-<span id="cb21-45"><a href="#cb21-45"></a><span class="in">      ),</span></span>
-<span id="cb21-46"><a href="#cb21-46"></a><span class="in">      "Action Taken with Study Treatment"</span></span>
-<span id="cb21-47"><a href="#cb21-47"></a><span class="in">    ),</span></span>
-<span id="cb21-48"><a href="#cb21-48"></a><span class="in">    FATAL = with_label(AESDTH == "Y", "AE with fatal outcome"),</span></span>
-<span id="cb21-49"><a href="#cb21-49"></a><span class="in">    SEV = with_label(AESEV == "SEVERE", "Severe AE (at greatest intensity)"),</span></span>
-<span id="cb21-50"><a href="#cb21-50"></a><span class="in">    SER = with_label(AESER == "Y", "Serious AE"),</span></span>
-<span id="cb21-51"><a href="#cb21-51"></a><span class="in">    SERWD = with_label(AESER == "Y" &amp; AEACN == "DRUG WITHDRAWN", "Serious AE leading to withdrawal from treatment"),</span></span>
-<span id="cb21-52"><a href="#cb21-52"></a><span class="in">    SERDSM = with_label(</span></span>
-<span id="cb21-53"><a href="#cb21-53"></a><span class="in">      AESER == "Y" &amp; AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"),</span></span>
-<span id="cb21-54"><a href="#cb21-54"></a><span class="in">      "Serious AE leading to dose modification/interruption"</span></span>
-<span id="cb21-55"><a href="#cb21-55"></a><span class="in">    ),</span></span>
-<span id="cb21-56"><a href="#cb21-56"></a><span class="in">    RELSER = with_label(AESER == "Y" &amp; AEREL == "Y", "Related Serious AE"),</span></span>
-<span id="cb21-57"><a href="#cb21-57"></a><span class="in">    WD = with_label(AEACN == "DRUG WITHDRAWN", "AE leading to withdrawal from treatment"),</span></span>
-<span id="cb21-58"><a href="#cb21-58"></a><span class="in">    DSM = with_label(</span></span>
-<span id="cb21-59"><a href="#cb21-59"></a><span class="in">      AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"), "AE leading to dose modification/interruption"</span></span>
-<span id="cb21-60"><a href="#cb21-60"></a><span class="in">    ),</span></span>
-<span id="cb21-61"><a href="#cb21-61"></a><span class="in">    REL = with_label(AEREL == "Y", "Related AE"),</span></span>
-<span id="cb21-62"><a href="#cb21-62"></a><span class="in">    RELWD = with_label(AEREL == "Y" &amp; AEACN == "DRUG WITHDRAWN", "Related AE leading to withdrawal from treatment"),</span></span>
-<span id="cb21-63"><a href="#cb21-63"></a><span class="in">    RELDSM = with_label(</span></span>
-<span id="cb21-64"><a href="#cb21-64"></a><span class="in">      AEREL == "Y" &amp; AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"),</span></span>
-<span id="cb21-65"><a href="#cb21-65"></a><span class="in">      "Related AE leading to dose modification/interruption"</span></span>
-<span id="cb21-66"><a href="#cb21-66"></a><span class="in">    ),</span></span>
-<span id="cb21-67"><a href="#cb21-67"></a><span class="in">    CTC35 = with_label(AETOXGR %in% c("3", "4", "5"), "Grade 3-5 AE"),</span></span>
-<span id="cb21-68"><a href="#cb21-68"></a><span class="in">    CTC45 = with_label(AETOXGR %in% c("4", "5"), "Grade 4/5 AE"),</span></span>
-<span id="cb21-69"><a href="#cb21-69"></a><span class="in">    SMQ01 = with_label(SMQ01NAM != "", aesi_label(adae$SMQ01NAM, adae$SMQ01SC)),</span></span>
-<span id="cb21-70"><a href="#cb21-70"></a><span class="in">    SMQ02 = with_label(SMQ02NAM != "", aesi_label(adae$SMQ02NAM, adae$SMQ02SC)),</span></span>
-<span id="cb21-71"><a href="#cb21-71"></a><span class="in">    CQ01 = with_label(CQ01NAM != "", aesi_label(adae$CQ01NAM)),</span></span>
-<span id="cb21-72"><a href="#cb21-72"></a><span class="in">    USUBJID_AESEQ = paste(USUBJID, AESEQ, sep = "@@") # Create unique ID per AE in dataset.</span></span>
-<span id="cb21-73"><a href="#cb21-73"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-74"><a href="#cb21-74"></a><span class="in">  filter(ANL01FL == "Y")</span></span>
-<span id="cb21-75"><a href="#cb21-75"></a><span class="in">```</span></span>
-<span id="cb21-76"><a href="#cb21-76"></a></span>
-<span id="cb21-77"><a href="#cb21-77"></a><span class="fu">## Standard Table</span></span>
-<span id="cb21-78"><a href="#cb21-78"></a></span>
-<span id="cb21-79"><a href="#cb21-79"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb21-80"><a href="#cb21-80"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb21-81"><a href="#cb21-81"></a></span>
-<span id="cb21-82"><a href="#cb21-82"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 --&gt;</span></span>
-<span id="cb21-83"><a href="#cb21-83"></a><span class="in">```{r variant1, test = list(result_v1 = "result"), opts.label = ifelse(packageVersion("rtables") &lt; "0.6.6.9011", "skip_test_strict", "")}</span></span>
-<span id="cb21-84"><a href="#cb21-84"></a><span class="in">aesi_vars &lt;- c("FATAL", "SER", "SERWD", "SERDSM", "RELSER", "WD", "DSM", "REL", "RELWD", "RELDSM", "SEV")</span></span>
-<span id="cb21-85"><a href="#cb21-85"></a></span>
-<span id="cb21-86"><a href="#cb21-86"></a><span class="in"># Layout for variables from adsl dataset.</span></span>
-<span id="cb21-87"><a href="#cb21-87"></a><span class="in">lyt_adsl &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb21-88"><a href="#cb21-88"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb21-89"><a href="#cb21-89"></a><span class="in">  count_patients_with_event(</span></span>
-<span id="cb21-90"><a href="#cb21-90"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-91"><a href="#cb21-91"></a><span class="in">    filters = c("DTHFL" = "Y"),</span></span>
-<span id="cb21-92"><a href="#cb21-92"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-93"><a href="#cb21-93"></a><span class="in">    .labels = c(count_fraction = "Total number of deaths")</span></span>
-<span id="cb21-94"><a href="#cb21-94"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-95"><a href="#cb21-95"></a><span class="in">  count_patients_with_event(</span></span>
-<span id="cb21-96"><a href="#cb21-96"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-97"><a href="#cb21-97"></a><span class="in">    filters = c("DCSREAS" = "ADVERSE EVENT"),</span></span>
-<span id="cb21-98"><a href="#cb21-98"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-99"><a href="#cb21-99"></a><span class="in">    .labels = c(count_fraction = "Total number of patients withdrawn from study due to an AE"),</span></span>
-<span id="cb21-100"><a href="#cb21-100"></a><span class="in">    table_names = "tot_wd"</span></span>
-<span id="cb21-101"><a href="#cb21-101"></a><span class="in">  )</span></span>
-<span id="cb21-102"><a href="#cb21-102"></a></span>
-<span id="cb21-103"><a href="#cb21-103"></a><span class="in">result_adsl &lt;- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)</span></span>
-<span id="cb21-104"><a href="#cb21-104"></a></span>
-<span id="cb21-105"><a href="#cb21-105"></a><span class="in"># Layout for variables from adae dataset.</span></span>
-<span id="cb21-106"><a href="#cb21-106"></a><span class="in">lyt_adae &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb21-107"><a href="#cb21-107"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb21-108"><a href="#cb21-108"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb21-109"><a href="#cb21-109"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb21-110"><a href="#cb21-110"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb21-111"><a href="#cb21-111"></a><span class="in">    .labels = c(</span></span>
-<span id="cb21-112"><a href="#cb21-112"></a><span class="in">      unique = "Total number of patients with at least one AE",</span></span>
-<span id="cb21-113"><a href="#cb21-113"></a><span class="in">      nonunique = "Total number of AEs"</span></span>
-<span id="cb21-114"><a href="#cb21-114"></a><span class="in">    ),</span></span>
-<span id="cb21-115"><a href="#cb21-115"></a><span class="in">    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = "xx"),</span></span>
-<span id="cb21-116"><a href="#cb21-116"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb21-117"><a href="#cb21-117"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-118"><a href="#cb21-118"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb21-119"><a href="#cb21-119"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-120"><a href="#cb21-120"></a><span class="in">    flag_variables = aesi_vars,</span></span>
-<span id="cb21-121"><a href="#cb21-121"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-122"><a href="#cb21-122"></a><span class="in">    var_labels = "Total number of patients with at least one",</span></span>
-<span id="cb21-123"><a href="#cb21-123"></a><span class="in">    show_labels = "visible"</span></span>
-<span id="cb21-124"><a href="#cb21-124"></a><span class="in">  )</span></span>
-<span id="cb21-125"><a href="#cb21-125"></a></span>
-<span id="cb21-126"><a href="#cb21-126"></a><span class="in">result_adae &lt;- build_table(lyt_adae, df = adae, alt_counts_df = adsl)</span></span>
-<span id="cb21-127"><a href="#cb21-127"></a></span>
-<span id="cb21-128"><a href="#cb21-128"></a><span class="in"># Combine tables.</span></span>
-<span id="cb21-129"><a href="#cb21-129"></a><span class="in">col_info(result_adsl) &lt;- col_info(result_adae)</span></span>
-<span id="cb21-130"><a href="#cb21-130"></a><span class="in">result &lt;- rbind(</span></span>
-<span id="cb21-131"><a href="#cb21-131"></a><span class="in">  result_adae[1:2, ],</span></span>
-<span id="cb21-132"><a href="#cb21-132"></a><span class="in">  result_adsl,</span></span>
-<span id="cb21-133"><a href="#cb21-133"></a><span class="in">  result_adae[3:nrow(result_adae), ]</span></span>
-<span id="cb21-134"><a href="#cb21-134"></a><span class="in">)</span></span>
-<span id="cb21-135"><a href="#cb21-135"></a></span>
-<span id="cb21-136"><a href="#cb21-136"></a><span class="in">result</span></span>
-<span id="cb21-137"><a href="#cb21-137"></a><span class="in">```</span></span>
-<span id="cb21-138"><a href="#cb21-138"></a></span>
-<span id="cb21-139"><a href="#cb21-139"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
-<span id="cb21-140"><a href="#cb21-140"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb21-141"><a href="#cb21-141"></a>:::</span>
-<span id="cb21-142"><a href="#cb21-142"></a></span>
-<span id="cb21-143"><a href="#cb21-143"></a><span class="fu">## Table with Medical &lt;br/&gt; Concepts Section</span></span>
-<span id="cb21-144"><a href="#cb21-144"></a></span>
-<span id="cb21-145"><a href="#cb21-145"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb21-146"><a href="#cb21-146"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb21-147"><a href="#cb21-147"></a></span>
-<span id="cb21-148"><a href="#cb21-148"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb21-149"><a href="#cb21-149"></a><span class="in">aesi_vars &lt;- c("FATAL", "SER", "SERWD", "SERDSM", "RELSER", "WD", "DSM", "REL", "RELWD", "RELDSM", "CTC35")</span></span>
-<span id="cb21-150"><a href="#cb21-150"></a><span class="in">basket_vars &lt;- c("SMQ01", "SMQ02", "CQ01")</span></span>
-<span id="cb21-151"><a href="#cb21-151"></a></span>
-<span id="cb21-152"><a href="#cb21-152"></a><span class="in"># Layout for variables from adsl dataset.</span></span>
-<span id="cb21-153"><a href="#cb21-153"></a><span class="in">lyt_adsl &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb21-154"><a href="#cb21-154"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb21-155"><a href="#cb21-155"></a><span class="in">  count_patients_with_event(</span></span>
-<span id="cb21-156"><a href="#cb21-156"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-157"><a href="#cb21-157"></a><span class="in">    filters = c("DTHFL" = "Y"),</span></span>
-<span id="cb21-158"><a href="#cb21-158"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-159"><a href="#cb21-159"></a><span class="in">    .labels = c(count_fraction = "Total number of deaths")</span></span>
-<span id="cb21-160"><a href="#cb21-160"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-161"><a href="#cb21-161"></a><span class="in">  count_patients_with_event(</span></span>
-<span id="cb21-162"><a href="#cb21-162"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-163"><a href="#cb21-163"></a><span class="in">    filters = c("DCSREAS" = "ADVERSE EVENT"),</span></span>
-<span id="cb21-164"><a href="#cb21-164"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-165"><a href="#cb21-165"></a><span class="in">    .labels = c(count_fraction = "Total number of patients withdrawn from study due to an AE"),</span></span>
-<span id="cb21-166"><a href="#cb21-166"></a><span class="in">    table_names = "tot_wd"</span></span>
-<span id="cb21-167"><a href="#cb21-167"></a><span class="in">  )</span></span>
-<span id="cb21-168"><a href="#cb21-168"></a></span>
-<span id="cb21-169"><a href="#cb21-169"></a><span class="in">result_adsl &lt;- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)</span></span>
-<span id="cb21-170"><a href="#cb21-170"></a></span>
-<span id="cb21-171"><a href="#cb21-171"></a><span class="in"># Layout for variables from adae dataset.</span></span>
-<span id="cb21-172"><a href="#cb21-172"></a><span class="in">lyt_adae &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb21-173"><a href="#cb21-173"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb21-174"><a href="#cb21-174"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb21-175"><a href="#cb21-175"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb21-176"><a href="#cb21-176"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb21-177"><a href="#cb21-177"></a><span class="in">    .labels = c(</span></span>
-<span id="cb21-178"><a href="#cb21-178"></a><span class="in">      unique = "Total number of patients with at least one AE",</span></span>
-<span id="cb21-179"><a href="#cb21-179"></a><span class="in">      nonunique = "Total number of AEs"</span></span>
-<span id="cb21-180"><a href="#cb21-180"></a><span class="in">    ),</span></span>
-<span id="cb21-181"><a href="#cb21-181"></a><span class="in">    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = "xx"),</span></span>
-<span id="cb21-182"><a href="#cb21-182"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb21-183"><a href="#cb21-183"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-184"><a href="#cb21-184"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb21-185"><a href="#cb21-185"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-186"><a href="#cb21-186"></a><span class="in">    flag_variables = aesi_vars,</span></span>
-<span id="cb21-187"><a href="#cb21-187"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-188"><a href="#cb21-188"></a><span class="in">    var_labels = "Total number of patients with at least one",</span></span>
-<span id="cb21-189"><a href="#cb21-189"></a><span class="in">    show_labels = "visible"</span></span>
-<span id="cb21-190"><a href="#cb21-190"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-191"><a href="#cb21-191"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb21-192"><a href="#cb21-192"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-193"><a href="#cb21-193"></a><span class="in">    flag_variables = basket_vars,</span></span>
-<span id="cb21-194"><a href="#cb21-194"></a><span class="in">    table_names = "table_aesi",</span></span>
-<span id="cb21-195"><a href="#cb21-195"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-196"><a href="#cb21-196"></a><span class="in">    var_labels = "Total number of patients with at least one",</span></span>
-<span id="cb21-197"><a href="#cb21-197"></a><span class="in">    show_labels = "visible"</span></span>
-<span id="cb21-198"><a href="#cb21-198"></a><span class="in">  )</span></span>
-<span id="cb21-199"><a href="#cb21-199"></a></span>
-<span id="cb21-200"><a href="#cb21-200"></a><span class="in">result_adae &lt;- build_table(lyt_adae, df = adae, alt_counts_df = adsl)</span></span>
-<span id="cb21-201"><a href="#cb21-201"></a></span>
-<span id="cb21-202"><a href="#cb21-202"></a><span class="in"># Combine tables.</span></span>
-<span id="cb21-203"><a href="#cb21-203"></a><span class="in">col_info(result_adsl) &lt;- col_info(result_adae)</span></span>
-<span id="cb21-204"><a href="#cb21-204"></a><span class="in">result &lt;- rbind(</span></span>
-<span id="cb21-205"><a href="#cb21-205"></a><span class="in">  result_adae[1:2, ],</span></span>
-<span id="cb21-206"><a href="#cb21-206"></a><span class="in">  result_adsl,</span></span>
-<span id="cb21-207"><a href="#cb21-207"></a><span class="in">  result_adae[3:nrow(result_adae), ]</span></span>
-<span id="cb21-208"><a href="#cb21-208"></a><span class="in">)</span></span>
-<span id="cb21-209"><a href="#cb21-209"></a></span>
-<span id="cb21-210"><a href="#cb21-210"></a><span class="in">result</span></span>
-<span id="cb21-211"><a href="#cb21-211"></a><span class="in">```</span></span>
-<span id="cb21-212"><a href="#cb21-212"></a></span>
-<span id="cb21-213"><a href="#cb21-213"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
-<span id="cb21-214"><a href="#cb21-214"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb21-215"><a href="#cb21-215"></a>:::</span>
-<span id="cb21-216"><a href="#cb21-216"></a></span>
-<span id="cb21-217"><a href="#cb21-217"></a><span class="fu">## Table with &lt;br/&gt; Modified Rows</span></span>
-<span id="cb21-218"><a href="#cb21-218"></a></span>
-<span id="cb21-219"><a href="#cb21-219"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb21-220"><a href="#cb21-220"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb21-221"><a href="#cb21-221"></a></span>
-<span id="cb21-222"><a href="#cb21-222"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
-<span id="cb21-223"><a href="#cb21-223"></a><span class="in">aesi_vars &lt;- c("FATAL", "SER", "WD", "REL", "CTC35", "CTC45")</span></span>
-<span id="cb21-224"><a href="#cb21-224"></a><span class="in"># Layout for variables from adsl dataset.</span></span>
-<span id="cb21-225"><a href="#cb21-225"></a><span class="in">lyt_adsl &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb21-226"><a href="#cb21-226"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb21-227"><a href="#cb21-227"></a><span class="in">  count_patients_with_event(</span></span>
-<span id="cb21-228"><a href="#cb21-228"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-229"><a href="#cb21-229"></a><span class="in">    filters = c("DTHFL" = "Y"),</span></span>
-<span id="cb21-230"><a href="#cb21-230"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-231"><a href="#cb21-231"></a><span class="in">    .labels = c(count_fraction = "Total number of deaths")</span></span>
-<span id="cb21-232"><a href="#cb21-232"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-233"><a href="#cb21-233"></a><span class="in">  count_patients_with_event(</span></span>
-<span id="cb21-234"><a href="#cb21-234"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-235"><a href="#cb21-235"></a><span class="in">    filters = c("DCSREAS" = "ADVERSE EVENT"),</span></span>
-<span id="cb21-236"><a href="#cb21-236"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-237"><a href="#cb21-237"></a><span class="in">    .labels = c(count_fraction = "Total number of patients withdrawn from study due to an AE"),</span></span>
-<span id="cb21-238"><a href="#cb21-238"></a><span class="in">    table_names = "tot_wd"</span></span>
-<span id="cb21-239"><a href="#cb21-239"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-240"><a href="#cb21-240"></a><span class="in">  count_patients_with_event(</span></span>
-<span id="cb21-241"><a href="#cb21-241"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-242"><a href="#cb21-242"></a><span class="in">    filters = c("DCSREAS" = "WITHDRAWAL BY SUBJECT"),</span></span>
-<span id="cb21-243"><a href="#cb21-243"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-244"><a href="#cb21-244"></a><span class="in">    .labels = c(count_fraction = "Total number of patients withdrawn informed consent"),</span></span>
-<span id="cb21-245"><a href="#cb21-245"></a><span class="in">    table_names = "tot_dscsreas_wd"</span></span>
-<span id="cb21-246"><a href="#cb21-246"></a><span class="in">  )</span></span>
-<span id="cb21-247"><a href="#cb21-247"></a><span class="in">result_adsl &lt;- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)</span></span>
-<span id="cb21-248"><a href="#cb21-248"></a></span>
-<span id="cb21-249"><a href="#cb21-249"></a><span class="in"># Layout for variables from adae dataset.</span></span>
-<span id="cb21-250"><a href="#cb21-250"></a><span class="in">lyt_adae &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb21-251"><a href="#cb21-251"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb21-252"><a href="#cb21-252"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb21-253"><a href="#cb21-253"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb21-254"><a href="#cb21-254"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb21-255"><a href="#cb21-255"></a><span class="in">    .labels = c(</span></span>
-<span id="cb21-256"><a href="#cb21-256"></a><span class="in">      unique = "Total number of patients with at least one AE",</span></span>
-<span id="cb21-257"><a href="#cb21-257"></a><span class="in">      nonunique = "Total number of AEs"</span></span>
-<span id="cb21-258"><a href="#cb21-258"></a><span class="in">    ),</span></span>
-<span id="cb21-259"><a href="#cb21-259"></a><span class="in">    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = "xx"),</span></span>
-<span id="cb21-260"><a href="#cb21-260"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb21-261"><a href="#cb21-261"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-262"><a href="#cb21-262"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb21-263"><a href="#cb21-263"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-264"><a href="#cb21-264"></a><span class="in">    flag_variables = aesi_vars,</span></span>
-<span id="cb21-265"><a href="#cb21-265"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-266"><a href="#cb21-266"></a><span class="in">    var_labels = "Total number of patients with at least one",</span></span>
-<span id="cb21-267"><a href="#cb21-267"></a><span class="in">    show_labels = "visible"</span></span>
-<span id="cb21-268"><a href="#cb21-268"></a><span class="in">  )</span></span>
-<span id="cb21-269"><a href="#cb21-269"></a><span class="in">result_adae &lt;- build_table(lyt_adae, df = adae, alt_counts_df = adsl)</span></span>
-<span id="cb21-270"><a href="#cb21-270"></a></span>
-<span id="cb21-271"><a href="#cb21-271"></a><span class="in"># Combine tables.</span></span>
-<span id="cb21-272"><a href="#cb21-272"></a><span class="in">col_info(result_adsl) &lt;- col_info(result_adae)</span></span>
-<span id="cb21-273"><a href="#cb21-273"></a><span class="in">result &lt;- rbind(</span></span>
-<span id="cb21-274"><a href="#cb21-274"></a><span class="in">  result_adae[1:2, ],</span></span>
-<span id="cb21-275"><a href="#cb21-275"></a><span class="in">  result_adsl,</span></span>
-<span id="cb21-276"><a href="#cb21-276"></a><span class="in">  result_adae[3:nrow(result_adae), ]</span></span>
-<span id="cb21-277"><a href="#cb21-277"></a><span class="in">)</span></span>
-<span id="cb21-278"><a href="#cb21-278"></a></span>
-<span id="cb21-279"><a href="#cb21-279"></a><span class="in">result</span></span>
-<span id="cb21-280"><a href="#cb21-280"></a><span class="in">```</span></span>
-<span id="cb21-281"><a href="#cb21-281"></a></span>
-<span id="cb21-282"><a href="#cb21-282"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant3")`</span></span>
-<span id="cb21-283"><a href="#cb21-283"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb21-284"><a href="#cb21-284"></a>:::</span>
-<span id="cb21-285"><a href="#cb21-285"></a></span>
-<span id="cb21-286"><a href="#cb21-286"></a><span class="fu">## Table with Rows Counting &lt;br/&gt; Events &amp; Additional Sections</span></span>
-<span id="cb21-287"><a href="#cb21-287"></a></span>
-<span id="cb21-288"><a href="#cb21-288"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb21-289"><a href="#cb21-289"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb21-290"><a href="#cb21-290"></a></span>
-<span id="cb21-291"><a href="#cb21-291"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
-<span id="cb21-292"><a href="#cb21-292"></a><span class="in">count_subj_vars &lt;- c("FATAL", "SER", "WD", "DSM", "REL", "CTC35")</span></span>
-<span id="cb21-293"><a href="#cb21-293"></a><span class="in">count_term_vars &lt;- c("SER", "DSM", "REL", "CTC35", "CTC45")</span></span>
-<span id="cb21-294"><a href="#cb21-294"></a><span class="in">count_ae_vars &lt;- c("SER", "DSM", "REL", "CTC35", "CTC45")</span></span>
-<span id="cb21-295"><a href="#cb21-295"></a></span>
-<span id="cb21-296"><a href="#cb21-296"></a><span class="in"># Layout for variables from adsl dataset.</span></span>
-<span id="cb21-297"><a href="#cb21-297"></a><span class="in">lyt_adsl &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb21-298"><a href="#cb21-298"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb21-299"><a href="#cb21-299"></a><span class="in">  count_patients_with_event(</span></span>
-<span id="cb21-300"><a href="#cb21-300"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-301"><a href="#cb21-301"></a><span class="in">    filters = c("DTHFL" = "Y"),</span></span>
-<span id="cb21-302"><a href="#cb21-302"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-303"><a href="#cb21-303"></a><span class="in">    .labels = c(count_fraction = "Total number of deaths")</span></span>
-<span id="cb21-304"><a href="#cb21-304"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-305"><a href="#cb21-305"></a><span class="in">  count_patients_with_event(</span></span>
-<span id="cb21-306"><a href="#cb21-306"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-307"><a href="#cb21-307"></a><span class="in">    filters = c("DCSREAS" = "ADVERSE EVENT"),</span></span>
-<span id="cb21-308"><a href="#cb21-308"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-309"><a href="#cb21-309"></a><span class="in">    .labels = c(count_fraction = "Total number of patients withdrawn from study due to an AE"),</span></span>
-<span id="cb21-310"><a href="#cb21-310"></a><span class="in">    table_names = "tot_wd"</span></span>
-<span id="cb21-311"><a href="#cb21-311"></a><span class="in">  )</span></span>
-<span id="cb21-312"><a href="#cb21-312"></a></span>
-<span id="cb21-313"><a href="#cb21-313"></a><span class="in">result_adsl &lt;- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)</span></span>
-<span id="cb21-314"><a href="#cb21-314"></a></span>
-<span id="cb21-315"><a href="#cb21-315"></a><span class="in"># Layout for variables from adae dataset.</span></span>
-<span id="cb21-316"><a href="#cb21-316"></a><span class="in">lyt_adae &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb21-317"><a href="#cb21-317"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb21-318"><a href="#cb21-318"></a><span class="in">  analyze_num_patients(</span></span>
-<span id="cb21-319"><a href="#cb21-319"></a><span class="in">    vars = "USUBJID",</span></span>
-<span id="cb21-320"><a href="#cb21-320"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
-<span id="cb21-321"><a href="#cb21-321"></a><span class="in">    .labels = c(</span></span>
-<span id="cb21-322"><a href="#cb21-322"></a><span class="in">      unique = "Total number of patients with at least one AE",</span></span>
-<span id="cb21-323"><a href="#cb21-323"></a><span class="in">      nonunique = "Total number of AEs"</span></span>
-<span id="cb21-324"><a href="#cb21-324"></a><span class="in">    ),</span></span>
-<span id="cb21-325"><a href="#cb21-325"></a><span class="in">    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = "xx"),</span></span>
-<span id="cb21-326"><a href="#cb21-326"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb21-327"><a href="#cb21-327"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-328"><a href="#cb21-328"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb21-329"><a href="#cb21-329"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb21-330"><a href="#cb21-330"></a><span class="in">    flag_variables = count_subj_vars,</span></span>
-<span id="cb21-331"><a href="#cb21-331"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb21-332"><a href="#cb21-332"></a><span class="in">    var_labels = "Total number of patients with at least one",</span></span>
-<span id="cb21-333"><a href="#cb21-333"></a><span class="in">    show_labels = "visible"</span></span>
-<span id="cb21-334"><a href="#cb21-334"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-335"><a href="#cb21-335"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb21-336"><a href="#cb21-336"></a><span class="in">    "AEDECOD",</span></span>
-<span id="cb21-337"><a href="#cb21-337"></a><span class="in">    flag_variables = count_term_vars,</span></span>
-<span id="cb21-338"><a href="#cb21-338"></a><span class="in">    .stats = "count",</span></span>
-<span id="cb21-339"><a href="#cb21-339"></a><span class="in">    .formats = c(count = "xx"),</span></span>
-<span id="cb21-340"><a href="#cb21-340"></a><span class="in">    table_names = "table_term",</span></span>
-<span id="cb21-341"><a href="#cb21-341"></a><span class="in">    var_labels = "Total number of unique preferred terms which are",</span></span>
-<span id="cb21-342"><a href="#cb21-342"></a><span class="in">    show_labels = "visible"</span></span>
-<span id="cb21-343"><a href="#cb21-343"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb21-344"><a href="#cb21-344"></a><span class="in">  count_patients_with_flags(</span></span>
-<span id="cb21-345"><a href="#cb21-345"></a><span class="in">    "USUBJID_AESEQ",</span></span>
-<span id="cb21-346"><a href="#cb21-346"></a><span class="in">    flag_variables = count_ae_vars,</span></span>
-<span id="cb21-347"><a href="#cb21-347"></a><span class="in">    .stats = "count",</span></span>
-<span id="cb21-348"><a href="#cb21-348"></a><span class="in">    .formats = c(count = "xx"),</span></span>
-<span id="cb21-349"><a href="#cb21-349"></a><span class="in">    table_names = "table_ae",</span></span>
-<span id="cb21-350"><a href="#cb21-350"></a><span class="in">    var_labels = "Total number of adverse events which are",</span></span>
-<span id="cb21-351"><a href="#cb21-351"></a><span class="in">    show_labels = "visible"</span></span>
-<span id="cb21-352"><a href="#cb21-352"></a><span class="in">  )</span></span>
-<span id="cb21-353"><a href="#cb21-353"></a></span>
-<span id="cb21-354"><a href="#cb21-354"></a><span class="in">result_adae &lt;- build_table(lyt_adae, df = adae, alt_counts_df = adsl)</span></span>
-<span id="cb21-355"><a href="#cb21-355"></a></span>
-<span id="cb21-356"><a href="#cb21-356"></a><span class="in"># Combine tables.</span></span>
-<span id="cb21-357"><a href="#cb21-357"></a><span class="in">col_info(result_adsl) &lt;- col_info(result_adae)</span></span>
-<span id="cb21-358"><a href="#cb21-358"></a><span class="in">result &lt;- rbind(</span></span>
-<span id="cb21-359"><a href="#cb21-359"></a><span class="in">  result_adae[1:2, ],</span></span>
-<span id="cb21-360"><a href="#cb21-360"></a><span class="in">  result_adsl,</span></span>
-<span id="cb21-361"><a href="#cb21-361"></a><span class="in">  result_adae[3:nrow(result_adae), ]</span></span>
-<span id="cb21-362"><a href="#cb21-362"></a><span class="in">)</span></span>
-<span id="cb21-363"><a href="#cb21-363"></a></span>
-<span id="cb21-364"><a href="#cb21-364"></a><span class="in">result</span></span>
-<span id="cb21-365"><a href="#cb21-365"></a><span class="in">```</span></span>
-<span id="cb21-366"><a href="#cb21-366"></a></span>
-<span id="cb21-367"><a href="#cb21-367"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant4")`</span></span>
-<span id="cb21-368"><a href="#cb21-368"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb21-369"><a href="#cb21-369"></a>:::</span>
-<span id="cb21-370"><a href="#cb21-370"></a></span>
-<span id="cb21-371"><a href="#cb21-371"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb21-372"><a href="#cb21-372"></a></span>
-<span id="cb21-373"><a href="#cb21-373"></a><span class="fu">## `teal` App</span></span>
-<span id="cb21-374"><a href="#cb21-374"></a></span>
-<span id="cb21-375"><a href="#cb21-375"></a>::: {.panel-tabset .nav-justified}</span>
-<span id="cb21-376"><a href="#cb21-376"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
-<span id="cb21-377"><a href="#cb21-377"></a></span>
-<span id="cb21-378"><a href="#cb21-378"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb21-379"><a href="#cb21-379"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb21-380"><a href="#cb21-380"></a></span>
-<span id="cb21-381"><a href="#cb21-381"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb21-382"><a href="#cb21-382"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb21-383"><a href="#cb21-383"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb21-384"><a href="#cb21-384"></a><span class="in">  library(dplyr)</span></span>
-<span id="cb21-385"><a href="#cb21-385"></a></span>
-<span id="cb21-386"><a href="#cb21-386"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb21-387"><a href="#cb21-387"></a><span class="in">  ADAE &lt;- random.cdisc.data::cadae</span></span>
-<span id="cb21-388"><a href="#cb21-388"></a></span>
-<span id="cb21-389"><a href="#cb21-389"></a><span class="in">  add_event_flags &lt;- function(dat) {</span></span>
-<span id="cb21-390"><a href="#cb21-390"></a><span class="in">    dat %&gt;%</span></span>
-<span id="cb21-391"><a href="#cb21-391"></a><span class="in">      mutate(</span></span>
-<span id="cb21-392"><a href="#cb21-392"></a><span class="in">        TMPFL_SER = AESER == "Y",</span></span>
-<span id="cb21-393"><a href="#cb21-393"></a><span class="in">        TMPFL_REL = AEREL == "Y",</span></span>
-<span id="cb21-394"><a href="#cb21-394"></a><span class="in">        TMPFL_GR5 = AETOXGR == "5",</span></span>
-<span id="cb21-395"><a href="#cb21-395"></a><span class="in">        TMP_SMQ01 = !is.na(SMQ01NAM),</span></span>
-<span id="cb21-396"><a href="#cb21-396"></a><span class="in">        TMP_SMQ02 = !is.na(SMQ02NAM),</span></span>
-<span id="cb21-397"><a href="#cb21-397"></a><span class="in">        TMP_CQ01 = !is.na(CQ01NAM)</span></span>
-<span id="cb21-398"><a href="#cb21-398"></a><span class="in">      ) %&gt;%</span></span>
-<span id="cb21-399"><a href="#cb21-399"></a><span class="in">      col_relabel(</span></span>
-<span id="cb21-400"><a href="#cb21-400"></a><span class="in">        TMPFL_SER = "Serious AE",</span></span>
-<span id="cb21-401"><a href="#cb21-401"></a><span class="in">        TMPFL_REL = "Related AE",</span></span>
-<span id="cb21-402"><a href="#cb21-402"></a><span class="in">        TMPFL_GR5 = "Grade 5 AE",</span></span>
-<span id="cb21-403"><a href="#cb21-403"></a><span class="in">        TMP_SMQ01 = aesi_label(dat[["SMQ01NAM"]], dat[["SMQ01SC"]]),</span></span>
-<span id="cb21-404"><a href="#cb21-404"></a><span class="in">        TMP_SMQ02 = aesi_label(dat[["SMQ02NAM"]], dat[["SMQ02SC"]]),</span></span>
-<span id="cb21-405"><a href="#cb21-405"></a><span class="in">        TMP_CQ01 = aesi_label(dat[["CQ01NAM"]])</span></span>
-<span id="cb21-406"><a href="#cb21-406"></a><span class="in">      )</span></span>
-<span id="cb21-407"><a href="#cb21-407"></a><span class="in">  }</span></span>
-<span id="cb21-408"><a href="#cb21-408"></a></span>
-<span id="cb21-409"><a href="#cb21-409"></a><span class="in">  # Generating user-defined event flags.</span></span>
-<span id="cb21-410"><a href="#cb21-410"></a><span class="in">  ADAE &lt;- ADAE %&gt;% add_event_flags()</span></span>
-<span id="cb21-411"><a href="#cb21-411"></a><span class="in">})</span></span>
-<span id="cb21-412"><a href="#cb21-412"></a><span class="in">datanames &lt;- c("ADSL", "ADAE")</span></span>
-<span id="cb21-413"><a href="#cb21-413"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb21-414"><a href="#cb21-414"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb21-415"><a href="#cb21-415"></a></span>
-<span id="cb21-416"><a href="#cb21-416"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb21-417"><a href="#cb21-417"></a><span class="in">ADSL &lt;- data[["ADSL"]]</span></span>
-<span id="cb21-418"><a href="#cb21-418"></a><span class="in">ADAE &lt;- data[["ADAE"]]</span></span>
-<span id="cb21-419"><a href="#cb21-419"></a><span class="in">ae_anl_vars &lt;- names(ADAE)[startsWith(names(ADAE), "TMPFL_")]</span></span>
-<span id="cb21-420"><a href="#cb21-420"></a><span class="in">aesi_vars &lt;- names(ADAE)[startsWith(names(ADAE), "TMP_")]</span></span>
-<span id="cb21-421"><a href="#cb21-421"></a></span>
-<span id="cb21-422"><a href="#cb21-422"></a><span class="in">## Setup App</span></span>
-<span id="cb21-423"><a href="#cb21-423"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb21-424"><a href="#cb21-424"></a><span class="in">  data = data,</span></span>
-<span id="cb21-425"><a href="#cb21-425"></a><span class="in">  modules = modules(</span></span>
-<span id="cb21-426"><a href="#cb21-426"></a><span class="in">    tm_t_events_summary(</span></span>
-<span id="cb21-427"><a href="#cb21-427"></a><span class="in">      label = "Adverse Events Summary",</span></span>
-<span id="cb21-428"><a href="#cb21-428"></a><span class="in">      dataname = "ADAE",</span></span>
-<span id="cb21-429"><a href="#cb21-429"></a><span class="in">      arm_var = choices_selected(</span></span>
-<span id="cb21-430"><a href="#cb21-430"></a><span class="in">        choices = variable_choices("ADSL", c("ARM", "ARMCD")),</span></span>
-<span id="cb21-431"><a href="#cb21-431"></a><span class="in">        selected = "ARM"</span></span>
-<span id="cb21-432"><a href="#cb21-432"></a><span class="in">      ),</span></span>
-<span id="cb21-433"><a href="#cb21-433"></a><span class="in">      flag_var_anl = choices_selected(</span></span>
-<span id="cb21-434"><a href="#cb21-434"></a><span class="in">        choices = variable_choices("ADAE", ae_anl_vars),</span></span>
-<span id="cb21-435"><a href="#cb21-435"></a><span class="in">        selected = ae_anl_vars[1],</span></span>
-<span id="cb21-436"><a href="#cb21-436"></a><span class="in">        keep_order = TRUE,</span></span>
-<span id="cb21-437"><a href="#cb21-437"></a><span class="in">        fixed = FALSE</span></span>
-<span id="cb21-438"><a href="#cb21-438"></a><span class="in">      ),</span></span>
-<span id="cb21-439"><a href="#cb21-439"></a><span class="in">      flag_var_aesi = choices_selected(</span></span>
-<span id="cb21-440"><a href="#cb21-440"></a><span class="in">        choices = variable_choices("ADAE", aesi_vars),</span></span>
-<span id="cb21-441"><a href="#cb21-441"></a><span class="in">        selected = aesi_vars[1],</span></span>
-<span id="cb21-442"><a href="#cb21-442"></a><span class="in">        keep_order = TRUE,</span></span>
-<span id="cb21-443"><a href="#cb21-443"></a><span class="in">        fixed = FALSE</span></span>
-<span id="cb21-444"><a href="#cb21-444"></a><span class="in">      ),</span></span>
-<span id="cb21-445"><a href="#cb21-445"></a><span class="in">      add_total = TRUE</span></span>
-<span id="cb21-446"><a href="#cb21-446"></a><span class="in">    )</span></span>
-<span id="cb21-447"><a href="#cb21-447"></a><span class="in">  )</span></span>
-<span id="cb21-448"><a href="#cb21-448"></a><span class="in">)</span></span>
-<span id="cb21-449"><a href="#cb21-449"></a></span>
-<span id="cb21-450"><a href="#cb21-450"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb21-451"><a href="#cb21-451"></a><span class="in">```</span></span>
-<span id="cb21-452"><a href="#cb21-452"></a></span>
-<span id="cb21-453"><a href="#cb21-453"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
-<span id="cb21-454"><a href="#cb21-454"></a>:::</span>
-<span id="cb21-455"><a href="#cb21-455"></a></span>
-<span id="cb21-456"><a href="#cb21-456"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb21-457"><a href="#cb21-457"></a></span>
-<span id="cb21-458"><a href="#cb21-458"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb20" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb20-1"><a href="#cb20-1"></a><span class="co">---</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a><span class="an">title:</span><span class="co"> AET01</span></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="an">subtitle:</span><span class="co"> Safety Summary</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="co">---</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a></span>
+<span id="cb20-6"><a href="#cb20-6"></a>------------------------------------------------------------------------</span>
+<span id="cb20-7"><a href="#cb20-7"></a></span>
+<span id="cb20-8"><a href="#cb20-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb20-9"><a href="#cb20-9"></a></span>
+<span id="cb20-10"><a href="#cb20-10"></a>:::: {.panel-tabset}</span>
+<span id="cb20-11"><a href="#cb20-11"></a><span class="fu">## Data Setup</span></span>
+<span id="cb20-12"><a href="#cb20-12"></a></span>
+<span id="cb20-13"><a href="#cb20-13"></a>To illustrate, additional variables such as flags (TRUE/FALSE) for select AEs of interest and select AE baskets are added to the <span class="in">`adae`</span> dataset.</span>
+<span id="cb20-14"><a href="#cb20-14"></a></span>
+<span id="cb20-15"><a href="#cb20-15"></a><span class="in">```{r setup, message = FALSE}</span></span>
+<span id="cb20-16"><a href="#cb20-16"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb20-17"><a href="#cb20-17"></a></span>
+<span id="cb20-18"><a href="#cb20-18"></a><span class="in">library(tern)</span></span>
+<span id="cb20-19"><a href="#cb20-19"></a><span class="in">library(dplyr)</span></span>
+<span id="cb20-20"><a href="#cb20-20"></a></span>
+<span id="cb20-21"><a href="#cb20-21"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb20-22"><a href="#cb20-22"></a><span class="in">adae &lt;- random.cdisc.data::cadae</span></span>
+<span id="cb20-23"><a href="#cb20-23"></a></span>
+<span id="cb20-24"><a href="#cb20-24"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb20-25"><a href="#cb20-25"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb20-26"><a href="#cb20-26"></a><span class="in">adae &lt;- df_explicit_na(</span></span>
+<span id="cb20-27"><a href="#cb20-27"></a><span class="in">  adae,</span></span>
+<span id="cb20-28"><a href="#cb20-28"></a><span class="in">  omit_columns = c("SMQ01NAM", "SMQ01SC", "SMQ02NAM", "SMQ02SC", "CQ01NAM", "STUDYID", "USUBJID")</span></span>
+<span id="cb20-29"><a href="#cb20-29"></a><span class="in">)</span></span>
+<span id="cb20-30"><a href="#cb20-30"></a></span>
+<span id="cb20-31"><a href="#cb20-31"></a><span class="in">set.seed(99)</span></span>
+<span id="cb20-32"><a href="#cb20-32"></a></span>
+<span id="cb20-33"><a href="#cb20-33"></a><span class="in">adae &lt;- adae %&gt;%</span></span>
+<span id="cb20-34"><a href="#cb20-34"></a><span class="in">  mutate(</span></span>
+<span id="cb20-35"><a href="#cb20-35"></a><span class="in">    AEDECOD = with_label(as.character(AEDECOD), "Dictionary-Derived Term"),</span></span>
+<span id="cb20-36"><a href="#cb20-36"></a><span class="in">    AESDTH = with_label(</span></span>
+<span id="cb20-37"><a href="#cb20-37"></a><span class="in">      sample(c("N", "Y"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)),</span></span>
+<span id="cb20-38"><a href="#cb20-38"></a><span class="in">      "Results in Death"</span></span>
+<span id="cb20-39"><a href="#cb20-39"></a><span class="in">    ),</span></span>
+<span id="cb20-40"><a href="#cb20-40"></a><span class="in">    AEACN = with_label(</span></span>
+<span id="cb20-41"><a href="#cb20-41"></a><span class="in">      sample(</span></span>
+<span id="cb20-42"><a href="#cb20-42"></a><span class="in">        c("DOSE NOT CHANGED", "DOSE INCREASED", "DRUG INTERRUPTED", "DRUG WITHDRAWN"),</span></span>
+<span id="cb20-43"><a href="#cb20-43"></a><span class="in">        size = nrow(adae),</span></span>
+<span id="cb20-44"><a href="#cb20-44"></a><span class="in">        replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)</span></span>
+<span id="cb20-45"><a href="#cb20-45"></a><span class="in">      ),</span></span>
+<span id="cb20-46"><a href="#cb20-46"></a><span class="in">      "Action Taken with Study Treatment"</span></span>
+<span id="cb20-47"><a href="#cb20-47"></a><span class="in">    ),</span></span>
+<span id="cb20-48"><a href="#cb20-48"></a><span class="in">    FATAL = with_label(AESDTH == "Y", "AE with fatal outcome"),</span></span>
+<span id="cb20-49"><a href="#cb20-49"></a><span class="in">    SEV = with_label(AESEV == "SEVERE", "Severe AE (at greatest intensity)"),</span></span>
+<span id="cb20-50"><a href="#cb20-50"></a><span class="in">    SER = with_label(AESER == "Y", "Serious AE"),</span></span>
+<span id="cb20-51"><a href="#cb20-51"></a><span class="in">    SERWD = with_label(AESER == "Y" &amp; AEACN == "DRUG WITHDRAWN", "Serious AE leading to withdrawal from treatment"),</span></span>
+<span id="cb20-52"><a href="#cb20-52"></a><span class="in">    SERDSM = with_label(</span></span>
+<span id="cb20-53"><a href="#cb20-53"></a><span class="in">      AESER == "Y" &amp; AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"),</span></span>
+<span id="cb20-54"><a href="#cb20-54"></a><span class="in">      "Serious AE leading to dose modification/interruption"</span></span>
+<span id="cb20-55"><a href="#cb20-55"></a><span class="in">    ),</span></span>
+<span id="cb20-56"><a href="#cb20-56"></a><span class="in">    RELSER = with_label(AESER == "Y" &amp; AEREL == "Y", "Related Serious AE"),</span></span>
+<span id="cb20-57"><a href="#cb20-57"></a><span class="in">    WD = with_label(AEACN == "DRUG WITHDRAWN", "AE leading to withdrawal from treatment"),</span></span>
+<span id="cb20-58"><a href="#cb20-58"></a><span class="in">    DSM = with_label(</span></span>
+<span id="cb20-59"><a href="#cb20-59"></a><span class="in">      AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"), "AE leading to dose modification/interruption"</span></span>
+<span id="cb20-60"><a href="#cb20-60"></a><span class="in">    ),</span></span>
+<span id="cb20-61"><a href="#cb20-61"></a><span class="in">    REL = with_label(AEREL == "Y", "Related AE"),</span></span>
+<span id="cb20-62"><a href="#cb20-62"></a><span class="in">    RELWD = with_label(AEREL == "Y" &amp; AEACN == "DRUG WITHDRAWN", "Related AE leading to withdrawal from treatment"),</span></span>
+<span id="cb20-63"><a href="#cb20-63"></a><span class="in">    RELDSM = with_label(</span></span>
+<span id="cb20-64"><a href="#cb20-64"></a><span class="in">      AEREL == "Y" &amp; AEACN %in% c("DRUG INTERRUPTED", "DOSE INCREASED", "DOSE REDUCED"),</span></span>
+<span id="cb20-65"><a href="#cb20-65"></a><span class="in">      "Related AE leading to dose modification/interruption"</span></span>
+<span id="cb20-66"><a href="#cb20-66"></a><span class="in">    ),</span></span>
+<span id="cb20-67"><a href="#cb20-67"></a><span class="in">    CTC35 = with_label(AETOXGR %in% c("3", "4", "5"), "Grade 3-5 AE"),</span></span>
+<span id="cb20-68"><a href="#cb20-68"></a><span class="in">    CTC45 = with_label(AETOXGR %in% c("4", "5"), "Grade 4/5 AE"),</span></span>
+<span id="cb20-69"><a href="#cb20-69"></a><span class="in">    SMQ01 = with_label(SMQ01NAM != "", aesi_label(adae$SMQ01NAM, adae$SMQ01SC)),</span></span>
+<span id="cb20-70"><a href="#cb20-70"></a><span class="in">    SMQ02 = with_label(SMQ02NAM != "", aesi_label(adae$SMQ02NAM, adae$SMQ02SC)),</span></span>
+<span id="cb20-71"><a href="#cb20-71"></a><span class="in">    CQ01 = with_label(CQ01NAM != "", aesi_label(adae$CQ01NAM)),</span></span>
+<span id="cb20-72"><a href="#cb20-72"></a><span class="in">    USUBJID_AESEQ = paste(USUBJID, AESEQ, sep = "@@") # Create unique ID per AE in dataset.</span></span>
+<span id="cb20-73"><a href="#cb20-73"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-74"><a href="#cb20-74"></a><span class="in">  filter(ANL01FL == "Y")</span></span>
+<span id="cb20-75"><a href="#cb20-75"></a><span class="in">```</span></span>
+<span id="cb20-76"><a href="#cb20-76"></a></span>
+<span id="cb20-77"><a href="#cb20-77"></a><span class="fu">## Standard Table</span></span>
+<span id="cb20-78"><a href="#cb20-78"></a></span>
+<span id="cb20-79"><a href="#cb20-79"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb20-80"><a href="#cb20-80"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb20-81"><a href="#cb20-81"></a></span>
+<span id="cb20-82"><a href="#cb20-82"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 --&gt;</span></span>
+<span id="cb20-83"><a href="#cb20-83"></a><span class="in">```{r variant1, test = list(result_v1 = "result"), opts.label = ifelse(packageVersion("rtables") &lt; "0.6.6.9011", "skip_test_strict", "")}</span></span>
+<span id="cb20-84"><a href="#cb20-84"></a><span class="in">aesi_vars &lt;- c("FATAL", "SER", "SERWD", "SERDSM", "RELSER", "WD", "DSM", "REL", "RELWD", "RELDSM", "SEV")</span></span>
+<span id="cb20-85"><a href="#cb20-85"></a></span>
+<span id="cb20-86"><a href="#cb20-86"></a><span class="in"># Layout for variables from adsl dataset.</span></span>
+<span id="cb20-87"><a href="#cb20-87"></a><span class="in">lyt_adsl &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-88"><a href="#cb20-88"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb20-89"><a href="#cb20-89"></a><span class="in">  count_patients_with_event(</span></span>
+<span id="cb20-90"><a href="#cb20-90"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-91"><a href="#cb20-91"></a><span class="in">    filters = c("DTHFL" = "Y"),</span></span>
+<span id="cb20-92"><a href="#cb20-92"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-93"><a href="#cb20-93"></a><span class="in">    .labels = c(count_fraction = "Total number of deaths")</span></span>
+<span id="cb20-94"><a href="#cb20-94"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-95"><a href="#cb20-95"></a><span class="in">  count_patients_with_event(</span></span>
+<span id="cb20-96"><a href="#cb20-96"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-97"><a href="#cb20-97"></a><span class="in">    filters = c("DCSREAS" = "ADVERSE EVENT"),</span></span>
+<span id="cb20-98"><a href="#cb20-98"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-99"><a href="#cb20-99"></a><span class="in">    .labels = c(count_fraction = "Total number of patients withdrawn from study due to an AE"),</span></span>
+<span id="cb20-100"><a href="#cb20-100"></a><span class="in">    table_names = "tot_wd"</span></span>
+<span id="cb20-101"><a href="#cb20-101"></a><span class="in">  )</span></span>
+<span id="cb20-102"><a href="#cb20-102"></a></span>
+<span id="cb20-103"><a href="#cb20-103"></a><span class="in">result_adsl &lt;- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)</span></span>
+<span id="cb20-104"><a href="#cb20-104"></a></span>
+<span id="cb20-105"><a href="#cb20-105"></a><span class="in"># Layout for variables from adae dataset.</span></span>
+<span id="cb20-106"><a href="#cb20-106"></a><span class="in">lyt_adae &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-107"><a href="#cb20-107"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb20-108"><a href="#cb20-108"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb20-109"><a href="#cb20-109"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb20-110"><a href="#cb20-110"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb20-111"><a href="#cb20-111"></a><span class="in">    .labels = c(</span></span>
+<span id="cb20-112"><a href="#cb20-112"></a><span class="in">      unique = "Total number of patients with at least one AE",</span></span>
+<span id="cb20-113"><a href="#cb20-113"></a><span class="in">      nonunique = "Total number of AEs"</span></span>
+<span id="cb20-114"><a href="#cb20-114"></a><span class="in">    ),</span></span>
+<span id="cb20-115"><a href="#cb20-115"></a><span class="in">    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = "xx"),</span></span>
+<span id="cb20-116"><a href="#cb20-116"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb20-117"><a href="#cb20-117"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-118"><a href="#cb20-118"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb20-119"><a href="#cb20-119"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-120"><a href="#cb20-120"></a><span class="in">    flag_variables = aesi_vars,</span></span>
+<span id="cb20-121"><a href="#cb20-121"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-122"><a href="#cb20-122"></a><span class="in">    var_labels = "Total number of patients with at least one",</span></span>
+<span id="cb20-123"><a href="#cb20-123"></a><span class="in">    show_labels = "visible"</span></span>
+<span id="cb20-124"><a href="#cb20-124"></a><span class="in">  )</span></span>
+<span id="cb20-125"><a href="#cb20-125"></a></span>
+<span id="cb20-126"><a href="#cb20-126"></a><span class="in">result_adae &lt;- build_table(lyt_adae, df = adae, alt_counts_df = adsl)</span></span>
+<span id="cb20-127"><a href="#cb20-127"></a></span>
+<span id="cb20-128"><a href="#cb20-128"></a><span class="in"># Combine tables.</span></span>
+<span id="cb20-129"><a href="#cb20-129"></a><span class="in">col_info(result_adsl) &lt;- col_info(result_adae)</span></span>
+<span id="cb20-130"><a href="#cb20-130"></a><span class="in">result &lt;- rbind(</span></span>
+<span id="cb20-131"><a href="#cb20-131"></a><span class="in">  result_adae[1:2, ],</span></span>
+<span id="cb20-132"><a href="#cb20-132"></a><span class="in">  result_adsl,</span></span>
+<span id="cb20-133"><a href="#cb20-133"></a><span class="in">  result_adae[3:nrow(result_adae), ]</span></span>
+<span id="cb20-134"><a href="#cb20-134"></a><span class="in">)</span></span>
+<span id="cb20-135"><a href="#cb20-135"></a></span>
+<span id="cb20-136"><a href="#cb20-136"></a><span class="in">result</span></span>
+<span id="cb20-137"><a href="#cb20-137"></a><span class="in">```</span></span>
+<span id="cb20-138"><a href="#cb20-138"></a></span>
+<span id="cb20-139"><a href="#cb20-139"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
+<span id="cb20-140"><a href="#cb20-140"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb20-141"><a href="#cb20-141"></a>:::</span>
+<span id="cb20-142"><a href="#cb20-142"></a></span>
+<span id="cb20-143"><a href="#cb20-143"></a><span class="fu">## Table with Medical &lt;br/&gt; Concepts Section</span></span>
+<span id="cb20-144"><a href="#cb20-144"></a></span>
+<span id="cb20-145"><a href="#cb20-145"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb20-146"><a href="#cb20-146"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb20-147"><a href="#cb20-147"></a></span>
+<span id="cb20-148"><a href="#cb20-148"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb20-149"><a href="#cb20-149"></a><span class="in">aesi_vars &lt;- c("FATAL", "SER", "SERWD", "SERDSM", "RELSER", "WD", "DSM", "REL", "RELWD", "RELDSM", "CTC35")</span></span>
+<span id="cb20-150"><a href="#cb20-150"></a><span class="in">basket_vars &lt;- c("SMQ01", "SMQ02", "CQ01")</span></span>
+<span id="cb20-151"><a href="#cb20-151"></a></span>
+<span id="cb20-152"><a href="#cb20-152"></a><span class="in"># Layout for variables from adsl dataset.</span></span>
+<span id="cb20-153"><a href="#cb20-153"></a><span class="in">lyt_adsl &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-154"><a href="#cb20-154"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb20-155"><a href="#cb20-155"></a><span class="in">  count_patients_with_event(</span></span>
+<span id="cb20-156"><a href="#cb20-156"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-157"><a href="#cb20-157"></a><span class="in">    filters = c("DTHFL" = "Y"),</span></span>
+<span id="cb20-158"><a href="#cb20-158"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-159"><a href="#cb20-159"></a><span class="in">    .labels = c(count_fraction = "Total number of deaths")</span></span>
+<span id="cb20-160"><a href="#cb20-160"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-161"><a href="#cb20-161"></a><span class="in">  count_patients_with_event(</span></span>
+<span id="cb20-162"><a href="#cb20-162"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-163"><a href="#cb20-163"></a><span class="in">    filters = c("DCSREAS" = "ADVERSE EVENT"),</span></span>
+<span id="cb20-164"><a href="#cb20-164"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-165"><a href="#cb20-165"></a><span class="in">    .labels = c(count_fraction = "Total number of patients withdrawn from study due to an AE"),</span></span>
+<span id="cb20-166"><a href="#cb20-166"></a><span class="in">    table_names = "tot_wd"</span></span>
+<span id="cb20-167"><a href="#cb20-167"></a><span class="in">  )</span></span>
+<span id="cb20-168"><a href="#cb20-168"></a></span>
+<span id="cb20-169"><a href="#cb20-169"></a><span class="in">result_adsl &lt;- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)</span></span>
+<span id="cb20-170"><a href="#cb20-170"></a></span>
+<span id="cb20-171"><a href="#cb20-171"></a><span class="in"># Layout for variables from adae dataset.</span></span>
+<span id="cb20-172"><a href="#cb20-172"></a><span class="in">lyt_adae &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-173"><a href="#cb20-173"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb20-174"><a href="#cb20-174"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb20-175"><a href="#cb20-175"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb20-176"><a href="#cb20-176"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb20-177"><a href="#cb20-177"></a><span class="in">    .labels = c(</span></span>
+<span id="cb20-178"><a href="#cb20-178"></a><span class="in">      unique = "Total number of patients with at least one AE",</span></span>
+<span id="cb20-179"><a href="#cb20-179"></a><span class="in">      nonunique = "Total number of AEs"</span></span>
+<span id="cb20-180"><a href="#cb20-180"></a><span class="in">    ),</span></span>
+<span id="cb20-181"><a href="#cb20-181"></a><span class="in">    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = "xx"),</span></span>
+<span id="cb20-182"><a href="#cb20-182"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb20-183"><a href="#cb20-183"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-184"><a href="#cb20-184"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb20-185"><a href="#cb20-185"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-186"><a href="#cb20-186"></a><span class="in">    flag_variables = aesi_vars,</span></span>
+<span id="cb20-187"><a href="#cb20-187"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-188"><a href="#cb20-188"></a><span class="in">    var_labels = "Total number of patients with at least one",</span></span>
+<span id="cb20-189"><a href="#cb20-189"></a><span class="in">    show_labels = "visible"</span></span>
+<span id="cb20-190"><a href="#cb20-190"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-191"><a href="#cb20-191"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb20-192"><a href="#cb20-192"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-193"><a href="#cb20-193"></a><span class="in">    flag_variables = basket_vars,</span></span>
+<span id="cb20-194"><a href="#cb20-194"></a><span class="in">    table_names = "table_aesi",</span></span>
+<span id="cb20-195"><a href="#cb20-195"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-196"><a href="#cb20-196"></a><span class="in">    var_labels = "Total number of patients with at least one",</span></span>
+<span id="cb20-197"><a href="#cb20-197"></a><span class="in">    show_labels = "visible"</span></span>
+<span id="cb20-198"><a href="#cb20-198"></a><span class="in">  )</span></span>
+<span id="cb20-199"><a href="#cb20-199"></a></span>
+<span id="cb20-200"><a href="#cb20-200"></a><span class="in">result_adae &lt;- build_table(lyt_adae, df = adae, alt_counts_df = adsl)</span></span>
+<span id="cb20-201"><a href="#cb20-201"></a></span>
+<span id="cb20-202"><a href="#cb20-202"></a><span class="in"># Combine tables.</span></span>
+<span id="cb20-203"><a href="#cb20-203"></a><span class="in">col_info(result_adsl) &lt;- col_info(result_adae)</span></span>
+<span id="cb20-204"><a href="#cb20-204"></a><span class="in">result &lt;- rbind(</span></span>
+<span id="cb20-205"><a href="#cb20-205"></a><span class="in">  result_adae[1:2, ],</span></span>
+<span id="cb20-206"><a href="#cb20-206"></a><span class="in">  result_adsl,</span></span>
+<span id="cb20-207"><a href="#cb20-207"></a><span class="in">  result_adae[3:nrow(result_adae), ]</span></span>
+<span id="cb20-208"><a href="#cb20-208"></a><span class="in">)</span></span>
+<span id="cb20-209"><a href="#cb20-209"></a></span>
+<span id="cb20-210"><a href="#cb20-210"></a><span class="in">result</span></span>
+<span id="cb20-211"><a href="#cb20-211"></a><span class="in">```</span></span>
+<span id="cb20-212"><a href="#cb20-212"></a></span>
+<span id="cb20-213"><a href="#cb20-213"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
+<span id="cb20-214"><a href="#cb20-214"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb20-215"><a href="#cb20-215"></a>:::</span>
+<span id="cb20-216"><a href="#cb20-216"></a></span>
+<span id="cb20-217"><a href="#cb20-217"></a><span class="fu">## Table with &lt;br/&gt; Modified Rows</span></span>
+<span id="cb20-218"><a href="#cb20-218"></a></span>
+<span id="cb20-219"><a href="#cb20-219"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb20-220"><a href="#cb20-220"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb20-221"><a href="#cb20-221"></a></span>
+<span id="cb20-222"><a href="#cb20-222"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
+<span id="cb20-223"><a href="#cb20-223"></a><span class="in">aesi_vars &lt;- c("FATAL", "SER", "WD", "REL", "CTC35", "CTC45")</span></span>
+<span id="cb20-224"><a href="#cb20-224"></a><span class="in"># Layout for variables from adsl dataset.</span></span>
+<span id="cb20-225"><a href="#cb20-225"></a><span class="in">lyt_adsl &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-226"><a href="#cb20-226"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb20-227"><a href="#cb20-227"></a><span class="in">  count_patients_with_event(</span></span>
+<span id="cb20-228"><a href="#cb20-228"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-229"><a href="#cb20-229"></a><span class="in">    filters = c("DTHFL" = "Y"),</span></span>
+<span id="cb20-230"><a href="#cb20-230"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-231"><a href="#cb20-231"></a><span class="in">    .labels = c(count_fraction = "Total number of deaths")</span></span>
+<span id="cb20-232"><a href="#cb20-232"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-233"><a href="#cb20-233"></a><span class="in">  count_patients_with_event(</span></span>
+<span id="cb20-234"><a href="#cb20-234"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-235"><a href="#cb20-235"></a><span class="in">    filters = c("DCSREAS" = "ADVERSE EVENT"),</span></span>
+<span id="cb20-236"><a href="#cb20-236"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-237"><a href="#cb20-237"></a><span class="in">    .labels = c(count_fraction = "Total number of patients withdrawn from study due to an AE"),</span></span>
+<span id="cb20-238"><a href="#cb20-238"></a><span class="in">    table_names = "tot_wd"</span></span>
+<span id="cb20-239"><a href="#cb20-239"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-240"><a href="#cb20-240"></a><span class="in">  count_patients_with_event(</span></span>
+<span id="cb20-241"><a href="#cb20-241"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-242"><a href="#cb20-242"></a><span class="in">    filters = c("DCSREAS" = "WITHDRAWAL BY SUBJECT"),</span></span>
+<span id="cb20-243"><a href="#cb20-243"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-244"><a href="#cb20-244"></a><span class="in">    .labels = c(count_fraction = "Total number of patients withdrawn informed consent"),</span></span>
+<span id="cb20-245"><a href="#cb20-245"></a><span class="in">    table_names = "tot_dscsreas_wd"</span></span>
+<span id="cb20-246"><a href="#cb20-246"></a><span class="in">  )</span></span>
+<span id="cb20-247"><a href="#cb20-247"></a><span class="in">result_adsl &lt;- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)</span></span>
+<span id="cb20-248"><a href="#cb20-248"></a></span>
+<span id="cb20-249"><a href="#cb20-249"></a><span class="in"># Layout for variables from adae dataset.</span></span>
+<span id="cb20-250"><a href="#cb20-250"></a><span class="in">lyt_adae &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-251"><a href="#cb20-251"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb20-252"><a href="#cb20-252"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb20-253"><a href="#cb20-253"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb20-254"><a href="#cb20-254"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb20-255"><a href="#cb20-255"></a><span class="in">    .labels = c(</span></span>
+<span id="cb20-256"><a href="#cb20-256"></a><span class="in">      unique = "Total number of patients with at least one AE",</span></span>
+<span id="cb20-257"><a href="#cb20-257"></a><span class="in">      nonunique = "Total number of AEs"</span></span>
+<span id="cb20-258"><a href="#cb20-258"></a><span class="in">    ),</span></span>
+<span id="cb20-259"><a href="#cb20-259"></a><span class="in">    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = "xx"),</span></span>
+<span id="cb20-260"><a href="#cb20-260"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb20-261"><a href="#cb20-261"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-262"><a href="#cb20-262"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb20-263"><a href="#cb20-263"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-264"><a href="#cb20-264"></a><span class="in">    flag_variables = aesi_vars,</span></span>
+<span id="cb20-265"><a href="#cb20-265"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-266"><a href="#cb20-266"></a><span class="in">    var_labels = "Total number of patients with at least one",</span></span>
+<span id="cb20-267"><a href="#cb20-267"></a><span class="in">    show_labels = "visible"</span></span>
+<span id="cb20-268"><a href="#cb20-268"></a><span class="in">  )</span></span>
+<span id="cb20-269"><a href="#cb20-269"></a><span class="in">result_adae &lt;- build_table(lyt_adae, df = adae, alt_counts_df = adsl)</span></span>
+<span id="cb20-270"><a href="#cb20-270"></a></span>
+<span id="cb20-271"><a href="#cb20-271"></a><span class="in"># Combine tables.</span></span>
+<span id="cb20-272"><a href="#cb20-272"></a><span class="in">col_info(result_adsl) &lt;- col_info(result_adae)</span></span>
+<span id="cb20-273"><a href="#cb20-273"></a><span class="in">result &lt;- rbind(</span></span>
+<span id="cb20-274"><a href="#cb20-274"></a><span class="in">  result_adae[1:2, ],</span></span>
+<span id="cb20-275"><a href="#cb20-275"></a><span class="in">  result_adsl,</span></span>
+<span id="cb20-276"><a href="#cb20-276"></a><span class="in">  result_adae[3:nrow(result_adae), ]</span></span>
+<span id="cb20-277"><a href="#cb20-277"></a><span class="in">)</span></span>
+<span id="cb20-278"><a href="#cb20-278"></a></span>
+<span id="cb20-279"><a href="#cb20-279"></a><span class="in">result</span></span>
+<span id="cb20-280"><a href="#cb20-280"></a><span class="in">```</span></span>
+<span id="cb20-281"><a href="#cb20-281"></a></span>
+<span id="cb20-282"><a href="#cb20-282"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant3")`</span></span>
+<span id="cb20-283"><a href="#cb20-283"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb20-284"><a href="#cb20-284"></a>:::</span>
+<span id="cb20-285"><a href="#cb20-285"></a></span>
+<span id="cb20-286"><a href="#cb20-286"></a><span class="fu">## Table with Rows Counting &lt;br/&gt; Events &amp; Additional Sections</span></span>
+<span id="cb20-287"><a href="#cb20-287"></a></span>
+<span id="cb20-288"><a href="#cb20-288"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb20-289"><a href="#cb20-289"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb20-290"><a href="#cb20-290"></a></span>
+<span id="cb20-291"><a href="#cb20-291"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
+<span id="cb20-292"><a href="#cb20-292"></a><span class="in">count_subj_vars &lt;- c("FATAL", "SER", "WD", "DSM", "REL", "CTC35")</span></span>
+<span id="cb20-293"><a href="#cb20-293"></a><span class="in">count_term_vars &lt;- c("SER", "DSM", "REL", "CTC35", "CTC45")</span></span>
+<span id="cb20-294"><a href="#cb20-294"></a><span class="in">count_ae_vars &lt;- c("SER", "DSM", "REL", "CTC35", "CTC45")</span></span>
+<span id="cb20-295"><a href="#cb20-295"></a></span>
+<span id="cb20-296"><a href="#cb20-296"></a><span class="in"># Layout for variables from adsl dataset.</span></span>
+<span id="cb20-297"><a href="#cb20-297"></a><span class="in">lyt_adsl &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-298"><a href="#cb20-298"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb20-299"><a href="#cb20-299"></a><span class="in">  count_patients_with_event(</span></span>
+<span id="cb20-300"><a href="#cb20-300"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-301"><a href="#cb20-301"></a><span class="in">    filters = c("DTHFL" = "Y"),</span></span>
+<span id="cb20-302"><a href="#cb20-302"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-303"><a href="#cb20-303"></a><span class="in">    .labels = c(count_fraction = "Total number of deaths")</span></span>
+<span id="cb20-304"><a href="#cb20-304"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-305"><a href="#cb20-305"></a><span class="in">  count_patients_with_event(</span></span>
+<span id="cb20-306"><a href="#cb20-306"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-307"><a href="#cb20-307"></a><span class="in">    filters = c("DCSREAS" = "ADVERSE EVENT"),</span></span>
+<span id="cb20-308"><a href="#cb20-308"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-309"><a href="#cb20-309"></a><span class="in">    .labels = c(count_fraction = "Total number of patients withdrawn from study due to an AE"),</span></span>
+<span id="cb20-310"><a href="#cb20-310"></a><span class="in">    table_names = "tot_wd"</span></span>
+<span id="cb20-311"><a href="#cb20-311"></a><span class="in">  )</span></span>
+<span id="cb20-312"><a href="#cb20-312"></a></span>
+<span id="cb20-313"><a href="#cb20-313"></a><span class="in">result_adsl &lt;- build_table(lyt_adsl, df = adsl, alt_counts_df = adsl)</span></span>
+<span id="cb20-314"><a href="#cb20-314"></a></span>
+<span id="cb20-315"><a href="#cb20-315"></a><span class="in"># Layout for variables from adae dataset.</span></span>
+<span id="cb20-316"><a href="#cb20-316"></a><span class="in">lyt_adae &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-317"><a href="#cb20-317"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb20-318"><a href="#cb20-318"></a><span class="in">  analyze_num_patients(</span></span>
+<span id="cb20-319"><a href="#cb20-319"></a><span class="in">    vars = "USUBJID",</span></span>
+<span id="cb20-320"><a href="#cb20-320"></a><span class="in">    .stats = c("unique", "nonunique"),</span></span>
+<span id="cb20-321"><a href="#cb20-321"></a><span class="in">    .labels = c(</span></span>
+<span id="cb20-322"><a href="#cb20-322"></a><span class="in">      unique = "Total number of patients with at least one AE",</span></span>
+<span id="cb20-323"><a href="#cb20-323"></a><span class="in">      nonunique = "Total number of AEs"</span></span>
+<span id="cb20-324"><a href="#cb20-324"></a><span class="in">    ),</span></span>
+<span id="cb20-325"><a href="#cb20-325"></a><span class="in">    .formats = list(unique = format_count_fraction_fixed_dp, nonunique = "xx"),</span></span>
+<span id="cb20-326"><a href="#cb20-326"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb20-327"><a href="#cb20-327"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-328"><a href="#cb20-328"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb20-329"><a href="#cb20-329"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb20-330"><a href="#cb20-330"></a><span class="in">    flag_variables = count_subj_vars,</span></span>
+<span id="cb20-331"><a href="#cb20-331"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb20-332"><a href="#cb20-332"></a><span class="in">    var_labels = "Total number of patients with at least one",</span></span>
+<span id="cb20-333"><a href="#cb20-333"></a><span class="in">    show_labels = "visible"</span></span>
+<span id="cb20-334"><a href="#cb20-334"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-335"><a href="#cb20-335"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb20-336"><a href="#cb20-336"></a><span class="in">    "AEDECOD",</span></span>
+<span id="cb20-337"><a href="#cb20-337"></a><span class="in">    flag_variables = count_term_vars,</span></span>
+<span id="cb20-338"><a href="#cb20-338"></a><span class="in">    .stats = "count",</span></span>
+<span id="cb20-339"><a href="#cb20-339"></a><span class="in">    .formats = c(count = "xx"),</span></span>
+<span id="cb20-340"><a href="#cb20-340"></a><span class="in">    table_names = "table_term",</span></span>
+<span id="cb20-341"><a href="#cb20-341"></a><span class="in">    var_labels = "Total number of unique preferred terms which are",</span></span>
+<span id="cb20-342"><a href="#cb20-342"></a><span class="in">    show_labels = "visible"</span></span>
+<span id="cb20-343"><a href="#cb20-343"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-344"><a href="#cb20-344"></a><span class="in">  count_patients_with_flags(</span></span>
+<span id="cb20-345"><a href="#cb20-345"></a><span class="in">    "USUBJID_AESEQ",</span></span>
+<span id="cb20-346"><a href="#cb20-346"></a><span class="in">    flag_variables = count_ae_vars,</span></span>
+<span id="cb20-347"><a href="#cb20-347"></a><span class="in">    .stats = "count",</span></span>
+<span id="cb20-348"><a href="#cb20-348"></a><span class="in">    .formats = c(count = "xx"),</span></span>
+<span id="cb20-349"><a href="#cb20-349"></a><span class="in">    table_names = "table_ae",</span></span>
+<span id="cb20-350"><a href="#cb20-350"></a><span class="in">    var_labels = "Total number of adverse events which are",</span></span>
+<span id="cb20-351"><a href="#cb20-351"></a><span class="in">    show_labels = "visible"</span></span>
+<span id="cb20-352"><a href="#cb20-352"></a><span class="in">  )</span></span>
+<span id="cb20-353"><a href="#cb20-353"></a></span>
+<span id="cb20-354"><a href="#cb20-354"></a><span class="in">result_adae &lt;- build_table(lyt_adae, df = adae, alt_counts_df = adsl)</span></span>
+<span id="cb20-355"><a href="#cb20-355"></a></span>
+<span id="cb20-356"><a href="#cb20-356"></a><span class="in"># Combine tables.</span></span>
+<span id="cb20-357"><a href="#cb20-357"></a><span class="in">col_info(result_adsl) &lt;- col_info(result_adae)</span></span>
+<span id="cb20-358"><a href="#cb20-358"></a><span class="in">result &lt;- rbind(</span></span>
+<span id="cb20-359"><a href="#cb20-359"></a><span class="in">  result_adae[1:2, ],</span></span>
+<span id="cb20-360"><a href="#cb20-360"></a><span class="in">  result_adsl,</span></span>
+<span id="cb20-361"><a href="#cb20-361"></a><span class="in">  result_adae[3:nrow(result_adae), ]</span></span>
+<span id="cb20-362"><a href="#cb20-362"></a><span class="in">)</span></span>
+<span id="cb20-363"><a href="#cb20-363"></a></span>
+<span id="cb20-364"><a href="#cb20-364"></a><span class="in">result</span></span>
+<span id="cb20-365"><a href="#cb20-365"></a><span class="in">```</span></span>
+<span id="cb20-366"><a href="#cb20-366"></a></span>
+<span id="cb20-367"><a href="#cb20-367"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant4")`</span></span>
+<span id="cb20-368"><a href="#cb20-368"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb20-369"><a href="#cb20-369"></a>:::</span>
+<span id="cb20-370"><a href="#cb20-370"></a></span>
+<span id="cb20-371"><a href="#cb20-371"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb20-372"><a href="#cb20-372"></a></span>
+<span id="cb20-373"><a href="#cb20-373"></a><span class="fu">## `teal` App</span></span>
+<span id="cb20-374"><a href="#cb20-374"></a></span>
+<span id="cb20-375"><a href="#cb20-375"></a>::: {.panel-tabset .nav-justified}</span>
+<span id="cb20-376"><a href="#cb20-376"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
+<span id="cb20-377"><a href="#cb20-377"></a></span>
+<span id="cb20-378"><a href="#cb20-378"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb20-379"><a href="#cb20-379"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb20-380"><a href="#cb20-380"></a></span>
+<span id="cb20-381"><a href="#cb20-381"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb20-382"><a href="#cb20-382"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb20-383"><a href="#cb20-383"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb20-384"><a href="#cb20-384"></a><span class="in">  library(dplyr)</span></span>
+<span id="cb20-385"><a href="#cb20-385"></a></span>
+<span id="cb20-386"><a href="#cb20-386"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb20-387"><a href="#cb20-387"></a><span class="in">  ADAE &lt;- random.cdisc.data::cadae</span></span>
+<span id="cb20-388"><a href="#cb20-388"></a></span>
+<span id="cb20-389"><a href="#cb20-389"></a><span class="in">  add_event_flags &lt;- function(dat) {</span></span>
+<span id="cb20-390"><a href="#cb20-390"></a><span class="in">    dat %&gt;%</span></span>
+<span id="cb20-391"><a href="#cb20-391"></a><span class="in">      mutate(</span></span>
+<span id="cb20-392"><a href="#cb20-392"></a><span class="in">        TMPFL_SER = AESER == "Y",</span></span>
+<span id="cb20-393"><a href="#cb20-393"></a><span class="in">        TMPFL_REL = AEREL == "Y",</span></span>
+<span id="cb20-394"><a href="#cb20-394"></a><span class="in">        TMPFL_GR5 = AETOXGR == "5",</span></span>
+<span id="cb20-395"><a href="#cb20-395"></a><span class="in">        TMP_SMQ01 = !is.na(SMQ01NAM),</span></span>
+<span id="cb20-396"><a href="#cb20-396"></a><span class="in">        TMP_SMQ02 = !is.na(SMQ02NAM),</span></span>
+<span id="cb20-397"><a href="#cb20-397"></a><span class="in">        TMP_CQ01 = !is.na(CQ01NAM)</span></span>
+<span id="cb20-398"><a href="#cb20-398"></a><span class="in">      ) %&gt;%</span></span>
+<span id="cb20-399"><a href="#cb20-399"></a><span class="in">      col_relabel(</span></span>
+<span id="cb20-400"><a href="#cb20-400"></a><span class="in">        TMPFL_SER = "Serious AE",</span></span>
+<span id="cb20-401"><a href="#cb20-401"></a><span class="in">        TMPFL_REL = "Related AE",</span></span>
+<span id="cb20-402"><a href="#cb20-402"></a><span class="in">        TMPFL_GR5 = "Grade 5 AE",</span></span>
+<span id="cb20-403"><a href="#cb20-403"></a><span class="in">        TMP_SMQ01 = aesi_label(dat[["SMQ01NAM"]], dat[["SMQ01SC"]]),</span></span>
+<span id="cb20-404"><a href="#cb20-404"></a><span class="in">        TMP_SMQ02 = aesi_label(dat[["SMQ02NAM"]], dat[["SMQ02SC"]]),</span></span>
+<span id="cb20-405"><a href="#cb20-405"></a><span class="in">        TMP_CQ01 = aesi_label(dat[["CQ01NAM"]])</span></span>
+<span id="cb20-406"><a href="#cb20-406"></a><span class="in">      )</span></span>
+<span id="cb20-407"><a href="#cb20-407"></a><span class="in">  }</span></span>
+<span id="cb20-408"><a href="#cb20-408"></a></span>
+<span id="cb20-409"><a href="#cb20-409"></a><span class="in">  # Generating user-defined event flags.</span></span>
+<span id="cb20-410"><a href="#cb20-410"></a><span class="in">  ADAE &lt;- ADAE %&gt;% add_event_flags()</span></span>
+<span id="cb20-411"><a href="#cb20-411"></a><span class="in">})</span></span>
+<span id="cb20-412"><a href="#cb20-412"></a><span class="in">datanames &lt;- c("ADSL", "ADAE")</span></span>
+<span id="cb20-413"><a href="#cb20-413"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb20-414"><a href="#cb20-414"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb20-415"><a href="#cb20-415"></a></span>
+<span id="cb20-416"><a href="#cb20-416"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb20-417"><a href="#cb20-417"></a><span class="in">ADSL &lt;- data[["ADSL"]]</span></span>
+<span id="cb20-418"><a href="#cb20-418"></a><span class="in">ADAE &lt;- data[["ADAE"]]</span></span>
+<span id="cb20-419"><a href="#cb20-419"></a><span class="in">ae_anl_vars &lt;- names(ADAE)[startsWith(names(ADAE), "TMPFL_")]</span></span>
+<span id="cb20-420"><a href="#cb20-420"></a><span class="in">aesi_vars &lt;- names(ADAE)[startsWith(names(ADAE), "TMP_")]</span></span>
+<span id="cb20-421"><a href="#cb20-421"></a></span>
+<span id="cb20-422"><a href="#cb20-422"></a><span class="in">## Setup App</span></span>
+<span id="cb20-423"><a href="#cb20-423"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb20-424"><a href="#cb20-424"></a><span class="in">  data = data,</span></span>
+<span id="cb20-425"><a href="#cb20-425"></a><span class="in">  modules = modules(</span></span>
+<span id="cb20-426"><a href="#cb20-426"></a><span class="in">    tm_t_events_summary(</span></span>
+<span id="cb20-427"><a href="#cb20-427"></a><span class="in">      label = "Adverse Events Summary",</span></span>
+<span id="cb20-428"><a href="#cb20-428"></a><span class="in">      dataname = "ADAE",</span></span>
+<span id="cb20-429"><a href="#cb20-429"></a><span class="in">      arm_var = choices_selected(</span></span>
+<span id="cb20-430"><a href="#cb20-430"></a><span class="in">        choices = variable_choices("ADSL", c("ARM", "ARMCD")),</span></span>
+<span id="cb20-431"><a href="#cb20-431"></a><span class="in">        selected = "ARM"</span></span>
+<span id="cb20-432"><a href="#cb20-432"></a><span class="in">      ),</span></span>
+<span id="cb20-433"><a href="#cb20-433"></a><span class="in">      flag_var_anl = choices_selected(</span></span>
+<span id="cb20-434"><a href="#cb20-434"></a><span class="in">        choices = variable_choices("ADAE", ae_anl_vars),</span></span>
+<span id="cb20-435"><a href="#cb20-435"></a><span class="in">        selected = ae_anl_vars[1],</span></span>
+<span id="cb20-436"><a href="#cb20-436"></a><span class="in">        keep_order = TRUE,</span></span>
+<span id="cb20-437"><a href="#cb20-437"></a><span class="in">        fixed = FALSE</span></span>
+<span id="cb20-438"><a href="#cb20-438"></a><span class="in">      ),</span></span>
+<span id="cb20-439"><a href="#cb20-439"></a><span class="in">      flag_var_aesi = choices_selected(</span></span>
+<span id="cb20-440"><a href="#cb20-440"></a><span class="in">        choices = variable_choices("ADAE", aesi_vars),</span></span>
+<span id="cb20-441"><a href="#cb20-441"></a><span class="in">        selected = aesi_vars[1],</span></span>
+<span id="cb20-442"><a href="#cb20-442"></a><span class="in">        keep_order = TRUE,</span></span>
+<span id="cb20-443"><a href="#cb20-443"></a><span class="in">        fixed = FALSE</span></span>
+<span id="cb20-444"><a href="#cb20-444"></a><span class="in">      ),</span></span>
+<span id="cb20-445"><a href="#cb20-445"></a><span class="in">      add_total = TRUE</span></span>
+<span id="cb20-446"><a href="#cb20-446"></a><span class="in">    )</span></span>
+<span id="cb20-447"><a href="#cb20-447"></a><span class="in">  )</span></span>
+<span id="cb20-448"><a href="#cb20-448"></a><span class="in">)</span></span>
+<span id="cb20-449"><a href="#cb20-449"></a></span>
+<span id="cb20-450"><a href="#cb20-450"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb20-451"><a href="#cb20-451"></a><span class="in">```</span></span>
+<span id="cb20-452"><a href="#cb20-452"></a></span>
+<span id="cb20-453"><a href="#cb20-453"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
+<span id="cb20-454"><a href="#cb20-454"></a>:::</span>
+<span id="cb20-455"><a href="#cb20-455"></a></span>
+<span id="cb20-456"><a href="#cb20-456"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb20-457"><a href="#cb20-457"></a></span>
+<span id="cb20-458"><a href="#cb20-458"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.5.56">
+<meta name="generator" content="quarto-1.5.57">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>PKPT11 – TLG Catalog - Dev</title>
 <style>
@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"code":"library(dplyr)\nlibrary(tern)\n\nadpp <- random.cdisc.data::cadpp\n\n# Comparator Dose - A: Drug X\narm_var <- \"TRT01A\"\ncomp_dose <- \"A: Drug X\"\nother_doses <- as.character(unique(adpp[[arm_var]])[unique(adpp[[arm_var]]) != comp_dose])\n\nadpp <- adpp %>%\n  filter(AVISIT == \"CYCLE 1 DAY 1\") %>%\n  mutate(\n    COMP = paste0(TRT01A, \"/\", comp_dose),\n    COMP_AVAL = ifelse(TRT01A == comp_dose, paste0(AVAL, comp_dose), AVAL)\n  )\n\nfor (dose in other_doses) {\n  temp_df <- adpp[adpp[[arm_var]] == comp_dose, ]\n  temp_df$COMP <- paste0(dose, \"/\", comp_dose)\n  adpp <- rbind(adpp, temp_df)\n}\n\n# Plasma Drug X\nadpp0 <- adpp %>%\n  filter(PPCAT == \"Plasma Drug X\") %>%\n  h_pkparam_sort() %>%\n  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, \" (\", AVALU, \")\"))) %>%\n  var_relabel(COMP = \"Comparison\")\n\n# statistics function\ns_gmr <- function(df,\n                  compare_dose = comp_dose, # comparator, defaults to comp_dose defined above (string)\n                  denom = TRUE, # whether to use comparator as denominator, defaults to TRUE (logical)\n                  arm_var = arm_var) { # arm variable, defaults to arm_var defined above (string)\n  which_num <- !grepl(compare_dose, df[[arm_var]])\n\n  x_num <- as.numeric(df[which_num, ][[\"AVAL\"]])\n  x_num <- x_num[!is.na(x_num)]\n  x_num_no_negative_vals <- x_num\n  x_num_no_negative_vals[x_num_no_negative_vals <= 0] <- NA\n\n  x_denom <- as.numeric(gsub(compare_dose, \"\", df[!which_num, ][[\"AVAL\"]]))\n  x_denom <- x_denom[!is.na(x_denom)]\n  x_denom_no_negative_vals <- x_denom\n  x_denom_no_negative_vals[x_denom_no_negative_vals <= 0] <- NA\n\n  x_num_log <- log(x_num_no_negative_vals)\n  x_denom_log <- log(x_denom_no_negative_vals)\n\n  if (denom) {\n    geom_mean_ratio <- exp(mean(x_num_log, na.rm = FALSE)) / exp(mean(x_denom_log, na.rm = FALSE))\n    geom_mean_ci <- t.test(x_num_log, x_denom_log, conf.level = 0.90)$conf.int\n  } else {\n    geom_mean_ratio <- exp(mean(x_denom_log, na.rm = FALSE)) / exp(mean(x_num_log, na.rm = FALSE))\n    geom_mean_ci <- t.test(x_denom_log, x_num_log, conf.level = 0.90)$conf.int\n  }\n\n  list(\n    n = nrow(df),\n    geom_mean_ratio = geom_mean_ratio,\n    gmr_ci_lwr = exp(geom_mean_ci[1]),\n    gmr_ci_upr = exp(geom_mean_ci[2])\n  )\n}\n\nafun_pk_gmr <- function(\n    .formats = list(\n      n = \"xx.\",\n      geom_mean_ratio = format_sigfig(3),\n      gmr_ci_lwr = format_sigfig(3),\n      gmr_ci_upr = format_sigfig(3)\n    ),\n    compare_dose = comp_dose,\n    denom = TRUE) {\n  checkmate::assert_list(.formats)\n  checkmate::assert_subset(names(.formats), c(\"n\", \"geom_mean_ratio\", \"gmr_ci_lwr\", \"gmr_ci_upr\"))\n\n  afun_lst <- Map(\n    function(stat, fmt, compare_dose, denom, arm_var) {\n      function(df, .spl_context) {\n        x_stat <- s_gmr(df, compare_dose = compare_dose, denom = denom, arm_var = arm_var)[[stat]]\n        rcell(x_stat, format = fmt, label = tail(.spl_context$value, 1))\n      }\n    },\n    stat = names(.formats),\n    fmt = .formats,\n    compare_dose = compare_dose,\n    denom = denom,\n    arm_var = arm_var\n  )\n\n  afun_lst\n}\n# create layout\nlyt <- basic_table() %>%\n  split_rows_by(\n    var = \"PKPARAM\",\n    label_pos = \"topleft\",\n    split_fun = keep_split_levels(c(\"AUCinf obs (day*ug/mL)\", \"Cmax (ug/mL)\")),\n    split_label = \"PK Parameter\"\n  ) %>%\n  split_rows_by(\n    var = \"COMP\",\n    split_fun = remove_split_levels(paste0(comp_dose, \"/\", comp_dose)),\n    indent_mod = 11L,\n    child_labels = \"hidden\"\n  ) %>%\n  split_cols_by_multivar(\n    vars = rep(\"AVAL\", 4),\n    varlabels = c(\n      \"n\",\n      \"Geometric Mean Ratio\",\n      \"90% CI Lower Bound\",\n      \"90% CI Upper Bound\"\n    )\n  ) %>%\n  analyze_colvars(\n    afun = afun_pk_gmr(),\n    extra_args = list(\n      compare_dose = comp_dose,\n      denom = TRUE,\n      arm_var = arm_var\n    )\n  ) %>%\n  append_varlabels(adpp0, \"COMP\", 12L)\n\nresult <- build_table(lyt, df = adpp0)\n\nmain_title(result) <- paste0(\n  \"Estimated Ratios of Geometric Means and 90% Confidence Intervals for AUC and CMAX Following \",\n  unique(adpp0$REGIMEN), \"\\nof \", comp_dose, \" in Comparison with \",\n  paste(other_doses, collapse = \" & \"), \", PK Population\"\n)\nsubtitles(result) <- paste(\"Analyte:\", unique(adpp0$PPCAT))\n\nresult","options":{"fig-height":5,"dpi":72,"output":"true","editor-max-height":"500","editor-font-scale":1,"context":"interactive","warning":"true","label":"unnamed-chunk-1","out-height":"","classes":"","comment":"","read-only":"false","fig-cap":"","results":"markup","message":"true","editor-quick-suggestions":"false","autorun":"true","out-width":"700px","fig-width":7}}];
+globalThis.qwebrCellDetails = [{"id":1,"code":"library(dplyr)\nlibrary(tern)\n\nadpp <- random.cdisc.data::cadpp\n\n# Comparator Dose - A: Drug X\narm_var <- \"TRT01A\"\ncomp_dose <- \"A: Drug X\"\nother_doses <- as.character(unique(adpp[[arm_var]])[unique(adpp[[arm_var]]) != comp_dose])\n\nadpp <- adpp %>%\n  filter(AVISIT == \"CYCLE 1 DAY 1\") %>%\n  mutate(\n    COMP = paste0(TRT01A, \"/\", comp_dose),\n    COMP_AVAL = ifelse(TRT01A == comp_dose, paste0(AVAL, comp_dose), AVAL)\n  )\n\nfor (dose in other_doses) {\n  temp_df <- adpp[adpp[[arm_var]] == comp_dose, ]\n  temp_df$COMP <- paste0(dose, \"/\", comp_dose)\n  adpp <- rbind(adpp, temp_df)\n}\n\n# Plasma Drug X\nadpp0 <- adpp %>%\n  filter(PPCAT == \"Plasma Drug X\") %>%\n  h_pkparam_sort() %>%\n  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, \" (\", AVALU, \")\"))) %>%\n  var_relabel(COMP = \"Comparison\")\n\n# statistics function\ns_gmr <- function(df,\n                  compare_dose = comp_dose, # comparator, defaults to comp_dose defined above (string)\n                  denom = TRUE, # whether to use comparator as denominator, defaults to TRUE (logical)\n                  arm_var = arm_var) { # arm variable, defaults to arm_var defined above (string)\n  which_num <- !grepl(compare_dose, df[[arm_var]])\n\n  x_num <- as.numeric(df[which_num, ][[\"AVAL\"]])\n  x_num <- x_num[!is.na(x_num)]\n  x_num_no_negative_vals <- x_num\n  x_num_no_negative_vals[x_num_no_negative_vals <= 0] <- NA\n\n  x_denom <- as.numeric(gsub(compare_dose, \"\", df[!which_num, ][[\"AVAL\"]]))\n  x_denom <- x_denom[!is.na(x_denom)]\n  x_denom_no_negative_vals <- x_denom\n  x_denom_no_negative_vals[x_denom_no_negative_vals <= 0] <- NA\n\n  x_num_log <- log(x_num_no_negative_vals)\n  x_denom_log <- log(x_denom_no_negative_vals)\n\n  if (denom) {\n    geom_mean_ratio <- exp(mean(x_num_log, na.rm = FALSE)) / exp(mean(x_denom_log, na.rm = FALSE))\n    geom_mean_ci <- t.test(x_num_log, x_denom_log, conf.level = 0.90)$conf.int\n  } else {\n    geom_mean_ratio <- exp(mean(x_denom_log, na.rm = FALSE)) / exp(mean(x_num_log, na.rm = FALSE))\n    geom_mean_ci <- t.test(x_denom_log, x_num_log, conf.level = 0.90)$conf.int\n  }\n\n  list(\n    n = nrow(df),\n    geom_mean_ratio = geom_mean_ratio,\n    gmr_ci_lwr = exp(geom_mean_ci[1]),\n    gmr_ci_upr = exp(geom_mean_ci[2])\n  )\n}\n\nafun_pk_gmr <- function(\n    .formats = list(\n      n = \"xx.\",\n      geom_mean_ratio = format_sigfig(3),\n      gmr_ci_lwr = format_sigfig(3),\n      gmr_ci_upr = format_sigfig(3)\n    ),\n    compare_dose = comp_dose,\n    denom = TRUE) {\n  checkmate::assert_list(.formats)\n  checkmate::assert_subset(names(.formats), c(\"n\", \"geom_mean_ratio\", \"gmr_ci_lwr\", \"gmr_ci_upr\"))\n\n  afun_lst <- Map(\n    function(stat, fmt, compare_dose, denom, arm_var) {\n      function(df, .spl_context) {\n        x_stat <- s_gmr(df, compare_dose = compare_dose, denom = denom, arm_var = arm_var)[[stat]]\n        rcell(x_stat, format = fmt, label = tail(.spl_context$value, 1))\n      }\n    },\n    stat = names(.formats),\n    fmt = .formats,\n    compare_dose = compare_dose,\n    denom = denom,\n    arm_var = arm_var\n  )\n\n  afun_lst\n}\n# create layout\nlyt <- basic_table() %>%\n  split_rows_by(\n    var = \"PKPARAM\",\n    label_pos = \"topleft\",\n    split_fun = keep_split_levels(c(\"AUCinf obs (day*ug/mL)\", \"Cmax (ug/mL)\")),\n    split_label = \"PK Parameter\"\n  ) %>%\n  split_rows_by(\n    var = \"COMP\",\n    split_fun = remove_split_levels(paste0(comp_dose, \"/\", comp_dose)),\n    indent_mod = 11L,\n    child_labels = \"hidden\"\n  ) %>%\n  split_cols_by_multivar(\n    vars = rep(\"AVAL\", 4),\n    varlabels = c(\n      \"n\",\n      \"Geometric Mean Ratio\",\n      \"90% CI Lower Bound\",\n      \"90% CI Upper Bound\"\n    )\n  ) %>%\n  analyze_colvars(\n    afun = afun_pk_gmr(),\n    extra_args = list(\n      compare_dose = comp_dose,\n      denom = TRUE,\n      arm_var = arm_var\n    )\n  ) %>%\n  append_varlabels(adpp0, \"COMP\", 12L)\n\nresult <- build_table(lyt, df = adpp0)\n\nmain_title(result) <- paste0(\n  \"Estimated Ratios of Geometric Means and 90% Confidence Intervals for AUC and CMAX Following \",\n  unique(adpp0$REGIMEN), \"\\nof \", comp_dose, \" in Comparison with \",\n  paste(other_doses, collapse = \" & \"), \", PK Population\"\n)\nsubtitles(result) <- paste(\"Analyte:\", unique(adpp0$PPCAT))\n\nresult","options":{"context":"interactive","comment":"","autorun":"true","fig-width":7,"results":"markup","output":"true","warning":"true","out-width":"700px","message":"true","fig-cap":"","read-only":"false","editor-quick-suggestions":"false","out-height":"","editor-max-height":"500","editor-font-scale":1,"classes":"","label":"unnamed-chunk-1","fig-height":5,"dpi":72}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2828,7 +2828,7 @@ Experimental use!
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-09-07 17:37:45 UTC"</code></pre>
+<pre><code>[1] "2024-09-14 17:38:41 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2858,8 +2858,8 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] tern_0.9.5.9021       rtables_0.6.9.9013    magrittr_2.0.3       
-[4] formatters_0.5.8.9006 dplyr_1.1.4          
+[1] tern_0.9.5.9022       rtables_0.6.9.9014    magrittr_2.0.3       
+[4] formatters_0.5.9.9001 dplyr_1.1.4          
 
 loaded via a namespace (and not attached):
  [1] Matrix_1.7-0                  gtable_0.3.5                 
@@ -2876,15 +2876,15 @@ loaded via a namespace (and not attached):
 [23] munsell_0.5.1                 pillar_1.9.0                 
 [25] rlang_1.1.4                   utf8_1.2.4                   
 [27] testthat_3.2.1.1              broom_1.0.6                  
-[29] stringi_1.8.4                 xfun_0.46                    
-[31] cli_3.6.3                     Rdpack_2.6                   
-[33] digest_0.6.36                 grid_4.4.1                   
+[29] stringi_1.8.4                 xfun_0.47                    
+[31] cli_3.6.3                     Rdpack_2.6.1                 
+[33] digest_0.6.37                 grid_4.4.1                   
 [35] lifecycle_1.0.4               vctrs_0.6.5                  
 [37] evaluate_0.24.0               glue_1.7.0                   
 [39] codetools_0.2-20              survival_3.7-0               
-[41] random.cdisc.data_0.3.15.9008 fansi_1.0.6                  
+[41] random.cdisc.data_0.3.15.9009 fansi_1.0.6                  
 [43] colorspace_2.1-1              purrr_1.0.2                  
-[45] rmarkdown_2.27                tools_4.4.1                  
+[45] rmarkdown_2.28                tools_4.4.1                  
 [47] pkgconfig_2.0.3               htmltools_0.5.8.1            </code></pre>
 </div>
 </div>
@@ -2917,11 +2917,7 @@ loaded via a namespace (and not attached):
 <span id="cb9-23"><a href="#cb9-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
 <span id="cb9-24"><a href="#cb9-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb9-25"><a href="#cb9-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output cell-output-stdout">
-<pre><code>The following package(s) have unsatisfied dependencies:
-- tern requires emmeans (&gt;= 1.10.4), but version 1.10.3 is installed
-Consider updating the required dependencies as appropriate.</code></pre>
-</div>
+</details>
 </div>
 <p><a href="../../assets/www/lock/tables/pharmacokinetic/pkpt11.lock">Download</a></p>
 </section>
@@ -3559,186 +3555,186 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb11" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">---</span></span>
-<span id="cb11-2"><a href="#cb11-2"></a><span class="an">title:</span><span class="co"> PKPT11</span></span>
-<span id="cb11-3"><a href="#cb11-3"></a><span class="an">subtitle:</span><span class="co"> Pharmacokinetic Parameter Estimated Ratios of Geometric Means and 90% Confidence Intervals for AUC and CMAX</span></span>
-<span id="cb11-4"><a href="#cb11-4"></a><span class="co">---</span></span>
-<span id="cb11-5"><a href="#cb11-5"></a></span>
-<span id="cb11-6"><a href="#cb11-6"></a>------------------------------------------------------------------------</span>
-<span id="cb11-7"><a href="#cb11-7"></a></span>
-<span id="cb11-8"><a href="#cb11-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb11-9"><a href="#cb11-9"></a></span>
-<span id="cb11-10"><a href="#cb11-10"></a>:::: {.panel-tabset}</span>
-<span id="cb11-11"><a href="#cb11-11"></a><span class="fu">## Data Setup</span></span>
-<span id="cb11-12"><a href="#cb11-12"></a></span>
-<span id="cb11-13"><a href="#cb11-13"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/pull/1182 --&gt;</span></span>
-<span id="cb11-14"><a href="#cb11-14"></a><span class="in">```{r setup, message = FALSE, opts.label = ifelse(packageVersion("tern") &lt; "0.9.3.9020", "skip_test_strict", "")}</span></span>
-<span id="cb11-15"><a href="#cb11-15"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb11-16"><a href="#cb11-16"></a></span>
-<span id="cb11-17"><a href="#cb11-17"></a><span class="in">library(dplyr)</span></span>
-<span id="cb11-18"><a href="#cb11-18"></a><span class="in">library(tern)</span></span>
-<span id="cb11-19"><a href="#cb11-19"></a></span>
-<span id="cb11-20"><a href="#cb11-20"></a><span class="in">adpp &lt;- random.cdisc.data::cadpp</span></span>
-<span id="cb11-21"><a href="#cb11-21"></a></span>
-<span id="cb11-22"><a href="#cb11-22"></a><span class="in"># Comparator Dose - A: Drug X</span></span>
-<span id="cb11-23"><a href="#cb11-23"></a><span class="in">arm_var &lt;- "TRT01A"</span></span>
-<span id="cb11-24"><a href="#cb11-24"></a><span class="in">comp_dose &lt;- "A: Drug X"</span></span>
-<span id="cb11-25"><a href="#cb11-25"></a><span class="in">other_doses &lt;- as.character(unique(adpp[[arm_var]])[unique(adpp[[arm_var]]) != comp_dose])</span></span>
-<span id="cb11-26"><a href="#cb11-26"></a></span>
-<span id="cb11-27"><a href="#cb11-27"></a><span class="in">adpp &lt;- adpp %&gt;%</span></span>
-<span id="cb11-28"><a href="#cb11-28"></a><span class="in">  filter(AVISIT == "CYCLE 1 DAY 1") %&gt;%</span></span>
-<span id="cb11-29"><a href="#cb11-29"></a><span class="in">  mutate(</span></span>
-<span id="cb11-30"><a href="#cb11-30"></a><span class="in">    COMP = paste0(TRT01A, "/", comp_dose),</span></span>
-<span id="cb11-31"><a href="#cb11-31"></a><span class="in">    COMP_AVAL = ifelse(TRT01A == comp_dose, paste0(AVAL, comp_dose), AVAL)</span></span>
-<span id="cb11-32"><a href="#cb11-32"></a><span class="in">  )</span></span>
-<span id="cb11-33"><a href="#cb11-33"></a></span>
-<span id="cb11-34"><a href="#cb11-34"></a><span class="in">for (dose in other_doses) {</span></span>
-<span id="cb11-35"><a href="#cb11-35"></a><span class="in">  temp_df &lt;- adpp[adpp[[arm_var]] == comp_dose, ]</span></span>
-<span id="cb11-36"><a href="#cb11-36"></a><span class="in">  temp_df$COMP &lt;- paste0(dose, "/", comp_dose)</span></span>
-<span id="cb11-37"><a href="#cb11-37"></a><span class="in">  adpp &lt;- rbind(adpp, temp_df)</span></span>
-<span id="cb11-38"><a href="#cb11-38"></a><span class="in">}</span></span>
-<span id="cb11-39"><a href="#cb11-39"></a></span>
-<span id="cb11-40"><a href="#cb11-40"></a><span class="in"># Plasma Drug X</span></span>
-<span id="cb11-41"><a href="#cb11-41"></a><span class="in">adpp0 &lt;- adpp %&gt;%</span></span>
-<span id="cb11-42"><a href="#cb11-42"></a><span class="in">  filter(PPCAT == "Plasma Drug X") %&gt;%</span></span>
-<span id="cb11-43"><a href="#cb11-43"></a><span class="in">  h_pkparam_sort() %&gt;%</span></span>
-<span id="cb11-44"><a href="#cb11-44"></a><span class="in">  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %&gt;%</span></span>
-<span id="cb11-45"><a href="#cb11-45"></a><span class="in">  var_relabel(COMP = "Comparison")</span></span>
-<span id="cb11-46"><a href="#cb11-46"></a></span>
-<span id="cb11-47"><a href="#cb11-47"></a><span class="in"># statistics function</span></span>
-<span id="cb11-48"><a href="#cb11-48"></a><span class="in">s_gmr &lt;- function(df,</span></span>
-<span id="cb11-49"><a href="#cb11-49"></a><span class="in">                  compare_dose = comp_dose, # comparator, defaults to comp_dose defined above (string)</span></span>
-<span id="cb11-50"><a href="#cb11-50"></a><span class="in">                  denom = TRUE, # whether to use comparator as denominator, defaults to TRUE (logical)</span></span>
-<span id="cb11-51"><a href="#cb11-51"></a><span class="in">                  arm_var = arm_var) { # arm variable, defaults to arm_var defined above (string)</span></span>
-<span id="cb11-52"><a href="#cb11-52"></a><span class="in">  which_num &lt;- !grepl(compare_dose, df[[arm_var]])</span></span>
-<span id="cb11-53"><a href="#cb11-53"></a></span>
-<span id="cb11-54"><a href="#cb11-54"></a><span class="in">  x_num &lt;- as.numeric(df[which_num, ][["AVAL"]])</span></span>
-<span id="cb11-55"><a href="#cb11-55"></a><span class="in">  x_num &lt;- x_num[!is.na(x_num)]</span></span>
-<span id="cb11-56"><a href="#cb11-56"></a><span class="in">  x_num_no_negative_vals &lt;- x_num</span></span>
-<span id="cb11-57"><a href="#cb11-57"></a><span class="in">  x_num_no_negative_vals[x_num_no_negative_vals &lt;= 0] &lt;- NA</span></span>
-<span id="cb11-58"><a href="#cb11-58"></a></span>
-<span id="cb11-59"><a href="#cb11-59"></a><span class="in">  x_denom &lt;- as.numeric(gsub(compare_dose, "", df[!which_num, ][["AVAL"]]))</span></span>
-<span id="cb11-60"><a href="#cb11-60"></a><span class="in">  x_denom &lt;- x_denom[!is.na(x_denom)]</span></span>
-<span id="cb11-61"><a href="#cb11-61"></a><span class="in">  x_denom_no_negative_vals &lt;- x_denom</span></span>
-<span id="cb11-62"><a href="#cb11-62"></a><span class="in">  x_denom_no_negative_vals[x_denom_no_negative_vals &lt;= 0] &lt;- NA</span></span>
-<span id="cb11-63"><a href="#cb11-63"></a></span>
-<span id="cb11-64"><a href="#cb11-64"></a><span class="in">  x_num_log &lt;- log(x_num_no_negative_vals)</span></span>
-<span id="cb11-65"><a href="#cb11-65"></a><span class="in">  x_denom_log &lt;- log(x_denom_no_negative_vals)</span></span>
-<span id="cb11-66"><a href="#cb11-66"></a></span>
-<span id="cb11-67"><a href="#cb11-67"></a><span class="in">  if (denom) {</span></span>
-<span id="cb11-68"><a href="#cb11-68"></a><span class="in">    geom_mean_ratio &lt;- exp(mean(x_num_log, na.rm = FALSE)) / exp(mean(x_denom_log, na.rm = FALSE))</span></span>
-<span id="cb11-69"><a href="#cb11-69"></a><span class="in">    geom_mean_ci &lt;- t.test(x_num_log, x_denom_log, conf.level = 0.90)$conf.int</span></span>
-<span id="cb11-70"><a href="#cb11-70"></a><span class="in">  } else {</span></span>
-<span id="cb11-71"><a href="#cb11-71"></a><span class="in">    geom_mean_ratio &lt;- exp(mean(x_denom_log, na.rm = FALSE)) / exp(mean(x_num_log, na.rm = FALSE))</span></span>
-<span id="cb11-72"><a href="#cb11-72"></a><span class="in">    geom_mean_ci &lt;- t.test(x_denom_log, x_num_log, conf.level = 0.90)$conf.int</span></span>
-<span id="cb11-73"><a href="#cb11-73"></a><span class="in">  }</span></span>
-<span id="cb11-74"><a href="#cb11-74"></a></span>
-<span id="cb11-75"><a href="#cb11-75"></a><span class="in">  list(</span></span>
-<span id="cb11-76"><a href="#cb11-76"></a><span class="in">    n = nrow(df),</span></span>
-<span id="cb11-77"><a href="#cb11-77"></a><span class="in">    geom_mean_ratio = geom_mean_ratio,</span></span>
-<span id="cb11-78"><a href="#cb11-78"></a><span class="in">    gmr_ci_lwr = exp(geom_mean_ci[1]),</span></span>
-<span id="cb11-79"><a href="#cb11-79"></a><span class="in">    gmr_ci_upr = exp(geom_mean_ci[2])</span></span>
-<span id="cb11-80"><a href="#cb11-80"></a><span class="in">  )</span></span>
-<span id="cb11-81"><a href="#cb11-81"></a><span class="in">}</span></span>
-<span id="cb11-82"><a href="#cb11-82"></a></span>
-<span id="cb11-83"><a href="#cb11-83"></a><span class="in">afun_pk_gmr &lt;- function(</span></span>
-<span id="cb11-84"><a href="#cb11-84"></a><span class="in">    .formats = list(</span></span>
-<span id="cb11-85"><a href="#cb11-85"></a><span class="in">      n = "xx.",</span></span>
-<span id="cb11-86"><a href="#cb11-86"></a><span class="in">      geom_mean_ratio = format_sigfig(3),</span></span>
-<span id="cb11-87"><a href="#cb11-87"></a><span class="in">      gmr_ci_lwr = format_sigfig(3),</span></span>
-<span id="cb11-88"><a href="#cb11-88"></a><span class="in">      gmr_ci_upr = format_sigfig(3)</span></span>
-<span id="cb11-89"><a href="#cb11-89"></a><span class="in">    ),</span></span>
-<span id="cb11-90"><a href="#cb11-90"></a><span class="in">    compare_dose = comp_dose,</span></span>
-<span id="cb11-91"><a href="#cb11-91"></a><span class="in">    denom = TRUE) {</span></span>
-<span id="cb11-92"><a href="#cb11-92"></a><span class="in">  checkmate::assert_list(.formats)</span></span>
-<span id="cb11-93"><a href="#cb11-93"></a><span class="in">  checkmate::assert_subset(names(.formats), c("n", "geom_mean_ratio", "gmr_ci_lwr", "gmr_ci_upr"))</span></span>
-<span id="cb11-94"><a href="#cb11-94"></a></span>
-<span id="cb11-95"><a href="#cb11-95"></a><span class="in">  afun_lst &lt;- Map(</span></span>
-<span id="cb11-96"><a href="#cb11-96"></a><span class="in">    function(stat, fmt, compare_dose, denom, arm_var) {</span></span>
-<span id="cb11-97"><a href="#cb11-97"></a><span class="in">      function(df, .spl_context) {</span></span>
-<span id="cb11-98"><a href="#cb11-98"></a><span class="in">        x_stat &lt;- s_gmr(df, compare_dose = compare_dose, denom = denom, arm_var = arm_var)[[stat]]</span></span>
-<span id="cb11-99"><a href="#cb11-99"></a><span class="in">        rcell(x_stat, format = fmt, label = tail(.spl_context$value, 1))</span></span>
-<span id="cb11-100"><a href="#cb11-100"></a><span class="in">      }</span></span>
-<span id="cb11-101"><a href="#cb11-101"></a><span class="in">    },</span></span>
-<span id="cb11-102"><a href="#cb11-102"></a><span class="in">    stat = names(.formats),</span></span>
-<span id="cb11-103"><a href="#cb11-103"></a><span class="in">    fmt = .formats,</span></span>
-<span id="cb11-104"><a href="#cb11-104"></a><span class="in">    compare_dose = compare_dose,</span></span>
-<span id="cb11-105"><a href="#cb11-105"></a><span class="in">    denom = denom,</span></span>
-<span id="cb11-106"><a href="#cb11-106"></a><span class="in">    arm_var = arm_var</span></span>
-<span id="cb11-107"><a href="#cb11-107"></a><span class="in">  )</span></span>
-<span id="cb11-108"><a href="#cb11-108"></a></span>
-<span id="cb11-109"><a href="#cb11-109"></a><span class="in">  afun_lst</span></span>
-<span id="cb11-110"><a href="#cb11-110"></a><span class="in">}</span></span>
-<span id="cb11-111"><a href="#cb11-111"></a><span class="in">```</span></span>
-<span id="cb11-112"><a href="#cb11-112"></a></span>
-<span id="cb11-113"><a href="#cb11-113"></a><span class="fu">## Standard Table -- Plasma</span></span>
-<span id="cb11-114"><a href="#cb11-114"></a></span>
-<span id="cb11-115"><a href="#cb11-115"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb11-116"><a href="#cb11-116"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb11-117"><a href="#cb11-117"></a></span>
-<span id="cb11-118"><a href="#cb11-118"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb11-119"><a href="#cb11-119"></a><span class="in"># create layout</span></span>
-<span id="cb11-120"><a href="#cb11-120"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
-<span id="cb11-121"><a href="#cb11-121"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb11-122"><a href="#cb11-122"></a><span class="in">    var = "PKPARAM",</span></span>
-<span id="cb11-123"><a href="#cb11-123"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb11-124"><a href="#cb11-124"></a><span class="in">    split_fun = keep_split_levels(c("AUCinf obs (day*ug/mL)", "Cmax (ug/mL)")),</span></span>
-<span id="cb11-125"><a href="#cb11-125"></a><span class="in">    split_label = "PK Parameter"</span></span>
-<span id="cb11-126"><a href="#cb11-126"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb11-127"><a href="#cb11-127"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb11-128"><a href="#cb11-128"></a><span class="in">    var = "COMP",</span></span>
-<span id="cb11-129"><a href="#cb11-129"></a><span class="in">    split_fun = remove_split_levels(paste0(comp_dose, "/", comp_dose)),</span></span>
-<span id="cb11-130"><a href="#cb11-130"></a><span class="in">    indent_mod = 11L,</span></span>
-<span id="cb11-131"><a href="#cb11-131"></a><span class="in">    child_labels = "hidden"</span></span>
-<span id="cb11-132"><a href="#cb11-132"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb11-133"><a href="#cb11-133"></a><span class="in">  split_cols_by_multivar(</span></span>
-<span id="cb11-134"><a href="#cb11-134"></a><span class="in">    vars = rep("AVAL", 4),</span></span>
-<span id="cb11-135"><a href="#cb11-135"></a><span class="in">    varlabels = c(</span></span>
-<span id="cb11-136"><a href="#cb11-136"></a><span class="in">      "n",</span></span>
-<span id="cb11-137"><a href="#cb11-137"></a><span class="in">      "Geometric Mean Ratio",</span></span>
-<span id="cb11-138"><a href="#cb11-138"></a><span class="in">      "90% CI Lower Bound",</span></span>
-<span id="cb11-139"><a href="#cb11-139"></a><span class="in">      "90% CI Upper Bound"</span></span>
-<span id="cb11-140"><a href="#cb11-140"></a><span class="in">    )</span></span>
-<span id="cb11-141"><a href="#cb11-141"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb11-142"><a href="#cb11-142"></a><span class="in">  analyze_colvars(</span></span>
-<span id="cb11-143"><a href="#cb11-143"></a><span class="in">    afun = afun_pk_gmr(),</span></span>
-<span id="cb11-144"><a href="#cb11-144"></a><span class="in">    extra_args = list(</span></span>
-<span id="cb11-145"><a href="#cb11-145"></a><span class="in">      compare_dose = comp_dose,</span></span>
-<span id="cb11-146"><a href="#cb11-146"></a><span class="in">      denom = TRUE,</span></span>
-<span id="cb11-147"><a href="#cb11-147"></a><span class="in">      arm_var = arm_var</span></span>
-<span id="cb11-148"><a href="#cb11-148"></a><span class="in">    )</span></span>
-<span id="cb11-149"><a href="#cb11-149"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb11-150"><a href="#cb11-150"></a><span class="in">  append_varlabels(adpp0, "COMP", 12L)</span></span>
-<span id="cb11-151"><a href="#cb11-151"></a></span>
-<span id="cb11-152"><a href="#cb11-152"></a><span class="in">result &lt;- build_table(lyt, df = adpp0)</span></span>
-<span id="cb11-153"><a href="#cb11-153"></a></span>
-<span id="cb11-154"><a href="#cb11-154"></a><span class="in">main_title(result) &lt;- paste0(</span></span>
-<span id="cb11-155"><a href="#cb11-155"></a><span class="in">  "Estimated Ratios of Geometric Means and 90% Confidence Intervals for AUC and CMAX Following ",</span></span>
-<span id="cb11-156"><a href="#cb11-156"></a><span class="in">  unique(adpp0$REGIMEN), "\nof ", comp_dose, " in Comparison with ",</span></span>
-<span id="cb11-157"><a href="#cb11-157"></a><span class="in">  paste(other_doses, collapse = " &amp; "), ", PK Population"</span></span>
-<span id="cb11-158"><a href="#cb11-158"></a><span class="in">)</span></span>
-<span id="cb11-159"><a href="#cb11-159"></a><span class="in">subtitles(result) &lt;- paste("Analyte:", unique(adpp0$PPCAT))</span></span>
-<span id="cb11-160"><a href="#cb11-160"></a></span>
-<span id="cb11-161"><a href="#cb11-161"></a><span class="in">result</span></span>
-<span id="cb11-162"><a href="#cb11-162"></a><span class="in">```</span></span>
-<span id="cb11-163"><a href="#cb11-163"></a></span>
-<span id="cb11-164"><a href="#cb11-164"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
-<span id="cb11-165"><a href="#cb11-165"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb11-166"><a href="#cb11-166"></a>:::</span>
-<span id="cb11-167"><a href="#cb11-167"></a></span>
-<span id="cb11-168"><a href="#cb11-168"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb11-169"><a href="#cb11-169"></a></span>
-<span id="cb11-170"><a href="#cb11-170"></a><span class="fu">## `teal` App</span></span>
-<span id="cb11-171"><a href="#cb11-171"></a></span>
-<span id="cb11-172"><a href="#cb11-172"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb11-173"><a href="#cb11-173"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb11-174"><a href="#cb11-174"></a></span>
-<span id="cb11-175"><a href="#cb11-175"></a><span class="in"># In progress</span></span>
-<span id="cb11-176"><a href="#cb11-176"></a><span class="in">```</span></span>
-<span id="cb11-177"><a href="#cb11-177"></a></span>
-<span id="cb11-178"><a href="#cb11-178"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb11-179"><a href="#cb11-179"></a></span>
-<span id="cb11-180"><a href="#cb11-180"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb10" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb10-1"><a href="#cb10-1"></a><span class="co">---</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="an">title:</span><span class="co"> PKPT11</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="an">subtitle:</span><span class="co"> Pharmacokinetic Parameter Estimated Ratios of Geometric Means and 90% Confidence Intervals for AUC and CMAX</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="co">---</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a></span>
+<span id="cb10-6"><a href="#cb10-6"></a>------------------------------------------------------------------------</span>
+<span id="cb10-7"><a href="#cb10-7"></a></span>
+<span id="cb10-8"><a href="#cb10-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb10-9"><a href="#cb10-9"></a></span>
+<span id="cb10-10"><a href="#cb10-10"></a>:::: {.panel-tabset}</span>
+<span id="cb10-11"><a href="#cb10-11"></a><span class="fu">## Data Setup</span></span>
+<span id="cb10-12"><a href="#cb10-12"></a></span>
+<span id="cb10-13"><a href="#cb10-13"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/pull/1182 --&gt;</span></span>
+<span id="cb10-14"><a href="#cb10-14"></a><span class="in">```{r setup, message = FALSE, opts.label = ifelse(packageVersion("tern") &lt; "0.9.3.9020", "skip_test_strict", "")}</span></span>
+<span id="cb10-15"><a href="#cb10-15"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb10-16"><a href="#cb10-16"></a></span>
+<span id="cb10-17"><a href="#cb10-17"></a><span class="in">library(dplyr)</span></span>
+<span id="cb10-18"><a href="#cb10-18"></a><span class="in">library(tern)</span></span>
+<span id="cb10-19"><a href="#cb10-19"></a></span>
+<span id="cb10-20"><a href="#cb10-20"></a><span class="in">adpp &lt;- random.cdisc.data::cadpp</span></span>
+<span id="cb10-21"><a href="#cb10-21"></a></span>
+<span id="cb10-22"><a href="#cb10-22"></a><span class="in"># Comparator Dose - A: Drug X</span></span>
+<span id="cb10-23"><a href="#cb10-23"></a><span class="in">arm_var &lt;- "TRT01A"</span></span>
+<span id="cb10-24"><a href="#cb10-24"></a><span class="in">comp_dose &lt;- "A: Drug X"</span></span>
+<span id="cb10-25"><a href="#cb10-25"></a><span class="in">other_doses &lt;- as.character(unique(adpp[[arm_var]])[unique(adpp[[arm_var]]) != comp_dose])</span></span>
+<span id="cb10-26"><a href="#cb10-26"></a></span>
+<span id="cb10-27"><a href="#cb10-27"></a><span class="in">adpp &lt;- adpp %&gt;%</span></span>
+<span id="cb10-28"><a href="#cb10-28"></a><span class="in">  filter(AVISIT == "CYCLE 1 DAY 1") %&gt;%</span></span>
+<span id="cb10-29"><a href="#cb10-29"></a><span class="in">  mutate(</span></span>
+<span id="cb10-30"><a href="#cb10-30"></a><span class="in">    COMP = paste0(TRT01A, "/", comp_dose),</span></span>
+<span id="cb10-31"><a href="#cb10-31"></a><span class="in">    COMP_AVAL = ifelse(TRT01A == comp_dose, paste0(AVAL, comp_dose), AVAL)</span></span>
+<span id="cb10-32"><a href="#cb10-32"></a><span class="in">  )</span></span>
+<span id="cb10-33"><a href="#cb10-33"></a></span>
+<span id="cb10-34"><a href="#cb10-34"></a><span class="in">for (dose in other_doses) {</span></span>
+<span id="cb10-35"><a href="#cb10-35"></a><span class="in">  temp_df &lt;- adpp[adpp[[arm_var]] == comp_dose, ]</span></span>
+<span id="cb10-36"><a href="#cb10-36"></a><span class="in">  temp_df$COMP &lt;- paste0(dose, "/", comp_dose)</span></span>
+<span id="cb10-37"><a href="#cb10-37"></a><span class="in">  adpp &lt;- rbind(adpp, temp_df)</span></span>
+<span id="cb10-38"><a href="#cb10-38"></a><span class="in">}</span></span>
+<span id="cb10-39"><a href="#cb10-39"></a></span>
+<span id="cb10-40"><a href="#cb10-40"></a><span class="in"># Plasma Drug X</span></span>
+<span id="cb10-41"><a href="#cb10-41"></a><span class="in">adpp0 &lt;- adpp %&gt;%</span></span>
+<span id="cb10-42"><a href="#cb10-42"></a><span class="in">  filter(PPCAT == "Plasma Drug X") %&gt;%</span></span>
+<span id="cb10-43"><a href="#cb10-43"></a><span class="in">  h_pkparam_sort() %&gt;%</span></span>
+<span id="cb10-44"><a href="#cb10-44"></a><span class="in">  mutate(PKPARAM = factor(paste0(TLG_DISPLAY, " (", AVALU, ")"))) %&gt;%</span></span>
+<span id="cb10-45"><a href="#cb10-45"></a><span class="in">  var_relabel(COMP = "Comparison")</span></span>
+<span id="cb10-46"><a href="#cb10-46"></a></span>
+<span id="cb10-47"><a href="#cb10-47"></a><span class="in"># statistics function</span></span>
+<span id="cb10-48"><a href="#cb10-48"></a><span class="in">s_gmr &lt;- function(df,</span></span>
+<span id="cb10-49"><a href="#cb10-49"></a><span class="in">                  compare_dose = comp_dose, # comparator, defaults to comp_dose defined above (string)</span></span>
+<span id="cb10-50"><a href="#cb10-50"></a><span class="in">                  denom = TRUE, # whether to use comparator as denominator, defaults to TRUE (logical)</span></span>
+<span id="cb10-51"><a href="#cb10-51"></a><span class="in">                  arm_var = arm_var) { # arm variable, defaults to arm_var defined above (string)</span></span>
+<span id="cb10-52"><a href="#cb10-52"></a><span class="in">  which_num &lt;- !grepl(compare_dose, df[[arm_var]])</span></span>
+<span id="cb10-53"><a href="#cb10-53"></a></span>
+<span id="cb10-54"><a href="#cb10-54"></a><span class="in">  x_num &lt;- as.numeric(df[which_num, ][["AVAL"]])</span></span>
+<span id="cb10-55"><a href="#cb10-55"></a><span class="in">  x_num &lt;- x_num[!is.na(x_num)]</span></span>
+<span id="cb10-56"><a href="#cb10-56"></a><span class="in">  x_num_no_negative_vals &lt;- x_num</span></span>
+<span id="cb10-57"><a href="#cb10-57"></a><span class="in">  x_num_no_negative_vals[x_num_no_negative_vals &lt;= 0] &lt;- NA</span></span>
+<span id="cb10-58"><a href="#cb10-58"></a></span>
+<span id="cb10-59"><a href="#cb10-59"></a><span class="in">  x_denom &lt;- as.numeric(gsub(compare_dose, "", df[!which_num, ][["AVAL"]]))</span></span>
+<span id="cb10-60"><a href="#cb10-60"></a><span class="in">  x_denom &lt;- x_denom[!is.na(x_denom)]</span></span>
+<span id="cb10-61"><a href="#cb10-61"></a><span class="in">  x_denom_no_negative_vals &lt;- x_denom</span></span>
+<span id="cb10-62"><a href="#cb10-62"></a><span class="in">  x_denom_no_negative_vals[x_denom_no_negative_vals &lt;= 0] &lt;- NA</span></span>
+<span id="cb10-63"><a href="#cb10-63"></a></span>
+<span id="cb10-64"><a href="#cb10-64"></a><span class="in">  x_num_log &lt;- log(x_num_no_negative_vals)</span></span>
+<span id="cb10-65"><a href="#cb10-65"></a><span class="in">  x_denom_log &lt;- log(x_denom_no_negative_vals)</span></span>
+<span id="cb10-66"><a href="#cb10-66"></a></span>
+<span id="cb10-67"><a href="#cb10-67"></a><span class="in">  if (denom) {</span></span>
+<span id="cb10-68"><a href="#cb10-68"></a><span class="in">    geom_mean_ratio &lt;- exp(mean(x_num_log, na.rm = FALSE)) / exp(mean(x_denom_log, na.rm = FALSE))</span></span>
+<span id="cb10-69"><a href="#cb10-69"></a><span class="in">    geom_mean_ci &lt;- t.test(x_num_log, x_denom_log, conf.level = 0.90)$conf.int</span></span>
+<span id="cb10-70"><a href="#cb10-70"></a><span class="in">  } else {</span></span>
+<span id="cb10-71"><a href="#cb10-71"></a><span class="in">    geom_mean_ratio &lt;- exp(mean(x_denom_log, na.rm = FALSE)) / exp(mean(x_num_log, na.rm = FALSE))</span></span>
+<span id="cb10-72"><a href="#cb10-72"></a><span class="in">    geom_mean_ci &lt;- t.test(x_denom_log, x_num_log, conf.level = 0.90)$conf.int</span></span>
+<span id="cb10-73"><a href="#cb10-73"></a><span class="in">  }</span></span>
+<span id="cb10-74"><a href="#cb10-74"></a></span>
+<span id="cb10-75"><a href="#cb10-75"></a><span class="in">  list(</span></span>
+<span id="cb10-76"><a href="#cb10-76"></a><span class="in">    n = nrow(df),</span></span>
+<span id="cb10-77"><a href="#cb10-77"></a><span class="in">    geom_mean_ratio = geom_mean_ratio,</span></span>
+<span id="cb10-78"><a href="#cb10-78"></a><span class="in">    gmr_ci_lwr = exp(geom_mean_ci[1]),</span></span>
+<span id="cb10-79"><a href="#cb10-79"></a><span class="in">    gmr_ci_upr = exp(geom_mean_ci[2])</span></span>
+<span id="cb10-80"><a href="#cb10-80"></a><span class="in">  )</span></span>
+<span id="cb10-81"><a href="#cb10-81"></a><span class="in">}</span></span>
+<span id="cb10-82"><a href="#cb10-82"></a></span>
+<span id="cb10-83"><a href="#cb10-83"></a><span class="in">afun_pk_gmr &lt;- function(</span></span>
+<span id="cb10-84"><a href="#cb10-84"></a><span class="in">    .formats = list(</span></span>
+<span id="cb10-85"><a href="#cb10-85"></a><span class="in">      n = "xx.",</span></span>
+<span id="cb10-86"><a href="#cb10-86"></a><span class="in">      geom_mean_ratio = format_sigfig(3),</span></span>
+<span id="cb10-87"><a href="#cb10-87"></a><span class="in">      gmr_ci_lwr = format_sigfig(3),</span></span>
+<span id="cb10-88"><a href="#cb10-88"></a><span class="in">      gmr_ci_upr = format_sigfig(3)</span></span>
+<span id="cb10-89"><a href="#cb10-89"></a><span class="in">    ),</span></span>
+<span id="cb10-90"><a href="#cb10-90"></a><span class="in">    compare_dose = comp_dose,</span></span>
+<span id="cb10-91"><a href="#cb10-91"></a><span class="in">    denom = TRUE) {</span></span>
+<span id="cb10-92"><a href="#cb10-92"></a><span class="in">  checkmate::assert_list(.formats)</span></span>
+<span id="cb10-93"><a href="#cb10-93"></a><span class="in">  checkmate::assert_subset(names(.formats), c("n", "geom_mean_ratio", "gmr_ci_lwr", "gmr_ci_upr"))</span></span>
+<span id="cb10-94"><a href="#cb10-94"></a></span>
+<span id="cb10-95"><a href="#cb10-95"></a><span class="in">  afun_lst &lt;- Map(</span></span>
+<span id="cb10-96"><a href="#cb10-96"></a><span class="in">    function(stat, fmt, compare_dose, denom, arm_var) {</span></span>
+<span id="cb10-97"><a href="#cb10-97"></a><span class="in">      function(df, .spl_context) {</span></span>
+<span id="cb10-98"><a href="#cb10-98"></a><span class="in">        x_stat &lt;- s_gmr(df, compare_dose = compare_dose, denom = denom, arm_var = arm_var)[[stat]]</span></span>
+<span id="cb10-99"><a href="#cb10-99"></a><span class="in">        rcell(x_stat, format = fmt, label = tail(.spl_context$value, 1))</span></span>
+<span id="cb10-100"><a href="#cb10-100"></a><span class="in">      }</span></span>
+<span id="cb10-101"><a href="#cb10-101"></a><span class="in">    },</span></span>
+<span id="cb10-102"><a href="#cb10-102"></a><span class="in">    stat = names(.formats),</span></span>
+<span id="cb10-103"><a href="#cb10-103"></a><span class="in">    fmt = .formats,</span></span>
+<span id="cb10-104"><a href="#cb10-104"></a><span class="in">    compare_dose = compare_dose,</span></span>
+<span id="cb10-105"><a href="#cb10-105"></a><span class="in">    denom = denom,</span></span>
+<span id="cb10-106"><a href="#cb10-106"></a><span class="in">    arm_var = arm_var</span></span>
+<span id="cb10-107"><a href="#cb10-107"></a><span class="in">  )</span></span>
+<span id="cb10-108"><a href="#cb10-108"></a></span>
+<span id="cb10-109"><a href="#cb10-109"></a><span class="in">  afun_lst</span></span>
+<span id="cb10-110"><a href="#cb10-110"></a><span class="in">}</span></span>
+<span id="cb10-111"><a href="#cb10-111"></a><span class="in">```</span></span>
+<span id="cb10-112"><a href="#cb10-112"></a></span>
+<span id="cb10-113"><a href="#cb10-113"></a><span class="fu">## Standard Table -- Plasma</span></span>
+<span id="cb10-114"><a href="#cb10-114"></a></span>
+<span id="cb10-115"><a href="#cb10-115"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb10-116"><a href="#cb10-116"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb10-117"><a href="#cb10-117"></a></span>
+<span id="cb10-118"><a href="#cb10-118"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb10-119"><a href="#cb10-119"></a><span class="in"># create layout</span></span>
+<span id="cb10-120"><a href="#cb10-120"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
+<span id="cb10-121"><a href="#cb10-121"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb10-122"><a href="#cb10-122"></a><span class="in">    var = "PKPARAM",</span></span>
+<span id="cb10-123"><a href="#cb10-123"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb10-124"><a href="#cb10-124"></a><span class="in">    split_fun = keep_split_levels(c("AUCinf obs (day*ug/mL)", "Cmax (ug/mL)")),</span></span>
+<span id="cb10-125"><a href="#cb10-125"></a><span class="in">    split_label = "PK Parameter"</span></span>
+<span id="cb10-126"><a href="#cb10-126"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb10-127"><a href="#cb10-127"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb10-128"><a href="#cb10-128"></a><span class="in">    var = "COMP",</span></span>
+<span id="cb10-129"><a href="#cb10-129"></a><span class="in">    split_fun = remove_split_levels(paste0(comp_dose, "/", comp_dose)),</span></span>
+<span id="cb10-130"><a href="#cb10-130"></a><span class="in">    indent_mod = 11L,</span></span>
+<span id="cb10-131"><a href="#cb10-131"></a><span class="in">    child_labels = "hidden"</span></span>
+<span id="cb10-132"><a href="#cb10-132"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb10-133"><a href="#cb10-133"></a><span class="in">  split_cols_by_multivar(</span></span>
+<span id="cb10-134"><a href="#cb10-134"></a><span class="in">    vars = rep("AVAL", 4),</span></span>
+<span id="cb10-135"><a href="#cb10-135"></a><span class="in">    varlabels = c(</span></span>
+<span id="cb10-136"><a href="#cb10-136"></a><span class="in">      "n",</span></span>
+<span id="cb10-137"><a href="#cb10-137"></a><span class="in">      "Geometric Mean Ratio",</span></span>
+<span id="cb10-138"><a href="#cb10-138"></a><span class="in">      "90% CI Lower Bound",</span></span>
+<span id="cb10-139"><a href="#cb10-139"></a><span class="in">      "90% CI Upper Bound"</span></span>
+<span id="cb10-140"><a href="#cb10-140"></a><span class="in">    )</span></span>
+<span id="cb10-141"><a href="#cb10-141"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb10-142"><a href="#cb10-142"></a><span class="in">  analyze_colvars(</span></span>
+<span id="cb10-143"><a href="#cb10-143"></a><span class="in">    afun = afun_pk_gmr(),</span></span>
+<span id="cb10-144"><a href="#cb10-144"></a><span class="in">    extra_args = list(</span></span>
+<span id="cb10-145"><a href="#cb10-145"></a><span class="in">      compare_dose = comp_dose,</span></span>
+<span id="cb10-146"><a href="#cb10-146"></a><span class="in">      denom = TRUE,</span></span>
+<span id="cb10-147"><a href="#cb10-147"></a><span class="in">      arm_var = arm_var</span></span>
+<span id="cb10-148"><a href="#cb10-148"></a><span class="in">    )</span></span>
+<span id="cb10-149"><a href="#cb10-149"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb10-150"><a href="#cb10-150"></a><span class="in">  append_varlabels(adpp0, "COMP", 12L)</span></span>
+<span id="cb10-151"><a href="#cb10-151"></a></span>
+<span id="cb10-152"><a href="#cb10-152"></a><span class="in">result &lt;- build_table(lyt, df = adpp0)</span></span>
+<span id="cb10-153"><a href="#cb10-153"></a></span>
+<span id="cb10-154"><a href="#cb10-154"></a><span class="in">main_title(result) &lt;- paste0(</span></span>
+<span id="cb10-155"><a href="#cb10-155"></a><span class="in">  "Estimated Ratios of Geometric Means and 90% Confidence Intervals for AUC and CMAX Following ",</span></span>
+<span id="cb10-156"><a href="#cb10-156"></a><span class="in">  unique(adpp0$REGIMEN), "\nof ", comp_dose, " in Comparison with ",</span></span>
+<span id="cb10-157"><a href="#cb10-157"></a><span class="in">  paste(other_doses, collapse = " &amp; "), ", PK Population"</span></span>
+<span id="cb10-158"><a href="#cb10-158"></a><span class="in">)</span></span>
+<span id="cb10-159"><a href="#cb10-159"></a><span class="in">subtitles(result) &lt;- paste("Analyte:", unique(adpp0$PPCAT))</span></span>
+<span id="cb10-160"><a href="#cb10-160"></a></span>
+<span id="cb10-161"><a href="#cb10-161"></a><span class="in">result</span></span>
+<span id="cb10-162"><a href="#cb10-162"></a><span class="in">```</span></span>
+<span id="cb10-163"><a href="#cb10-163"></a></span>
+<span id="cb10-164"><a href="#cb10-164"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
+<span id="cb10-165"><a href="#cb10-165"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb10-166"><a href="#cb10-166"></a>:::</span>
+<span id="cb10-167"><a href="#cb10-167"></a></span>
+<span id="cb10-168"><a href="#cb10-168"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb10-169"><a href="#cb10-169"></a></span>
+<span id="cb10-170"><a href="#cb10-170"></a><span class="fu">## `teal` App</span></span>
+<span id="cb10-171"><a href="#cb10-171"></a></span>
+<span id="cb10-172"><a href="#cb10-172"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb10-173"><a href="#cb10-173"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb10-174"><a href="#cb10-174"></a></span>
+<span id="cb10-175"><a href="#cb10-175"></a><span class="in"># In progress</span></span>
+<span id="cb10-176"><a href="#cb10-176"></a><span class="in">```</span></span>
+<span id="cb10-177"><a href="#cb10-177"></a></span>
+<span id="cb10-178"><a href="#cb10-178"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<span id="cb10-179"><a href="#cb10-179"></a></span>
+<span id="cb10-180"><a href="#cb10-180"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
