@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"classes":"","fig-height":5,"context":"interactive","editor-font-scale":1,"warning":"true","fig-width":7,"read-only":"false","results":"markup","output":"true","editor-max-height":"500","comment":"","editor-quick-suggestions":"false","fig-cap":"","autorun":"true","message":"true","out-width":"700px","label":"unnamed-chunk-1","out-height":"","dpi":72},"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\n\nadsl <- random.cdisc.data::cadsl\nadlb <- random.cdisc.data::cadlb\n\nadlb_labels <- var_labels(adlb)\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadlb <- df_explicit_na(adlb)\n\n# Select worst post-baseline records.\nadlb_f <- adlb %>%\n  filter(ATOXGR != \"<Missing>\") %>%\n  filter(ONTRTFL == \"Y\") %>%\n  filter(WGRLOFL == \"Y\" | WGRHIFL == \"Y\")\n\nvar_labels(adlb_f) <- adlb_labels\n\n# Derive GRADE_DIR and GRADE_ANL to use in layout from ATOXGR\nadlb_f <- adlb_f %>%\n  mutate(\n    GRADE_DIR = factor(\n      case_when(\n        ATOXGR %in% c(\"-1\", \"-2\", \"-3\", \"-4\") & .data$WGRLOFL == \"Y\" ~ \"LOW\",\n        ATOXGR == \"0\" ~ \"ZERO\",\n        ATOXGR %in% c(\"1\", \"2\", \"3\", \"4\") & .data$WGRHIFL == \"Y\" ~ \"HIGH\",\n        TRUE ~ \"NONE\"\n      ),\n      levels = c(\"LOW\", \"ZERO\", \"HIGH\", \"NONE\")\n    ),\n    GRADE_ANL = forcats::fct_relevel(\n      forcats::fct_recode(ATOXGR,\n        `1` = \"-1\", `2` = \"-2\", `3` = \"-3\", `4` = \"-4\"\n      ),\n      c(\"0\", \"1\", \"2\", \"3\", \"4\")\n    )\n  ) %>%\n  var_relabel(\n    GRADE_DIR = \"Direction of Abnormality\",\n    GRADE_ANL = \"Analysis Grade\"\n  )\n\n# Construct analysis map\nmap <- expand.grid(\n  PARAM = levels(adlb$PARAM),\n  GRADE_DIR = c(\"LOW\", \"HIGH\"),\n  GRADE_ANL = as.character(1:4),\n  stringsAsFactors = FALSE\n) %>%\n  arrange(PARAM, desc(GRADE_DIR), GRADE_ANL)\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\n    \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$PARAM)\n  ) %>%\n  summarize_num_patients(\n    var = \"USUBJID\",\n    required = \"ATOXGR\",\n    .stats = \"unique_count\"\n  ) %>%\n  split_rows_by(\n    \"GRADE_DIR\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$GRADE_DIR),\n    split_fun = trim_levels_to_map(map)\n  ) %>%\n  count_abnormal_by_worst_grade(\n    var = \"GRADE_ANL\",\n    variables = list(id = \"USUBJID\", param = \"PARAM\", grade_dir = \"GRADE_DIR\"),\n    .indent_mods = 4L\n  ) %>%\n  append_topleft(\"            Highest NCI CTCAE Grade\")\n\nresult <- build_table(lyt = lyt, df = adlb_f, alt_counts_df = adsl)\nresult <- result %>% prune_table()\n\nresult","id":1}];
+globalThis.qwebrCellDetails = [{"id":1,"options":{"out-height":"","output":"true","editor-quick-suggestions":"false","out-width":"700px","fig-cap":"","editor-max-height":"500","classes":"","message":"true","warning":"true","label":"unnamed-chunk-1","results":"markup","autorun":"true","fig-height":5,"comment":"","read-only":"false","dpi":72,"fig-width":7,"context":"interactive","editor-font-scale":1},"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\n\nadsl <- random.cdisc.data::cadsl\nadlb <- random.cdisc.data::cadlb\n\nadlb_labels <- var_labels(adlb)\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadlb <- df_explicit_na(adlb)\n\n# Select worst post-baseline records.\nadlb_f <- adlb %>%\n  filter(ATOXGR != \"<Missing>\") %>%\n  filter(ONTRTFL == \"Y\") %>%\n  filter(WGRLOFL == \"Y\" | WGRHIFL == \"Y\")\n\nvar_labels(adlb_f) <- adlb_labels\n\n# Derive GRADE_DIR and GRADE_ANL to use in layout from ATOXGR\nadlb_f <- adlb_f %>%\n  mutate(\n    GRADE_DIR = factor(\n      case_when(\n        ATOXGR %in% c(\"-1\", \"-2\", \"-3\", \"-4\") & .data$WGRLOFL == \"Y\" ~ \"LOW\",\n        ATOXGR == \"0\" ~ \"ZERO\",\n        ATOXGR %in% c(\"1\", \"2\", \"3\", \"4\") & .data$WGRHIFL == \"Y\" ~ \"HIGH\",\n        TRUE ~ \"NONE\"\n      ),\n      levels = c(\"LOW\", \"ZERO\", \"HIGH\", \"NONE\")\n    ),\n    GRADE_ANL = forcats::fct_relevel(\n      forcats::fct_recode(ATOXGR,\n        `1` = \"-1\", `2` = \"-2\", `3` = \"-3\", `4` = \"-4\"\n      ),\n      c(\"0\", \"1\", \"2\", \"3\", \"4\")\n    )\n  ) %>%\n  var_relabel(\n    GRADE_DIR = \"Direction of Abnormality\",\n    GRADE_ANL = \"Analysis Grade\"\n  )\n\n# Construct analysis map\nmap <- expand.grid(\n  PARAM = levels(adlb$PARAM),\n  GRADE_DIR = c(\"LOW\", \"HIGH\"),\n  GRADE_ANL = as.character(1:4),\n  stringsAsFactors = FALSE\n) %>%\n  arrange(PARAM, desc(GRADE_DIR), GRADE_ANL)\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\n    \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$PARAM)\n  ) %>%\n  summarize_num_patients(\n    var = \"USUBJID\",\n    required = \"ATOXGR\",\n    .stats = \"unique_count\"\n  ) %>%\n  split_rows_by(\n    \"GRADE_DIR\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$GRADE_DIR),\n    split_fun = trim_levels_to_map(map)\n  ) %>%\n  count_abnormal_by_worst_grade(\n    var = \"GRADE_ANL\",\n    variables = list(id = \"USUBJID\", param = \"PARAM\", grade_dir = \"GRADE_DIR\"),\n    .indent_mods = 4L\n  ) %>%\n  append_topleft(\"            Highest NCI CTCAE Grade\")\n\nresult <- build_table(lyt = lyt, df = adlb_f, alt_counts_df = adsl)\nresult <- result %>% prune_table()\n\nresult"}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2775,7 +2775,7 @@ Experimental use!
 </div>
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p><a href="https://docs.r-wasm.org/webr/latest/"><code>WebR</code></a> is a tool allowing you to run R code in the web browser. Modify the code below and click run to see the results. Altenatively, copy the code and click <a href="https://webr.r-wasm.org/latest/">here</a> to open <code>WebR</code> in a new tab.</p>
+<p><a href="https://docs.r-wasm.org/webr/latest/"><code>WebR</code></a> is a tool allowing you to run R code in the web browser. Modify the code below and click run to see the results. Alternatively, copy the code and click <a href="https://webr.r-wasm.org/latest/">here</a> to open <code>WebR</code> in a new tab.</p>
 </div>
 </div>
 </div>
@@ -2941,7 +2941,7 @@ we have to put some code upfront
 <div class="cell" data-renv.ignore="true">
 <details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-09-14 17:54:04 UTC"</code></pre>
+<pre><code>[1] "2024-09-18 17:53:09 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2971,17 +2971,17 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] teal.modules.clinical_0.9.1.9025 teal.transform_0.5.0.9012       
- [3] teal_0.15.2.9061                 teal.slice_0.5.1.9011           
- [5] teal.data_0.6.0.9010             teal.code_0.5.0.9009            
+ [1] teal.modules.clinical_0.9.1.9025 teal.transform_0.5.0.9013       
+ [3] teal_0.15.2.9063                 teal.slice_0.5.1.9012           
+ [5] teal.data_0.6.0.9011             teal.code_0.5.0.9010            
  [7] shiny_1.9.1                      forcats_1.0.0                   
- [9] dplyr_1.1.4                      tern_0.9.5.9022                 
-[11] rtables_0.6.9.9014               magrittr_2.0.3                  
+ [9] dplyr_1.1.4                      tern_0.9.5.9025                 
+[11] rtables_0.6.9.9015               magrittr_2.0.3                  
 [13] formatters_0.5.9.9001           
 
 loaded via a namespace (and not attached):
  [1] Rdpack_2.6.1                  formatR_1.14                 
- [3] tern.gee_0.1.5.9002           logger_0.3.0                 
+ [3] tern.gee_0.1.5.9003           logger_0.3.0                 
  [5] testthat_3.2.1.1              sandwich_3.1-0               
  [7] rlang_1.1.4                   multcomp_1.4-26              
  [9] compiler_4.4.1                callr_3.7.6                  
@@ -2992,19 +2992,19 @@ loaded via a namespace (and not attached):
 [19] rmarkdown_2.28                ps_1.8.0                     
 [21] purrr_1.0.2                   xfun_0.47                    
 [23] shinyvalidate_0.1.3           cachem_1.1.0                 
-[25] teal.reporter_0.3.1.9015      jsonlite_1.8.8               
+[25] teal.reporter_0.3.1.9016      jsonlite_1.8.8               
 [27] later_1.3.2                   broom_1.0.6                  
 [29] parallel_4.4.1                R6_2.5.1                     
 [31] bslib_0.8.0                   stringi_1.8.4                
 [33] parallelly_1.38.0             brio_1.1.5                   
 [35] jquerylib_0.1.4               estimability_1.5.1           
 [37] Rcpp_1.0.13                   knitr_1.48                   
-[39] zoo_1.8-12                    teal.logger_0.2.0.9009       
+[39] zoo_1.8-12                    teal.logger_0.2.0.9010       
 [41] httpuv_1.6.15                 Matrix_1.7-0                 
 [43] splines_4.4.1                 tidyselect_1.2.1             
 [45] yaml_2.3.10                   codetools_0.2-20             
 [47] websocket_1.4.2               processx_3.8.4               
-[49] teal.widgets_0.4.2.9020       listenv_0.9.1                
+[49] teal.widgets_0.4.2.9022       listenv_0.9.1                
 [51] lattice_0.22-6                tibble_3.2.1                 
 [53] withr_3.0.1                   coda_0.19-4.1                
 [55] evaluate_0.24.0               future_1.34.0                
