@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"context":"interactive","out-height":"","editor-quick-suggestions":"false","warning":"true","autorun":"true","fig-width":7,"label":"unnamed-chunk-1","out-width":"700px","comment":"","editor-max-height":"500","results":"markup","fig-height":5,"message":"true","fig-cap":"","editor-font-scale":1,"classes":"","read-only":"false","dpi":72,"output":"true"},"id":1,"code":"library(dplyr)\nlibrary(tern)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadsl_filtered <- adsl %>% dplyr::filter(\n  RACE %in% c(\"ASIAN\", \"BLACK OR AFRICAN AMERICAN\", \"WHITE\")\n)\nadtte_filtered <- dplyr::inner_join(\n  x = adsl_filtered[, c(\"STUDYID\", \"USUBJID\")],\n  y = adtte,\n  by = c(\"STUDYID\", \"USUBJID\")\n)\n\nanl <- adtte_filtered %>%\n  filter(PARAMCD == \"OS\") %>%\n  mutate(EVENT = 1 - CNSR) %>%\n  filter(ARM %in% c(\"B: Placebo\", \"A: Drug X\")) %>%\n  mutate(ARM = droplevels(relevel(ARM, \"B: Placebo\"))) %>%\n  mutate(RACE = droplevels(RACE) %>% formatters::with_label(\"Race\"))\n\n# Add variable for column split label\nanl <- anl %>% mutate(col_label = \"Treatment Effect Adjusted for Covariate\")\nvariables <- list(\n  time = \"AVAL\",\n  event = \"EVENT\",\n  arm = \"ARM\",\n  covariates = c(\"AGE\", \"SEX\", \"RACE\")\n)\n\nlyt <- basic_table() %>%\n  split_cols_by(\"col_label\") %>%\n  summarize_coxreg(variables = variables) %>%\n  append_topleft(\"Effect/Covariate Included in the Model\")\n\nresult <- build_table(lyt = lyt, df = anl)\nresult"},{"options":{"context":"interactive","out-height":"","editor-quick-suggestions":"false","warning":"true","autorun":"true","fig-width":7,"label":"unnamed-chunk-2","out-width":"700px","comment":"","editor-max-height":"500","results":"markup","fig-height":5,"message":"true","fig-cap":"","editor-font-scale":1,"classes":"","read-only":"false","dpi":72,"output":"true"},"id":2,"code":"library(dplyr)\nlibrary(tern)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadsl_filtered <- adsl %>% dplyr::filter(\n  RACE %in% c(\"ASIAN\", \"BLACK OR AFRICAN AMERICAN\", \"WHITE\")\n)\nadtte_filtered <- dplyr::inner_join(\n  x = adsl_filtered[, c(\"STUDYID\", \"USUBJID\")],\n  y = adtte,\n  by = c(\"STUDYID\", \"USUBJID\")\n)\n\nanl <- adtte_filtered %>%\n  filter(PARAMCD == \"OS\") %>%\n  mutate(EVENT = 1 - CNSR) %>%\n  filter(ARM %in% c(\"B: Placebo\", \"A: Drug X\")) %>%\n  mutate(ARM = droplevels(relevel(ARM, \"B: Placebo\"))) %>%\n  mutate(RACE = droplevels(RACE) %>% formatters::with_label(\"Race\"))\n\n# Add variable for column split label\nanl <- anl %>% mutate(col_label = \"Treatment Effect Adjusted for Covariate\")\nvariables <- list(\n  time = \"AVAL\",\n  event = \"EVENT\",\n  arm = \"ARM\",\n  covariates = c(\"AGE\", \"RACE\")\n)\n\nlyt <- basic_table() %>%\n  split_cols_by(\"col_label\") %>%\n  summarize_coxreg(\n    variables = variables,\n    control = control_coxreg(interaction = TRUE),\n    .stats = c(\"n\", \"hr\", \"ci\", \"pval\", \"pval_inter\")\n  ) %>%\n  append_topleft(\"Effect/Covariate Included in the Model\")\n\nresult <- build_table(lyt = lyt, df = anl)\nresult"},{"options":{"context":"interactive","out-height":"","editor-quick-suggestions":"false","warning":"true","autorun":"true","fig-width":7,"label":"unnamed-chunk-3","out-width":"700px","comment":"","editor-max-height":"500","results":"markup","fig-height":5,"message":"true","fig-cap":"","editor-font-scale":1,"classes":"","read-only":"false","dpi":72,"output":"true"},"id":3,"code":"library(dplyr)\nlibrary(tern)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadsl_filtered <- adsl %>% dplyr::filter(\n  RACE %in% c(\"ASIAN\", \"BLACK OR AFRICAN AMERICAN\", \"WHITE\")\n)\nadtte_filtered <- dplyr::inner_join(\n  x = adsl_filtered[, c(\"STUDYID\", \"USUBJID\")],\n  y = adtte,\n  by = c(\"STUDYID\", \"USUBJID\")\n)\n\nanl <- adtte_filtered %>%\n  filter(PARAMCD == \"OS\") %>%\n  mutate(EVENT = 1 - CNSR) %>%\n  filter(ARM %in% c(\"B: Placebo\", \"A: Drug X\")) %>%\n  mutate(ARM = droplevels(relevel(ARM, \"B: Placebo\"))) %>%\n  mutate(RACE = droplevels(RACE) %>% formatters::with_label(\"Race\"))\n\n# Add variable for column split label\nanl <- anl %>% mutate(col_label = \"Treatment Effect Adjusted for Covariate\")\nvariables <- list(\n  time = \"AVAL\",\n  event = \"EVENT\",\n  arm = \"ARM\",\n  covariates = c(\"AGE\", \"SEX\")\n)\n\nlyt <- basic_table() %>%\n  split_cols_by(\"col_label\") %>%\n  summarize_coxreg(\n    variables = variables,\n    control = control_coxreg(interaction = TRUE),\n    at = list(AGE = c(30, 40, 50)),\n    .stats = c(\"n\", \"hr\", \"ci\", \"pval\", \"pval_inter\")\n  ) %>%\n  append_topleft(\"Effect/Covariate Included in the Model\")\n\nresult <- build_table(lyt = lyt, df = anl)\nresult"},{"options":{"context":"interactive","out-height":"","editor-quick-suggestions":"false","warning":"true","autorun":"true","fig-width":7,"label":"unnamed-chunk-4","out-width":"700px","comment":"","editor-max-height":"500","results":"markup","fig-height":5,"message":"true","fig-cap":"","editor-font-scale":1,"classes":"","read-only":"false","dpi":72,"output":"true"},"id":4,"code":"library(dplyr)\nlibrary(tern)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadsl_filtered <- adsl %>% dplyr::filter(\n  RACE %in% c(\"ASIAN\", \"BLACK OR AFRICAN AMERICAN\", \"WHITE\")\n)\nadtte_filtered <- dplyr::inner_join(\n  x = adsl_filtered[, c(\"STUDYID\", \"USUBJID\")],\n  y = adtte,\n  by = c(\"STUDYID\", \"USUBJID\")\n)\n\nanl <- adtte_filtered %>%\n  filter(PARAMCD == \"OS\") %>%\n  mutate(EVENT = 1 - CNSR) %>%\n  filter(ARM %in% c(\"B: Placebo\", \"A: Drug X\")) %>%\n  mutate(ARM = droplevels(relevel(ARM, \"B: Placebo\"))) %>%\n  mutate(RACE = droplevels(RACE) %>% formatters::with_label(\"Race\"))\n\n# Add variable for column split label\nanl <- anl %>% mutate(col_label = \"Treatment Effect Adjusted for Covariate\")\nvariables <- list(\n  time = \"AVAL\",\n  event = \"EVENT\",\n  arm = \"ARM\",\n  covariates = c(\"AGE\", \"RACE\"),\n  strata = \"SEX\"\n)\n\ncontrol <- control_coxreg(\n  ties = \"breslow\",\n  interaction = TRUE,\n  conf_level = 0.90\n)\n\nlyt <- basic_table() %>%\n  split_cols_by(\"col_label\") %>%\n  summarize_coxreg(\n    variables = variables,\n    control = control,\n    at = list(AGE = c(30, 40, 50)),\n    .stats = c(\"n\", \"hr\", \"ci\", \"pval\", \"pval_inter\")\n  ) %>%\n  append_topleft(\"Effect/Covariate Included in the Model\")\n\nresult <- build_table(lyt = lyt, df = anl)\nresult"}];
+globalThis.qwebrCellDetails = [{"options":{"dpi":72,"warning":"true","classes":"","editor-quick-suggestions":"false","message":"true","out-height":"","fig-height":5,"comment":"","label":"unnamed-chunk-1","fig-cap":"","output":"true","out-width":"700px","read-only":"false","editor-font-scale":1,"autorun":"true","editor-max-height":"500","context":"interactive","results":"markup","fig-width":7},"code":"library(dplyr)\nlibrary(tern)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadsl_filtered <- adsl %>% dplyr::filter(\n  RACE %in% c(\"ASIAN\", \"BLACK OR AFRICAN AMERICAN\", \"WHITE\")\n)\nadtte_filtered <- dplyr::inner_join(\n  x = adsl_filtered[, c(\"STUDYID\", \"USUBJID\")],\n  y = adtte,\n  by = c(\"STUDYID\", \"USUBJID\")\n)\n\nanl <- adtte_filtered %>%\n  filter(PARAMCD == \"OS\") %>%\n  mutate(EVENT = 1 - CNSR) %>%\n  filter(ARM %in% c(\"B: Placebo\", \"A: Drug X\")) %>%\n  mutate(ARM = droplevels(relevel(ARM, \"B: Placebo\"))) %>%\n  mutate(RACE = droplevels(RACE) %>% formatters::with_label(\"Race\"))\n\n# Add variable for column split label\nanl <- anl %>% mutate(col_label = \"Treatment Effect Adjusted for Covariate\")\nvariables <- list(\n  time = \"AVAL\",\n  event = \"EVENT\",\n  arm = \"ARM\",\n  covariates = c(\"AGE\", \"SEX\", \"RACE\")\n)\n\nlyt <- basic_table() %>%\n  split_cols_by(\"col_label\") %>%\n  summarize_coxreg(variables = variables) %>%\n  append_topleft(\"Effect/Covariate Included in the Model\")\n\nresult <- build_table(lyt = lyt, df = anl)\nresult","id":1},{"options":{"dpi":72,"warning":"true","classes":"","editor-quick-suggestions":"false","message":"true","out-height":"","fig-height":5,"comment":"","label":"unnamed-chunk-2","fig-cap":"","output":"true","out-width":"700px","read-only":"false","editor-font-scale":1,"autorun":"true","editor-max-height":"500","context":"interactive","results":"markup","fig-width":7},"code":"library(dplyr)\nlibrary(tern)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadsl_filtered <- adsl %>% dplyr::filter(\n  RACE %in% c(\"ASIAN\", \"BLACK OR AFRICAN AMERICAN\", \"WHITE\")\n)\nadtte_filtered <- dplyr::inner_join(\n  x = adsl_filtered[, c(\"STUDYID\", \"USUBJID\")],\n  y = adtte,\n  by = c(\"STUDYID\", \"USUBJID\")\n)\n\nanl <- adtte_filtered %>%\n  filter(PARAMCD == \"OS\") %>%\n  mutate(EVENT = 1 - CNSR) %>%\n  filter(ARM %in% c(\"B: Placebo\", \"A: Drug X\")) %>%\n  mutate(ARM = droplevels(relevel(ARM, \"B: Placebo\"))) %>%\n  mutate(RACE = droplevels(RACE) %>% formatters::with_label(\"Race\"))\n\n# Add variable for column split label\nanl <- anl %>% mutate(col_label = \"Treatment Effect Adjusted for Covariate\")\nvariables <- list(\n  time = \"AVAL\",\n  event = \"EVENT\",\n  arm = \"ARM\",\n  covariates = c(\"AGE\", \"RACE\")\n)\n\nlyt <- basic_table() %>%\n  split_cols_by(\"col_label\") %>%\n  summarize_coxreg(\n    variables = variables,\n    control = control_coxreg(interaction = TRUE),\n    .stats = c(\"n\", \"hr\", \"ci\", \"pval\", \"pval_inter\")\n  ) %>%\n  append_topleft(\"Effect/Covariate Included in the Model\")\n\nresult <- build_table(lyt = lyt, df = anl)\nresult","id":2},{"options":{"dpi":72,"warning":"true","classes":"","editor-quick-suggestions":"false","message":"true","out-height":"","fig-height":5,"comment":"","label":"unnamed-chunk-3","fig-cap":"","output":"true","out-width":"700px","read-only":"false","editor-font-scale":1,"autorun":"true","editor-max-height":"500","context":"interactive","results":"markup","fig-width":7},"code":"library(dplyr)\nlibrary(tern)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadsl_filtered <- adsl %>% dplyr::filter(\n  RACE %in% c(\"ASIAN\", \"BLACK OR AFRICAN AMERICAN\", \"WHITE\")\n)\nadtte_filtered <- dplyr::inner_join(\n  x = adsl_filtered[, c(\"STUDYID\", \"USUBJID\")],\n  y = adtte,\n  by = c(\"STUDYID\", \"USUBJID\")\n)\n\nanl <- adtte_filtered %>%\n  filter(PARAMCD == \"OS\") %>%\n  mutate(EVENT = 1 - CNSR) %>%\n  filter(ARM %in% c(\"B: Placebo\", \"A: Drug X\")) %>%\n  mutate(ARM = droplevels(relevel(ARM, \"B: Placebo\"))) %>%\n  mutate(RACE = droplevels(RACE) %>% formatters::with_label(\"Race\"))\n\n# Add variable for column split label\nanl <- anl %>% mutate(col_label = \"Treatment Effect Adjusted for Covariate\")\nvariables <- list(\n  time = \"AVAL\",\n  event = \"EVENT\",\n  arm = \"ARM\",\n  covariates = c(\"AGE\", \"SEX\")\n)\n\nlyt <- basic_table() %>%\n  split_cols_by(\"col_label\") %>%\n  summarize_coxreg(\n    variables = variables,\n    control = control_coxreg(interaction = TRUE),\n    at = list(AGE = c(30, 40, 50)),\n    .stats = c(\"n\", \"hr\", \"ci\", \"pval\", \"pval_inter\")\n  ) %>%\n  append_topleft(\"Effect/Covariate Included in the Model\")\n\nresult <- build_table(lyt = lyt, df = anl)\nresult","id":3},{"options":{"dpi":72,"warning":"true","classes":"","editor-quick-suggestions":"false","message":"true","out-height":"","fig-height":5,"comment":"","label":"unnamed-chunk-4","fig-cap":"","output":"true","out-width":"700px","read-only":"false","editor-font-scale":1,"autorun":"true","editor-max-height":"500","context":"interactive","results":"markup","fig-width":7},"code":"library(dplyr)\nlibrary(tern)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadsl_filtered <- adsl %>% dplyr::filter(\n  RACE %in% c(\"ASIAN\", \"BLACK OR AFRICAN AMERICAN\", \"WHITE\")\n)\nadtte_filtered <- dplyr::inner_join(\n  x = adsl_filtered[, c(\"STUDYID\", \"USUBJID\")],\n  y = adtte,\n  by = c(\"STUDYID\", \"USUBJID\")\n)\n\nanl <- adtte_filtered %>%\n  filter(PARAMCD == \"OS\") %>%\n  mutate(EVENT = 1 - CNSR) %>%\n  filter(ARM %in% c(\"B: Placebo\", \"A: Drug X\")) %>%\n  mutate(ARM = droplevels(relevel(ARM, \"B: Placebo\"))) %>%\n  mutate(RACE = droplevels(RACE) %>% formatters::with_label(\"Race\"))\n\n# Add variable for column split label\nanl <- anl %>% mutate(col_label = \"Treatment Effect Adjusted for Covariate\")\nvariables <- list(\n  time = \"AVAL\",\n  event = \"EVENT\",\n  arm = \"ARM\",\n  covariates = c(\"AGE\", \"RACE\"),\n  strata = \"SEX\"\n)\n\ncontrol <- control_coxreg(\n  ties = \"breslow\",\n  interaction = TRUE,\n  conf_level = 0.90\n)\n\nlyt <- basic_table() %>%\n  split_cols_by(\"col_label\") %>%\n  summarize_coxreg(\n    variables = variables,\n    control = control,\n    at = list(AGE = c(30, 40, 50)),\n    .stats = c(\"n\", \"hr\", \"ci\", \"pval\", \"pval_inter\")\n  ) %>%\n  append_topleft(\"Effect/Covariate Included in the Model\")\n\nresult <- build_table(lyt = lyt, df = anl)\nresult","id":4}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2618,51 +2618,16 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 
 </header><hr>
 <p>Cox models are the most commonly used methods to estimate the magnitude of the effect in survival analyses. It assumes proportional hazards; that is, it assumes that the ratio of the hazards of the two groups (e.g.&nbsp;two arms) is constant over time. This ratio is referred to as the “hazard ratio” and is one of the most commonly reported metrics to describe the effect size in survival analysis.</p>
-<div class="tabset-margin-container"></div><div class="panel-tabset page-columns page-full">
+<div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist">
-<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-6-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-1" role="tab" aria-controls="tabset-6-1" aria-selected="true" aria-current="page">Data Setup</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-2" role="tab" aria-controls="tabset-6-2" aria-selected="false">Cox Regression</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-3" role="tab" aria-controls="tabset-6-3" aria-selected="false">Cox Regression <br> with Interaction Term</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-4" role="tab" aria-controls="tabset-6-4" aria-selected="false">Cox Regression <br> Specifying Covariates</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-5" role="tab" aria-controls="tabset-6-5" aria-selected="false">Cox Regression Setting <br> Strata, Ties, Alpha Level</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-6-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-6" role="tab" aria-controls="tabset-6-6" aria-selected="false"><code>teal</code> App</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-7-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-7" role="tab" aria-controls="tabset-6-7" aria-selected="false">Reproducibility</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true" aria-current="page">Cox Regression</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false">Cox Regression <br> with Interaction Term</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-3" role="tab" aria-controls="tabset-5-3" aria-selected="false">Cox Regression <br> Specifying Covariates</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-4" role="tab" aria-controls="tabset-5-4" aria-selected="false">Cox Regression Setting <br> Strata, Ties, Alpha Level</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-5" role="tab" aria-controls="tabset-5-5" aria-selected="false">Data Setup</a></li>
 </ul>
-<div class="tab-content page-columns page-full">
-<div id="tabset-6-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-6-1-tab">
-<div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(tern)</span>
-<span id="cb1-3"><a href="#cb1-3"></a></span>
-<span id="cb1-4"><a href="#cb1-4"></a>adsl <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadsl</span>
-<span id="cb1-5"><a href="#cb1-5"></a>adtte <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadtte</span>
-<span id="cb1-6"><a href="#cb1-6"></a></span>
-<span id="cb1-7"><a href="#cb1-7"></a><span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb1-8"><a href="#cb1-8"></a>adsl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adsl)</span>
-<span id="cb1-9"><a href="#cb1-9"></a>adtte <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adtte)</span>
-<span id="cb1-10"><a href="#cb1-10"></a></span>
-<span id="cb1-11"><a href="#cb1-11"></a>adsl_filtered <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(</span>
-<span id="cb1-12"><a href="#cb1-12"></a>  RACE <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"ASIAN"</span>, <span class="st">"BLACK OR AFRICAN AMERICAN"</span>, <span class="st">"WHITE"</span>)</span>
-<span id="cb1-13"><a href="#cb1-13"></a>)</span>
-<span id="cb1-14"><a href="#cb1-14"></a>adtte_filtered <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">inner_join</span>(</span>
-<span id="cb1-15"><a href="#cb1-15"></a>  <span class="at">x =</span> adsl_filtered[, <span class="fu">c</span>(<span class="st">"STUDYID"</span>, <span class="st">"USUBJID"</span>)],</span>
-<span id="cb1-16"><a href="#cb1-16"></a>  <span class="at">y =</span> adtte,</span>
-<span id="cb1-17"><a href="#cb1-17"></a>  <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"STUDYID"</span>, <span class="st">"USUBJID"</span>)</span>
-<span id="cb1-18"><a href="#cb1-18"></a>)</span>
-<span id="cb1-19"><a href="#cb1-19"></a></span>
-<span id="cb1-20"><a href="#cb1-20"></a>anl <span class="ot">&lt;-</span> adtte_filtered <span class="sc">%&gt;%</span></span>
-<span id="cb1-21"><a href="#cb1-21"></a>  <span class="fu">filter</span>(PARAMCD <span class="sc">==</span> <span class="st">"OS"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-22"><a href="#cb1-22"></a>  <span class="fu">mutate</span>(<span class="at">EVENT =</span> <span class="dv">1</span> <span class="sc">-</span> CNSR) <span class="sc">%&gt;%</span></span>
-<span id="cb1-23"><a href="#cb1-23"></a>  <span class="fu">filter</span>(ARM <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"B: Placebo"</span>, <span class="st">"A: Drug X"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-24"><a href="#cb1-24"></a>  <span class="fu">mutate</span>(<span class="at">ARM =</span> <span class="fu">droplevels</span>(<span class="fu">relevel</span>(ARM, <span class="st">"B: Placebo"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb1-25"><a href="#cb1-25"></a>  <span class="fu">mutate</span>(<span class="at">RACE =</span> <span class="fu">droplevels</span>(RACE) <span class="sc">%&gt;%</span> formatters<span class="sc">::</span><span class="fu">with_label</span>(<span class="st">"Race"</span>))</span>
-<span id="cb1-26"><a href="#cb1-26"></a></span>
-<span id="cb1-27"><a href="#cb1-27"></a><span class="co"># Add variable for column split label</span></span>
-<span id="cb1-28"><a href="#cb1-28"></a>anl <span class="ot">&lt;-</span> anl <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">col_label =</span> <span class="st">"Treatment Effect Adjusted for Covariate"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-</div>
-<div id="tabset-6-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-2-tab">
+<div class="tab-content">
+<div id="tabset-5-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-5-1-tab">
 <p>The <code>summarize_coxreg</code> function fits, tidies and arranges a Cox regression model in a table layout using the <code>rtables</code> framework. For a Cox regression model, arguments <code>variables</code>, <code>control</code>, and <code>at</code> can be specified (see <code>?summarize_coxreg</code> for more details and customization options). All variables specified within <code>variables</code> must be present in the data used when building the table.</p>
 <p>To see the same model as a <code>data.frame</code> object, these three arguments (as well as the data) can be passed to the <code>fit_coxreg_univar</code> function, and the resulting list tidied using <code><a href="https://generics.r-lib.org/reference/tidy.html">broom::tidy()</a></code>.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified" data-group="webr">
@@ -2673,20 +2638,20 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <div class="tab-content nav-justified" data-group="webr">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <div class="cell" data-test="{&quot;result_v1&quot;:&quot;result&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>variables <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb2-2"><a href="#cb2-2"></a>  <span class="at">time =</span> <span class="st">"AVAL"</span>,</span>
-<span id="cb2-3"><a href="#cb2-3"></a>  <span class="at">event =</span> <span class="st">"EVENT"</span>,</span>
-<span id="cb2-4"><a href="#cb2-4"></a>  <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
-<span id="cb2-5"><a href="#cb2-5"></a>  <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"AGE"</span>, <span class="st">"SEX"</span>, <span class="st">"RACE"</span>)</span>
-<span id="cb2-6"><a href="#cb2-6"></a>)</span>
-<span id="cb2-7"><a href="#cb2-7"></a></span>
-<span id="cb2-8"><a href="#cb2-8"></a>lyt <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb2-9"><a href="#cb2-9"></a>  <span class="fu">split_cols_by</span>(<span class="st">"col_label"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-10"><a href="#cb2-10"></a>  <span class="fu">summarize_coxreg</span>(<span class="at">variables =</span> variables) <span class="sc">%&gt;%</span></span>
-<span id="cb2-11"><a href="#cb2-11"></a>  <span class="fu">append_topleft</span>(<span class="st">"Effect/Covariate Included in the Model"</span>)</span>
-<span id="cb2-12"><a href="#cb2-12"></a></span>
-<span id="cb2-13"><a href="#cb2-13"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(<span class="at">lyt =</span> lyt, <span class="at">df =</span> anl)</span>
-<span id="cb2-14"><a href="#cb2-14"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>variables <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  <span class="at">time =</span> <span class="st">"AVAL"</span>,</span>
+<span id="cb1-3"><a href="#cb1-3"></a>  <span class="at">event =</span> <span class="st">"EVENT"</span>,</span>
+<span id="cb1-4"><a href="#cb1-4"></a>  <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
+<span id="cb1-5"><a href="#cb1-5"></a>  <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"AGE"</span>, <span class="st">"SEX"</span>, <span class="st">"RACE"</span>)</span>
+<span id="cb1-6"><a href="#cb1-6"></a>)</span>
+<span id="cb1-7"><a href="#cb1-7"></a></span>
+<span id="cb1-8"><a href="#cb1-8"></a>lyt <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a>  <span class="fu">split_cols_by</span>(<span class="st">"col_label"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a>  <span class="fu">summarize_coxreg</span>(<span class="at">variables =</span> variables) <span class="sc">%&gt;%</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>  <span class="fu">append_topleft</span>(<span class="st">"Effect/Covariate Included in the Model"</span>)</span>
+<span id="cb1-12"><a href="#cb1-12"></a></span>
+<span id="cb1-13"><a href="#cb1-13"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(<span class="at">lyt =</span> lyt, <span class="at">df =</span> anl)</span>
+<span id="cb1-14"><a href="#cb1-14"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>                                             Treatment Effect Adjusted for Covariate     
 Effect/Covariate Included in the Model     n     Hazard Ratio       95% CI       p-value 
@@ -2729,7 +2694,7 @@ Experimental use!
 </div>
 </div>
 </div>
-<div id="tabset-6-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-3-tab">
+<div id="tabset-5-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-2-tab">
 <p>The argument <code>control</code> can be used to modify standard outputs; <code>control_coxreg()</code> helps in adopting the right settings (see <code>?control_coxreg</code>). For instance, <code>control</code> is used to include the interaction terms.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified" data-group="webr">
 <ul class="nav nav-tabs" role="tablist">
@@ -2739,24 +2704,24 @@ Experimental use!
 <div class="tab-content nav-justified" data-group="webr">
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <div class="cell" data-test="{&quot;result_v2&quot;:&quot;result&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>variables <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb4-2"><a href="#cb4-2"></a>  <span class="at">time =</span> <span class="st">"AVAL"</span>,</span>
-<span id="cb4-3"><a href="#cb4-3"></a>  <span class="at">event =</span> <span class="st">"EVENT"</span>,</span>
-<span id="cb4-4"><a href="#cb4-4"></a>  <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5"></a>  <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"AGE"</span>, <span class="st">"RACE"</span>)</span>
-<span id="cb4-6"><a href="#cb4-6"></a>)</span>
-<span id="cb4-7"><a href="#cb4-7"></a></span>
-<span id="cb4-8"><a href="#cb4-8"></a>lyt <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb4-9"><a href="#cb4-9"></a>  <span class="fu">split_cols_by</span>(<span class="st">"col_label"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-10"><a href="#cb4-10"></a>  <span class="fu">summarize_coxreg</span>(</span>
-<span id="cb4-11"><a href="#cb4-11"></a>    <span class="at">variables =</span> variables,</span>
-<span id="cb4-12"><a href="#cb4-12"></a>    <span class="at">control =</span> <span class="fu">control_coxreg</span>(<span class="at">interaction =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb4-13"><a href="#cb4-13"></a>    <span class="at">.stats =</span> <span class="fu">c</span>(<span class="st">"n"</span>, <span class="st">"hr"</span>, <span class="st">"ci"</span>, <span class="st">"pval"</span>, <span class="st">"pval_inter"</span>)</span>
-<span id="cb4-14"><a href="#cb4-14"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb4-15"><a href="#cb4-15"></a>  <span class="fu">append_topleft</span>(<span class="st">"Effect/Covariate Included in the Model"</span>)</span>
-<span id="cb4-16"><a href="#cb4-16"></a></span>
-<span id="cb4-17"><a href="#cb4-17"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(<span class="at">lyt =</span> lyt, <span class="at">df =</span> anl)</span>
-<span id="cb4-18"><a href="#cb4-18"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>variables <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="at">time =</span> <span class="st">"AVAL"</span>,</span>
+<span id="cb3-3"><a href="#cb3-3"></a>  <span class="at">event =</span> <span class="st">"EVENT"</span>,</span>
+<span id="cb3-4"><a href="#cb3-4"></a>  <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
+<span id="cb3-5"><a href="#cb3-5"></a>  <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"AGE"</span>, <span class="st">"RACE"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6"></a>)</span>
+<span id="cb3-7"><a href="#cb3-7"></a></span>
+<span id="cb3-8"><a href="#cb3-8"></a>lyt <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb3-9"><a href="#cb3-9"></a>  <span class="fu">split_cols_by</span>(<span class="st">"col_label"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a>  <span class="fu">summarize_coxreg</span>(</span>
+<span id="cb3-11"><a href="#cb3-11"></a>    <span class="at">variables =</span> variables,</span>
+<span id="cb3-12"><a href="#cb3-12"></a>    <span class="at">control =</span> <span class="fu">control_coxreg</span>(<span class="at">interaction =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb3-13"><a href="#cb3-13"></a>    <span class="at">.stats =</span> <span class="fu">c</span>(<span class="st">"n"</span>, <span class="st">"hr"</span>, <span class="st">"ci"</span>, <span class="st">"pval"</span>, <span class="st">"pval_inter"</span>)</span>
+<span id="cb3-14"><a href="#cb3-14"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb3-15"><a href="#cb3-15"></a>  <span class="fu">append_topleft</span>(<span class="st">"Effect/Covariate Included in the Model"</span>)</span>
+<span id="cb3-16"><a href="#cb3-16"></a></span>
+<span id="cb3-17"><a href="#cb3-17"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(<span class="at">lyt =</span> lyt, <span class="at">df =</span> anl)</span>
+<span id="cb3-18"><a href="#cb3-18"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>                                                      Treatment Effect Adjusted for Covariate             
 Effect/Covariate Included in the Model    n    Hazard Ratio      95% CI      p-value   Interaction p-value
@@ -2802,7 +2767,7 @@ Experimental use!
 </div>
 </div>
 </div>
-<div id="tabset-6-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-4-tab">
+<div id="tabset-5-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-3-tab">
 <p>The optional argument <code>at</code> allows the user to provide the expected level of estimation for the interaction when the predictor is a quantitative variable. For instance, it might be relevant to choose the age at which the hazard ratio should be estimated. If no input is provided to <code>at</code>, the median value is used in the row name (as in the previous tab).</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified" data-group="webr">
 <ul class="nav nav-tabs" role="tablist">
@@ -2812,25 +2777,25 @@ Experimental use!
 <div class="tab-content nav-justified" data-group="webr">
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <div class="cell" data-test="{&quot;result_v3&quot;:&quot;result&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>variables <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb6-2"><a href="#cb6-2"></a>  <span class="at">time =</span> <span class="st">"AVAL"</span>,</span>
-<span id="cb6-3"><a href="#cb6-3"></a>  <span class="at">event =</span> <span class="st">"EVENT"</span>,</span>
-<span id="cb6-4"><a href="#cb6-4"></a>  <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
-<span id="cb6-5"><a href="#cb6-5"></a>  <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"AGE"</span>, <span class="st">"SEX"</span>)</span>
-<span id="cb6-6"><a href="#cb6-6"></a>)</span>
-<span id="cb6-7"><a href="#cb6-7"></a></span>
-<span id="cb6-8"><a href="#cb6-8"></a>lyt <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb6-9"><a href="#cb6-9"></a>  <span class="fu">split_cols_by</span>(<span class="st">"col_label"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb6-10"><a href="#cb6-10"></a>  <span class="fu">summarize_coxreg</span>(</span>
-<span id="cb6-11"><a href="#cb6-11"></a>    <span class="at">variables =</span> variables,</span>
-<span id="cb6-12"><a href="#cb6-12"></a>    <span class="at">control =</span> <span class="fu">control_coxreg</span>(<span class="at">interaction =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb6-13"><a href="#cb6-13"></a>    <span class="at">at =</span> <span class="fu">list</span>(<span class="at">AGE =</span> <span class="fu">c</span>(<span class="dv">30</span>, <span class="dv">40</span>, <span class="dv">50</span>)),</span>
-<span id="cb6-14"><a href="#cb6-14"></a>    <span class="at">.stats =</span> <span class="fu">c</span>(<span class="st">"n"</span>, <span class="st">"hr"</span>, <span class="st">"ci"</span>, <span class="st">"pval"</span>, <span class="st">"pval_inter"</span>)</span>
-<span id="cb6-15"><a href="#cb6-15"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb6-16"><a href="#cb6-16"></a>  <span class="fu">append_topleft</span>(<span class="st">"Effect/Covariate Included in the Model"</span>)</span>
-<span id="cb6-17"><a href="#cb6-17"></a></span>
-<span id="cb6-18"><a href="#cb6-18"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(<span class="at">lyt =</span> lyt, <span class="at">df =</span> anl)</span>
-<span id="cb6-19"><a href="#cb6-19"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>variables <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb5-2"><a href="#cb5-2"></a>  <span class="at">time =</span> <span class="st">"AVAL"</span>,</span>
+<span id="cb5-3"><a href="#cb5-3"></a>  <span class="at">event =</span> <span class="st">"EVENT"</span>,</span>
+<span id="cb5-4"><a href="#cb5-4"></a>  <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5"></a>  <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"AGE"</span>, <span class="st">"SEX"</span>)</span>
+<span id="cb5-6"><a href="#cb5-6"></a>)</span>
+<span id="cb5-7"><a href="#cb5-7"></a></span>
+<span id="cb5-8"><a href="#cb5-8"></a>lyt <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-9"><a href="#cb5-9"></a>  <span class="fu">split_cols_by</span>(<span class="st">"col_label"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-10"><a href="#cb5-10"></a>  <span class="fu">summarize_coxreg</span>(</span>
+<span id="cb5-11"><a href="#cb5-11"></a>    <span class="at">variables =</span> variables,</span>
+<span id="cb5-12"><a href="#cb5-12"></a>    <span class="at">control =</span> <span class="fu">control_coxreg</span>(<span class="at">interaction =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb5-13"><a href="#cb5-13"></a>    <span class="at">at =</span> <span class="fu">list</span>(<span class="at">AGE =</span> <span class="fu">c</span>(<span class="dv">30</span>, <span class="dv">40</span>, <span class="dv">50</span>)),</span>
+<span id="cb5-14"><a href="#cb5-14"></a>    <span class="at">.stats =</span> <span class="fu">c</span>(<span class="st">"n"</span>, <span class="st">"hr"</span>, <span class="st">"ci"</span>, <span class="st">"pval"</span>, <span class="st">"pval_inter"</span>)</span>
+<span id="cb5-15"><a href="#cb5-15"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb5-16"><a href="#cb5-16"></a>  <span class="fu">append_topleft</span>(<span class="st">"Effect/Covariate Included in the Model"</span>)</span>
+<span id="cb5-17"><a href="#cb5-17"></a></span>
+<span id="cb5-18"><a href="#cb5-18"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(<span class="at">lyt =</span> lyt, <span class="at">df =</span> anl)</span>
+<span id="cb5-19"><a href="#cb5-19"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>                                                      Treatment Effect Adjusted for Covariate             
 Effect/Covariate Included in the Model    n    Hazard Ratio      95% CI      p-value   Interaction p-value
@@ -2877,7 +2842,7 @@ Experimental use!
 </div>
 </div>
 </div>
-<div id="tabset-6-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-5-tab">
+<div id="tabset-5-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-4-tab">
 <p>Additional controls can be customized using <code>control_coxreg</code> (see <code>?control_coxreg</code>) such as the ties calculation method and the confidence level. Stratification variables can be added via the <code>strata</code> element of the <code>variables</code> list.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified" data-group="webr">
 <ul class="nav nav-tabs" role="tablist">
@@ -2887,32 +2852,32 @@ Experimental use!
 <div class="tab-content nav-justified" data-group="webr">
 <div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
 <div class="cell" data-test="{&quot;result_v4&quot;:&quot;result&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>variables <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb8-2"><a href="#cb8-2"></a>  <span class="at">time =</span> <span class="st">"AVAL"</span>,</span>
-<span id="cb8-3"><a href="#cb8-3"></a>  <span class="at">event =</span> <span class="st">"EVENT"</span>,</span>
-<span id="cb8-4"><a href="#cb8-4"></a>  <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
-<span id="cb8-5"><a href="#cb8-5"></a>  <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"AGE"</span>, <span class="st">"RACE"</span>),</span>
-<span id="cb8-6"><a href="#cb8-6"></a>  <span class="at">strata =</span> <span class="st">"SEX"</span></span>
-<span id="cb8-7"><a href="#cb8-7"></a>)</span>
-<span id="cb8-8"><a href="#cb8-8"></a></span>
-<span id="cb8-9"><a href="#cb8-9"></a>control <span class="ot">&lt;-</span> <span class="fu">control_coxreg</span>(</span>
-<span id="cb8-10"><a href="#cb8-10"></a>  <span class="at">ties =</span> <span class="st">"breslow"</span>,</span>
-<span id="cb8-11"><a href="#cb8-11"></a>  <span class="at">interaction =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb8-12"><a href="#cb8-12"></a>  <span class="at">conf_level =</span> <span class="fl">0.90</span></span>
-<span id="cb8-13"><a href="#cb8-13"></a>)</span>
-<span id="cb8-14"><a href="#cb8-14"></a></span>
-<span id="cb8-15"><a href="#cb8-15"></a>lyt <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb8-16"><a href="#cb8-16"></a>  <span class="fu">split_cols_by</span>(<span class="st">"col_label"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-17"><a href="#cb8-17"></a>  <span class="fu">summarize_coxreg</span>(</span>
-<span id="cb8-18"><a href="#cb8-18"></a>    <span class="at">variables =</span> variables,</span>
-<span id="cb8-19"><a href="#cb8-19"></a>    <span class="at">control =</span> control,</span>
-<span id="cb8-20"><a href="#cb8-20"></a>    <span class="at">at =</span> <span class="fu">list</span>(<span class="at">AGE =</span> <span class="fu">c</span>(<span class="dv">30</span>, <span class="dv">40</span>, <span class="dv">50</span>)),</span>
-<span id="cb8-21"><a href="#cb8-21"></a>    <span class="at">.stats =</span> <span class="fu">c</span>(<span class="st">"n"</span>, <span class="st">"hr"</span>, <span class="st">"ci"</span>, <span class="st">"pval"</span>, <span class="st">"pval_inter"</span>)</span>
-<span id="cb8-22"><a href="#cb8-22"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb8-23"><a href="#cb8-23"></a>  <span class="fu">append_topleft</span>(<span class="st">"Effect/Covariate Included in the Model"</span>)</span>
-<span id="cb8-24"><a href="#cb8-24"></a></span>
-<span id="cb8-25"><a href="#cb8-25"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(<span class="at">lyt =</span> lyt, <span class="at">df =</span> anl)</span>
-<span id="cb8-26"><a href="#cb8-26"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>variables <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="at">time =</span> <span class="st">"AVAL"</span>,</span>
+<span id="cb7-3"><a href="#cb7-3"></a>  <span class="at">event =</span> <span class="st">"EVENT"</span>,</span>
+<span id="cb7-4"><a href="#cb7-4"></a>  <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
+<span id="cb7-5"><a href="#cb7-5"></a>  <span class="at">covariates =</span> <span class="fu">c</span>(<span class="st">"AGE"</span>, <span class="st">"RACE"</span>),</span>
+<span id="cb7-6"><a href="#cb7-6"></a>  <span class="at">strata =</span> <span class="st">"SEX"</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a>)</span>
+<span id="cb7-8"><a href="#cb7-8"></a></span>
+<span id="cb7-9"><a href="#cb7-9"></a>control <span class="ot">&lt;-</span> <span class="fu">control_coxreg</span>(</span>
+<span id="cb7-10"><a href="#cb7-10"></a>  <span class="at">ties =</span> <span class="st">"breslow"</span>,</span>
+<span id="cb7-11"><a href="#cb7-11"></a>  <span class="at">interaction =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-12"><a href="#cb7-12"></a>  <span class="at">conf_level =</span> <span class="fl">0.90</span></span>
+<span id="cb7-13"><a href="#cb7-13"></a>)</span>
+<span id="cb7-14"><a href="#cb7-14"></a></span>
+<span id="cb7-15"><a href="#cb7-15"></a>lyt <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb7-16"><a href="#cb7-16"></a>  <span class="fu">split_cols_by</span>(<span class="st">"col_label"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-17"><a href="#cb7-17"></a>  <span class="fu">summarize_coxreg</span>(</span>
+<span id="cb7-18"><a href="#cb7-18"></a>    <span class="at">variables =</span> variables,</span>
+<span id="cb7-19"><a href="#cb7-19"></a>    <span class="at">control =</span> control,</span>
+<span id="cb7-20"><a href="#cb7-20"></a>    <span class="at">at =</span> <span class="fu">list</span>(<span class="at">AGE =</span> <span class="fu">c</span>(<span class="dv">30</span>, <span class="dv">40</span>, <span class="dv">50</span>)),</span>
+<span id="cb7-21"><a href="#cb7-21"></a>    <span class="at">.stats =</span> <span class="fu">c</span>(<span class="st">"n"</span>, <span class="st">"hr"</span>, <span class="st">"ci"</span>, <span class="st">"pval"</span>, <span class="st">"pval_inter"</span>)</span>
+<span id="cb7-22"><a href="#cb7-22"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb7-23"><a href="#cb7-23"></a>  <span class="fu">append_topleft</span>(<span class="st">"Effect/Covariate Included in the Model"</span>)</span>
+<span id="cb7-24"><a href="#cb7-24"></a></span>
+<span id="cb7-25"><a href="#cb7-25"></a>result <span class="ot">&lt;-</span> <span class="fu">build_table</span>(<span class="at">lyt =</span> lyt, <span class="at">df =</span> anl)</span>
+<span id="cb7-26"><a href="#cb7-26"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>                                                      Treatment Effect Adjusted for Covariate             
 Effect/Covariate Included in the Model    n    Hazard Ratio      90% CI      p-value   Interaction p-value
@@ -2960,14 +2925,50 @@ Experimental use!
 </div>
 </div>
 </div>
-<div id="tabset-6-6" class="tab-pane page-columns page-full" role="tabpanel" aria-labelledby="tabset-6-6-tab">
+<div id="tabset-5-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-5-tab">
+<div class="cell">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="fu">library</span>(tern)</span>
+<span id="cb9-3"><a href="#cb9-3"></a></span>
+<span id="cb9-4"><a href="#cb9-4"></a>adsl <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadsl</span>
+<span id="cb9-5"><a href="#cb9-5"></a>adtte <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadtte</span>
+<span id="cb9-6"><a href="#cb9-6"></a></span>
+<span id="cb9-7"><a href="#cb9-7"></a><span class="co"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a>adsl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adsl)</span>
+<span id="cb9-9"><a href="#cb9-9"></a>adtte <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(adtte)</span>
+<span id="cb9-10"><a href="#cb9-10"></a></span>
+<span id="cb9-11"><a href="#cb9-11"></a>adsl_filtered <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(</span>
+<span id="cb9-12"><a href="#cb9-12"></a>  RACE <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"ASIAN"</span>, <span class="st">"BLACK OR AFRICAN AMERICAN"</span>, <span class="st">"WHITE"</span>)</span>
+<span id="cb9-13"><a href="#cb9-13"></a>)</span>
+<span id="cb9-14"><a href="#cb9-14"></a>adtte_filtered <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">inner_join</span>(</span>
+<span id="cb9-15"><a href="#cb9-15"></a>  <span class="at">x =</span> adsl_filtered[, <span class="fu">c</span>(<span class="st">"STUDYID"</span>, <span class="st">"USUBJID"</span>)],</span>
+<span id="cb9-16"><a href="#cb9-16"></a>  <span class="at">y =</span> adtte,</span>
+<span id="cb9-17"><a href="#cb9-17"></a>  <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"STUDYID"</span>, <span class="st">"USUBJID"</span>)</span>
+<span id="cb9-18"><a href="#cb9-18"></a>)</span>
+<span id="cb9-19"><a href="#cb9-19"></a></span>
+<span id="cb9-20"><a href="#cb9-20"></a>anl <span class="ot">&lt;-</span> adtte_filtered <span class="sc">%&gt;%</span></span>
+<span id="cb9-21"><a href="#cb9-21"></a>  <span class="fu">filter</span>(PARAMCD <span class="sc">==</span> <span class="st">"OS"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-22"><a href="#cb9-22"></a>  <span class="fu">mutate</span>(<span class="at">EVENT =</span> <span class="dv">1</span> <span class="sc">-</span> CNSR) <span class="sc">%&gt;%</span></span>
+<span id="cb9-23"><a href="#cb9-23"></a>  <span class="fu">filter</span>(ARM <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"B: Placebo"</span>, <span class="st">"A: Drug X"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb9-24"><a href="#cb9-24"></a>  <span class="fu">mutate</span>(<span class="at">ARM =</span> <span class="fu">droplevels</span>(<span class="fu">relevel</span>(ARM, <span class="st">"B: Placebo"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb9-25"><a href="#cb9-25"></a>  <span class="fu">mutate</span>(<span class="at">RACE =</span> <span class="fu">droplevels</span>(RACE) <span class="sc">%&gt;%</span> formatters<span class="sc">::</span><span class="fu">with_label</span>(<span class="st">"Race"</span>))</span>
+<span id="cb9-26"><a href="#cb9-26"></a></span>
+<span id="cb9-27"><a href="#cb9-27"></a><span class="co"># Add variable for column split label</span></span>
+<span id="cb9-28"><a href="#cb9-28"></a>anl <span class="ot">&lt;-</span> anl <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">col_label =</span> <span class="st">"Treatment Effect Adjusted for Covariate"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</div>
+</div>
+</div>
+<section id="teal-app" class="level2 page-columns page-full"><h2 class="anchored" data-anchor-id="teal-app">
+<code>teal</code> App</h2>
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified page-columns page-full">
 <ul class="nav nav-tabs" role="tablist">
-<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true"><i class="fa-regular fa-file-lines" aria-label="file-lines"></i> Preview</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false"><i class="fa-regular fa-terminal" aria-label="terminal"></i> Try this using <code>shinylive</code></a></li>
+<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-6-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-1" role="tab" aria-controls="tabset-6-1" aria-selected="true"><i class="fa-regular fa-file-lines" aria-label="file-lines"></i> Preview</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-2" role="tab" aria-controls="tabset-6-2" aria-selected="false"><i class="fa-regular fa-terminal" aria-label="terminal"></i> Try this using <code>shinylive</code></a></li>
 </ul>
 <div class="tab-content nav-justified page-columns page-full">
-<div id="tabset-5-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-5-1-tab">
+<div id="tabset-6-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-6-1-tab">
 <div class="cell" data-webshot="webshot2" data-screenshot.force="true" data-screenshot.opts="{&quot;delay&quot;:5}">
 <details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
 <span id="cb10-2"><a href="#cb10-2"></a></span>
@@ -3035,7 +3036,7 @@ This shortcode will include chunk returning WebR instance.
 Global shinylive configuration is available in the `_quarto.yaml` file.
 -->
 </div>
-<div id="tabset-5-2" class="tab-pane page-columns page-full" role="tabpanel" aria-labelledby="tabset-5-2-tab">
+<div id="tabset-6-2" class="tab-pane page-columns page-full" role="tabpanel" aria-labelledby="tabset-6-2-tab">
 <div class="callout callout-style-simple callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -3052,10 +3053,6 @@ Experimental use!
 </div>
 </div>
 </div>
-<!--
-we have to put some code upfront
-- need to setup repos on r-universe - currently it's not possible to setup this elsewhere (e.g. shinylive config or chunk attribute)
--->
 <div class="column-screen-inset-right">
 <div class="sourceCode" id="cb11" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb11-1"><a href="#cb11-1"></a>#| standalone: true</span>
 <span id="cb11-2"><a href="#cb11-2"></a>#| viewerHeight: 800</span>
@@ -3124,125 +3121,149 @@ we have to put some code upfront
 </div>
 </div>
 </div>
-</div>
-<div id="tabset-6-7" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-7-tab">
+</section><section id="reproducibility" class="level2"><h2 class="anchored" data-anchor-id="reproducibility">Reproducibility</h2>
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
-<div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-09-21 17:53:02 UTC"</code></pre>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "2024-09-23 09:21:46 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output cell-output-stdout">
-<pre><code>R version 4.4.1 (2024-06-14)
-Platform: x86_64-pc-linux-gnu
-Running under: Ubuntu 22.04.4 LTS
+<div class="cell-output cell-output-stdout">
+<pre><code>─ Session info ───────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.4.1 (2024-06-14)
+ os       Ubuntu 22.04.4 LTS
+ system   x86_64, linux-gnu
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       Etc/UTC
+ date     2024-09-23
+ pandoc   3.3 @ /usr/bin/ (via rmarkdown)
 
-Matrix products: default
-BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
-LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0
+─ Packages ───────────────────────────────────────────────────────────────────
+ package               * version  date (UTC) lib source
+ abind                   1.4-8    2024-09-12 [1] CRAN (R 4.4.1)
+ backports               1.5.0    2024-05-23 [1] CRAN (R 4.4.1)
+ brio                    1.1.5    2024-04-24 [1] CRAN (R 4.4.1)
+ broom                   1.0.6    2024-05-17 [1] CRAN (R 4.4.1)
+ bslib                   0.8.0    2024-07-29 [1] CRAN (R 4.4.1)
+ cachem                  1.1.0    2024-05-16 [1] CRAN (R 4.4.1)
+ callr                   3.7.6    2024-03-25 [1] CRAN (R 4.4.1)
+ car                     3.1-2    2023-03-30 [1] CRAN (R 4.4.1)
+ carData                 3.0-5    2022-01-06 [1] CRAN (R 4.4.1)
+ checkmate               2.3.2    2024-07-29 [1] CRAN (R 4.4.1)
+ chromote                0.3.1    2024-08-30 [1] CRAN (R 4.4.1)
+ cli                     3.6.3    2024-06-21 [1] CRAN (R 4.4.1)
+ coda                    0.19-4.1 2024-01-31 [1] CRAN (R 4.4.1)
+ codetools               0.2-20   2024-03-31 [2] CRAN (R 4.4.1)
+ colorspace              2.1-1    2024-07-26 [1] CRAN (R 4.4.1)
+ digest                  0.6.37   2024-08-19 [1] CRAN (R 4.4.1)
+ dplyr                 * 1.1.4    2023-11-17 [1] CRAN (R 4.4.1)
+ emmeans                 1.10.4   2024-08-21 [1] CRAN (R 4.4.1)
+ estimability            1.5.1    2024-05-12 [1] CRAN (R 4.4.1)
+ evaluate                1.0.0    2024-09-17 [1] CRAN (R 4.4.1)
+ fansi                   1.0.6    2023-12-08 [1] CRAN (R 4.4.1)
+ fastmap                 1.2.0    2024-05-15 [1] CRAN (R 4.4.1)
+ fontawesome             0.5.2    2023-08-19 [1] CRAN (R 4.4.1)
+ forcats                 1.0.0    2023-01-29 [1] CRAN (R 4.4.1)
+ formatR                 1.14     2023-01-17 [1] CRAN (R 4.4.1)
+ formatters            * 0.5.9    2024-09-12 [1] CRAN (R 4.4.1)
+ geepack                 1.3.11.1 2024-09-09 [1] CRAN (R 4.4.1)
+ generics                0.1.3    2022-07-05 [1] CRAN (R 4.4.1)
+ ggplot2                 3.5.1    2024-04-23 [1] CRAN (R 4.4.1)
+ glue                    1.7.0    2024-01-09 [1] CRAN (R 4.4.1)
+ gtable                  0.3.5    2024-04-22 [1] CRAN (R 4.4.1)
+ htmltools               0.5.8.1  2024-04-04 [1] CRAN (R 4.4.1)
+ htmlwidgets             1.6.4    2023-12-06 [1] CRAN (R 4.4.1)
+ httpuv                  1.6.15   2024-03-26 [1] CRAN (R 4.4.1)
+ jquerylib               0.1.4    2021-04-26 [1] CRAN (R 4.4.1)
+ jsonlite                1.8.9    2024-09-20 [1] CRAN (R 4.4.1)
+ knitr                   1.48     2024-07-07 [1] CRAN (R 4.4.1)
+ later                   1.3.2    2023-12-06 [1] CRAN (R 4.4.1)
+ lattice                 0.22-6   2024-03-20 [2] CRAN (R 4.4.1)
+ lifecycle               1.0.4    2023-11-07 [1] CRAN (R 4.4.1)
+ logger                  0.3.0    2024-03-05 [1] CRAN (R 4.4.1)
+ magrittr              * 2.0.3    2022-03-30 [1] CRAN (R 4.4.1)
+ MASS                    7.3-61   2024-06-13 [2] CRAN (R 4.4.1)
+ Matrix                  1.7-0    2024-04-26 [1] CRAN (R 4.4.1)
+ memoise                 2.0.1    2021-11-26 [1] CRAN (R 4.4.1)
+ mime                    0.12     2021-09-28 [1] CRAN (R 4.4.1)
+ multcomp                1.4-26   2024-07-18 [1] CRAN (R 4.4.1)
+ munsell                 0.5.1    2024-04-01 [1] CRAN (R 4.4.1)
+ mvtnorm                 1.3-1    2024-09-03 [1] CRAN (R 4.4.1)
+ nlme                    3.1-166  2024-08-14 [2] CRAN (R 4.4.1)
+ pillar                  1.9.0    2023-03-22 [1] CRAN (R 4.4.1)
+ pkgconfig               2.0.3    2019-09-22 [1] CRAN (R 4.4.1)
+ processx                3.8.4    2024-03-16 [1] CRAN (R 4.4.1)
+ promises                1.3.0    2024-04-05 [1] CRAN (R 4.4.1)
+ ps                      1.8.0    2024-09-12 [1] CRAN (R 4.4.1)
+ purrr                   1.0.2    2023-08-10 [1] CRAN (R 4.4.1)
+ R6                      2.5.1    2021-08-19 [1] CRAN (R 4.4.1)
+ random.cdisc.data       0.3.15   2024-09-23 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
+ rbibutils               2.2.16   2023-10-25 [1] CRAN (R 4.4.1)
+ Rcpp                    1.0.13   2024-07-17 [1] CRAN (R 4.4.1)
+ Rdpack                  2.6.1    2024-08-06 [1] CRAN (R 4.4.1)
+ rlang                   1.1.4    2024-06-04 [1] CRAN (R 4.4.1)
+ rmarkdown               2.28     2024-08-17 [1] CRAN (R 4.4.1)
+ rtables               * 0.6.10   2024-09-23 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
+ sandwich                3.1-0    2023-12-11 [1] CRAN (R 4.4.1)
+ sass                    0.4.9    2024-03-15 [1] CRAN (R 4.4.1)
+ scales                  1.3.0    2023-11-28 [1] CRAN (R 4.4.1)
+ sessioninfo             1.2.2    2021-12-06 [1] CRAN (R 4.4.1)
+ shiny                 * 1.9.1    2024-08-01 [1] CRAN (R 4.4.1)
+ shinycssloaders         1.1.0    2024-07-30 [1] CRAN (R 4.4.1)
+ shinyjs                 2.1.0    2021-12-23 [1] CRAN (R 4.4.1)
+ shinyvalidate           0.1.3    2023-10-04 [1] CRAN (R 4.4.1)
+ shinyWidgets            0.8.7    2024-09-23 [1] CRAN (R 4.4.1)
+ stringi                 1.8.4    2024-05-06 [1] CRAN (R 4.4.1)
+ stringr                 1.5.1    2023-11-14 [1] CRAN (R 4.4.1)
+ survival                3.7-0    2024-06-05 [2] CRAN (R 4.4.1)
+ teal                  * 0.15.2   2024-03-07 [1] CRAN (R 4.4.1)
+ teal.code             * 0.5.0    2024-01-11 [1] CRAN (R 4.4.1)
+ teal.data             * 0.6.0    2024-04-30 [1] CRAN (R 4.4.1)
+ teal.logger             0.2.0    2024-03-24 [1] CRAN (R 4.4.1)
+ teal.modules.clinical * 0.9.1    2024-04-27 [1] CRAN (R 4.4.1)
+ teal.reporter           0.3.1    2024-03-15 [1] CRAN (R 4.4.1)
+ teal.slice            * 0.5.1    2024-04-30 [1] CRAN (R 4.4.1)
+ teal.transform        * 0.5.0    2024-02-17 [1] CRAN (R 4.4.1)
+ teal.widgets            0.4.2    2023-12-14 [1] CRAN (R 4.4.1)
+ tern                  * 0.9.5    2024-06-21 [1] CRAN (R 4.4.1)
+ tern.gee                0.1.5    2024-08-23 [1] CRAN (R 4.4.1)
+ testthat                3.2.1.1  2024-04-14 [1] CRAN (R 4.4.1)
+ TH.data                 1.1-2    2023-04-17 [1] CRAN (R 4.4.1)
+ tibble                  3.2.1    2023-03-20 [1] CRAN (R 4.4.1)
+ tidyr                   1.3.1    2024-01-24 [1] CRAN (R 4.4.1)
+ tidyselect              1.2.1    2024-03-11 [1] CRAN (R 4.4.1)
+ utf8                    1.2.4    2023-10-22 [1] CRAN (R 4.4.1)
+ vctrs                   0.6.5    2023-12-01 [1] CRAN (R 4.4.1)
+ webshot                 0.5.5    2023-06-26 [1] CRAN (R 4.4.1)
+ webshot2                0.1.1    2023-08-11 [1] CRAN (R 4.4.1)
+ websocket               1.4.2    2024-07-22 [1] CRAN (R 4.4.1)
+ withr                   3.0.1    2024-07-31 [1] CRAN (R 4.4.1)
+ xfun                    0.47     2024-08-17 [1] CRAN (R 4.4.1)
+ xtable                  1.8-4    2019-04-21 [1] CRAN (R 4.4.1)
+ yaml                    2.3.10   2024-07-26 [1] CRAN (R 4.4.1)
+ zoo                     1.8-12   2023-04-13 [1] CRAN (R 4.4.1)
 
-locale:
- [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
- [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
- [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
- [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
- [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+ [1] /usr/local/lib/R/site-library
+ [2] /usr/local/lib/R/library
 
-time zone: Etc/UTC
-tzcode source: system (glibc)
-
-attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
-
-other attached packages:
- [1] teal.modules.clinical_0.9.1 teal.transform_0.5.0       
- [3] teal_0.15.2                 teal.slice_0.5.1           
- [5] teal.data_0.6.0             teal.code_0.5.0            
- [7] shiny_1.9.1                 tern_0.9.5                 
- [9] rtables_0.6.10              magrittr_2.0.3             
-[11] formatters_0.5.9            dplyr_1.1.4                
-
-loaded via a namespace (and not attached):
- [1] tidyselect_1.2.1         fastmap_1.2.0            random.cdisc.data_0.3.15
- [4] TH.data_1.1-2            webshot2_0.1.1           promises_1.3.0          
- [7] shinyjs_2.1.0            digest_0.6.37            estimability_1.5.1      
-[10] mime_0.12                tern.gee_0.1.5           lifecycle_1.0.4         
-[13] processx_3.8.4           survival_3.7-0           compiler_4.4.1          
-[16] sass_0.4.9               rlang_1.1.4              tools_4.4.1             
-[19] utf8_1.2.4               yaml_2.3.10              knitr_1.48              
-[22] htmlwidgets_1.6.4        websocket_1.4.2          abind_1.4-8             
-[25] multcomp_1.4-26          withr_3.0.1              purrr_1.0.2             
-[28] shinyWidgets_0.8.6       geepack_1.3.11.1         grid_4.4.1              
-[31] fansi_1.0.6              teal.logger_0.2.0        xtable_1.8-4            
-[34] colorspace_2.1-1         ggplot2_3.5.1            emmeans_1.10.4          
-[37] scales_1.3.0             MASS_7.3-61              cli_3.6.3               
-[40] mvtnorm_1.3-1            rmarkdown_2.28           generics_0.1.3          
-[43] chromote_0.3.1           cachem_1.1.0             stringr_1.5.1           
-[46] splines_4.4.1            formatR_1.14             vctrs_0.6.5             
-[49] webshot_0.5.5            Matrix_1.7-0             sandwich_3.1-1          
-[52] jsonlite_1.8.9           carData_3.0-5            callr_3.7.6             
-[55] car_3.1-2                teal.widgets_0.4.2       testthat_3.2.1.1        
-[58] fontawesome_0.5.2        jquerylib_0.1.4          tidyr_1.3.1             
-[61] glue_1.7.0               ps_1.8.0                 codetools_0.2-20        
-[64] stringi_1.8.4            gtable_0.3.5             later_1.3.2             
-[67] shinycssloaders_1.1.0    munsell_0.5.1            tibble_3.2.1            
-[70] logger_0.3.0             pillar_1.9.0             htmltools_0.5.8.1       
-[73] brio_1.1.5               R6_2.5.1                 Rdpack_2.6.1            
-[76] evaluate_1.0.0           lattice_0.22-6           rbibutils_2.2.16        
-[79] backports_1.5.0          memoise_2.0.1            broom_1.0.6             
-[82] teal.reporter_0.3.1      httpuv_1.6.15            bslib_0.8.0             
-[85] Rcpp_1.0.13              shinyvalidate_0.1.3      coda_0.19-4.1           
-[88] nlme_3.1-166             checkmate_2.3.2          xfun_0.47               
-[91] zoo_1.8-12               forcats_1.0.0            pkgconfig_2.0.3         </code></pre>
+──────────────────────────────────────────────────────────────────────────────</code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
 <code>.lock</code> file</h3>
 <p>Download the <code>.lock</code> file and use <a href="https://rstudio.github.io/renv/reference/restore.html"><code>renv::restore()</code></a> on it to recreate environment used to generate this website.</p>
-<div class="cell" data-renv.ignore="true">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb16-2"><a href="#cb16-2"></a></span>
-<span id="cb16-3"><a href="#cb16-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
-<span id="cb16-4"><a href="#cb16-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
-<span id="cb16-5"><a href="#cb16-5"></a></span>
-<span id="cb16-6"><a href="#cb16-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
-<span id="cb16-7"><a href="#cb16-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
-<span id="cb16-8"><a href="#cb16-8"></a>  <span class="fu">paste0</span>(</span>
-<span id="cb16-9"><a href="#cb16-9"></a>    <span class="fu">gsub</span>(</span>
-<span id="cb16-10"><a href="#cb16-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
-<span id="cb16-11"><a href="#cb16-11"></a>      <span class="st">""</span>,</span>
-<span id="cb16-12"><a href="#cb16-12"></a>      <span class="fu">gsub</span>(</span>
-<span id="cb16-13"><a href="#cb16-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
-<span id="cb16-14"><a href="#cb16-14"></a>        <span class="st">""</span>,</span>
-<span id="cb16-15"><a href="#cb16-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb16-16"><a href="#cb16-16"></a>      )</span>
-<span id="cb16-17"><a href="#cb16-17"></a>    ),</span>
-<span id="cb16-18"><a href="#cb16-18"></a>    <span class="st">".lock"</span></span>
-<span id="cb16-19"><a href="#cb16-19"></a>  )</span>
-<span id="cb16-20"><a href="#cb16-20"></a>)</span>
-<span id="cb16-21"><a href="#cb16-21"></a></span>
-<span id="cb16-22"><a href="#cb16-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
-<span id="cb16-23"><a href="#cb16-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb16-24"><a href="#cb16-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb16-25"><a href="#cb16-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
 <p><a href="../../assets/www/lock/tables/efficacy/coxt01.lock">Download</a></p>
-</section>
-</div>
-</div>
-</div>
 
 
 <!-- -->
 
-
-</main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</section></section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
     const mode = bsSheetEl.getAttribute("data-mode");
@@ -3868,265 +3889,268 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb17" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb17-1"><a href="#cb17-1"></a><span class="co">---</span></span>
-<span id="cb17-2"><a href="#cb17-2"></a><span class="an">title:</span><span class="co"> COXT01</span></span>
-<span id="cb17-3"><a href="#cb17-3"></a><span class="an">subtitle:</span><span class="co"> Cox Regression</span></span>
-<span id="cb17-4"><a href="#cb17-4"></a><span class="co">---</span></span>
-<span id="cb17-5"><a href="#cb17-5"></a></span>
-<span id="cb17-6"><a href="#cb17-6"></a>------------------------------------------------------------------------</span>
-<span id="cb17-7"><a href="#cb17-7"></a></span>
-<span id="cb17-8"><a href="#cb17-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb17-9"><a href="#cb17-9"></a></span>
-<span id="cb17-10"><a href="#cb17-10"></a>Cox models are the most commonly used methods to estimate the magnitude of the effect in survival analyses.</span>
-<span id="cb17-11"><a href="#cb17-11"></a>It assumes proportional hazards; that is, it assumes that the ratio of the hazards of the two groups (e.g. two arms) is constant over time.</span>
-<span id="cb17-12"><a href="#cb17-12"></a>This ratio is referred to as the "hazard ratio" and is one of the most commonly reported metrics to describe the effect size in survival analysis.</span>
-<span id="cb17-13"><a href="#cb17-13"></a></span>
-<span id="cb17-14"><a href="#cb17-14"></a>:::: {.panel-tabset}</span>
-<span id="cb17-15"><a href="#cb17-15"></a><span class="fu">## Data Setup</span></span>
-<span id="cb17-16"><a href="#cb17-16"></a></span>
-<span id="cb17-17"><a href="#cb17-17"></a><span class="in">```{r setup, message = FALSE}</span></span>
-<span id="cb17-18"><a href="#cb17-18"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb17-19"><a href="#cb17-19"></a></span>
-<span id="cb17-20"><a href="#cb17-20"></a><span class="in">library(dplyr)</span></span>
-<span id="cb17-21"><a href="#cb17-21"></a><span class="in">library(tern)</span></span>
-<span id="cb17-22"><a href="#cb17-22"></a></span>
-<span id="cb17-23"><a href="#cb17-23"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb17-24"><a href="#cb17-24"></a><span class="in">adtte &lt;- random.cdisc.data::cadtte</span></span>
-<span id="cb17-25"><a href="#cb17-25"></a></span>
-<span id="cb17-26"><a href="#cb17-26"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb17-27"><a href="#cb17-27"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb17-28"><a href="#cb17-28"></a><span class="in">adtte &lt;- df_explicit_na(adtte)</span></span>
-<span id="cb17-29"><a href="#cb17-29"></a></span>
-<span id="cb17-30"><a href="#cb17-30"></a><span class="in">adsl_filtered &lt;- adsl %&gt;% dplyr::filter(</span></span>
-<span id="cb17-31"><a href="#cb17-31"></a><span class="in">  RACE %in% c("ASIAN", "BLACK OR AFRICAN AMERICAN", "WHITE")</span></span>
-<span id="cb17-32"><a href="#cb17-32"></a><span class="in">)</span></span>
-<span id="cb17-33"><a href="#cb17-33"></a><span class="in">adtte_filtered &lt;- dplyr::inner_join(</span></span>
-<span id="cb17-34"><a href="#cb17-34"></a><span class="in">  x = adsl_filtered[, c("STUDYID", "USUBJID")],</span></span>
-<span id="cb17-35"><a href="#cb17-35"></a><span class="in">  y = adtte,</span></span>
-<span id="cb17-36"><a href="#cb17-36"></a><span class="in">  by = c("STUDYID", "USUBJID")</span></span>
-<span id="cb17-37"><a href="#cb17-37"></a><span class="in">)</span></span>
-<span id="cb17-38"><a href="#cb17-38"></a></span>
-<span id="cb17-39"><a href="#cb17-39"></a><span class="in">anl &lt;- adtte_filtered %&gt;%</span></span>
-<span id="cb17-40"><a href="#cb17-40"></a><span class="in">  filter(PARAMCD == "OS") %&gt;%</span></span>
-<span id="cb17-41"><a href="#cb17-41"></a><span class="in">  mutate(EVENT = 1 - CNSR) %&gt;%</span></span>
-<span id="cb17-42"><a href="#cb17-42"></a><span class="in">  filter(ARM %in% c("B: Placebo", "A: Drug X")) %&gt;%</span></span>
-<span id="cb17-43"><a href="#cb17-43"></a><span class="in">  mutate(ARM = droplevels(relevel(ARM, "B: Placebo"))) %&gt;%</span></span>
-<span id="cb17-44"><a href="#cb17-44"></a><span class="in">  mutate(RACE = droplevels(RACE) %&gt;% formatters::with_label("Race"))</span></span>
-<span id="cb17-45"><a href="#cb17-45"></a></span>
-<span id="cb17-46"><a href="#cb17-46"></a><span class="in"># Add variable for column split label</span></span>
-<span id="cb17-47"><a href="#cb17-47"></a><span class="in">anl &lt;- anl %&gt;% mutate(col_label = "Treatment Effect Adjusted for Covariate")</span></span>
-<span id="cb17-48"><a href="#cb17-48"></a><span class="in">```</span></span>
-<span id="cb17-49"><a href="#cb17-49"></a></span>
-<span id="cb17-50"><a href="#cb17-50"></a><span class="fu">## Cox Regression</span></span>
-<span id="cb17-51"><a href="#cb17-51"></a></span>
-<span id="cb17-52"><a href="#cb17-52"></a>The <span class="in">`summarize_coxreg`</span> function fits, tidies and arranges a Cox regression model in a table layout using the <span class="in">`rtables`</span> framework.</span>
-<span id="cb17-53"><a href="#cb17-53"></a>For a Cox regression model, arguments <span class="in">`variables`</span>, <span class="in">`control`</span>, and <span class="in">`at`</span> can be specified (see <span class="in">`?summarize_coxreg`</span> for more details and customization options).</span>
-<span id="cb17-54"><a href="#cb17-54"></a>All variables specified within <span class="in">`variables`</span> must be present in the data used when building the table.</span>
-<span id="cb17-55"><a href="#cb17-55"></a></span>
-<span id="cb17-56"><a href="#cb17-56"></a>To see the same model as a <span class="in">`data.frame`</span> object, these three arguments (as well as the data) can be passed to the <span class="in">`fit_coxreg_univar`</span> function, and the resulting list tidied using <span class="in">`broom::tidy()`</span>.</span>
-<span id="cb17-57"><a href="#cb17-57"></a></span>
-<span id="cb17-58"><a href="#cb17-58"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb17-59"><a href="#cb17-59"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb17-60"><a href="#cb17-60"></a></span>
-<span id="cb17-61"><a href="#cb17-61"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb17-62"><a href="#cb17-62"></a><span class="in">variables &lt;- list(</span></span>
-<span id="cb17-63"><a href="#cb17-63"></a><span class="in">  time = "AVAL",</span></span>
-<span id="cb17-64"><a href="#cb17-64"></a><span class="in">  event = "EVENT",</span></span>
-<span id="cb17-65"><a href="#cb17-65"></a><span class="in">  arm = "ARM",</span></span>
-<span id="cb17-66"><a href="#cb17-66"></a><span class="in">  covariates = c("AGE", "SEX", "RACE")</span></span>
-<span id="cb17-67"><a href="#cb17-67"></a><span class="in">)</span></span>
-<span id="cb17-68"><a href="#cb17-68"></a></span>
-<span id="cb17-69"><a href="#cb17-69"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
-<span id="cb17-70"><a href="#cb17-70"></a><span class="in">  split_cols_by("col_label") %&gt;%</span></span>
-<span id="cb17-71"><a href="#cb17-71"></a><span class="in">  summarize_coxreg(variables = variables) %&gt;%</span></span>
-<span id="cb17-72"><a href="#cb17-72"></a><span class="in">  append_topleft("Effect/Covariate Included in the Model")</span></span>
-<span id="cb17-73"><a href="#cb17-73"></a></span>
-<span id="cb17-74"><a href="#cb17-74"></a><span class="in">result &lt;- build_table(lyt = lyt, df = anl)</span></span>
-<span id="cb17-75"><a href="#cb17-75"></a><span class="in">result</span></span>
-<span id="cb17-76"><a href="#cb17-76"></a><span class="in">```</span></span>
-<span id="cb17-77"><a href="#cb17-77"></a></span>
-<span id="cb17-78"><a href="#cb17-78"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
-<span id="cb17-79"><a href="#cb17-79"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb17-80"><a href="#cb17-80"></a>:::</span>
-<span id="cb17-81"><a href="#cb17-81"></a></span>
-<span id="cb17-82"><a href="#cb17-82"></a><span class="fu">## Cox Regression &lt;br/&gt; with Interaction Term</span></span>
-<span id="cb17-83"><a href="#cb17-83"></a></span>
-<span id="cb17-84"><a href="#cb17-84"></a>The argument <span class="in">`control`</span> can be used to modify standard outputs; <span class="in">`control_coxreg()`</span> helps in adopting the right settings (see <span class="in">`?control_coxreg`</span>).</span>
-<span id="cb17-85"><a href="#cb17-85"></a>For instance, <span class="in">`control`</span> is used to include the interaction terms.</span>
-<span id="cb17-86"><a href="#cb17-86"></a></span>
-<span id="cb17-87"><a href="#cb17-87"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb17-88"><a href="#cb17-88"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb17-89"><a href="#cb17-89"></a></span>
-<span id="cb17-90"><a href="#cb17-90"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb17-91"><a href="#cb17-91"></a><span class="in">variables &lt;- list(</span></span>
-<span id="cb17-92"><a href="#cb17-92"></a><span class="in">  time = "AVAL",</span></span>
-<span id="cb17-93"><a href="#cb17-93"></a><span class="in">  event = "EVENT",</span></span>
-<span id="cb17-94"><a href="#cb17-94"></a><span class="in">  arm = "ARM",</span></span>
-<span id="cb17-95"><a href="#cb17-95"></a><span class="in">  covariates = c("AGE", "RACE")</span></span>
-<span id="cb17-96"><a href="#cb17-96"></a><span class="in">)</span></span>
-<span id="cb17-97"><a href="#cb17-97"></a></span>
-<span id="cb17-98"><a href="#cb17-98"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
-<span id="cb17-99"><a href="#cb17-99"></a><span class="in">  split_cols_by("col_label") %&gt;%</span></span>
-<span id="cb17-100"><a href="#cb17-100"></a><span class="in">  summarize_coxreg(</span></span>
-<span id="cb17-101"><a href="#cb17-101"></a><span class="in">    variables = variables,</span></span>
-<span id="cb17-102"><a href="#cb17-102"></a><span class="in">    control = control_coxreg(interaction = TRUE),</span></span>
-<span id="cb17-103"><a href="#cb17-103"></a><span class="in">    .stats = c("n", "hr", "ci", "pval", "pval_inter")</span></span>
-<span id="cb17-104"><a href="#cb17-104"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb17-105"><a href="#cb17-105"></a><span class="in">  append_topleft("Effect/Covariate Included in the Model")</span></span>
-<span id="cb17-106"><a href="#cb17-106"></a></span>
-<span id="cb17-107"><a href="#cb17-107"></a><span class="in">result &lt;- build_table(lyt = lyt, df = anl)</span></span>
-<span id="cb17-108"><a href="#cb17-108"></a><span class="in">result</span></span>
-<span id="cb17-109"><a href="#cb17-109"></a><span class="in">```</span></span>
-<span id="cb17-110"><a href="#cb17-110"></a></span>
-<span id="cb17-111"><a href="#cb17-111"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
-<span id="cb17-112"><a href="#cb17-112"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb17-113"><a href="#cb17-113"></a>:::</span>
-<span id="cb17-114"><a href="#cb17-114"></a></span>
-<span id="cb17-115"><a href="#cb17-115"></a><span class="fu">## Cox Regression &lt;br/&gt; Specifying Covariates</span></span>
-<span id="cb17-116"><a href="#cb17-116"></a></span>
-<span id="cb17-117"><a href="#cb17-117"></a>The optional argument <span class="in">`at`</span> allows the user to provide the expected level of estimation for the interaction when the predictor is a quantitative variable.</span>
-<span id="cb17-118"><a href="#cb17-118"></a>For instance, it might be relevant to choose the age at which the hazard ratio should be estimated.</span>
-<span id="cb17-119"><a href="#cb17-119"></a>If no input is provided to <span class="in">`at`</span>, the median value is used in the row name (as in the previous tab).</span>
-<span id="cb17-120"><a href="#cb17-120"></a></span>
-<span id="cb17-121"><a href="#cb17-121"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb17-122"><a href="#cb17-122"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb17-123"><a href="#cb17-123"></a></span>
-<span id="cb17-124"><a href="#cb17-124"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
-<span id="cb17-125"><a href="#cb17-125"></a><span class="in">variables &lt;- list(</span></span>
-<span id="cb17-126"><a href="#cb17-126"></a><span class="in">  time = "AVAL",</span></span>
-<span id="cb17-127"><a href="#cb17-127"></a><span class="in">  event = "EVENT",</span></span>
-<span id="cb17-128"><a href="#cb17-128"></a><span class="in">  arm = "ARM",</span></span>
-<span id="cb17-129"><a href="#cb17-129"></a><span class="in">  covariates = c("AGE", "SEX")</span></span>
-<span id="cb17-130"><a href="#cb17-130"></a><span class="in">)</span></span>
-<span id="cb17-131"><a href="#cb17-131"></a></span>
-<span id="cb17-132"><a href="#cb17-132"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
-<span id="cb17-133"><a href="#cb17-133"></a><span class="in">  split_cols_by("col_label") %&gt;%</span></span>
-<span id="cb17-134"><a href="#cb17-134"></a><span class="in">  summarize_coxreg(</span></span>
-<span id="cb17-135"><a href="#cb17-135"></a><span class="in">    variables = variables,</span></span>
-<span id="cb17-136"><a href="#cb17-136"></a><span class="in">    control = control_coxreg(interaction = TRUE),</span></span>
-<span id="cb17-137"><a href="#cb17-137"></a><span class="in">    at = list(AGE = c(30, 40, 50)),</span></span>
-<span id="cb17-138"><a href="#cb17-138"></a><span class="in">    .stats = c("n", "hr", "ci", "pval", "pval_inter")</span></span>
-<span id="cb17-139"><a href="#cb17-139"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb17-140"><a href="#cb17-140"></a><span class="in">  append_topleft("Effect/Covariate Included in the Model")</span></span>
-<span id="cb17-141"><a href="#cb17-141"></a></span>
-<span id="cb17-142"><a href="#cb17-142"></a><span class="in">result &lt;- build_table(lyt = lyt, df = anl)</span></span>
-<span id="cb17-143"><a href="#cb17-143"></a><span class="in">result</span></span>
-<span id="cb17-144"><a href="#cb17-144"></a><span class="in">```</span></span>
-<span id="cb17-145"><a href="#cb17-145"></a></span>
-<span id="cb17-146"><a href="#cb17-146"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant3")`</span></span>
-<span id="cb17-147"><a href="#cb17-147"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb17-148"><a href="#cb17-148"></a>:::</span>
-<span id="cb17-149"><a href="#cb17-149"></a></span>
-<span id="cb17-150"><a href="#cb17-150"></a><span class="fu">## Cox Regression Setting &lt;br/&gt; Strata, Ties, Alpha Level</span></span>
-<span id="cb17-151"><a href="#cb17-151"></a></span>
-<span id="cb17-152"><a href="#cb17-152"></a>Additional controls can be customized using <span class="in">`control_coxreg`</span> (see <span class="in">`?control_coxreg`</span>) such as the ties calculation method and the confidence level.</span>
-<span id="cb17-153"><a href="#cb17-153"></a>Stratification variables can be added via the <span class="in">`strata`</span> element of the <span class="in">`variables`</span> list.</span>
-<span id="cb17-154"><a href="#cb17-154"></a></span>
-<span id="cb17-155"><a href="#cb17-155"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb17-156"><a href="#cb17-156"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb17-157"><a href="#cb17-157"></a></span>
-<span id="cb17-158"><a href="#cb17-158"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
-<span id="cb17-159"><a href="#cb17-159"></a><span class="in">variables &lt;- list(</span></span>
-<span id="cb17-160"><a href="#cb17-160"></a><span class="in">  time = "AVAL",</span></span>
-<span id="cb17-161"><a href="#cb17-161"></a><span class="in">  event = "EVENT",</span></span>
-<span id="cb17-162"><a href="#cb17-162"></a><span class="in">  arm = "ARM",</span></span>
-<span id="cb17-163"><a href="#cb17-163"></a><span class="in">  covariates = c("AGE", "RACE"),</span></span>
-<span id="cb17-164"><a href="#cb17-164"></a><span class="in">  strata = "SEX"</span></span>
-<span id="cb17-165"><a href="#cb17-165"></a><span class="in">)</span></span>
-<span id="cb17-166"><a href="#cb17-166"></a></span>
-<span id="cb17-167"><a href="#cb17-167"></a><span class="in">control &lt;- control_coxreg(</span></span>
-<span id="cb17-168"><a href="#cb17-168"></a><span class="in">  ties = "breslow",</span></span>
-<span id="cb17-169"><a href="#cb17-169"></a><span class="in">  interaction = TRUE,</span></span>
-<span id="cb17-170"><a href="#cb17-170"></a><span class="in">  conf_level = 0.90</span></span>
-<span id="cb17-171"><a href="#cb17-171"></a><span class="in">)</span></span>
-<span id="cb17-172"><a href="#cb17-172"></a></span>
-<span id="cb17-173"><a href="#cb17-173"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
-<span id="cb17-174"><a href="#cb17-174"></a><span class="in">  split_cols_by("col_label") %&gt;%</span></span>
-<span id="cb17-175"><a href="#cb17-175"></a><span class="in">  summarize_coxreg(</span></span>
-<span id="cb17-176"><a href="#cb17-176"></a><span class="in">    variables = variables,</span></span>
-<span id="cb17-177"><a href="#cb17-177"></a><span class="in">    control = control,</span></span>
-<span id="cb17-178"><a href="#cb17-178"></a><span class="in">    at = list(AGE = c(30, 40, 50)),</span></span>
-<span id="cb17-179"><a href="#cb17-179"></a><span class="in">    .stats = c("n", "hr", "ci", "pval", "pval_inter")</span></span>
-<span id="cb17-180"><a href="#cb17-180"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb17-181"><a href="#cb17-181"></a><span class="in">  append_topleft("Effect/Covariate Included in the Model")</span></span>
-<span id="cb17-182"><a href="#cb17-182"></a></span>
-<span id="cb17-183"><a href="#cb17-183"></a><span class="in">result &lt;- build_table(lyt = lyt, df = anl)</span></span>
-<span id="cb17-184"><a href="#cb17-184"></a><span class="in">result</span></span>
-<span id="cb17-185"><a href="#cb17-185"></a><span class="in">```</span></span>
-<span id="cb17-186"><a href="#cb17-186"></a></span>
-<span id="cb17-187"><a href="#cb17-187"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant4")`</span></span>
-<span id="cb17-188"><a href="#cb17-188"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb17-189"><a href="#cb17-189"></a>:::</span>
-<span id="cb17-190"><a href="#cb17-190"></a></span>
-<span id="cb17-191"><a href="#cb17-191"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb17-192"><a href="#cb17-192"></a></span>
-<span id="cb17-193"><a href="#cb17-193"></a><span class="fu">## `teal` App</span></span>
-<span id="cb17-194"><a href="#cb17-194"></a></span>
-<span id="cb17-195"><a href="#cb17-195"></a>::: {.panel-tabset .nav-justified}</span>
-<span id="cb17-196"><a href="#cb17-196"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
-<span id="cb17-197"><a href="#cb17-197"></a></span>
-<span id="cb17-198"><a href="#cb17-198"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb17-199"><a href="#cb17-199"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb17-200"><a href="#cb17-200"></a></span>
-<span id="cb17-201"><a href="#cb17-201"></a><span class="in">arm_ref_comp &lt;- list(</span></span>
-<span id="cb17-202"><a href="#cb17-202"></a><span class="in">  ACTARMCD = list(</span></span>
-<span id="cb17-203"><a href="#cb17-203"></a><span class="in">    ref = "ARM B",</span></span>
-<span id="cb17-204"><a href="#cb17-204"></a><span class="in">    comp = c("ARM A", "ARM C")</span></span>
-<span id="cb17-205"><a href="#cb17-205"></a><span class="in">  ),</span></span>
-<span id="cb17-206"><a href="#cb17-206"></a><span class="in">  ARM = list(</span></span>
-<span id="cb17-207"><a href="#cb17-207"></a><span class="in">    ref = "B: Placebo",</span></span>
-<span id="cb17-208"><a href="#cb17-208"></a><span class="in">    comp = c("A: Drug X", "C: Combination")</span></span>
-<span id="cb17-209"><a href="#cb17-209"></a><span class="in">  )</span></span>
-<span id="cb17-210"><a href="#cb17-210"></a><span class="in">)</span></span>
-<span id="cb17-211"><a href="#cb17-211"></a></span>
-<span id="cb17-212"><a href="#cb17-212"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb17-213"><a href="#cb17-213"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb17-214"><a href="#cb17-214"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb17-215"><a href="#cb17-215"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb17-216"><a href="#cb17-216"></a><span class="in">  ADTTE &lt;- random.cdisc.data::cadtte</span></span>
-<span id="cb17-217"><a href="#cb17-217"></a></span>
-<span id="cb17-218"><a href="#cb17-218"></a><span class="in">  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb17-219"><a href="#cb17-219"></a><span class="in">  ADSL &lt;- df_explicit_na(ADSL)</span></span>
-<span id="cb17-220"><a href="#cb17-220"></a><span class="in">  ADTTE &lt;- df_explicit_na(ADTTE)</span></span>
-<span id="cb17-221"><a href="#cb17-221"></a><span class="in">})</span></span>
-<span id="cb17-222"><a href="#cb17-222"></a><span class="in">datanames &lt;- c("ADSL", "ADTTE")</span></span>
-<span id="cb17-223"><a href="#cb17-223"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb17-224"><a href="#cb17-224"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb17-225"><a href="#cb17-225"></a></span>
-<span id="cb17-226"><a href="#cb17-226"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb17-227"><a href="#cb17-227"></a><span class="in">ADTTE &lt;- data[["ADTTE"]]</span></span>
-<span id="cb17-228"><a href="#cb17-228"></a></span>
-<span id="cb17-229"><a href="#cb17-229"></a><span class="in">## Setup App</span></span>
-<span id="cb17-230"><a href="#cb17-230"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb17-231"><a href="#cb17-231"></a><span class="in">  data = data,</span></span>
-<span id="cb17-232"><a href="#cb17-232"></a><span class="in">  modules = modules(</span></span>
-<span id="cb17-233"><a href="#cb17-233"></a><span class="in">    tm_t_coxreg(</span></span>
-<span id="cb17-234"><a href="#cb17-234"></a><span class="in">      label = "Cox Reg.",</span></span>
-<span id="cb17-235"><a href="#cb17-235"></a><span class="in">      dataname = "ADTTE",</span></span>
-<span id="cb17-236"><a href="#cb17-236"></a><span class="in">      arm_var = choices_selected(c("ARM", "ACTARMCD"), "ARM"),</span></span>
-<span id="cb17-237"><a href="#cb17-237"></a><span class="in">      arm_ref_comp = arm_ref_comp,</span></span>
-<span id="cb17-238"><a href="#cb17-238"></a><span class="in">      paramcd = choices_selected(</span></span>
-<span id="cb17-239"><a href="#cb17-239"></a><span class="in">        value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"</span></span>
-<span id="cb17-240"><a href="#cb17-240"></a><span class="in">      ),</span></span>
-<span id="cb17-241"><a href="#cb17-241"></a><span class="in">      strata_var = choices_selected(</span></span>
-<span id="cb17-242"><a href="#cb17-242"></a><span class="in">        c("SEX", "STRATA1", "STRATA2"), NULL</span></span>
-<span id="cb17-243"><a href="#cb17-243"></a><span class="in">      ),</span></span>
-<span id="cb17-244"><a href="#cb17-244"></a><span class="in">      cov_var = choices_selected(</span></span>
-<span id="cb17-245"><a href="#cb17-245"></a><span class="in">        c("AGE", "SEX", "RACE"), "AGE"</span></span>
-<span id="cb17-246"><a href="#cb17-246"></a><span class="in">      ),</span></span>
-<span id="cb17-247"><a href="#cb17-247"></a><span class="in">      multivariate = FALSE</span></span>
-<span id="cb17-248"><a href="#cb17-248"></a><span class="in">    )</span></span>
-<span id="cb17-249"><a href="#cb17-249"></a><span class="in">  )</span></span>
-<span id="cb17-250"><a href="#cb17-250"></a><span class="in">)</span></span>
-<span id="cb17-251"><a href="#cb17-251"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb17-252"><a href="#cb17-252"></a><span class="in">```</span></span>
-<span id="cb17-253"><a href="#cb17-253"></a></span>
-<span id="cb17-254"><a href="#cb17-254"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
-<span id="cb17-255"><a href="#cb17-255"></a>:::</span>
-<span id="cb17-256"><a href="#cb17-256"></a></span>
-<span id="cb17-257"><a href="#cb17-257"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb17-258"><a href="#cb17-258"></a></span>
-<span id="cb17-259"><a href="#cb17-259"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb14" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb14-1"><a href="#cb14-1"></a><span class="co">---</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="an">title:</span><span class="co"> COXT01</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="an">subtitle:</span><span class="co"> Cox Regression</span></span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="co">---</span></span>
+<span id="cb14-5"><a href="#cb14-5"></a></span>
+<span id="cb14-6"><a href="#cb14-6"></a>------------------------------------------------------------------------</span>
+<span id="cb14-7"><a href="#cb14-7"></a></span>
+<span id="cb14-8"><a href="#cb14-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb14-9"><a href="#cb14-9"></a></span>
+<span id="cb14-10"><a href="#cb14-10"></a>Cox models are the most commonly used methods to estimate the magnitude of the effect in survival analyses.</span>
+<span id="cb14-11"><a href="#cb14-11"></a>It assumes proportional hazards; that is, it assumes that the ratio of the hazards of the two groups (e.g. two arms) is constant over time.</span>
+<span id="cb14-12"><a href="#cb14-12"></a>This ratio is referred to as the "hazard ratio" and is one of the most commonly reported metrics to describe the effect size in survival analysis.</span>
+<span id="cb14-13"><a href="#cb14-13"></a></span>
+<span id="cb14-14"><a href="#cb14-14"></a>:::: {.panel-tabset}</span>
+<span id="cb14-15"><a href="#cb14-15"></a></span>
+<span id="cb14-16"><a href="#cb14-16"></a><span class="in">```{r setup, echo = FALSE}</span></span>
+<span id="cb14-17"><a href="#cb14-17"></a><span class="in">library(dplyr)</span></span>
+<span id="cb14-18"><a href="#cb14-18"></a><span class="in">library(tern)</span></span>
+<span id="cb14-19"><a href="#cb14-19"></a></span>
+<span id="cb14-20"><a href="#cb14-20"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb14-21"><a href="#cb14-21"></a><span class="in">adtte &lt;- random.cdisc.data::cadtte</span></span>
+<span id="cb14-22"><a href="#cb14-22"></a></span>
+<span id="cb14-23"><a href="#cb14-23"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb14-24"><a href="#cb14-24"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb14-25"><a href="#cb14-25"></a><span class="in">adtte &lt;- df_explicit_na(adtte)</span></span>
+<span id="cb14-26"><a href="#cb14-26"></a></span>
+<span id="cb14-27"><a href="#cb14-27"></a><span class="in">adsl_filtered &lt;- adsl %&gt;% dplyr::filter(</span></span>
+<span id="cb14-28"><a href="#cb14-28"></a><span class="in">  RACE %in% c("ASIAN", "BLACK OR AFRICAN AMERICAN", "WHITE")</span></span>
+<span id="cb14-29"><a href="#cb14-29"></a><span class="in">)</span></span>
+<span id="cb14-30"><a href="#cb14-30"></a><span class="in">adtte_filtered &lt;- dplyr::inner_join(</span></span>
+<span id="cb14-31"><a href="#cb14-31"></a><span class="in">  x = adsl_filtered[, c("STUDYID", "USUBJID")],</span></span>
+<span id="cb14-32"><a href="#cb14-32"></a><span class="in">  y = adtte,</span></span>
+<span id="cb14-33"><a href="#cb14-33"></a><span class="in">  by = c("STUDYID", "USUBJID")</span></span>
+<span id="cb14-34"><a href="#cb14-34"></a><span class="in">)</span></span>
+<span id="cb14-35"><a href="#cb14-35"></a></span>
+<span id="cb14-36"><a href="#cb14-36"></a><span class="in">anl &lt;- adtte_filtered %&gt;%</span></span>
+<span id="cb14-37"><a href="#cb14-37"></a><span class="in">  filter(PARAMCD == "OS") %&gt;%</span></span>
+<span id="cb14-38"><a href="#cb14-38"></a><span class="in">  mutate(EVENT = 1 - CNSR) %&gt;%</span></span>
+<span id="cb14-39"><a href="#cb14-39"></a><span class="in">  filter(ARM %in% c("B: Placebo", "A: Drug X")) %&gt;%</span></span>
+<span id="cb14-40"><a href="#cb14-40"></a><span class="in">  mutate(ARM = droplevels(relevel(ARM, "B: Placebo"))) %&gt;%</span></span>
+<span id="cb14-41"><a href="#cb14-41"></a><span class="in">  mutate(RACE = droplevels(RACE) %&gt;% formatters::with_label("Race"))</span></span>
+<span id="cb14-42"><a href="#cb14-42"></a></span>
+<span id="cb14-43"><a href="#cb14-43"></a><span class="in"># Add variable for column split label</span></span>
+<span id="cb14-44"><a href="#cb14-44"></a><span class="in">anl &lt;- anl %&gt;% mutate(col_label = "Treatment Effect Adjusted for Covariate")</span></span>
+<span id="cb14-45"><a href="#cb14-45"></a><span class="in">```</span></span>
+<span id="cb14-46"><a href="#cb14-46"></a></span>
+<span id="cb14-47"><a href="#cb14-47"></a><span class="fu">## Cox Regression</span></span>
+<span id="cb14-48"><a href="#cb14-48"></a></span>
+<span id="cb14-49"><a href="#cb14-49"></a>The <span class="in">`summarize_coxreg`</span> function fits, tidies and arranges a Cox regression model in a table layout using the <span class="in">`rtables`</span> framework.</span>
+<span id="cb14-50"><a href="#cb14-50"></a>For a Cox regression model, arguments <span class="in">`variables`</span>, <span class="in">`control`</span>, and <span class="in">`at`</span> can be specified (see <span class="in">`?summarize_coxreg`</span> for more details and customization options).</span>
+<span id="cb14-51"><a href="#cb14-51"></a>All variables specified within <span class="in">`variables`</span> must be present in the data used when building the table.</span>
+<span id="cb14-52"><a href="#cb14-52"></a></span>
+<span id="cb14-53"><a href="#cb14-53"></a>To see the same model as a <span class="in">`data.frame`</span> object, these three arguments (as well as the data) can be passed to the <span class="in">`fit_coxreg_univar`</span> function, and the resulting list tidied using <span class="in">`broom::tidy()`</span>.</span>
+<span id="cb14-54"><a href="#cb14-54"></a></span>
+<span id="cb14-55"><a href="#cb14-55"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb14-56"><a href="#cb14-56"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb14-57"><a href="#cb14-57"></a></span>
+<span id="cb14-58"><a href="#cb14-58"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb14-59"><a href="#cb14-59"></a><span class="in">variables &lt;- list(</span></span>
+<span id="cb14-60"><a href="#cb14-60"></a><span class="in">  time = "AVAL",</span></span>
+<span id="cb14-61"><a href="#cb14-61"></a><span class="in">  event = "EVENT",</span></span>
+<span id="cb14-62"><a href="#cb14-62"></a><span class="in">  arm = "ARM",</span></span>
+<span id="cb14-63"><a href="#cb14-63"></a><span class="in">  covariates = c("AGE", "SEX", "RACE")</span></span>
+<span id="cb14-64"><a href="#cb14-64"></a><span class="in">)</span></span>
+<span id="cb14-65"><a href="#cb14-65"></a></span>
+<span id="cb14-66"><a href="#cb14-66"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
+<span id="cb14-67"><a href="#cb14-67"></a><span class="in">  split_cols_by("col_label") %&gt;%</span></span>
+<span id="cb14-68"><a href="#cb14-68"></a><span class="in">  summarize_coxreg(variables = variables) %&gt;%</span></span>
+<span id="cb14-69"><a href="#cb14-69"></a><span class="in">  append_topleft("Effect/Covariate Included in the Model")</span></span>
+<span id="cb14-70"><a href="#cb14-70"></a></span>
+<span id="cb14-71"><a href="#cb14-71"></a><span class="in">result &lt;- build_table(lyt = lyt, df = anl)</span></span>
+<span id="cb14-72"><a href="#cb14-72"></a><span class="in">result</span></span>
+<span id="cb14-73"><a href="#cb14-73"></a><span class="in">```</span></span>
+<span id="cb14-74"><a href="#cb14-74"></a></span>
+<span id="cb14-75"><a href="#cb14-75"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
+<span id="cb14-76"><a href="#cb14-76"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb14-77"><a href="#cb14-77"></a>:::</span>
+<span id="cb14-78"><a href="#cb14-78"></a></span>
+<span id="cb14-79"><a href="#cb14-79"></a><span class="fu">## Cox Regression &lt;br/&gt; with Interaction Term</span></span>
+<span id="cb14-80"><a href="#cb14-80"></a></span>
+<span id="cb14-81"><a href="#cb14-81"></a>The argument <span class="in">`control`</span> can be used to modify standard outputs; <span class="in">`control_coxreg()`</span> helps in adopting the right settings (see <span class="in">`?control_coxreg`</span>).</span>
+<span id="cb14-82"><a href="#cb14-82"></a>For instance, <span class="in">`control`</span> is used to include the interaction terms.</span>
+<span id="cb14-83"><a href="#cb14-83"></a></span>
+<span id="cb14-84"><a href="#cb14-84"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb14-85"><a href="#cb14-85"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb14-86"><a href="#cb14-86"></a></span>
+<span id="cb14-87"><a href="#cb14-87"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb14-88"><a href="#cb14-88"></a><span class="in">variables &lt;- list(</span></span>
+<span id="cb14-89"><a href="#cb14-89"></a><span class="in">  time = "AVAL",</span></span>
+<span id="cb14-90"><a href="#cb14-90"></a><span class="in">  event = "EVENT",</span></span>
+<span id="cb14-91"><a href="#cb14-91"></a><span class="in">  arm = "ARM",</span></span>
+<span id="cb14-92"><a href="#cb14-92"></a><span class="in">  covariates = c("AGE", "RACE")</span></span>
+<span id="cb14-93"><a href="#cb14-93"></a><span class="in">)</span></span>
+<span id="cb14-94"><a href="#cb14-94"></a></span>
+<span id="cb14-95"><a href="#cb14-95"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
+<span id="cb14-96"><a href="#cb14-96"></a><span class="in">  split_cols_by("col_label") %&gt;%</span></span>
+<span id="cb14-97"><a href="#cb14-97"></a><span class="in">  summarize_coxreg(</span></span>
+<span id="cb14-98"><a href="#cb14-98"></a><span class="in">    variables = variables,</span></span>
+<span id="cb14-99"><a href="#cb14-99"></a><span class="in">    control = control_coxreg(interaction = TRUE),</span></span>
+<span id="cb14-100"><a href="#cb14-100"></a><span class="in">    .stats = c("n", "hr", "ci", "pval", "pval_inter")</span></span>
+<span id="cb14-101"><a href="#cb14-101"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb14-102"><a href="#cb14-102"></a><span class="in">  append_topleft("Effect/Covariate Included in the Model")</span></span>
+<span id="cb14-103"><a href="#cb14-103"></a></span>
+<span id="cb14-104"><a href="#cb14-104"></a><span class="in">result &lt;- build_table(lyt = lyt, df = anl)</span></span>
+<span id="cb14-105"><a href="#cb14-105"></a><span class="in">result</span></span>
+<span id="cb14-106"><a href="#cb14-106"></a><span class="in">```</span></span>
+<span id="cb14-107"><a href="#cb14-107"></a></span>
+<span id="cb14-108"><a href="#cb14-108"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
+<span id="cb14-109"><a href="#cb14-109"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb14-110"><a href="#cb14-110"></a>:::</span>
+<span id="cb14-111"><a href="#cb14-111"></a></span>
+<span id="cb14-112"><a href="#cb14-112"></a><span class="fu">## Cox Regression &lt;br/&gt; Specifying Covariates</span></span>
+<span id="cb14-113"><a href="#cb14-113"></a></span>
+<span id="cb14-114"><a href="#cb14-114"></a>The optional argument <span class="in">`at`</span> allows the user to provide the expected level of estimation for the interaction when the predictor is a quantitative variable.</span>
+<span id="cb14-115"><a href="#cb14-115"></a>For instance, it might be relevant to choose the age at which the hazard ratio should be estimated.</span>
+<span id="cb14-116"><a href="#cb14-116"></a>If no input is provided to <span class="in">`at`</span>, the median value is used in the row name (as in the previous tab).</span>
+<span id="cb14-117"><a href="#cb14-117"></a></span>
+<span id="cb14-118"><a href="#cb14-118"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb14-119"><a href="#cb14-119"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb14-120"><a href="#cb14-120"></a></span>
+<span id="cb14-121"><a href="#cb14-121"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
+<span id="cb14-122"><a href="#cb14-122"></a><span class="in">variables &lt;- list(</span></span>
+<span id="cb14-123"><a href="#cb14-123"></a><span class="in">  time = "AVAL",</span></span>
+<span id="cb14-124"><a href="#cb14-124"></a><span class="in">  event = "EVENT",</span></span>
+<span id="cb14-125"><a href="#cb14-125"></a><span class="in">  arm = "ARM",</span></span>
+<span id="cb14-126"><a href="#cb14-126"></a><span class="in">  covariates = c("AGE", "SEX")</span></span>
+<span id="cb14-127"><a href="#cb14-127"></a><span class="in">)</span></span>
+<span id="cb14-128"><a href="#cb14-128"></a></span>
+<span id="cb14-129"><a href="#cb14-129"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
+<span id="cb14-130"><a href="#cb14-130"></a><span class="in">  split_cols_by("col_label") %&gt;%</span></span>
+<span id="cb14-131"><a href="#cb14-131"></a><span class="in">  summarize_coxreg(</span></span>
+<span id="cb14-132"><a href="#cb14-132"></a><span class="in">    variables = variables,</span></span>
+<span id="cb14-133"><a href="#cb14-133"></a><span class="in">    control = control_coxreg(interaction = TRUE),</span></span>
+<span id="cb14-134"><a href="#cb14-134"></a><span class="in">    at = list(AGE = c(30, 40, 50)),</span></span>
+<span id="cb14-135"><a href="#cb14-135"></a><span class="in">    .stats = c("n", "hr", "ci", "pval", "pval_inter")</span></span>
+<span id="cb14-136"><a href="#cb14-136"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb14-137"><a href="#cb14-137"></a><span class="in">  append_topleft("Effect/Covariate Included in the Model")</span></span>
+<span id="cb14-138"><a href="#cb14-138"></a></span>
+<span id="cb14-139"><a href="#cb14-139"></a><span class="in">result &lt;- build_table(lyt = lyt, df = anl)</span></span>
+<span id="cb14-140"><a href="#cb14-140"></a><span class="in">result</span></span>
+<span id="cb14-141"><a href="#cb14-141"></a><span class="in">```</span></span>
+<span id="cb14-142"><a href="#cb14-142"></a></span>
+<span id="cb14-143"><a href="#cb14-143"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant3")`</span></span>
+<span id="cb14-144"><a href="#cb14-144"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb14-145"><a href="#cb14-145"></a>:::</span>
+<span id="cb14-146"><a href="#cb14-146"></a></span>
+<span id="cb14-147"><a href="#cb14-147"></a><span class="fu">## Cox Regression Setting &lt;br/&gt; Strata, Ties, Alpha Level</span></span>
+<span id="cb14-148"><a href="#cb14-148"></a></span>
+<span id="cb14-149"><a href="#cb14-149"></a>Additional controls can be customized using <span class="in">`control_coxreg`</span> (see <span class="in">`?control_coxreg`</span>) such as the ties calculation method and the confidence level.</span>
+<span id="cb14-150"><a href="#cb14-150"></a>Stratification variables can be added via the <span class="in">`strata`</span> element of the <span class="in">`variables`</span> list.</span>
+<span id="cb14-151"><a href="#cb14-151"></a></span>
+<span id="cb14-152"><a href="#cb14-152"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb14-153"><a href="#cb14-153"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb14-154"><a href="#cb14-154"></a></span>
+<span id="cb14-155"><a href="#cb14-155"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
+<span id="cb14-156"><a href="#cb14-156"></a><span class="in">variables &lt;- list(</span></span>
+<span id="cb14-157"><a href="#cb14-157"></a><span class="in">  time = "AVAL",</span></span>
+<span id="cb14-158"><a href="#cb14-158"></a><span class="in">  event = "EVENT",</span></span>
+<span id="cb14-159"><a href="#cb14-159"></a><span class="in">  arm = "ARM",</span></span>
+<span id="cb14-160"><a href="#cb14-160"></a><span class="in">  covariates = c("AGE", "RACE"),</span></span>
+<span id="cb14-161"><a href="#cb14-161"></a><span class="in">  strata = "SEX"</span></span>
+<span id="cb14-162"><a href="#cb14-162"></a><span class="in">)</span></span>
+<span id="cb14-163"><a href="#cb14-163"></a></span>
+<span id="cb14-164"><a href="#cb14-164"></a><span class="in">control &lt;- control_coxreg(</span></span>
+<span id="cb14-165"><a href="#cb14-165"></a><span class="in">  ties = "breslow",</span></span>
+<span id="cb14-166"><a href="#cb14-166"></a><span class="in">  interaction = TRUE,</span></span>
+<span id="cb14-167"><a href="#cb14-167"></a><span class="in">  conf_level = 0.90</span></span>
+<span id="cb14-168"><a href="#cb14-168"></a><span class="in">)</span></span>
+<span id="cb14-169"><a href="#cb14-169"></a></span>
+<span id="cb14-170"><a href="#cb14-170"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
+<span id="cb14-171"><a href="#cb14-171"></a><span class="in">  split_cols_by("col_label") %&gt;%</span></span>
+<span id="cb14-172"><a href="#cb14-172"></a><span class="in">  summarize_coxreg(</span></span>
+<span id="cb14-173"><a href="#cb14-173"></a><span class="in">    variables = variables,</span></span>
+<span id="cb14-174"><a href="#cb14-174"></a><span class="in">    control = control,</span></span>
+<span id="cb14-175"><a href="#cb14-175"></a><span class="in">    at = list(AGE = c(30, 40, 50)),</span></span>
+<span id="cb14-176"><a href="#cb14-176"></a><span class="in">    .stats = c("n", "hr", "ci", "pval", "pval_inter")</span></span>
+<span id="cb14-177"><a href="#cb14-177"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb14-178"><a href="#cb14-178"></a><span class="in">  append_topleft("Effect/Covariate Included in the Model")</span></span>
+<span id="cb14-179"><a href="#cb14-179"></a></span>
+<span id="cb14-180"><a href="#cb14-180"></a><span class="in">result &lt;- build_table(lyt = lyt, df = anl)</span></span>
+<span id="cb14-181"><a href="#cb14-181"></a><span class="in">result</span></span>
+<span id="cb14-182"><a href="#cb14-182"></a><span class="in">```</span></span>
+<span id="cb14-183"><a href="#cb14-183"></a></span>
+<span id="cb14-184"><a href="#cb14-184"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant4")`</span></span>
+<span id="cb14-185"><a href="#cb14-185"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb14-186"><a href="#cb14-186"></a>:::</span>
+<span id="cb14-187"><a href="#cb14-187"></a></span>
+<span id="cb14-188"><a href="#cb14-188"></a><span class="fu">## Data Setup</span></span>
+<span id="cb14-189"><a href="#cb14-189"></a></span>
+<span id="cb14-190"><a href="#cb14-190"></a><span class="in">```{r setup}</span></span>
+<span id="cb14-191"><a href="#cb14-191"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb14-192"><a href="#cb14-192"></a><span class="in">```</span></span>
+<span id="cb14-193"><a href="#cb14-193"></a></span>
+<span id="cb14-194"><a href="#cb14-194"></a>::::</span>
+<span id="cb14-195"><a href="#cb14-195"></a></span>
+<span id="cb14-196"><a href="#cb14-196"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb14-197"><a href="#cb14-197"></a></span>
+<span id="cb14-198"><a href="#cb14-198"></a><span class="fu">## `teal` App</span></span>
+<span id="cb14-199"><a href="#cb14-199"></a></span>
+<span id="cb14-200"><a href="#cb14-200"></a>::: {.panel-tabset .nav-justified}</span>
+<span id="cb14-201"><a href="#cb14-201"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
+<span id="cb14-202"><a href="#cb14-202"></a></span>
+<span id="cb14-203"><a href="#cb14-203"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb14-204"><a href="#cb14-204"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb14-205"><a href="#cb14-205"></a></span>
+<span id="cb14-206"><a href="#cb14-206"></a><span class="in">arm_ref_comp &lt;- list(</span></span>
+<span id="cb14-207"><a href="#cb14-207"></a><span class="in">  ACTARMCD = list(</span></span>
+<span id="cb14-208"><a href="#cb14-208"></a><span class="in">    ref = "ARM B",</span></span>
+<span id="cb14-209"><a href="#cb14-209"></a><span class="in">    comp = c("ARM A", "ARM C")</span></span>
+<span id="cb14-210"><a href="#cb14-210"></a><span class="in">  ),</span></span>
+<span id="cb14-211"><a href="#cb14-211"></a><span class="in">  ARM = list(</span></span>
+<span id="cb14-212"><a href="#cb14-212"></a><span class="in">    ref = "B: Placebo",</span></span>
+<span id="cb14-213"><a href="#cb14-213"></a><span class="in">    comp = c("A: Drug X", "C: Combination")</span></span>
+<span id="cb14-214"><a href="#cb14-214"></a><span class="in">  )</span></span>
+<span id="cb14-215"><a href="#cb14-215"></a><span class="in">)</span></span>
+<span id="cb14-216"><a href="#cb14-216"></a></span>
+<span id="cb14-217"><a href="#cb14-217"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb14-218"><a href="#cb14-218"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb14-219"><a href="#cb14-219"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb14-220"><a href="#cb14-220"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb14-221"><a href="#cb14-221"></a><span class="in">  ADTTE &lt;- random.cdisc.data::cadtte</span></span>
+<span id="cb14-222"><a href="#cb14-222"></a></span>
+<span id="cb14-223"><a href="#cb14-223"></a><span class="in">  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb14-224"><a href="#cb14-224"></a><span class="in">  ADSL &lt;- df_explicit_na(ADSL)</span></span>
+<span id="cb14-225"><a href="#cb14-225"></a><span class="in">  ADTTE &lt;- df_explicit_na(ADTTE)</span></span>
+<span id="cb14-226"><a href="#cb14-226"></a><span class="in">})</span></span>
+<span id="cb14-227"><a href="#cb14-227"></a><span class="in">datanames &lt;- c("ADSL", "ADTTE")</span></span>
+<span id="cb14-228"><a href="#cb14-228"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb14-229"><a href="#cb14-229"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb14-230"><a href="#cb14-230"></a></span>
+<span id="cb14-231"><a href="#cb14-231"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb14-232"><a href="#cb14-232"></a><span class="in">ADTTE &lt;- data[["ADTTE"]]</span></span>
+<span id="cb14-233"><a href="#cb14-233"></a></span>
+<span id="cb14-234"><a href="#cb14-234"></a><span class="in">## Setup App</span></span>
+<span id="cb14-235"><a href="#cb14-235"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb14-236"><a href="#cb14-236"></a><span class="in">  data = data,</span></span>
+<span id="cb14-237"><a href="#cb14-237"></a><span class="in">  modules = modules(</span></span>
+<span id="cb14-238"><a href="#cb14-238"></a><span class="in">    tm_t_coxreg(</span></span>
+<span id="cb14-239"><a href="#cb14-239"></a><span class="in">      label = "Cox Reg.",</span></span>
+<span id="cb14-240"><a href="#cb14-240"></a><span class="in">      dataname = "ADTTE",</span></span>
+<span id="cb14-241"><a href="#cb14-241"></a><span class="in">      arm_var = choices_selected(c("ARM", "ACTARMCD"), "ARM"),</span></span>
+<span id="cb14-242"><a href="#cb14-242"></a><span class="in">      arm_ref_comp = arm_ref_comp,</span></span>
+<span id="cb14-243"><a href="#cb14-243"></a><span class="in">      paramcd = choices_selected(</span></span>
+<span id="cb14-244"><a href="#cb14-244"></a><span class="in">        value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"</span></span>
+<span id="cb14-245"><a href="#cb14-245"></a><span class="in">      ),</span></span>
+<span id="cb14-246"><a href="#cb14-246"></a><span class="in">      strata_var = choices_selected(</span></span>
+<span id="cb14-247"><a href="#cb14-247"></a><span class="in">        c("SEX", "STRATA1", "STRATA2"), NULL</span></span>
+<span id="cb14-248"><a href="#cb14-248"></a><span class="in">      ),</span></span>
+<span id="cb14-249"><a href="#cb14-249"></a><span class="in">      cov_var = choices_selected(</span></span>
+<span id="cb14-250"><a href="#cb14-250"></a><span class="in">        c("AGE", "SEX", "RACE"), "AGE"</span></span>
+<span id="cb14-251"><a href="#cb14-251"></a><span class="in">      ),</span></span>
+<span id="cb14-252"><a href="#cb14-252"></a><span class="in">      multivariate = FALSE</span></span>
+<span id="cb14-253"><a href="#cb14-253"></a><span class="in">    )</span></span>
+<span id="cb14-254"><a href="#cb14-254"></a><span class="in">  )</span></span>
+<span id="cb14-255"><a href="#cb14-255"></a><span class="in">)</span></span>
+<span id="cb14-256"><a href="#cb14-256"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb14-257"><a href="#cb14-257"></a><span class="in">```</span></span>
+<span id="cb14-258"><a href="#cb14-258"></a></span>
+<span id="cb14-259"><a href="#cb14-259"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
+<span id="cb14-260"><a href="#cb14-260"></a>:::</span>
+<span id="cb14-261"><a href="#cb14-261"></a></span>
+<span id="cb14-262"><a href="#cb14-262"></a>{{&lt; include ../../repro.qmd &gt;}}</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

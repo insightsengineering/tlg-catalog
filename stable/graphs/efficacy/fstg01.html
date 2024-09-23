@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"options":{"label":"unnamed-chunk-1","results":"markup","out-width":"700px","read-only":"false","comment":"","dpi":72,"editor-font-scale":1,"warning":"true","fig-cap":"","autorun":"true","editor-max-height":"500","output":"true","fig-width":7,"classes":"","out-height":"","context":"interactive","editor-quick-suggestions":"false","message":"true","fig-height":5},"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_arms_ab,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot"},{"id":2,"options":{"label":"unnamed-chunk-2","results":"markup","out-width":"700px","read-only":"false","comment":"","dpi":72,"editor-font-scale":1,"warning":"true","fig-cap":"","autorun":"true","editor-max-height":"500","output":"true","fig-width":7,"classes":"","out-height":"","context":"interactive","editor-quick-suggestions":"false","message":"true","fig-height":5},"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\nanl_rsp_comb_arms_ac <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\", \"ARM C\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels() %>%\n      combine_levels(levels = c(\"ARM A\", \"ARM C\")),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels() %>%\n      combine_levels(levels = c(\"A: Drug X\", \"C: Combination\")),\n    # reorder levels of SEX\n    SEX = forcats::fct_relevel(SEX, \"M\", \"F\"),\n    # reorder levels of STRATA1 by frequency\n    STRATA1 = forcats::fct_infreq(STRATA1)\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_comb_arms_ac) <- c(anl_labels, is_rsp = \"Is Responder\")\n\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARMCD\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_comb_arms_ac,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot"},{"id":3,"options":{"label":"unnamed-chunk-3","results":"markup","out-width":"700px","read-only":"false","comment":"","dpi":72,"editor-font-scale":1,"warning":"true","fig-cap":"","autorun":"true","editor-max-height":"500","output":"true","fig-width":7,"classes":"","out-height":"","context":"interactive","editor-quick-suggestions":"false","message":"true","fig-height":5},"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_arms_ab,\n  conf_level = 0.90\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot"},{"id":4,"options":{"label":"unnamed-chunk-4","results":"markup","out-width":"700px","read-only":"false","comment":"","dpi":72,"editor-font-scale":1,"warning":"true","fig-cap":"","autorun":"true","editor-max-height":"500","output":"true","fig-width":7,"classes":"","out-height":"","context":"interactive","editor-quick-suggestions":"false","message":"true","fig-height":5},"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_arms_ab,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(\n  tbl = result,\n  col_symbol_size = NULL\n)\nplot"},{"id":5,"options":{"label":"unnamed-chunk-5","results":"markup","out-width":"700px","read-only":"false","comment":"","dpi":72,"editor-font-scale":1,"warning":"true","fig-cap":"","autorun":"true","editor-max-height":"500","output":"true","fig-width":7,"classes":"","out-height":"","context":"interactive","editor-quick-suggestions":"false","message":"true","fig-height":5},"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\nanl_cr_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC == \"CR\") %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_cr_arms_ab) <- c(anl_labels, is_rsp = \"Is CR\")\n\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_cr_arms_ab,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot"}];
+globalThis.qwebrCellDetails = [{"options":{"results":"markup","label":"unnamed-chunk-1","output":"true","comment":"","classes":"","context":"interactive","autorun":"true","fig-height":5,"editor-quick-suggestions":"false","editor-font-scale":1,"warning":"true","read-only":"false","out-width":"700px","fig-width":7,"editor-max-height":"500","message":"true","out-height":"","dpi":72,"fig-cap":""},"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_arms_ab,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot","id":1},{"options":{"results":"markup","label":"unnamed-chunk-2","output":"true","comment":"","classes":"","context":"interactive","autorun":"true","fig-height":5,"editor-quick-suggestions":"false","editor-font-scale":1,"warning":"true","read-only":"false","out-width":"700px","fig-width":7,"editor-max-height":"500","message":"true","out-height":"","dpi":72,"fig-cap":""},"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\nanl_rsp_comb_arms_ac <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\", \"ARM C\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels() %>%\n      combine_levels(levels = c(\"ARM A\", \"ARM C\")),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels() %>%\n      combine_levels(levels = c(\"A: Drug X\", \"C: Combination\")),\n    # reorder levels of SEX\n    SEX = forcats::fct_relevel(SEX, \"M\", \"F\"),\n    # reorder levels of STRATA1 by frequency\n    STRATA1 = forcats::fct_infreq(STRATA1)\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_comb_arms_ac) <- c(anl_labels, is_rsp = \"Is Responder\")\n\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARMCD\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_comb_arms_ac,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot","id":2},{"options":{"results":"markup","label":"unnamed-chunk-3","output":"true","comment":"","classes":"","context":"interactive","autorun":"true","fig-height":5,"editor-quick-suggestions":"false","editor-font-scale":1,"warning":"true","read-only":"false","out-width":"700px","fig-width":7,"editor-max-height":"500","message":"true","out-height":"","dpi":72,"fig-cap":""},"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_arms_ab,\n  conf_level = 0.90\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot","id":3},{"options":{"results":"markup","label":"unnamed-chunk-4","output":"true","comment":"","classes":"","context":"interactive","autorun":"true","fig-height":5,"editor-quick-suggestions":"false","editor-font-scale":1,"warning":"true","read-only":"false","out-width":"700px","fig-width":7,"editor-max-height":"500","message":"true","out-height":"","dpi":72,"fig-cap":""},"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_arms_ab,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(\n  tbl = result,\n  col_symbol_size = NULL\n)\nplot","id":4},{"options":{"results":"markup","label":"unnamed-chunk-5","output":"true","comment":"","classes":"","context":"interactive","autorun":"true","fig-height":5,"editor-quick-suggestions":"false","editor-font-scale":1,"warning":"true","read-only":"false","out-width":"700px","fig-width":7,"editor-max-height":"500","message":"true","out-height":"","dpi":72,"fig-cap":""},"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\nanl_cr_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC == \"CR\") %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_cr_arms_ab) <- c(anl_labels, is_rsp = \"Is CR\")\n\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_cr_arms_ab,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot","id":5}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2617,50 +2617,17 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 
 
 </header><hr>
-<div class="tabset-margin-container"></div><div class="panel-tabset page-columns page-full">
+<div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist">
-<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-7-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-1" role="tab" aria-controls="tabset-7-1" aria-selected="true" aria-current="page">Data Setup</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-2" role="tab" aria-controls="tabset-7-2" aria-selected="false">Standard Plot</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-3" role="tab" aria-controls="tabset-7-3" aria-selected="false">Plot Specifying Class Variables and <br> Options for the Treatment Variable</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-4" role="tab" aria-controls="tabset-7-4" aria-selected="false">Plot Selecting Columns and <br> Changing the Alpha Level</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-5" role="tab" aria-controls="tabset-7-5" aria-selected="false">Plot with Fixed <br> Symbol Size</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-6-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-6" role="tab" aria-controls="tabset-7-6" aria-selected="false">Plot of CR Only, Setting <br> Values Indicating Response</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-7-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-7" role="tab" aria-controls="tabset-7-7" aria-selected="false"><code>teal</code> App</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-8-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-8" role="tab" aria-controls="tabset-7-8" aria-selected="false">Reproducibility</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-6-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-1" role="tab" aria-controls="tabset-6-1" aria-selected="true" aria-current="page">Standard Plot</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-2" role="tab" aria-controls="tabset-6-2" aria-selected="false">Plot Specifying Class Variables and <br> Options for the Treatment Variable</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-3" role="tab" aria-controls="tabset-6-3" aria-selected="false">Plot Selecting Columns and <br> Changing the Alpha Level</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-4" role="tab" aria-controls="tabset-6-4" aria-selected="false">Plot with Fixed <br> Symbol Size</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-5" role="tab" aria-controls="tabset-6-5" aria-selected="false">Plot of CR Only, Setting <br> Values Indicating Response</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-6-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-6" role="tab" aria-controls="tabset-6-6" aria-selected="false">Data Setup</a></li>
 </ul>
-<div class="tab-content page-columns page-full">
-<div id="tabset-7-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-7-1-tab">
-<div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(tern)</span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(nestcolor)</span>
-<span id="cb1-4"><a href="#cb1-4"></a></span>
-<span id="cb1-5"><a href="#cb1-5"></a>adsl_f <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadsl <span class="sc">%&gt;%</span></span>
-<span id="cb1-6"><a href="#cb1-6"></a>  <span class="fu">select</span>(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)</span>
-<span id="cb1-7"><a href="#cb1-7"></a></span>
-<span id="cb1-8"><a href="#cb1-8"></a>adrs_f <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadrs <span class="sc">%&gt;%</span></span>
-<span id="cb1-9"><a href="#cb1-9"></a>  <span class="fu">filter</span>(PARAMCD <span class="sc">==</span> <span class="st">"INVET"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>  <span class="fu">select</span>(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)</span>
-<span id="cb1-11"><a href="#cb1-11"></a></span>
-<span id="cb1-12"><a href="#cb1-12"></a>anl <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(adsl_f, adrs_f, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"STUDYID"</span>, <span class="st">"USUBJID"</span>))</span>
-<span id="cb1-13"><a href="#cb1-13"></a>anl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(anl)</span>
-<span id="cb1-14"><a href="#cb1-14"></a>anl_labels <span class="ot">&lt;-</span> <span class="fu">var_labels</span>(anl)</span>
-<span id="cb1-15"><a href="#cb1-15"></a></span>
-<span id="cb1-16"><a href="#cb1-16"></a>anl_rsp_arms_ab <span class="ot">&lt;-</span> anl <span class="sc">%&gt;%</span></span>
-<span id="cb1-17"><a href="#cb1-17"></a>  <span class="fu">mutate</span>(<span class="at">is_rsp =</span> AVALC <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"CR"</span>, <span class="st">"PR"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-18"><a href="#cb1-18"></a>  <span class="fu">filter</span>(ARMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"ARM B"</span>, <span class="st">"ARM A"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-19"><a href="#cb1-19"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-20"><a href="#cb1-20"></a>    <span class="at">ARMCD =</span> <span class="fu">relevel</span>(ARMCD, <span class="at">ref =</span> <span class="st">"ARM B"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-21"><a href="#cb1-21"></a>      <span class="fu">droplevels</span>(),</span>
-<span id="cb1-22"><a href="#cb1-22"></a>    <span class="at">ARM =</span> <span class="fu">relevel</span>(ARM, <span class="at">ref =</span> <span class="st">"B: Placebo"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-23"><a href="#cb1-23"></a>      <span class="fu">droplevels</span>()</span>
-<span id="cb1-24"><a href="#cb1-24"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-25"><a href="#cb1-25"></a>  <span class="fu">droplevels</span>()</span>
-<span id="cb1-26"><a href="#cb1-26"></a><span class="fu">var_labels</span>(anl_rsp_arms_ab) <span class="ot">&lt;-</span> <span class="fu">c</span>(anl_labels, <span class="at">is_rsp =</span> <span class="st">"Is Responder"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-</div>
-<div id="tabset-7-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-2-tab">
+<div class="tab-content">
+<div id="tabset-6-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-6-1-tab">
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified" data-group="webr">
 <ul class="nav nav-tabs" role="tablist">
 <li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true"><i class="fa-regular fa-file-lines" aria-label="file-lines"></i> Preview</a></li>
@@ -2671,22 +2638,22 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <!-- skip strict because of https://github.com/therneau/survival/issues/240 -->
 <!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 -->
 <div class="cell" data-test="{&quot;plot_v1&quot;:&quot;plot&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>df <span class="ot">&lt;-</span> <span class="fu">extract_rsp_subgroups</span>(</span>
-<span id="cb2-2"><a href="#cb2-2"></a>  <span class="at">variables =</span> <span class="fu">list</span>(</span>
-<span id="cb2-3"><a href="#cb2-3"></a>    <span class="at">rsp =</span> <span class="st">"is_rsp"</span>,</span>
-<span id="cb2-4"><a href="#cb2-4"></a>    <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
-<span id="cb2-5"><a href="#cb2-5"></a>    <span class="at">subgroups =</span> <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>),</span>
-<span id="cb2-6"><a href="#cb2-6"></a>    <span class="at">strata =</span> <span class="st">"STRATA2"</span></span>
-<span id="cb2-7"><a href="#cb2-7"></a>  ),</span>
-<span id="cb2-8"><a href="#cb2-8"></a>  <span class="at">data =</span> anl_rsp_arms_ab,</span>
-<span id="cb2-9"><a href="#cb2-9"></a>  <span class="at">conf_level =</span> <span class="fl">0.95</span></span>
-<span id="cb2-10"><a href="#cb2-10"></a>)</span>
-<span id="cb2-11"><a href="#cb2-11"></a></span>
-<span id="cb2-12"><a href="#cb2-12"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb2-13"><a href="#cb2-13"></a>  <span class="fu">tabulate_rsp_subgroups</span>(df, <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"n_tot"</span>, <span class="st">"n"</span>, <span class="st">"n_rsp"</span>, <span class="st">"prop"</span>, <span class="st">"or"</span>, <span class="st">"ci"</span>))</span>
-<span id="cb2-14"><a href="#cb2-14"></a></span>
-<span id="cb2-15"><a href="#cb2-15"></a>plot <span class="ot">&lt;-</span> <span class="fu">g_forest</span>(<span class="at">tbl =</span> result)</span>
-<span id="cb2-16"><a href="#cb2-16"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>df <span class="ot">&lt;-</span> <span class="fu">extract_rsp_subgroups</span>(</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  <span class="at">variables =</span> <span class="fu">list</span>(</span>
+<span id="cb1-3"><a href="#cb1-3"></a>    <span class="at">rsp =</span> <span class="st">"is_rsp"</span>,</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
+<span id="cb1-5"><a href="#cb1-5"></a>    <span class="at">subgroups =</span> <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>),</span>
+<span id="cb1-6"><a href="#cb1-6"></a>    <span class="at">strata =</span> <span class="st">"STRATA2"</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a>  ),</span>
+<span id="cb1-8"><a href="#cb1-8"></a>  <span class="at">data =</span> anl_rsp_arms_ab,</span>
+<span id="cb1-9"><a href="#cb1-9"></a>  <span class="at">conf_level =</span> <span class="fl">0.95</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a>)</span>
+<span id="cb1-11"><a href="#cb1-11"></a></span>
+<span id="cb1-12"><a href="#cb1-12"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-13"><a href="#cb1-13"></a>  <span class="fu">tabulate_rsp_subgroups</span>(df, <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"n_tot"</span>, <span class="st">"n"</span>, <span class="st">"n_rsp"</span>, <span class="st">"prop"</span>, <span class="st">"or"</span>, <span class="st">"ci"</span>))</span>
+<span id="cb1-14"><a href="#cb1-14"></a></span>
+<span id="cb1-15"><a href="#cb1-15"></a>plot <span class="ot">&lt;-</span> <span class="fu">g_forest</span>(<span class="at">tbl =</span> result)</span>
+<span id="cb1-16"><a href="#cb1-16"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="fstg01_files/figure-html/plot1-1.png" class="img-fluid figure-img" width="1920"></p>
@@ -2724,7 +2691,7 @@ Experimental use!
 </div>
 </div>
 </div>
-<div id="tabset-7-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-3-tab">
+<div id="tabset-6-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-2-tab">
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified" data-group="webr">
 <ul class="nav nav-tabs" role="tablist">
 <li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true"><i class="fa-regular fa-file-lines" aria-label="file-lines"></i> Preview</a></li>
@@ -2735,40 +2702,40 @@ Experimental use!
 <!-- skip strict because of https://github.com/therneau/survival/issues/240 -->
 <!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 -->
 <div class="cell" data-test="{&quot;plot_v2&quot;:&quot;plot&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>anl_rsp_comb_arms_ac <span class="ot">&lt;-</span> anl <span class="sc">%&gt;%</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a>  <span class="fu">mutate</span>(<span class="at">is_rsp =</span> AVALC <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"CR"</span>, <span class="st">"PR"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a>  <span class="fu">filter</span>(ARMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"ARM B"</span>, <span class="st">"ARM A"</span>, <span class="st">"ARM C"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb3-4"><a href="#cb3-4"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb3-5"><a href="#cb3-5"></a>    <span class="at">ARMCD =</span> <span class="fu">relevel</span>(ARMCD, <span class="at">ref =</span> <span class="st">"ARM B"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb3-6"><a href="#cb3-6"></a>      <span class="fu">droplevels</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb3-7"><a href="#cb3-7"></a>      <span class="fu">combine_levels</span>(<span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"ARM A"</span>, <span class="st">"ARM C"</span>)),</span>
-<span id="cb3-8"><a href="#cb3-8"></a>    <span class="at">ARM =</span> <span class="fu">relevel</span>(ARM, <span class="at">ref =</span> <span class="st">"B: Placebo"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb3-9"><a href="#cb3-9"></a>      <span class="fu">droplevels</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb3-10"><a href="#cb3-10"></a>      <span class="fu">combine_levels</span>(<span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"A: Drug X"</span>, <span class="st">"C: Combination"</span>)),</span>
-<span id="cb3-11"><a href="#cb3-11"></a>    <span class="co"># reorder levels of SEX</span></span>
-<span id="cb3-12"><a href="#cb3-12"></a>    <span class="at">SEX =</span> forcats<span class="sc">::</span><span class="fu">fct_relevel</span>(SEX, <span class="st">"M"</span>, <span class="st">"F"</span>),</span>
-<span id="cb3-13"><a href="#cb3-13"></a>    <span class="co"># reorder levels of STRATA1 by frequency</span></span>
-<span id="cb3-14"><a href="#cb3-14"></a>    <span class="at">STRATA1 =</span> forcats<span class="sc">::</span><span class="fu">fct_infreq</span>(STRATA1)</span>
-<span id="cb3-15"><a href="#cb3-15"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb3-16"><a href="#cb3-16"></a>  <span class="fu">droplevels</span>()</span>
-<span id="cb3-17"><a href="#cb3-17"></a><span class="fu">var_labels</span>(anl_rsp_comb_arms_ac) <span class="ot">&lt;-</span> <span class="fu">c</span>(anl_labels, <span class="at">is_rsp =</span> <span class="st">"Is Responder"</span>)</span>
-<span id="cb3-18"><a href="#cb3-18"></a></span>
-<span id="cb3-19"><a href="#cb3-19"></a>df <span class="ot">&lt;-</span> <span class="fu">extract_rsp_subgroups</span>(</span>
-<span id="cb3-20"><a href="#cb3-20"></a>  <span class="at">variables =</span> <span class="fu">list</span>(</span>
-<span id="cb3-21"><a href="#cb3-21"></a>    <span class="at">rsp =</span> <span class="st">"is_rsp"</span>,</span>
-<span id="cb3-22"><a href="#cb3-22"></a>    <span class="at">arm =</span> <span class="st">"ARMCD"</span>,</span>
-<span id="cb3-23"><a href="#cb3-23"></a>    <span class="at">subgroups =</span> <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>),</span>
-<span id="cb3-24"><a href="#cb3-24"></a>    <span class="at">strata =</span> <span class="st">"STRATA2"</span></span>
-<span id="cb3-25"><a href="#cb3-25"></a>  ),</span>
-<span id="cb3-26"><a href="#cb3-26"></a>  <span class="at">data =</span> anl_rsp_comb_arms_ac,</span>
-<span id="cb3-27"><a href="#cb3-27"></a>  <span class="at">conf_level =</span> <span class="fl">0.95</span></span>
-<span id="cb3-28"><a href="#cb3-28"></a>)</span>
-<span id="cb3-29"><a href="#cb3-29"></a></span>
-<span id="cb3-30"><a href="#cb3-30"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb3-31"><a href="#cb3-31"></a>  <span class="fu">tabulate_rsp_subgroups</span>(df, <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"n_tot"</span>, <span class="st">"n"</span>, <span class="st">"n_rsp"</span>, <span class="st">"prop"</span>, <span class="st">"or"</span>, <span class="st">"ci"</span>))</span>
-<span id="cb3-32"><a href="#cb3-32"></a></span>
-<span id="cb3-33"><a href="#cb3-33"></a>plot <span class="ot">&lt;-</span> <span class="fu">g_forest</span>(<span class="at">tbl =</span> result)</span>
-<span id="cb3-34"><a href="#cb3-34"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>anl_rsp_comb_arms_ac <span class="ot">&lt;-</span> anl <span class="sc">%&gt;%</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>  <span class="fu">mutate</span>(<span class="at">is_rsp =</span> AVALC <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"CR"</span>, <span class="st">"PR"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a>  <span class="fu">filter</span>(ARMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"ARM B"</span>, <span class="st">"ARM A"</span>, <span class="st">"ARM C"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    <span class="at">ARMCD =</span> <span class="fu">relevel</span>(ARMCD, <span class="at">ref =</span> <span class="st">"ARM B"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a>      <span class="fu">droplevels</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a>      <span class="fu">combine_levels</span>(<span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"ARM A"</span>, <span class="st">"ARM C"</span>)),</span>
+<span id="cb2-8"><a href="#cb2-8"></a>    <span class="at">ARM =</span> <span class="fu">relevel</span>(ARM, <span class="at">ref =</span> <span class="st">"B: Placebo"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-9"><a href="#cb2-9"></a>      <span class="fu">droplevels</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-10"><a href="#cb2-10"></a>      <span class="fu">combine_levels</span>(<span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"A: Drug X"</span>, <span class="st">"C: Combination"</span>)),</span>
+<span id="cb2-11"><a href="#cb2-11"></a>    <span class="co"># reorder levels of SEX</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a>    <span class="at">SEX =</span> forcats<span class="sc">::</span><span class="fu">fct_relevel</span>(SEX, <span class="st">"M"</span>, <span class="st">"F"</span>),</span>
+<span id="cb2-13"><a href="#cb2-13"></a>    <span class="co"># reorder levels of STRATA1 by frequency</span></span>
+<span id="cb2-14"><a href="#cb2-14"></a>    <span class="at">STRATA1 =</span> forcats<span class="sc">::</span><span class="fu">fct_infreq</span>(STRATA1)</span>
+<span id="cb2-15"><a href="#cb2-15"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb2-16"><a href="#cb2-16"></a>  <span class="fu">droplevels</span>()</span>
+<span id="cb2-17"><a href="#cb2-17"></a><span class="fu">var_labels</span>(anl_rsp_comb_arms_ac) <span class="ot">&lt;-</span> <span class="fu">c</span>(anl_labels, <span class="at">is_rsp =</span> <span class="st">"Is Responder"</span>)</span>
+<span id="cb2-18"><a href="#cb2-18"></a></span>
+<span id="cb2-19"><a href="#cb2-19"></a>df <span class="ot">&lt;-</span> <span class="fu">extract_rsp_subgroups</span>(</span>
+<span id="cb2-20"><a href="#cb2-20"></a>  <span class="at">variables =</span> <span class="fu">list</span>(</span>
+<span id="cb2-21"><a href="#cb2-21"></a>    <span class="at">rsp =</span> <span class="st">"is_rsp"</span>,</span>
+<span id="cb2-22"><a href="#cb2-22"></a>    <span class="at">arm =</span> <span class="st">"ARMCD"</span>,</span>
+<span id="cb2-23"><a href="#cb2-23"></a>    <span class="at">subgroups =</span> <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>),</span>
+<span id="cb2-24"><a href="#cb2-24"></a>    <span class="at">strata =</span> <span class="st">"STRATA2"</span></span>
+<span id="cb2-25"><a href="#cb2-25"></a>  ),</span>
+<span id="cb2-26"><a href="#cb2-26"></a>  <span class="at">data =</span> anl_rsp_comb_arms_ac,</span>
+<span id="cb2-27"><a href="#cb2-27"></a>  <span class="at">conf_level =</span> <span class="fl">0.95</span></span>
+<span id="cb2-28"><a href="#cb2-28"></a>)</span>
+<span id="cb2-29"><a href="#cb2-29"></a></span>
+<span id="cb2-30"><a href="#cb2-30"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-31"><a href="#cb2-31"></a>  <span class="fu">tabulate_rsp_subgroups</span>(df, <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"n_tot"</span>, <span class="st">"n"</span>, <span class="st">"n_rsp"</span>, <span class="st">"prop"</span>, <span class="st">"or"</span>, <span class="st">"ci"</span>))</span>
+<span id="cb2-32"><a href="#cb2-32"></a></span>
+<span id="cb2-33"><a href="#cb2-33"></a>plot <span class="ot">&lt;-</span> <span class="fu">g_forest</span>(<span class="at">tbl =</span> result)</span>
+<span id="cb2-34"><a href="#cb2-34"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="fstg01_files/figure-html/plot2-1.png" class="img-fluid figure-img" width="1920"></p>
@@ -2806,7 +2773,7 @@ Experimental use!
 </div>
 </div>
 </div>
-<div id="tabset-7-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-4-tab">
+<div id="tabset-6-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-3-tab">
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified" data-group="webr">
 <ul class="nav nav-tabs" role="tablist">
 <li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true"><i class="fa-regular fa-file-lines" aria-label="file-lines"></i> Preview</a></li>
@@ -2817,22 +2784,22 @@ Experimental use!
 <!-- skip strict because of https://github.com/therneau/survival/issues/240 -->
 <!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 -->
 <div class="cell" data-test="{&quot;plot_v3&quot;:&quot;plot&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>df <span class="ot">&lt;-</span> <span class="fu">extract_rsp_subgroups</span>(</span>
-<span id="cb4-2"><a href="#cb4-2"></a>  <span class="at">variables =</span> <span class="fu">list</span>(</span>
-<span id="cb4-3"><a href="#cb4-3"></a>    <span class="at">rsp =</span> <span class="st">"is_rsp"</span>,</span>
-<span id="cb4-4"><a href="#cb4-4"></a>    <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5"></a>    <span class="at">subgroups =</span> <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>),</span>
-<span id="cb4-6"><a href="#cb4-6"></a>    <span class="at">strata =</span> <span class="st">"STRATA2"</span></span>
-<span id="cb4-7"><a href="#cb4-7"></a>  ),</span>
-<span id="cb4-8"><a href="#cb4-8"></a>  <span class="at">data =</span> anl_rsp_arms_ab,</span>
-<span id="cb4-9"><a href="#cb4-9"></a>  <span class="at">conf_level =</span> <span class="fl">0.90</span></span>
-<span id="cb4-10"><a href="#cb4-10"></a>)</span>
-<span id="cb4-11"><a href="#cb4-11"></a></span>
-<span id="cb4-12"><a href="#cb4-12"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb4-13"><a href="#cb4-13"></a>  <span class="fu">tabulate_rsp_subgroups</span>(df, <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"n_tot"</span>, <span class="st">"or"</span>, <span class="st">"ci"</span>))</span>
-<span id="cb4-14"><a href="#cb4-14"></a></span>
-<span id="cb4-15"><a href="#cb4-15"></a>plot <span class="ot">&lt;-</span> <span class="fu">g_forest</span>(<span class="at">tbl =</span> result)</span>
-<span id="cb4-16"><a href="#cb4-16"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>df <span class="ot">&lt;-</span> <span class="fu">extract_rsp_subgroups</span>(</span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="at">variables =</span> <span class="fu">list</span>(</span>
+<span id="cb3-3"><a href="#cb3-3"></a>    <span class="at">rsp =</span> <span class="st">"is_rsp"</span>,</span>
+<span id="cb3-4"><a href="#cb3-4"></a>    <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
+<span id="cb3-5"><a href="#cb3-5"></a>    <span class="at">subgroups =</span> <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>),</span>
+<span id="cb3-6"><a href="#cb3-6"></a>    <span class="at">strata =</span> <span class="st">"STRATA2"</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a>  ),</span>
+<span id="cb3-8"><a href="#cb3-8"></a>  <span class="at">data =</span> anl_rsp_arms_ab,</span>
+<span id="cb3-9"><a href="#cb3-9"></a>  <span class="at">conf_level =</span> <span class="fl">0.90</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a>)</span>
+<span id="cb3-11"><a href="#cb3-11"></a></span>
+<span id="cb3-12"><a href="#cb3-12"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb3-13"><a href="#cb3-13"></a>  <span class="fu">tabulate_rsp_subgroups</span>(df, <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"n_tot"</span>, <span class="st">"or"</span>, <span class="st">"ci"</span>))</span>
+<span id="cb3-14"><a href="#cb3-14"></a></span>
+<span id="cb3-15"><a href="#cb3-15"></a>plot <span class="ot">&lt;-</span> <span class="fu">g_forest</span>(<span class="at">tbl =</span> result)</span>
+<span id="cb3-16"><a href="#cb3-16"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="fstg01_files/figure-html/plot3-1.png" class="img-fluid figure-img" width="960"></p>
@@ -2870,7 +2837,7 @@ Experimental use!
 </div>
 </div>
 </div>
-<div id="tabset-7-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-5-tab">
+<div id="tabset-6-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-4-tab">
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified" data-group="webr">
 <ul class="nav nav-tabs" role="tablist">
 <li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true"><i class="fa-regular fa-file-lines" aria-label="file-lines"></i> Preview</a></li>
@@ -2881,25 +2848,25 @@ Experimental use!
 <!-- skip strict because of https://github.com/therneau/survival/issues/240 -->
 <!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 -->
 <div class="cell" data-test="{&quot;plot_v4&quot;:&quot;plot&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>df <span class="ot">&lt;-</span> <span class="fu">extract_rsp_subgroups</span>(</span>
-<span id="cb5-2"><a href="#cb5-2"></a>  <span class="at">variables =</span> <span class="fu">list</span>(</span>
-<span id="cb5-3"><a href="#cb5-3"></a>    <span class="at">rsp =</span> <span class="st">"is_rsp"</span>,</span>
-<span id="cb5-4"><a href="#cb5-4"></a>    <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
-<span id="cb5-5"><a href="#cb5-5"></a>    <span class="at">subgroups =</span> <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>),</span>
-<span id="cb5-6"><a href="#cb5-6"></a>    <span class="at">strata =</span> <span class="st">"STRATA2"</span></span>
-<span id="cb5-7"><a href="#cb5-7"></a>  ),</span>
-<span id="cb5-8"><a href="#cb5-8"></a>  <span class="at">data =</span> anl_rsp_arms_ab,</span>
-<span id="cb5-9"><a href="#cb5-9"></a>  <span class="at">conf_level =</span> <span class="fl">0.95</span></span>
-<span id="cb5-10"><a href="#cb5-10"></a>)</span>
-<span id="cb5-11"><a href="#cb5-11"></a></span>
-<span id="cb5-12"><a href="#cb5-12"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb5-13"><a href="#cb5-13"></a>  <span class="fu">tabulate_rsp_subgroups</span>(df, <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"n_tot"</span>, <span class="st">"n"</span>, <span class="st">"n_rsp"</span>, <span class="st">"prop"</span>, <span class="st">"or"</span>, <span class="st">"ci"</span>))</span>
-<span id="cb5-14"><a href="#cb5-14"></a></span>
-<span id="cb5-15"><a href="#cb5-15"></a>plot <span class="ot">&lt;-</span> <span class="fu">g_forest</span>(</span>
-<span id="cb5-16"><a href="#cb5-16"></a>  <span class="at">tbl =</span> result,</span>
-<span id="cb5-17"><a href="#cb5-17"></a>  <span class="at">col_symbol_size =</span> <span class="cn">NULL</span></span>
-<span id="cb5-18"><a href="#cb5-18"></a>)</span>
-<span id="cb5-19"><a href="#cb5-19"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>df <span class="ot">&lt;-</span> <span class="fu">extract_rsp_subgroups</span>(</span>
+<span id="cb4-2"><a href="#cb4-2"></a>  <span class="at">variables =</span> <span class="fu">list</span>(</span>
+<span id="cb4-3"><a href="#cb4-3"></a>    <span class="at">rsp =</span> <span class="st">"is_rsp"</span>,</span>
+<span id="cb4-4"><a href="#cb4-4"></a>    <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
+<span id="cb4-5"><a href="#cb4-5"></a>    <span class="at">subgroups =</span> <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>),</span>
+<span id="cb4-6"><a href="#cb4-6"></a>    <span class="at">strata =</span> <span class="st">"STRATA2"</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a>  ),</span>
+<span id="cb4-8"><a href="#cb4-8"></a>  <span class="at">data =</span> anl_rsp_arms_ab,</span>
+<span id="cb4-9"><a href="#cb4-9"></a>  <span class="at">conf_level =</span> <span class="fl">0.95</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a>)</span>
+<span id="cb4-11"><a href="#cb4-11"></a></span>
+<span id="cb4-12"><a href="#cb4-12"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb4-13"><a href="#cb4-13"></a>  <span class="fu">tabulate_rsp_subgroups</span>(df, <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"n_tot"</span>, <span class="st">"n"</span>, <span class="st">"n_rsp"</span>, <span class="st">"prop"</span>, <span class="st">"or"</span>, <span class="st">"ci"</span>))</span>
+<span id="cb4-14"><a href="#cb4-14"></a></span>
+<span id="cb4-15"><a href="#cb4-15"></a>plot <span class="ot">&lt;-</span> <span class="fu">g_forest</span>(</span>
+<span id="cb4-16"><a href="#cb4-16"></a>  <span class="at">tbl =</span> result,</span>
+<span id="cb4-17"><a href="#cb4-17"></a>  <span class="at">col_symbol_size =</span> <span class="cn">NULL</span></span>
+<span id="cb4-18"><a href="#cb4-18"></a>)</span>
+<span id="cb4-19"><a href="#cb4-19"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="fstg01_files/figure-html/plot4-1.png" class="img-fluid figure-img" width="1920"></p>
@@ -2937,7 +2904,7 @@ Experimental use!
 </div>
 </div>
 </div>
-<div id="tabset-7-6" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-6-tab">
+<div id="tabset-6-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-5-tab">
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified" data-group="webr">
 <ul class="nav nav-tabs" role="tablist">
 <li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true"><i class="fa-regular fa-file-lines" aria-label="file-lines"></i> Preview</a></li>
@@ -2948,34 +2915,34 @@ Experimental use!
 <!-- skip strict because of https://github.com/therneau/survival/issues/240 -->
 <!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 -->
 <div class="cell" data-test="{&quot;plot_v5&quot;:&quot;plot&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>anl_cr_arms_ab <span class="ot">&lt;-</span> anl <span class="sc">%&gt;%</span></span>
-<span id="cb6-2"><a href="#cb6-2"></a>  <span class="fu">mutate</span>(<span class="at">is_rsp =</span> AVALC <span class="sc">==</span> <span class="st">"CR"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb6-3"><a href="#cb6-3"></a>  <span class="fu">filter</span>(ARMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"ARM B"</span>, <span class="st">"ARM A"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb6-4"><a href="#cb6-4"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb6-5"><a href="#cb6-5"></a>    <span class="at">ARMCD =</span> <span class="fu">relevel</span>(ARMCD, <span class="at">ref =</span> <span class="st">"ARM B"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb6-6"><a href="#cb6-6"></a>      <span class="fu">droplevels</span>(),</span>
-<span id="cb6-7"><a href="#cb6-7"></a>    <span class="at">ARM =</span> <span class="fu">relevel</span>(ARM, <span class="at">ref =</span> <span class="st">"B: Placebo"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb6-8"><a href="#cb6-8"></a>      <span class="fu">droplevels</span>()</span>
-<span id="cb6-9"><a href="#cb6-9"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb6-10"><a href="#cb6-10"></a>  <span class="fu">droplevels</span>()</span>
-<span id="cb6-11"><a href="#cb6-11"></a><span class="fu">var_labels</span>(anl_cr_arms_ab) <span class="ot">&lt;-</span> <span class="fu">c</span>(anl_labels, <span class="at">is_rsp =</span> <span class="st">"Is CR"</span>)</span>
-<span id="cb6-12"><a href="#cb6-12"></a></span>
-<span id="cb6-13"><a href="#cb6-13"></a>df <span class="ot">&lt;-</span> <span class="fu">extract_rsp_subgroups</span>(</span>
-<span id="cb6-14"><a href="#cb6-14"></a>  <span class="at">variables =</span> <span class="fu">list</span>(</span>
-<span id="cb6-15"><a href="#cb6-15"></a>    <span class="at">rsp =</span> <span class="st">"is_rsp"</span>,</span>
-<span id="cb6-16"><a href="#cb6-16"></a>    <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
-<span id="cb6-17"><a href="#cb6-17"></a>    <span class="at">subgroups =</span> <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>),</span>
-<span id="cb6-18"><a href="#cb6-18"></a>    <span class="at">strata =</span> <span class="st">"STRATA2"</span></span>
-<span id="cb6-19"><a href="#cb6-19"></a>  ),</span>
-<span id="cb6-20"><a href="#cb6-20"></a>  <span class="at">data =</span> anl_cr_arms_ab,</span>
-<span id="cb6-21"><a href="#cb6-21"></a>  <span class="at">conf_level =</span> <span class="fl">0.95</span></span>
-<span id="cb6-22"><a href="#cb6-22"></a>)</span>
-<span id="cb6-23"><a href="#cb6-23"></a></span>
-<span id="cb6-24"><a href="#cb6-24"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb6-25"><a href="#cb6-25"></a>  <span class="fu">tabulate_rsp_subgroups</span>(df, <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"n_tot"</span>, <span class="st">"n"</span>, <span class="st">"n_rsp"</span>, <span class="st">"prop"</span>, <span class="st">"or"</span>, <span class="st">"ci"</span>))</span>
-<span id="cb6-26"><a href="#cb6-26"></a></span>
-<span id="cb6-27"><a href="#cb6-27"></a>plot <span class="ot">&lt;-</span> <span class="fu">g_forest</span>(<span class="at">tbl =</span> result)</span>
-<span id="cb6-28"><a href="#cb6-28"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>anl_cr_arms_ab <span class="ot">&lt;-</span> anl <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a>  <span class="fu">mutate</span>(<span class="at">is_rsp =</span> AVALC <span class="sc">==</span> <span class="st">"CR"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a>  <span class="fu">filter</span>(ARMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"ARM B"</span>, <span class="st">"ARM A"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb5-5"><a href="#cb5-5"></a>    <span class="at">ARMCD =</span> <span class="fu">relevel</span>(ARMCD, <span class="at">ref =</span> <span class="st">"ARM B"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-6"><a href="#cb5-6"></a>      <span class="fu">droplevels</span>(),</span>
+<span id="cb5-7"><a href="#cb5-7"></a>    <span class="at">ARM =</span> <span class="fu">relevel</span>(ARM, <span class="at">ref =</span> <span class="st">"B: Placebo"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a>      <span class="fu">droplevels</span>()</span>
+<span id="cb5-9"><a href="#cb5-9"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb5-10"><a href="#cb5-10"></a>  <span class="fu">droplevels</span>()</span>
+<span id="cb5-11"><a href="#cb5-11"></a><span class="fu">var_labels</span>(anl_cr_arms_ab) <span class="ot">&lt;-</span> <span class="fu">c</span>(anl_labels, <span class="at">is_rsp =</span> <span class="st">"Is CR"</span>)</span>
+<span id="cb5-12"><a href="#cb5-12"></a></span>
+<span id="cb5-13"><a href="#cb5-13"></a>df <span class="ot">&lt;-</span> <span class="fu">extract_rsp_subgroups</span>(</span>
+<span id="cb5-14"><a href="#cb5-14"></a>  <span class="at">variables =</span> <span class="fu">list</span>(</span>
+<span id="cb5-15"><a href="#cb5-15"></a>    <span class="at">rsp =</span> <span class="st">"is_rsp"</span>,</span>
+<span id="cb5-16"><a href="#cb5-16"></a>    <span class="at">arm =</span> <span class="st">"ARM"</span>,</span>
+<span id="cb5-17"><a href="#cb5-17"></a>    <span class="at">subgroups =</span> <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>),</span>
+<span id="cb5-18"><a href="#cb5-18"></a>    <span class="at">strata =</span> <span class="st">"STRATA2"</span></span>
+<span id="cb5-19"><a href="#cb5-19"></a>  ),</span>
+<span id="cb5-20"><a href="#cb5-20"></a>  <span class="at">data =</span> anl_cr_arms_ab,</span>
+<span id="cb5-21"><a href="#cb5-21"></a>  <span class="at">conf_level =</span> <span class="fl">0.95</span></span>
+<span id="cb5-22"><a href="#cb5-22"></a>)</span>
+<span id="cb5-23"><a href="#cb5-23"></a></span>
+<span id="cb5-24"><a href="#cb5-24"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-25"><a href="#cb5-25"></a>  <span class="fu">tabulate_rsp_subgroups</span>(df, <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"n_tot"</span>, <span class="st">"n"</span>, <span class="st">"n_rsp"</span>, <span class="st">"prop"</span>, <span class="st">"or"</span>, <span class="st">"ci"</span>))</span>
+<span id="cb5-26"><a href="#cb5-26"></a></span>
+<span id="cb5-27"><a href="#cb5-27"></a>plot <span class="ot">&lt;-</span> <span class="fu">g_forest</span>(<span class="at">tbl =</span> result)</span>
+<span id="cb5-28"><a href="#cb5-28"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="fstg01_files/figure-html/plot5-1.png" class="img-fluid figure-img" width="1920"></p>
@@ -3013,14 +2980,48 @@ Experimental use!
 </div>
 </div>
 </div>
-<div id="tabset-7-7" class="tab-pane page-columns page-full" role="tabpanel" aria-labelledby="tabset-7-7-tab">
+<div id="tabset-6-6" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-6-tab">
+<div class="cell">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="fu">library</span>(tern)</span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="fu">library</span>(nestcolor)</span>
+<span id="cb6-4"><a href="#cb6-4"></a></span>
+<span id="cb6-5"><a href="#cb6-5"></a>adsl_f <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadsl <span class="sc">%&gt;%</span></span>
+<span id="cb6-6"><a href="#cb6-6"></a>  <span class="fu">select</span>(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)</span>
+<span id="cb6-7"><a href="#cb6-7"></a></span>
+<span id="cb6-8"><a href="#cb6-8"></a>adrs_f <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadrs <span class="sc">%&gt;%</span></span>
+<span id="cb6-9"><a href="#cb6-9"></a>  <span class="fu">filter</span>(PARAMCD <span class="sc">==</span> <span class="st">"INVET"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-10"><a href="#cb6-10"></a>  <span class="fu">select</span>(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)</span>
+<span id="cb6-11"><a href="#cb6-11"></a></span>
+<span id="cb6-12"><a href="#cb6-12"></a>anl <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(adsl_f, adrs_f, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"STUDYID"</span>, <span class="st">"USUBJID"</span>))</span>
+<span id="cb6-13"><a href="#cb6-13"></a>anl <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(anl)</span>
+<span id="cb6-14"><a href="#cb6-14"></a>anl_labels <span class="ot">&lt;-</span> <span class="fu">var_labels</span>(anl)</span>
+<span id="cb6-15"><a href="#cb6-15"></a></span>
+<span id="cb6-16"><a href="#cb6-16"></a>anl_rsp_arms_ab <span class="ot">&lt;-</span> anl <span class="sc">%&gt;%</span></span>
+<span id="cb6-17"><a href="#cb6-17"></a>  <span class="fu">mutate</span>(<span class="at">is_rsp =</span> AVALC <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"CR"</span>, <span class="st">"PR"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-18"><a href="#cb6-18"></a>  <span class="fu">filter</span>(ARMCD <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"ARM B"</span>, <span class="st">"ARM A"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-19"><a href="#cb6-19"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb6-20"><a href="#cb6-20"></a>    <span class="at">ARMCD =</span> <span class="fu">relevel</span>(ARMCD, <span class="at">ref =</span> <span class="st">"ARM B"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-21"><a href="#cb6-21"></a>      <span class="fu">droplevels</span>(),</span>
+<span id="cb6-22"><a href="#cb6-22"></a>    <span class="at">ARM =</span> <span class="fu">relevel</span>(ARM, <span class="at">ref =</span> <span class="st">"B: Placebo"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-23"><a href="#cb6-23"></a>      <span class="fu">droplevels</span>()</span>
+<span id="cb6-24"><a href="#cb6-24"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb6-25"><a href="#cb6-25"></a>  <span class="fu">droplevels</span>()</span>
+<span id="cb6-26"><a href="#cb6-26"></a><span class="fu">var_labels</span>(anl_rsp_arms_ab) <span class="ot">&lt;-</span> <span class="fu">c</span>(anl_labels, <span class="at">is_rsp =</span> <span class="st">"Is Responder"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</div>
+</div>
+</div>
+<section id="teal-app" class="level2 page-columns page-full"><h2 class="anchored" data-anchor-id="teal-app">
+<code>teal</code> App</h2>
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified page-columns page-full">
 <ul class="nav nav-tabs" role="tablist">
-<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-6-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-1" role="tab" aria-controls="tabset-6-1" aria-selected="true"><i class="fa-regular fa-file-lines" aria-label="file-lines"></i> Preview</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-2" role="tab" aria-controls="tabset-6-2" aria-selected="false"><i class="fa-regular fa-terminal" aria-label="terminal"></i> Try this using <code>shinylive</code></a></li>
+<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-7-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-1" role="tab" aria-controls="tabset-7-1" aria-selected="true"><i class="fa-regular fa-file-lines" aria-label="file-lines"></i> Preview</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-2" role="tab" aria-controls="tabset-7-2" aria-selected="false"><i class="fa-regular fa-terminal" aria-label="terminal"></i> Try this using <code>shinylive</code></a></li>
 </ul>
 <div class="tab-content nav-justified page-columns page-full">
-<div id="tabset-6-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-6-1-tab">
+<div id="tabset-7-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-7-1-tab">
 <div class="cell" data-webshot="webshot2" data-screenshot.force="true" data-screenshot.opts="{&quot;delay&quot;:5}">
 <details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">library</span>(teal.modules.clinical)</span>
 <span id="cb7-2"><a href="#cb7-2"></a></span>
@@ -3093,7 +3094,7 @@ This shortcode will include chunk returning WebR instance.
 Global shinylive configuration is available in the `_quarto.yaml` file.
 -->
 </div>
-<div id="tabset-6-2" class="tab-pane page-columns page-full" role="tabpanel" aria-labelledby="tabset-6-2-tab">
+<div id="tabset-7-2" class="tab-pane page-columns page-full" role="tabpanel" aria-labelledby="tabset-7-2-tab">
 <div class="callout callout-style-simple callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -3110,10 +3111,6 @@ Experimental use!
 </div>
 </div>
 </div>
-<!--
-we have to put some code upfront
-- need to setup repos on r-universe - currently it's not possible to setup this elsewhere (e.g. shinylive config or chunk attribute)
--->
 <div class="column-screen-inset-right">
 <div class="sourceCode" id="cb8" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb8-1"><a href="#cb8-1"></a>#| standalone: true</span>
 <span id="cb8-2"><a href="#cb8-2"></a>#| viewerHeight: 800</span>
@@ -3187,127 +3184,153 @@ we have to put some code upfront
 </div>
 </div>
 </div>
-</div>
-<div id="tabset-7-8" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-8-tab">
+</section><section id="reproducibility" class="level2"><h2 class="anchored" data-anchor-id="reproducibility">Reproducibility</h2>
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
-<div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-09-21 18:16:03 UTC"</code></pre>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "2024-09-23 09:43:50 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output cell-output-stdout">
-<pre><code>R version 4.4.1 (2024-06-14)
-Platform: x86_64-pc-linux-gnu
-Running under: Ubuntu 22.04.4 LTS
+<div class="cell-output cell-output-stdout">
+<pre><code>─ Session info ───────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.4.1 (2024-06-14)
+ os       Ubuntu 22.04.4 LTS
+ system   x86_64, linux-gnu
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       Etc/UTC
+ date     2024-09-23
+ pandoc   3.3 @ /usr/bin/ (via rmarkdown)
 
-Matrix products: default
-BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
-LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0
+─ Packages ───────────────────────────────────────────────────────────────────
+ package               * version  date (UTC) lib source
+ backports               1.5.0    2024-05-23 [1] CRAN (R 4.4.1)
+ brio                    1.1.5    2024-04-24 [1] CRAN (R 4.4.1)
+ broom                   1.0.6    2024-05-17 [1] CRAN (R 4.4.1)
+ bslib                   0.8.0    2024-07-29 [1] CRAN (R 4.4.1)
+ cachem                  1.1.0    2024-05-16 [1] CRAN (R 4.4.1)
+ callr                   3.7.6    2024-03-25 [1] CRAN (R 4.4.1)
+ checkmate               2.3.2    2024-07-29 [1] CRAN (R 4.4.1)
+ chromote                0.3.1    2024-08-30 [1] CRAN (R 4.4.1)
+ cli                     3.6.3    2024-06-21 [1] CRAN (R 4.4.1)
+ coda                    0.19-4.1 2024-01-31 [1] CRAN (R 4.4.1)
+ codetools               0.2-20   2024-03-31 [2] CRAN (R 4.4.1)
+ colorspace              2.1-1    2024-07-26 [1] CRAN (R 4.4.1)
+ cowplot                 1.1.3    2024-01-22 [1] CRAN (R 4.4.1)
+ digest                  0.6.37   2024-08-19 [1] CRAN (R 4.4.1)
+ dplyr                 * 1.1.4    2023-11-17 [1] CRAN (R 4.4.1)
+ emmeans                 1.10.4   2024-08-21 [1] CRAN (R 4.4.1)
+ estimability            1.5.1    2024-05-12 [1] CRAN (R 4.4.1)
+ evaluate                1.0.0    2024-09-17 [1] CRAN (R 4.4.1)
+ fansi                   1.0.6    2023-12-08 [1] CRAN (R 4.4.1)
+ farver                  2.1.2    2024-05-13 [1] CRAN (R 4.4.1)
+ fastmap                 1.2.0    2024-05-15 [1] CRAN (R 4.4.1)
+ fontawesome             0.5.2    2023-08-19 [1] CRAN (R 4.4.1)
+ forcats                 1.0.0    2023-01-29 [1] CRAN (R 4.4.1)
+ formatR                 1.14     2023-01-17 [1] CRAN (R 4.4.1)
+ formatters            * 0.5.9    2024-09-12 [1] CRAN (R 4.4.1)
+ geepack                 1.3.11.1 2024-09-09 [1] CRAN (R 4.4.1)
+ generics                0.1.3    2022-07-05 [1] CRAN (R 4.4.1)
+ ggplot2                 3.5.1    2024-04-23 [1] CRAN (R 4.4.1)
+ glue                    1.7.0    2024-01-09 [1] CRAN (R 4.4.1)
+ gtable                  0.3.5    2024-04-22 [1] CRAN (R 4.4.1)
+ htmltools               0.5.8.1  2024-04-04 [1] CRAN (R 4.4.1)
+ htmlwidgets             1.6.4    2023-12-06 [1] CRAN (R 4.4.1)
+ httpuv                  1.6.15   2024-03-26 [1] CRAN (R 4.4.1)
+ jquerylib               0.1.4    2021-04-26 [1] CRAN (R 4.4.1)
+ jsonlite                1.8.9    2024-09-20 [1] CRAN (R 4.4.1)
+ knitr                   1.48     2024-07-07 [1] CRAN (R 4.4.1)
+ labeling                0.4.3    2023-08-29 [1] CRAN (R 4.4.1)
+ later                   1.3.2    2023-12-06 [1] CRAN (R 4.4.1)
+ lattice                 0.22-6   2024-03-20 [2] CRAN (R 4.4.1)
+ lifecycle               1.0.4    2023-11-07 [1] CRAN (R 4.4.1)
+ logger                  0.3.0    2024-03-05 [1] CRAN (R 4.4.1)
+ magrittr              * 2.0.3    2022-03-30 [1] CRAN (R 4.4.1)
+ MASS                    7.3-61   2024-06-13 [2] CRAN (R 4.4.1)
+ Matrix                  1.7-0    2024-04-26 [1] CRAN (R 4.4.1)
+ memoise                 2.0.1    2021-11-26 [1] CRAN (R 4.4.1)
+ mime                    0.12     2021-09-28 [1] CRAN (R 4.4.1)
+ multcomp                1.4-26   2024-07-18 [1] CRAN (R 4.4.1)
+ munsell                 0.5.1    2024-04-01 [1] CRAN (R 4.4.1)
+ mvtnorm                 1.3-1    2024-09-03 [1] CRAN (R 4.4.1)
+ nestcolor             * 0.1.2    2023-06-09 [1] CRAN (R 4.4.1)
+ nlme                    3.1-166  2024-08-14 [2] CRAN (R 4.4.1)
+ pillar                  1.9.0    2023-03-22 [1] CRAN (R 4.4.1)
+ pkgconfig               2.0.3    2019-09-22 [1] CRAN (R 4.4.1)
+ processx                3.8.4    2024-03-16 [1] CRAN (R 4.4.1)
+ promises                1.3.0    2024-04-05 [1] CRAN (R 4.4.1)
+ ps                      1.8.0    2024-09-12 [1] CRAN (R 4.4.1)
+ purrr                   1.0.2    2023-08-10 [1] CRAN (R 4.4.1)
+ R6                      2.5.1    2021-08-19 [1] CRAN (R 4.4.1)
+ ragg                    1.3.3    2024-09-11 [1] CRAN (R 4.4.1)
+ random.cdisc.data       0.3.15   2024-09-23 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
+ rbibutils               2.2.16   2023-10-25 [1] CRAN (R 4.4.1)
+ Rcpp                    1.0.13   2024-07-17 [1] CRAN (R 4.4.1)
+ Rdpack                  2.6.1    2024-08-06 [1] CRAN (R 4.4.1)
+ rlang                   1.1.4    2024-06-04 [1] CRAN (R 4.4.1)
+ rmarkdown               2.28     2024-08-17 [1] CRAN (R 4.4.1)
+ rtables               * 0.6.10   2024-09-23 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
+ sandwich                3.1-0    2023-12-11 [1] CRAN (R 4.4.1)
+ sass                    0.4.9    2024-03-15 [1] CRAN (R 4.4.1)
+ scales                  1.3.0    2023-11-28 [1] CRAN (R 4.4.1)
+ sessioninfo             1.2.2    2021-12-06 [1] CRAN (R 4.4.1)
+ shiny                 * 1.9.1    2024-08-01 [1] CRAN (R 4.4.1)
+ shinycssloaders         1.1.0    2024-07-30 [1] CRAN (R 4.4.1)
+ shinyjs                 2.1.0    2021-12-23 [1] CRAN (R 4.4.1)
+ shinyvalidate           0.1.3    2023-10-04 [1] CRAN (R 4.4.1)
+ shinyWidgets            0.8.7    2024-09-23 [1] CRAN (R 4.4.1)
+ stringi                 1.8.4    2024-05-06 [1] CRAN (R 4.4.1)
+ stringr                 1.5.1    2023-11-14 [1] CRAN (R 4.4.1)
+ survival                3.7-0    2024-06-05 [2] CRAN (R 4.4.1)
+ systemfonts             1.1.0    2024-05-15 [1] CRAN (R 4.4.1)
+ teal                  * 0.15.2   2024-03-07 [1] CRAN (R 4.4.1)
+ teal.code             * 0.5.0    2024-01-11 [1] CRAN (R 4.4.1)
+ teal.data             * 0.6.0    2024-04-30 [1] CRAN (R 4.4.1)
+ teal.logger             0.2.0    2024-03-24 [1] CRAN (R 4.4.1)
+ teal.modules.clinical * 0.9.1    2024-04-27 [1] CRAN (R 4.4.1)
+ teal.reporter           0.3.1    2024-03-15 [1] CRAN (R 4.4.1)
+ teal.slice            * 0.5.1    2024-04-30 [1] CRAN (R 4.4.1)
+ teal.transform        * 0.5.0    2024-02-17 [1] CRAN (R 4.4.1)
+ teal.widgets            0.4.2    2023-12-14 [1] CRAN (R 4.4.1)
+ tern                  * 0.9.5    2024-06-21 [1] CRAN (R 4.4.1)
+ tern.gee                0.1.5    2024-08-23 [1] CRAN (R 4.4.1)
+ testthat                3.2.1.1  2024-04-14 [1] CRAN (R 4.4.1)
+ textshaping             0.4.0    2024-05-24 [1] CRAN (R 4.4.1)
+ TH.data                 1.1-2    2023-04-17 [1] CRAN (R 4.4.1)
+ tibble                  3.2.1    2023-03-20 [1] CRAN (R 4.4.1)
+ tidyr                   1.3.1    2024-01-24 [1] CRAN (R 4.4.1)
+ tidyselect              1.2.1    2024-03-11 [1] CRAN (R 4.4.1)
+ utf8                    1.2.4    2023-10-22 [1] CRAN (R 4.4.1)
+ vctrs                   0.6.5    2023-12-01 [1] CRAN (R 4.4.1)
+ webshot                 0.5.5    2023-06-26 [1] CRAN (R 4.4.1)
+ webshot2                0.1.1    2023-08-11 [1] CRAN (R 4.4.1)
+ websocket               1.4.2    2024-07-22 [1] CRAN (R 4.4.1)
+ withr                   3.0.1    2024-07-31 [1] CRAN (R 4.4.1)
+ xfun                    0.47     2024-08-17 [1] CRAN (R 4.4.1)
+ xtable                  1.8-4    2019-04-21 [1] CRAN (R 4.4.1)
+ yaml                    2.3.10   2024-07-26 [1] CRAN (R 4.4.1)
+ zoo                     1.8-12   2023-04-13 [1] CRAN (R 4.4.1)
 
-locale:
- [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
- [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
- [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
- [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
- [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+ [1] /usr/local/lib/R/site-library
+ [2] /usr/local/lib/R/library
 
-time zone: Etc/UTC
-tzcode source: system (glibc)
-
-attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
-
-other attached packages:
- [1] teal.modules.clinical_0.9.1 teal.transform_0.5.0       
- [3] teal_0.15.2                 teal.slice_0.5.1           
- [5] teal.data_0.6.0             teal.code_0.5.0            
- [7] shiny_1.9.1                 nestcolor_0.1.2            
- [9] tern_0.9.5                  rtables_0.6.10             
-[11] magrittr_2.0.3              formatters_0.5.9           
-[13] dplyr_1.1.4                
-
-loaded via a namespace (and not attached):
- [1] Rdpack_2.6.1             formatR_1.14             tern.gee_0.1.5          
- [4] logger_0.3.0             testthat_3.2.1.1         sandwich_3.1-1          
- [7] rlang_1.1.4              multcomp_1.4-26          compiler_4.4.1          
-[10] systemfonts_1.1.0        callr_3.7.6              vctrs_0.6.5             
-[13] stringr_1.5.1            pkgconfig_2.0.3          fastmap_1.2.0           
-[16] backports_1.5.0          fontawesome_0.5.2        labeling_0.4.3          
-[19] utf8_1.2.4               promises_1.3.0           rmarkdown_2.28          
-[22] ps_1.8.0                 ragg_1.3.3               purrr_1.0.2             
-[25] xfun_0.47                shinyvalidate_0.1.3      cachem_1.1.0            
-[28] teal.reporter_0.3.1      jsonlite_1.8.9           later_1.3.2             
-[31] broom_1.0.6              R6_2.5.1                 bslib_0.8.0             
-[34] stringi_1.8.4            brio_1.1.5               jquerylib_0.1.4         
-[37] estimability_1.5.1       Rcpp_1.0.13              knitr_1.48              
-[40] zoo_1.8-12               teal.logger_0.2.0        httpuv_1.6.15           
-[43] Matrix_1.7-0             splines_4.4.1            tidyselect_1.2.1        
-[46] yaml_2.3.10              codetools_0.2-20         websocket_1.4.2         
-[49] processx_3.8.4           teal.widgets_0.4.2       lattice_0.22-6          
-[52] tibble_3.2.1             withr_3.0.1              coda_0.19-4.1           
-[55] evaluate_1.0.0           survival_3.7-0           pillar_1.9.0            
-[58] shinycssloaders_1.1.0    checkmate_2.3.2          shinyjs_2.1.0           
-[61] generics_0.1.3           chromote_0.3.1           ggplot2_3.5.1           
-[64] munsell_0.5.1            scales_1.3.0             xtable_1.8-4            
-[67] glue_1.7.0               emmeans_1.10.4           tools_4.4.1             
-[70] webshot2_0.1.1           webshot_0.5.5            forcats_1.0.0           
-[73] mvtnorm_1.3-1            cowplot_1.1.3            grid_4.4.1              
-[76] tidyr_1.3.1              rbibutils_2.2.16         colorspace_2.1-1        
-[79] nlme_3.1-166             random.cdisc.data_0.3.15 cli_3.6.3               
-[82] textshaping_0.4.0        fansi_1.0.6              geepack_1.3.11.1        
-[85] gtable_0.3.5             sass_0.4.9               digest_0.6.37           
-[88] TH.data_1.1-2            htmlwidgets_1.6.4        farver_2.1.2            
-[91] memoise_2.0.1            htmltools_0.5.8.1        lifecycle_1.0.4         
-[94] shinyWidgets_0.8.6       mime_0.12                MASS_7.3-61             </code></pre>
+──────────────────────────────────────────────────────────────────────────────</code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
 <code>.lock</code> file</h3>
 <p>Download the <code>.lock</code> file and use <a href="https://rstudio.github.io/renv/reference/restore.html"><code>renv::restore()</code></a> on it to recreate environment used to generate this website.</p>
-<div class="cell" data-renv.ignore="true">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb13-2"><a href="#cb13-2"></a></span>
-<span id="cb13-3"><a href="#cb13-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
-<span id="cb13-4"><a href="#cb13-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
-<span id="cb13-5"><a href="#cb13-5"></a></span>
-<span id="cb13-6"><a href="#cb13-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
-<span id="cb13-7"><a href="#cb13-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
-<span id="cb13-8"><a href="#cb13-8"></a>  <span class="fu">paste0</span>(</span>
-<span id="cb13-9"><a href="#cb13-9"></a>    <span class="fu">gsub</span>(</span>
-<span id="cb13-10"><a href="#cb13-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
-<span id="cb13-11"><a href="#cb13-11"></a>      <span class="st">""</span>,</span>
-<span id="cb13-12"><a href="#cb13-12"></a>      <span class="fu">gsub</span>(</span>
-<span id="cb13-13"><a href="#cb13-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
-<span id="cb13-14"><a href="#cb13-14"></a>        <span class="st">""</span>,</span>
-<span id="cb13-15"><a href="#cb13-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb13-16"><a href="#cb13-16"></a>      )</span>
-<span id="cb13-17"><a href="#cb13-17"></a>    ),</span>
-<span id="cb13-18"><a href="#cb13-18"></a>    <span class="st">".lock"</span></span>
-<span id="cb13-19"><a href="#cb13-19"></a>  )</span>
-<span id="cb13-20"><a href="#cb13-20"></a>)</span>
-<span id="cb13-21"><a href="#cb13-21"></a></span>
-<span id="cb13-22"><a href="#cb13-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
-<span id="cb13-23"><a href="#cb13-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb13-24"><a href="#cb13-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb13-25"><a href="#cb13-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
 <p><a href="../../assets/www/lock/graphs/efficacy/fstg01.lock">Download</a></p>
-</section>
-</div>
-</div>
-</div>
 
 
 <!-- -->
 
-
-</main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</section></section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
     const mode = bsSheetEl.getAttribute("data-mode");
@@ -3933,311 +3956,314 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb14" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb14-1"><a href="#cb14-1"></a><span class="co">---</span></span>
-<span id="cb14-2"><a href="#cb14-2"></a><span class="an">title:</span><span class="co"> FSTG01</span></span>
-<span id="cb14-3"><a href="#cb14-3"></a><span class="an">subtitle:</span><span class="co"> Subgroup Analysis of Best Overall Response</span></span>
-<span id="cb14-4"><a href="#cb14-4"></a><span class="co">---</span></span>
-<span id="cb14-5"><a href="#cb14-5"></a></span>
-<span id="cb14-6"><a href="#cb14-6"></a>------------------------------------------------------------------------</span>
-<span id="cb14-7"><a href="#cb14-7"></a></span>
-<span id="cb14-8"><a href="#cb14-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb14-9"><a href="#cb14-9"></a></span>
-<span id="cb14-10"><a href="#cb14-10"></a>:::: {.panel-tabset}</span>
-<span id="cb14-11"><a href="#cb14-11"></a><span class="fu">## Data Setup</span></span>
-<span id="cb14-12"><a href="#cb14-12"></a></span>
-<span id="cb14-13"><a href="#cb14-13"></a><span class="in">```{r setup, message = FALSE}</span></span>
-<span id="cb14-14"><a href="#cb14-14"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb14-15"><a href="#cb14-15"></a></span>
-<span id="cb14-16"><a href="#cb14-16"></a><span class="in">library(dplyr)</span></span>
-<span id="cb14-17"><a href="#cb14-17"></a><span class="in">library(tern)</span></span>
-<span id="cb14-18"><a href="#cb14-18"></a><span class="in">library(nestcolor)</span></span>
-<span id="cb14-19"><a href="#cb14-19"></a></span>
-<span id="cb14-20"><a href="#cb14-20"></a><span class="in">adsl_f &lt;- random.cdisc.data::cadsl %&gt;%</span></span>
-<span id="cb14-21"><a href="#cb14-21"></a><span class="in">  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)</span></span>
-<span id="cb14-22"><a href="#cb14-22"></a></span>
-<span id="cb14-23"><a href="#cb14-23"></a><span class="in">adrs_f &lt;- random.cdisc.data::cadrs %&gt;%</span></span>
-<span id="cb14-24"><a href="#cb14-24"></a><span class="in">  filter(PARAMCD == "INVET") %&gt;%</span></span>
-<span id="cb14-25"><a href="#cb14-25"></a><span class="in">  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)</span></span>
-<span id="cb14-26"><a href="#cb14-26"></a></span>
-<span id="cb14-27"><a href="#cb14-27"></a><span class="in">anl &lt;- inner_join(adsl_f, adrs_f, by = c("STUDYID", "USUBJID"))</span></span>
-<span id="cb14-28"><a href="#cb14-28"></a><span class="in">anl &lt;- df_explicit_na(anl)</span></span>
-<span id="cb14-29"><a href="#cb14-29"></a><span class="in">anl_labels &lt;- var_labels(anl)</span></span>
-<span id="cb14-30"><a href="#cb14-30"></a></span>
-<span id="cb14-31"><a href="#cb14-31"></a><span class="in">anl_rsp_arms_ab &lt;- anl %&gt;%</span></span>
-<span id="cb14-32"><a href="#cb14-32"></a><span class="in">  mutate(is_rsp = AVALC %in% c("CR", "PR")) %&gt;%</span></span>
-<span id="cb14-33"><a href="#cb14-33"></a><span class="in">  filter(ARMCD %in% c("ARM B", "ARM A")) %&gt;%</span></span>
-<span id="cb14-34"><a href="#cb14-34"></a><span class="in">  mutate(</span></span>
-<span id="cb14-35"><a href="#cb14-35"></a><span class="in">    ARMCD = relevel(ARMCD, ref = "ARM B") %&gt;%</span></span>
-<span id="cb14-36"><a href="#cb14-36"></a><span class="in">      droplevels(),</span></span>
-<span id="cb14-37"><a href="#cb14-37"></a><span class="in">    ARM = relevel(ARM, ref = "B: Placebo") %&gt;%</span></span>
-<span id="cb14-38"><a href="#cb14-38"></a><span class="in">      droplevels()</span></span>
-<span id="cb14-39"><a href="#cb14-39"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-40"><a href="#cb14-40"></a><span class="in">  droplevels()</span></span>
-<span id="cb14-41"><a href="#cb14-41"></a><span class="in">var_labels(anl_rsp_arms_ab) &lt;- c(anl_labels, is_rsp = "Is Responder")</span></span>
-<span id="cb14-42"><a href="#cb14-42"></a><span class="in">```</span></span>
-<span id="cb14-43"><a href="#cb14-43"></a></span>
-<span id="cb14-44"><a href="#cb14-44"></a><span class="fu">## Standard Plot</span></span>
-<span id="cb14-45"><a href="#cb14-45"></a></span>
-<span id="cb14-46"><a href="#cb14-46"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb14-47"><a href="#cb14-47"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb14-48"><a href="#cb14-48"></a></span>
-<span id="cb14-49"><a href="#cb14-49"></a><span class="co">&lt;!-- skip strict because of https://github.com/therneau/survival/issues/240 --&gt;</span></span>
-<span id="cb14-50"><a href="#cb14-50"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 --&gt;</span></span>
-<span id="cb14-51"><a href="#cb14-51"></a><span class="in">```{r plot1, test = list(plot_v1 = "plot"), fig.width = 20, fig.height = 5, opts.label = ifelse(packageVersion("survival") &lt; "3.5-8" || packageVersion("tern") &lt; "0.9.3.9018", "skip_test_strict", "")}</span></span>
-<span id="cb14-52"><a href="#cb14-52"></a><span class="in">df &lt;- extract_rsp_subgroups(</span></span>
-<span id="cb14-53"><a href="#cb14-53"></a><span class="in">  variables = list(</span></span>
-<span id="cb14-54"><a href="#cb14-54"></a><span class="in">    rsp = "is_rsp",</span></span>
-<span id="cb14-55"><a href="#cb14-55"></a><span class="in">    arm = "ARM",</span></span>
-<span id="cb14-56"><a href="#cb14-56"></a><span class="in">    subgroups = c("SEX", "BMRKR2"),</span></span>
-<span id="cb14-57"><a href="#cb14-57"></a><span class="in">    strata = "STRATA2"</span></span>
-<span id="cb14-58"><a href="#cb14-58"></a><span class="in">  ),</span></span>
-<span id="cb14-59"><a href="#cb14-59"></a><span class="in">  data = anl_rsp_arms_ab,</span></span>
-<span id="cb14-60"><a href="#cb14-60"></a><span class="in">  conf_level = 0.95</span></span>
-<span id="cb14-61"><a href="#cb14-61"></a><span class="in">)</span></span>
-<span id="cb14-62"><a href="#cb14-62"></a></span>
-<span id="cb14-63"><a href="#cb14-63"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
-<span id="cb14-64"><a href="#cb14-64"></a><span class="in">  tabulate_rsp_subgroups(df, vars = c("n_tot", "n", "n_rsp", "prop", "or", "ci"))</span></span>
-<span id="cb14-65"><a href="#cb14-65"></a></span>
-<span id="cb14-66"><a href="#cb14-66"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
-<span id="cb14-67"><a href="#cb14-67"></a><span class="in">plot</span></span>
-<span id="cb14-68"><a href="#cb14-68"></a><span class="in">```</span></span>
-<span id="cb14-69"><a href="#cb14-69"></a></span>
-<span id="cb14-70"><a href="#cb14-70"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot1")`</span></span>
-<span id="cb14-71"><a href="#cb14-71"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb14-72"><a href="#cb14-72"></a>:::</span>
-<span id="cb14-73"><a href="#cb14-73"></a></span>
-<span id="cb14-74"><a href="#cb14-74"></a><span class="fu">## Plot Specifying Class Variables and &lt;br/&gt; Options for the Treatment Variable</span></span>
-<span id="cb14-75"><a href="#cb14-75"></a></span>
-<span id="cb14-76"><a href="#cb14-76"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb14-77"><a href="#cb14-77"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb14-78"><a href="#cb14-78"></a></span>
-<span id="cb14-79"><a href="#cb14-79"></a><span class="co">&lt;!-- skip strict because of https://github.com/therneau/survival/issues/240 --&gt;</span></span>
-<span id="cb14-80"><a href="#cb14-80"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 --&gt;</span></span>
-<span id="cb14-81"><a href="#cb14-81"></a><span class="in">```{r plot2, test = list(plot_v2 = "plot"), fig.width = 20, fig.height = 5, opts.label = ifelse(packageVersion("survival") &lt; "3.5-8" || packageVersion("tern") &lt; "0.9.3.9018", "skip_test_strict", "")}</span></span>
-<span id="cb14-82"><a href="#cb14-82"></a><span class="in">anl_rsp_comb_arms_ac &lt;- anl %&gt;%</span></span>
-<span id="cb14-83"><a href="#cb14-83"></a><span class="in">  mutate(is_rsp = AVALC %in% c("CR", "PR")) %&gt;%</span></span>
-<span id="cb14-84"><a href="#cb14-84"></a><span class="in">  filter(ARMCD %in% c("ARM B", "ARM A", "ARM C")) %&gt;%</span></span>
-<span id="cb14-85"><a href="#cb14-85"></a><span class="in">  mutate(</span></span>
-<span id="cb14-86"><a href="#cb14-86"></a><span class="in">    ARMCD = relevel(ARMCD, ref = "ARM B") %&gt;%</span></span>
-<span id="cb14-87"><a href="#cb14-87"></a><span class="in">      droplevels() %&gt;%</span></span>
-<span id="cb14-88"><a href="#cb14-88"></a><span class="in">      combine_levels(levels = c("ARM A", "ARM C")),</span></span>
-<span id="cb14-89"><a href="#cb14-89"></a><span class="in">    ARM = relevel(ARM, ref = "B: Placebo") %&gt;%</span></span>
-<span id="cb14-90"><a href="#cb14-90"></a><span class="in">      droplevels() %&gt;%</span></span>
-<span id="cb14-91"><a href="#cb14-91"></a><span class="in">      combine_levels(levels = c("A: Drug X", "C: Combination")),</span></span>
-<span id="cb14-92"><a href="#cb14-92"></a><span class="in">    # reorder levels of SEX</span></span>
-<span id="cb14-93"><a href="#cb14-93"></a><span class="in">    SEX = forcats::fct_relevel(SEX, "M", "F"),</span></span>
-<span id="cb14-94"><a href="#cb14-94"></a><span class="in">    # reorder levels of STRATA1 by frequency</span></span>
-<span id="cb14-95"><a href="#cb14-95"></a><span class="in">    STRATA1 = forcats::fct_infreq(STRATA1)</span></span>
-<span id="cb14-96"><a href="#cb14-96"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-97"><a href="#cb14-97"></a><span class="in">  droplevels()</span></span>
-<span id="cb14-98"><a href="#cb14-98"></a><span class="in">var_labels(anl_rsp_comb_arms_ac) &lt;- c(anl_labels, is_rsp = "Is Responder")</span></span>
-<span id="cb14-99"><a href="#cb14-99"></a></span>
-<span id="cb14-100"><a href="#cb14-100"></a><span class="in">df &lt;- extract_rsp_subgroups(</span></span>
-<span id="cb14-101"><a href="#cb14-101"></a><span class="in">  variables = list(</span></span>
-<span id="cb14-102"><a href="#cb14-102"></a><span class="in">    rsp = "is_rsp",</span></span>
-<span id="cb14-103"><a href="#cb14-103"></a><span class="in">    arm = "ARMCD",</span></span>
-<span id="cb14-104"><a href="#cb14-104"></a><span class="in">    subgroups = c("SEX", "BMRKR2"),</span></span>
-<span id="cb14-105"><a href="#cb14-105"></a><span class="in">    strata = "STRATA2"</span></span>
-<span id="cb14-106"><a href="#cb14-106"></a><span class="in">  ),</span></span>
-<span id="cb14-107"><a href="#cb14-107"></a><span class="in">  data = anl_rsp_comb_arms_ac,</span></span>
-<span id="cb14-108"><a href="#cb14-108"></a><span class="in">  conf_level = 0.95</span></span>
-<span id="cb14-109"><a href="#cb14-109"></a><span class="in">)</span></span>
-<span id="cb14-110"><a href="#cb14-110"></a></span>
-<span id="cb14-111"><a href="#cb14-111"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
-<span id="cb14-112"><a href="#cb14-112"></a><span class="in">  tabulate_rsp_subgroups(df, vars = c("n_tot", "n", "n_rsp", "prop", "or", "ci"))</span></span>
-<span id="cb14-113"><a href="#cb14-113"></a></span>
-<span id="cb14-114"><a href="#cb14-114"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
-<span id="cb14-115"><a href="#cb14-115"></a><span class="in">plot</span></span>
-<span id="cb14-116"><a href="#cb14-116"></a><span class="in">```</span></span>
-<span id="cb14-117"><a href="#cb14-117"></a></span>
-<span id="cb14-118"><a href="#cb14-118"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot2")`</span></span>
-<span id="cb14-119"><a href="#cb14-119"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb14-120"><a href="#cb14-120"></a>:::</span>
-<span id="cb14-121"><a href="#cb14-121"></a></span>
-<span id="cb14-122"><a href="#cb14-122"></a><span class="fu">## Plot Selecting Columns and &lt;br/&gt; Changing the Alpha Level</span></span>
-<span id="cb14-123"><a href="#cb14-123"></a></span>
-<span id="cb14-124"><a href="#cb14-124"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb14-125"><a href="#cb14-125"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb14-126"><a href="#cb14-126"></a></span>
-<span id="cb14-127"><a href="#cb14-127"></a><span class="co">&lt;!-- skip strict because of https://github.com/therneau/survival/issues/240 --&gt;</span></span>
-<span id="cb14-128"><a href="#cb14-128"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 --&gt;</span></span>
-<span id="cb14-129"><a href="#cb14-129"></a><span class="in">```{r plot3, test = list(plot_v3 = "plot"), fig.width = 10, fig.height = 4, opts.label = ifelse(packageVersion("survival") &lt; "3.5-8" || packageVersion("tern") &lt; "0.9.3.9018", "skip_test_strict", "")}</span></span>
-<span id="cb14-130"><a href="#cb14-130"></a><span class="in">df &lt;- extract_rsp_subgroups(</span></span>
-<span id="cb14-131"><a href="#cb14-131"></a><span class="in">  variables = list(</span></span>
-<span id="cb14-132"><a href="#cb14-132"></a><span class="in">    rsp = "is_rsp",</span></span>
-<span id="cb14-133"><a href="#cb14-133"></a><span class="in">    arm = "ARM",</span></span>
-<span id="cb14-134"><a href="#cb14-134"></a><span class="in">    subgroups = c("SEX", "BMRKR2"),</span></span>
-<span id="cb14-135"><a href="#cb14-135"></a><span class="in">    strata = "STRATA2"</span></span>
-<span id="cb14-136"><a href="#cb14-136"></a><span class="in">  ),</span></span>
-<span id="cb14-137"><a href="#cb14-137"></a><span class="in">  data = anl_rsp_arms_ab,</span></span>
-<span id="cb14-138"><a href="#cb14-138"></a><span class="in">  conf_level = 0.90</span></span>
-<span id="cb14-139"><a href="#cb14-139"></a><span class="in">)</span></span>
-<span id="cb14-140"><a href="#cb14-140"></a></span>
-<span id="cb14-141"><a href="#cb14-141"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
-<span id="cb14-142"><a href="#cb14-142"></a><span class="in">  tabulate_rsp_subgroups(df, vars = c("n_tot", "or", "ci"))</span></span>
-<span id="cb14-143"><a href="#cb14-143"></a></span>
-<span id="cb14-144"><a href="#cb14-144"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
-<span id="cb14-145"><a href="#cb14-145"></a><span class="in">plot</span></span>
-<span id="cb14-146"><a href="#cb14-146"></a><span class="in">```</span></span>
-<span id="cb14-147"><a href="#cb14-147"></a></span>
-<span id="cb14-148"><a href="#cb14-148"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot3")`</span></span>
-<span id="cb14-149"><a href="#cb14-149"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb14-150"><a href="#cb14-150"></a>:::</span>
-<span id="cb14-151"><a href="#cb14-151"></a></span>
-<span id="cb14-152"><a href="#cb14-152"></a><span class="fu">## Plot with Fixed &lt;br/&gt; Symbol Size</span></span>
-<span id="cb14-153"><a href="#cb14-153"></a></span>
-<span id="cb14-154"><a href="#cb14-154"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb14-155"><a href="#cb14-155"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb14-156"><a href="#cb14-156"></a></span>
-<span id="cb14-157"><a href="#cb14-157"></a><span class="co">&lt;!-- skip strict because of https://github.com/therneau/survival/issues/240 --&gt;</span></span>
-<span id="cb14-158"><a href="#cb14-158"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 --&gt;</span></span>
-<span id="cb14-159"><a href="#cb14-159"></a><span class="in">```{r plot4, test = list(plot_v4 = "plot"), fig.width = 20, fig.height = 5, opts.label = ifelse(packageVersion("survival") &lt; "3.5-8" || packageVersion("tern") &lt; "0.9.3.9018", "skip_test_strict", "")}</span></span>
-<span id="cb14-160"><a href="#cb14-160"></a><span class="in">df &lt;- extract_rsp_subgroups(</span></span>
-<span id="cb14-161"><a href="#cb14-161"></a><span class="in">  variables = list(</span></span>
-<span id="cb14-162"><a href="#cb14-162"></a><span class="in">    rsp = "is_rsp",</span></span>
-<span id="cb14-163"><a href="#cb14-163"></a><span class="in">    arm = "ARM",</span></span>
-<span id="cb14-164"><a href="#cb14-164"></a><span class="in">    subgroups = c("SEX", "BMRKR2"),</span></span>
-<span id="cb14-165"><a href="#cb14-165"></a><span class="in">    strata = "STRATA2"</span></span>
-<span id="cb14-166"><a href="#cb14-166"></a><span class="in">  ),</span></span>
-<span id="cb14-167"><a href="#cb14-167"></a><span class="in">  data = anl_rsp_arms_ab,</span></span>
-<span id="cb14-168"><a href="#cb14-168"></a><span class="in">  conf_level = 0.95</span></span>
-<span id="cb14-169"><a href="#cb14-169"></a><span class="in">)</span></span>
-<span id="cb14-170"><a href="#cb14-170"></a></span>
-<span id="cb14-171"><a href="#cb14-171"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
-<span id="cb14-172"><a href="#cb14-172"></a><span class="in">  tabulate_rsp_subgroups(df, vars = c("n_tot", "n", "n_rsp", "prop", "or", "ci"))</span></span>
-<span id="cb14-173"><a href="#cb14-173"></a></span>
-<span id="cb14-174"><a href="#cb14-174"></a><span class="in">plot &lt;- g_forest(</span></span>
-<span id="cb14-175"><a href="#cb14-175"></a><span class="in">  tbl = result,</span></span>
-<span id="cb14-176"><a href="#cb14-176"></a><span class="in">  col_symbol_size = NULL</span></span>
-<span id="cb14-177"><a href="#cb14-177"></a><span class="in">)</span></span>
-<span id="cb14-178"><a href="#cb14-178"></a><span class="in">plot</span></span>
-<span id="cb14-179"><a href="#cb14-179"></a><span class="in">```</span></span>
-<span id="cb14-180"><a href="#cb14-180"></a></span>
-<span id="cb14-181"><a href="#cb14-181"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot4")`</span></span>
-<span id="cb14-182"><a href="#cb14-182"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb14-183"><a href="#cb14-183"></a>:::</span>
-<span id="cb14-184"><a href="#cb14-184"></a></span>
-<span id="cb14-185"><a href="#cb14-185"></a><span class="fu">## Plot of CR Only, Setting &lt;br/&gt; Values Indicating Response</span></span>
-<span id="cb14-186"><a href="#cb14-186"></a></span>
-<span id="cb14-187"><a href="#cb14-187"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb14-188"><a href="#cb14-188"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb14-189"><a href="#cb14-189"></a></span>
-<span id="cb14-190"><a href="#cb14-190"></a><span class="co">&lt;!-- skip strict because of https://github.com/therneau/survival/issues/240 --&gt;</span></span>
-<span id="cb14-191"><a href="#cb14-191"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 --&gt;</span></span>
-<span id="cb14-192"><a href="#cb14-192"></a><span class="in">```{r plot5, test = list(plot_v5 = "plot"), fig.width = 20, fig.height = 5, opts.label = ifelse(packageVersion("survival") &lt; "3.5-8" || packageVersion("tern") &lt; "0.9.3.9018", "skip_test_strict", "")}</span></span>
-<span id="cb14-193"><a href="#cb14-193"></a><span class="in">anl_cr_arms_ab &lt;- anl %&gt;%</span></span>
-<span id="cb14-194"><a href="#cb14-194"></a><span class="in">  mutate(is_rsp = AVALC == "CR") %&gt;%</span></span>
-<span id="cb14-195"><a href="#cb14-195"></a><span class="in">  filter(ARMCD %in% c("ARM B", "ARM A")) %&gt;%</span></span>
-<span id="cb14-196"><a href="#cb14-196"></a><span class="in">  mutate(</span></span>
-<span id="cb14-197"><a href="#cb14-197"></a><span class="in">    ARMCD = relevel(ARMCD, ref = "ARM B") %&gt;%</span></span>
-<span id="cb14-198"><a href="#cb14-198"></a><span class="in">      droplevels(),</span></span>
-<span id="cb14-199"><a href="#cb14-199"></a><span class="in">    ARM = relevel(ARM, ref = "B: Placebo") %&gt;%</span></span>
-<span id="cb14-200"><a href="#cb14-200"></a><span class="in">      droplevels()</span></span>
-<span id="cb14-201"><a href="#cb14-201"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb14-202"><a href="#cb14-202"></a><span class="in">  droplevels()</span></span>
-<span id="cb14-203"><a href="#cb14-203"></a><span class="in">var_labels(anl_cr_arms_ab) &lt;- c(anl_labels, is_rsp = "Is CR")</span></span>
-<span id="cb14-204"><a href="#cb14-204"></a></span>
-<span id="cb14-205"><a href="#cb14-205"></a><span class="in">df &lt;- extract_rsp_subgroups(</span></span>
-<span id="cb14-206"><a href="#cb14-206"></a><span class="in">  variables = list(</span></span>
-<span id="cb14-207"><a href="#cb14-207"></a><span class="in">    rsp = "is_rsp",</span></span>
-<span id="cb14-208"><a href="#cb14-208"></a><span class="in">    arm = "ARM",</span></span>
-<span id="cb14-209"><a href="#cb14-209"></a><span class="in">    subgroups = c("SEX", "BMRKR2"),</span></span>
-<span id="cb14-210"><a href="#cb14-210"></a><span class="in">    strata = "STRATA2"</span></span>
-<span id="cb14-211"><a href="#cb14-211"></a><span class="in">  ),</span></span>
-<span id="cb14-212"><a href="#cb14-212"></a><span class="in">  data = anl_cr_arms_ab,</span></span>
-<span id="cb14-213"><a href="#cb14-213"></a><span class="in">  conf_level = 0.95</span></span>
-<span id="cb14-214"><a href="#cb14-214"></a><span class="in">)</span></span>
-<span id="cb14-215"><a href="#cb14-215"></a></span>
-<span id="cb14-216"><a href="#cb14-216"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
-<span id="cb14-217"><a href="#cb14-217"></a><span class="in">  tabulate_rsp_subgroups(df, vars = c("n_tot", "n", "n_rsp", "prop", "or", "ci"))</span></span>
-<span id="cb14-218"><a href="#cb14-218"></a></span>
-<span id="cb14-219"><a href="#cb14-219"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
-<span id="cb14-220"><a href="#cb14-220"></a><span class="in">plot</span></span>
-<span id="cb14-221"><a href="#cb14-221"></a><span class="in">```</span></span>
-<span id="cb14-222"><a href="#cb14-222"></a></span>
-<span id="cb14-223"><a href="#cb14-223"></a><span class="in">```{r test parameters, test = list(width = "width", height = "height"), echo = FALSE}</span></span>
-<span id="cb14-224"><a href="#cb14-224"></a><span class="in">width &lt;- 20</span></span>
-<span id="cb14-225"><a href="#cb14-225"></a><span class="in">height &lt;- 5</span></span>
-<span id="cb14-226"><a href="#cb14-226"></a><span class="in">```</span></span>
-<span id="cb14-227"><a href="#cb14-227"></a></span>
-<span id="cb14-228"><a href="#cb14-228"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot5")`</span></span>
-<span id="cb14-229"><a href="#cb14-229"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb14-230"><a href="#cb14-230"></a>:::</span>
-<span id="cb14-231"><a href="#cb14-231"></a></span>
-<span id="cb14-232"><a href="#cb14-232"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb14-233"><a href="#cb14-233"></a></span>
-<span id="cb14-234"><a href="#cb14-234"></a><span class="fu">## `teal` App</span></span>
-<span id="cb14-235"><a href="#cb14-235"></a></span>
-<span id="cb14-236"><a href="#cb14-236"></a>::: {.panel-tabset .nav-justified}</span>
-<span id="cb14-237"><a href="#cb14-237"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
-<span id="cb14-238"><a href="#cb14-238"></a></span>
-<span id="cb14-239"><a href="#cb14-239"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb14-240"><a href="#cb14-240"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb14-241"><a href="#cb14-241"></a></span>
-<span id="cb14-242"><a href="#cb14-242"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb14-243"><a href="#cb14-243"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb14-244"><a href="#cb14-244"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb14-245"><a href="#cb14-245"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb14-246"><a href="#cb14-246"></a><span class="in">  ADRS &lt;- random.cdisc.data::cadrs</span></span>
-<span id="cb14-247"><a href="#cb14-247"></a><span class="in">})</span></span>
-<span id="cb14-248"><a href="#cb14-248"></a><span class="in">datanames &lt;- c("ADSL", "ADRS")</span></span>
-<span id="cb14-249"><a href="#cb14-249"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb14-250"><a href="#cb14-250"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb14-251"><a href="#cb14-251"></a></span>
-<span id="cb14-252"><a href="#cb14-252"></a><span class="in">arm_ref_comp &lt;- list(</span></span>
-<span id="cb14-253"><a href="#cb14-253"></a><span class="in">  ARM = list(</span></span>
-<span id="cb14-254"><a href="#cb14-254"></a><span class="in">    ref = "B: Placebo",</span></span>
-<span id="cb14-255"><a href="#cb14-255"></a><span class="in">    comp = c("A: Drug X", "C: Combination")</span></span>
-<span id="cb14-256"><a href="#cb14-256"></a><span class="in">  ),</span></span>
-<span id="cb14-257"><a href="#cb14-257"></a><span class="in">  ARMCD = list(</span></span>
-<span id="cb14-258"><a href="#cb14-258"></a><span class="in">    ref = "ARM B",</span></span>
-<span id="cb14-259"><a href="#cb14-259"></a><span class="in">    comp = c("ARM A", "ARM C")</span></span>
-<span id="cb14-260"><a href="#cb14-260"></a><span class="in">  )</span></span>
-<span id="cb14-261"><a href="#cb14-261"></a><span class="in">)</span></span>
-<span id="cb14-262"><a href="#cb14-262"></a></span>
-<span id="cb14-263"><a href="#cb14-263"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb14-264"><a href="#cb14-264"></a><span class="in">ADSL &lt;- data[["ADSL"]]</span></span>
-<span id="cb14-265"><a href="#cb14-265"></a><span class="in">ADRS &lt;- data[["ADRS"]]</span></span>
-<span id="cb14-266"><a href="#cb14-266"></a></span>
-<span id="cb14-267"><a href="#cb14-267"></a><span class="in">## Setup App</span></span>
-<span id="cb14-268"><a href="#cb14-268"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb14-269"><a href="#cb14-269"></a><span class="in">  data = data,</span></span>
-<span id="cb14-270"><a href="#cb14-270"></a><span class="in">  modules = modules(</span></span>
-<span id="cb14-271"><a href="#cb14-271"></a><span class="in">    tm_g_forest_rsp(</span></span>
-<span id="cb14-272"><a href="#cb14-272"></a><span class="in">      label = "Forest Response",</span></span>
-<span id="cb14-273"><a href="#cb14-273"></a><span class="in">      dataname = "ADRS",</span></span>
-<span id="cb14-274"><a href="#cb14-274"></a><span class="in">      arm_var = choices_selected(</span></span>
-<span id="cb14-275"><a href="#cb14-275"></a><span class="in">        variable_choices(ADSL, c("ARM", "ARMCD")),</span></span>
-<span id="cb14-276"><a href="#cb14-276"></a><span class="in">        "ARMCD"</span></span>
-<span id="cb14-277"><a href="#cb14-277"></a><span class="in">      ),</span></span>
-<span id="cb14-278"><a href="#cb14-278"></a><span class="in">      arm_ref_comp = arm_ref_comp,</span></span>
-<span id="cb14-279"><a href="#cb14-279"></a><span class="in">      paramcd = choices_selected(</span></span>
-<span id="cb14-280"><a href="#cb14-280"></a><span class="in">        value_choices(ADRS, "PARAMCD", "PARAM"),</span></span>
-<span id="cb14-281"><a href="#cb14-281"></a><span class="in">        "BESRSPI"</span></span>
-<span id="cb14-282"><a href="#cb14-282"></a><span class="in">      ),</span></span>
-<span id="cb14-283"><a href="#cb14-283"></a><span class="in">      subgroup_var = choices_selected(</span></span>
-<span id="cb14-284"><a href="#cb14-284"></a><span class="in">        variable_choices(ADSL, names(ADSL)),</span></span>
-<span id="cb14-285"><a href="#cb14-285"></a><span class="in">        c("BMRKR2", "SEX")</span></span>
-<span id="cb14-286"><a href="#cb14-286"></a><span class="in">      ),</span></span>
-<span id="cb14-287"><a href="#cb14-287"></a><span class="in">      strata_var = choices_selected(</span></span>
-<span id="cb14-288"><a href="#cb14-288"></a><span class="in">        variable_choices(ADSL, c("STRATA1", "STRATA2")),</span></span>
-<span id="cb14-289"><a href="#cb14-289"></a><span class="in">        "STRATA2"</span></span>
-<span id="cb14-290"><a href="#cb14-290"></a><span class="in">      ),</span></span>
-<span id="cb14-291"><a href="#cb14-291"></a><span class="in">      plot_height = c(600L, 200L, 2000L),</span></span>
-<span id="cb14-292"><a href="#cb14-292"></a><span class="in">      plot_width = c(1100L, 200L, 2000L)</span></span>
-<span id="cb14-293"><a href="#cb14-293"></a><span class="in">    )</span></span>
-<span id="cb14-294"><a href="#cb14-294"></a><span class="in">  )</span></span>
-<span id="cb14-295"><a href="#cb14-295"></a><span class="in">)</span></span>
-<span id="cb14-296"><a href="#cb14-296"></a></span>
-<span id="cb14-297"><a href="#cb14-297"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb14-298"><a href="#cb14-298"></a><span class="in">```</span></span>
-<span id="cb14-299"><a href="#cb14-299"></a></span>
-<span id="cb14-300"><a href="#cb14-300"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
-<span id="cb14-301"><a href="#cb14-301"></a>:::</span>
-<span id="cb14-302"><a href="#cb14-302"></a></span>
-<span id="cb14-303"><a href="#cb14-303"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb14-304"><a href="#cb14-304"></a></span>
-<span id="cb14-305"><a href="#cb14-305"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb11" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">---</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="an">title:</span><span class="co"> FSTG01</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="an">subtitle:</span><span class="co"> Subgroup Analysis of Best Overall Response</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="co">---</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a></span>
+<span id="cb11-6"><a href="#cb11-6"></a>------------------------------------------------------------------------</span>
+<span id="cb11-7"><a href="#cb11-7"></a></span>
+<span id="cb11-8"><a href="#cb11-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb11-9"><a href="#cb11-9"></a></span>
+<span id="cb11-10"><a href="#cb11-10"></a>:::: {.panel-tabset}</span>
+<span id="cb11-11"><a href="#cb11-11"></a></span>
+<span id="cb11-12"><a href="#cb11-12"></a><span class="in">```{r setup, echo = FALSE}</span></span>
+<span id="cb11-13"><a href="#cb11-13"></a><span class="in">library(dplyr)</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a><span class="in">library(tern)</span></span>
+<span id="cb11-15"><a href="#cb11-15"></a><span class="in">library(nestcolor)</span></span>
+<span id="cb11-16"><a href="#cb11-16"></a></span>
+<span id="cb11-17"><a href="#cb11-17"></a><span class="in">adsl_f &lt;- random.cdisc.data::cadsl %&gt;%</span></span>
+<span id="cb11-18"><a href="#cb11-18"></a><span class="in">  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)</span></span>
+<span id="cb11-19"><a href="#cb11-19"></a></span>
+<span id="cb11-20"><a href="#cb11-20"></a><span class="in">adrs_f &lt;- random.cdisc.data::cadrs %&gt;%</span></span>
+<span id="cb11-21"><a href="#cb11-21"></a><span class="in">  filter(PARAMCD == "INVET") %&gt;%</span></span>
+<span id="cb11-22"><a href="#cb11-22"></a><span class="in">  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)</span></span>
+<span id="cb11-23"><a href="#cb11-23"></a></span>
+<span id="cb11-24"><a href="#cb11-24"></a><span class="in">anl &lt;- inner_join(adsl_f, adrs_f, by = c("STUDYID", "USUBJID"))</span></span>
+<span id="cb11-25"><a href="#cb11-25"></a><span class="in">anl &lt;- df_explicit_na(anl)</span></span>
+<span id="cb11-26"><a href="#cb11-26"></a><span class="in">anl_labels &lt;- var_labels(anl)</span></span>
+<span id="cb11-27"><a href="#cb11-27"></a></span>
+<span id="cb11-28"><a href="#cb11-28"></a><span class="in">anl_rsp_arms_ab &lt;- anl %&gt;%</span></span>
+<span id="cb11-29"><a href="#cb11-29"></a><span class="in">  mutate(is_rsp = AVALC %in% c("CR", "PR")) %&gt;%</span></span>
+<span id="cb11-30"><a href="#cb11-30"></a><span class="in">  filter(ARMCD %in% c("ARM B", "ARM A")) %&gt;%</span></span>
+<span id="cb11-31"><a href="#cb11-31"></a><span class="in">  mutate(</span></span>
+<span id="cb11-32"><a href="#cb11-32"></a><span class="in">    ARMCD = relevel(ARMCD, ref = "ARM B") %&gt;%</span></span>
+<span id="cb11-33"><a href="#cb11-33"></a><span class="in">      droplevels(),</span></span>
+<span id="cb11-34"><a href="#cb11-34"></a><span class="in">    ARM = relevel(ARM, ref = "B: Placebo") %&gt;%</span></span>
+<span id="cb11-35"><a href="#cb11-35"></a><span class="in">      droplevels()</span></span>
+<span id="cb11-36"><a href="#cb11-36"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-37"><a href="#cb11-37"></a><span class="in">  droplevels()</span></span>
+<span id="cb11-38"><a href="#cb11-38"></a><span class="in">var_labels(anl_rsp_arms_ab) &lt;- c(anl_labels, is_rsp = "Is Responder")</span></span>
+<span id="cb11-39"><a href="#cb11-39"></a><span class="in">```</span></span>
+<span id="cb11-40"><a href="#cb11-40"></a></span>
+<span id="cb11-41"><a href="#cb11-41"></a><span class="fu">## Standard Plot</span></span>
+<span id="cb11-42"><a href="#cb11-42"></a></span>
+<span id="cb11-43"><a href="#cb11-43"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb11-44"><a href="#cb11-44"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb11-45"><a href="#cb11-45"></a></span>
+<span id="cb11-46"><a href="#cb11-46"></a><span class="co">&lt;!-- skip strict because of https://github.com/therneau/survival/issues/240 --&gt;</span></span>
+<span id="cb11-47"><a href="#cb11-47"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 --&gt;</span></span>
+<span id="cb11-48"><a href="#cb11-48"></a><span class="in">```{r plot1, test = list(plot_v1 = "plot"), fig.width = 20, fig.height = 5, opts.label = ifelse(packageVersion("survival") &lt; "3.5-8" || packageVersion("tern") &lt; "0.9.3.9018", "skip_test_strict", "")}</span></span>
+<span id="cb11-49"><a href="#cb11-49"></a><span class="in">df &lt;- extract_rsp_subgroups(</span></span>
+<span id="cb11-50"><a href="#cb11-50"></a><span class="in">  variables = list(</span></span>
+<span id="cb11-51"><a href="#cb11-51"></a><span class="in">    rsp = "is_rsp",</span></span>
+<span id="cb11-52"><a href="#cb11-52"></a><span class="in">    arm = "ARM",</span></span>
+<span id="cb11-53"><a href="#cb11-53"></a><span class="in">    subgroups = c("SEX", "BMRKR2"),</span></span>
+<span id="cb11-54"><a href="#cb11-54"></a><span class="in">    strata = "STRATA2"</span></span>
+<span id="cb11-55"><a href="#cb11-55"></a><span class="in">  ),</span></span>
+<span id="cb11-56"><a href="#cb11-56"></a><span class="in">  data = anl_rsp_arms_ab,</span></span>
+<span id="cb11-57"><a href="#cb11-57"></a><span class="in">  conf_level = 0.95</span></span>
+<span id="cb11-58"><a href="#cb11-58"></a><span class="in">)</span></span>
+<span id="cb11-59"><a href="#cb11-59"></a></span>
+<span id="cb11-60"><a href="#cb11-60"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
+<span id="cb11-61"><a href="#cb11-61"></a><span class="in">  tabulate_rsp_subgroups(df, vars = c("n_tot", "n", "n_rsp", "prop", "or", "ci"))</span></span>
+<span id="cb11-62"><a href="#cb11-62"></a></span>
+<span id="cb11-63"><a href="#cb11-63"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
+<span id="cb11-64"><a href="#cb11-64"></a><span class="in">plot</span></span>
+<span id="cb11-65"><a href="#cb11-65"></a><span class="in">```</span></span>
+<span id="cb11-66"><a href="#cb11-66"></a></span>
+<span id="cb11-67"><a href="#cb11-67"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot1")`</span></span>
+<span id="cb11-68"><a href="#cb11-68"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb11-69"><a href="#cb11-69"></a>:::</span>
+<span id="cb11-70"><a href="#cb11-70"></a></span>
+<span id="cb11-71"><a href="#cb11-71"></a><span class="fu">## Plot Specifying Class Variables and &lt;br/&gt; Options for the Treatment Variable</span></span>
+<span id="cb11-72"><a href="#cb11-72"></a></span>
+<span id="cb11-73"><a href="#cb11-73"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb11-74"><a href="#cb11-74"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb11-75"><a href="#cb11-75"></a></span>
+<span id="cb11-76"><a href="#cb11-76"></a><span class="co">&lt;!-- skip strict because of https://github.com/therneau/survival/issues/240 --&gt;</span></span>
+<span id="cb11-77"><a href="#cb11-77"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 --&gt;</span></span>
+<span id="cb11-78"><a href="#cb11-78"></a><span class="in">```{r plot2, test = list(plot_v2 = "plot"), fig.width = 20, fig.height = 5, opts.label = ifelse(packageVersion("survival") &lt; "3.5-8" || packageVersion("tern") &lt; "0.9.3.9018", "skip_test_strict", "")}</span></span>
+<span id="cb11-79"><a href="#cb11-79"></a><span class="in">anl_rsp_comb_arms_ac &lt;- anl %&gt;%</span></span>
+<span id="cb11-80"><a href="#cb11-80"></a><span class="in">  mutate(is_rsp = AVALC %in% c("CR", "PR")) %&gt;%</span></span>
+<span id="cb11-81"><a href="#cb11-81"></a><span class="in">  filter(ARMCD %in% c("ARM B", "ARM A", "ARM C")) %&gt;%</span></span>
+<span id="cb11-82"><a href="#cb11-82"></a><span class="in">  mutate(</span></span>
+<span id="cb11-83"><a href="#cb11-83"></a><span class="in">    ARMCD = relevel(ARMCD, ref = "ARM B") %&gt;%</span></span>
+<span id="cb11-84"><a href="#cb11-84"></a><span class="in">      droplevels() %&gt;%</span></span>
+<span id="cb11-85"><a href="#cb11-85"></a><span class="in">      combine_levels(levels = c("ARM A", "ARM C")),</span></span>
+<span id="cb11-86"><a href="#cb11-86"></a><span class="in">    ARM = relevel(ARM, ref = "B: Placebo") %&gt;%</span></span>
+<span id="cb11-87"><a href="#cb11-87"></a><span class="in">      droplevels() %&gt;%</span></span>
+<span id="cb11-88"><a href="#cb11-88"></a><span class="in">      combine_levels(levels = c("A: Drug X", "C: Combination")),</span></span>
+<span id="cb11-89"><a href="#cb11-89"></a><span class="in">    # reorder levels of SEX</span></span>
+<span id="cb11-90"><a href="#cb11-90"></a><span class="in">    SEX = forcats::fct_relevel(SEX, "M", "F"),</span></span>
+<span id="cb11-91"><a href="#cb11-91"></a><span class="in">    # reorder levels of STRATA1 by frequency</span></span>
+<span id="cb11-92"><a href="#cb11-92"></a><span class="in">    STRATA1 = forcats::fct_infreq(STRATA1)</span></span>
+<span id="cb11-93"><a href="#cb11-93"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-94"><a href="#cb11-94"></a><span class="in">  droplevels()</span></span>
+<span id="cb11-95"><a href="#cb11-95"></a><span class="in">var_labels(anl_rsp_comb_arms_ac) &lt;- c(anl_labels, is_rsp = "Is Responder")</span></span>
+<span id="cb11-96"><a href="#cb11-96"></a></span>
+<span id="cb11-97"><a href="#cb11-97"></a><span class="in">df &lt;- extract_rsp_subgroups(</span></span>
+<span id="cb11-98"><a href="#cb11-98"></a><span class="in">  variables = list(</span></span>
+<span id="cb11-99"><a href="#cb11-99"></a><span class="in">    rsp = "is_rsp",</span></span>
+<span id="cb11-100"><a href="#cb11-100"></a><span class="in">    arm = "ARMCD",</span></span>
+<span id="cb11-101"><a href="#cb11-101"></a><span class="in">    subgroups = c("SEX", "BMRKR2"),</span></span>
+<span id="cb11-102"><a href="#cb11-102"></a><span class="in">    strata = "STRATA2"</span></span>
+<span id="cb11-103"><a href="#cb11-103"></a><span class="in">  ),</span></span>
+<span id="cb11-104"><a href="#cb11-104"></a><span class="in">  data = anl_rsp_comb_arms_ac,</span></span>
+<span id="cb11-105"><a href="#cb11-105"></a><span class="in">  conf_level = 0.95</span></span>
+<span id="cb11-106"><a href="#cb11-106"></a><span class="in">)</span></span>
+<span id="cb11-107"><a href="#cb11-107"></a></span>
+<span id="cb11-108"><a href="#cb11-108"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
+<span id="cb11-109"><a href="#cb11-109"></a><span class="in">  tabulate_rsp_subgroups(df, vars = c("n_tot", "n", "n_rsp", "prop", "or", "ci"))</span></span>
+<span id="cb11-110"><a href="#cb11-110"></a></span>
+<span id="cb11-111"><a href="#cb11-111"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
+<span id="cb11-112"><a href="#cb11-112"></a><span class="in">plot</span></span>
+<span id="cb11-113"><a href="#cb11-113"></a><span class="in">```</span></span>
+<span id="cb11-114"><a href="#cb11-114"></a></span>
+<span id="cb11-115"><a href="#cb11-115"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot2")`</span></span>
+<span id="cb11-116"><a href="#cb11-116"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb11-117"><a href="#cb11-117"></a>:::</span>
+<span id="cb11-118"><a href="#cb11-118"></a></span>
+<span id="cb11-119"><a href="#cb11-119"></a><span class="fu">## Plot Selecting Columns and &lt;br/&gt; Changing the Alpha Level</span></span>
+<span id="cb11-120"><a href="#cb11-120"></a></span>
+<span id="cb11-121"><a href="#cb11-121"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb11-122"><a href="#cb11-122"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb11-123"><a href="#cb11-123"></a></span>
+<span id="cb11-124"><a href="#cb11-124"></a><span class="co">&lt;!-- skip strict because of https://github.com/therneau/survival/issues/240 --&gt;</span></span>
+<span id="cb11-125"><a href="#cb11-125"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 --&gt;</span></span>
+<span id="cb11-126"><a href="#cb11-126"></a><span class="in">```{r plot3, test = list(plot_v3 = "plot"), fig.width = 10, fig.height = 4, opts.label = ifelse(packageVersion("survival") &lt; "3.5-8" || packageVersion("tern") &lt; "0.9.3.9018", "skip_test_strict", "")}</span></span>
+<span id="cb11-127"><a href="#cb11-127"></a><span class="in">df &lt;- extract_rsp_subgroups(</span></span>
+<span id="cb11-128"><a href="#cb11-128"></a><span class="in">  variables = list(</span></span>
+<span id="cb11-129"><a href="#cb11-129"></a><span class="in">    rsp = "is_rsp",</span></span>
+<span id="cb11-130"><a href="#cb11-130"></a><span class="in">    arm = "ARM",</span></span>
+<span id="cb11-131"><a href="#cb11-131"></a><span class="in">    subgroups = c("SEX", "BMRKR2"),</span></span>
+<span id="cb11-132"><a href="#cb11-132"></a><span class="in">    strata = "STRATA2"</span></span>
+<span id="cb11-133"><a href="#cb11-133"></a><span class="in">  ),</span></span>
+<span id="cb11-134"><a href="#cb11-134"></a><span class="in">  data = anl_rsp_arms_ab,</span></span>
+<span id="cb11-135"><a href="#cb11-135"></a><span class="in">  conf_level = 0.90</span></span>
+<span id="cb11-136"><a href="#cb11-136"></a><span class="in">)</span></span>
+<span id="cb11-137"><a href="#cb11-137"></a></span>
+<span id="cb11-138"><a href="#cb11-138"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
+<span id="cb11-139"><a href="#cb11-139"></a><span class="in">  tabulate_rsp_subgroups(df, vars = c("n_tot", "or", "ci"))</span></span>
+<span id="cb11-140"><a href="#cb11-140"></a></span>
+<span id="cb11-141"><a href="#cb11-141"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
+<span id="cb11-142"><a href="#cb11-142"></a><span class="in">plot</span></span>
+<span id="cb11-143"><a href="#cb11-143"></a><span class="in">```</span></span>
+<span id="cb11-144"><a href="#cb11-144"></a></span>
+<span id="cb11-145"><a href="#cb11-145"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot3")`</span></span>
+<span id="cb11-146"><a href="#cb11-146"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb11-147"><a href="#cb11-147"></a>:::</span>
+<span id="cb11-148"><a href="#cb11-148"></a></span>
+<span id="cb11-149"><a href="#cb11-149"></a><span class="fu">## Plot with Fixed &lt;br/&gt; Symbol Size</span></span>
+<span id="cb11-150"><a href="#cb11-150"></a></span>
+<span id="cb11-151"><a href="#cb11-151"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb11-152"><a href="#cb11-152"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb11-153"><a href="#cb11-153"></a></span>
+<span id="cb11-154"><a href="#cb11-154"></a><span class="co">&lt;!-- skip strict because of https://github.com/therneau/survival/issues/240 --&gt;</span></span>
+<span id="cb11-155"><a href="#cb11-155"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 --&gt;</span></span>
+<span id="cb11-156"><a href="#cb11-156"></a><span class="in">```{r plot4, test = list(plot_v4 = "plot"), fig.width = 20, fig.height = 5, opts.label = ifelse(packageVersion("survival") &lt; "3.5-8" || packageVersion("tern") &lt; "0.9.3.9018", "skip_test_strict", "")}</span></span>
+<span id="cb11-157"><a href="#cb11-157"></a><span class="in">df &lt;- extract_rsp_subgroups(</span></span>
+<span id="cb11-158"><a href="#cb11-158"></a><span class="in">  variables = list(</span></span>
+<span id="cb11-159"><a href="#cb11-159"></a><span class="in">    rsp = "is_rsp",</span></span>
+<span id="cb11-160"><a href="#cb11-160"></a><span class="in">    arm = "ARM",</span></span>
+<span id="cb11-161"><a href="#cb11-161"></a><span class="in">    subgroups = c("SEX", "BMRKR2"),</span></span>
+<span id="cb11-162"><a href="#cb11-162"></a><span class="in">    strata = "STRATA2"</span></span>
+<span id="cb11-163"><a href="#cb11-163"></a><span class="in">  ),</span></span>
+<span id="cb11-164"><a href="#cb11-164"></a><span class="in">  data = anl_rsp_arms_ab,</span></span>
+<span id="cb11-165"><a href="#cb11-165"></a><span class="in">  conf_level = 0.95</span></span>
+<span id="cb11-166"><a href="#cb11-166"></a><span class="in">)</span></span>
+<span id="cb11-167"><a href="#cb11-167"></a></span>
+<span id="cb11-168"><a href="#cb11-168"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
+<span id="cb11-169"><a href="#cb11-169"></a><span class="in">  tabulate_rsp_subgroups(df, vars = c("n_tot", "n", "n_rsp", "prop", "or", "ci"))</span></span>
+<span id="cb11-170"><a href="#cb11-170"></a></span>
+<span id="cb11-171"><a href="#cb11-171"></a><span class="in">plot &lt;- g_forest(</span></span>
+<span id="cb11-172"><a href="#cb11-172"></a><span class="in">  tbl = result,</span></span>
+<span id="cb11-173"><a href="#cb11-173"></a><span class="in">  col_symbol_size = NULL</span></span>
+<span id="cb11-174"><a href="#cb11-174"></a><span class="in">)</span></span>
+<span id="cb11-175"><a href="#cb11-175"></a><span class="in">plot</span></span>
+<span id="cb11-176"><a href="#cb11-176"></a><span class="in">```</span></span>
+<span id="cb11-177"><a href="#cb11-177"></a></span>
+<span id="cb11-178"><a href="#cb11-178"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot4")`</span></span>
+<span id="cb11-179"><a href="#cb11-179"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb11-180"><a href="#cb11-180"></a>:::</span>
+<span id="cb11-181"><a href="#cb11-181"></a></span>
+<span id="cb11-182"><a href="#cb11-182"></a><span class="fu">## Plot of CR Only, Setting &lt;br/&gt; Values Indicating Response</span></span>
+<span id="cb11-183"><a href="#cb11-183"></a></span>
+<span id="cb11-184"><a href="#cb11-184"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb11-185"><a href="#cb11-185"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb11-186"><a href="#cb11-186"></a></span>
+<span id="cb11-187"><a href="#cb11-187"></a><span class="co">&lt;!-- skip strict because of https://github.com/therneau/survival/issues/240 --&gt;</span></span>
+<span id="cb11-188"><a href="#cb11-188"></a><span class="co">&lt;!-- skip strict because of https://github.com/insightsengineering/tern/issues/1186 --&gt;</span></span>
+<span id="cb11-189"><a href="#cb11-189"></a><span class="in">```{r plot5, test = list(plot_v5 = "plot"), fig.width = 20, fig.height = 5, opts.label = ifelse(packageVersion("survival") &lt; "3.5-8" || packageVersion("tern") &lt; "0.9.3.9018", "skip_test_strict", "")}</span></span>
+<span id="cb11-190"><a href="#cb11-190"></a><span class="in">anl_cr_arms_ab &lt;- anl %&gt;%</span></span>
+<span id="cb11-191"><a href="#cb11-191"></a><span class="in">  mutate(is_rsp = AVALC == "CR") %&gt;%</span></span>
+<span id="cb11-192"><a href="#cb11-192"></a><span class="in">  filter(ARMCD %in% c("ARM B", "ARM A")) %&gt;%</span></span>
+<span id="cb11-193"><a href="#cb11-193"></a><span class="in">  mutate(</span></span>
+<span id="cb11-194"><a href="#cb11-194"></a><span class="in">    ARMCD = relevel(ARMCD, ref = "ARM B") %&gt;%</span></span>
+<span id="cb11-195"><a href="#cb11-195"></a><span class="in">      droplevels(),</span></span>
+<span id="cb11-196"><a href="#cb11-196"></a><span class="in">    ARM = relevel(ARM, ref = "B: Placebo") %&gt;%</span></span>
+<span id="cb11-197"><a href="#cb11-197"></a><span class="in">      droplevels()</span></span>
+<span id="cb11-198"><a href="#cb11-198"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb11-199"><a href="#cb11-199"></a><span class="in">  droplevels()</span></span>
+<span id="cb11-200"><a href="#cb11-200"></a><span class="in">var_labels(anl_cr_arms_ab) &lt;- c(anl_labels, is_rsp = "Is CR")</span></span>
+<span id="cb11-201"><a href="#cb11-201"></a></span>
+<span id="cb11-202"><a href="#cb11-202"></a><span class="in">df &lt;- extract_rsp_subgroups(</span></span>
+<span id="cb11-203"><a href="#cb11-203"></a><span class="in">  variables = list(</span></span>
+<span id="cb11-204"><a href="#cb11-204"></a><span class="in">    rsp = "is_rsp",</span></span>
+<span id="cb11-205"><a href="#cb11-205"></a><span class="in">    arm = "ARM",</span></span>
+<span id="cb11-206"><a href="#cb11-206"></a><span class="in">    subgroups = c("SEX", "BMRKR2"),</span></span>
+<span id="cb11-207"><a href="#cb11-207"></a><span class="in">    strata = "STRATA2"</span></span>
+<span id="cb11-208"><a href="#cb11-208"></a><span class="in">  ),</span></span>
+<span id="cb11-209"><a href="#cb11-209"></a><span class="in">  data = anl_cr_arms_ab,</span></span>
+<span id="cb11-210"><a href="#cb11-210"></a><span class="in">  conf_level = 0.95</span></span>
+<span id="cb11-211"><a href="#cb11-211"></a><span class="in">)</span></span>
+<span id="cb11-212"><a href="#cb11-212"></a></span>
+<span id="cb11-213"><a href="#cb11-213"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
+<span id="cb11-214"><a href="#cb11-214"></a><span class="in">  tabulate_rsp_subgroups(df, vars = c("n_tot", "n", "n_rsp", "prop", "or", "ci"))</span></span>
+<span id="cb11-215"><a href="#cb11-215"></a></span>
+<span id="cb11-216"><a href="#cb11-216"></a><span class="in">plot &lt;- g_forest(tbl = result)</span></span>
+<span id="cb11-217"><a href="#cb11-217"></a><span class="in">plot</span></span>
+<span id="cb11-218"><a href="#cb11-218"></a><span class="in">```</span></span>
+<span id="cb11-219"><a href="#cb11-219"></a></span>
+<span id="cb11-220"><a href="#cb11-220"></a><span class="in">```{r test parameters, test = list(width = "width", height = "height"), echo = FALSE}</span></span>
+<span id="cb11-221"><a href="#cb11-221"></a><span class="in">width &lt;- 20</span></span>
+<span id="cb11-222"><a href="#cb11-222"></a><span class="in">height &lt;- 5</span></span>
+<span id="cb11-223"><a href="#cb11-223"></a><span class="in">```</span></span>
+<span id="cb11-224"><a href="#cb11-224"></a></span>
+<span id="cb11-225"><a href="#cb11-225"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot5")`</span></span>
+<span id="cb11-226"><a href="#cb11-226"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb11-227"><a href="#cb11-227"></a>:::</span>
+<span id="cb11-228"><a href="#cb11-228"></a></span>
+<span id="cb11-229"><a href="#cb11-229"></a><span class="fu">## Data Setup</span></span>
+<span id="cb11-230"><a href="#cb11-230"></a></span>
+<span id="cb11-231"><a href="#cb11-231"></a><span class="in">```{r setup}</span></span>
+<span id="cb11-232"><a href="#cb11-232"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb11-233"><a href="#cb11-233"></a><span class="in">```</span></span>
+<span id="cb11-234"><a href="#cb11-234"></a></span>
+<span id="cb11-235"><a href="#cb11-235"></a>::::</span>
+<span id="cb11-236"><a href="#cb11-236"></a></span>
+<span id="cb11-237"><a href="#cb11-237"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb11-238"><a href="#cb11-238"></a></span>
+<span id="cb11-239"><a href="#cb11-239"></a><span class="fu">## `teal` App</span></span>
+<span id="cb11-240"><a href="#cb11-240"></a></span>
+<span id="cb11-241"><a href="#cb11-241"></a>::: {.panel-tabset .nav-justified}</span>
+<span id="cb11-242"><a href="#cb11-242"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
+<span id="cb11-243"><a href="#cb11-243"></a></span>
+<span id="cb11-244"><a href="#cb11-244"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb11-245"><a href="#cb11-245"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb11-246"><a href="#cb11-246"></a></span>
+<span id="cb11-247"><a href="#cb11-247"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb11-248"><a href="#cb11-248"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb11-249"><a href="#cb11-249"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb11-250"><a href="#cb11-250"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb11-251"><a href="#cb11-251"></a><span class="in">  ADRS &lt;- random.cdisc.data::cadrs</span></span>
+<span id="cb11-252"><a href="#cb11-252"></a><span class="in">})</span></span>
+<span id="cb11-253"><a href="#cb11-253"></a><span class="in">datanames &lt;- c("ADSL", "ADRS")</span></span>
+<span id="cb11-254"><a href="#cb11-254"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb11-255"><a href="#cb11-255"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb11-256"><a href="#cb11-256"></a></span>
+<span id="cb11-257"><a href="#cb11-257"></a><span class="in">arm_ref_comp &lt;- list(</span></span>
+<span id="cb11-258"><a href="#cb11-258"></a><span class="in">  ARM = list(</span></span>
+<span id="cb11-259"><a href="#cb11-259"></a><span class="in">    ref = "B: Placebo",</span></span>
+<span id="cb11-260"><a href="#cb11-260"></a><span class="in">    comp = c("A: Drug X", "C: Combination")</span></span>
+<span id="cb11-261"><a href="#cb11-261"></a><span class="in">  ),</span></span>
+<span id="cb11-262"><a href="#cb11-262"></a><span class="in">  ARMCD = list(</span></span>
+<span id="cb11-263"><a href="#cb11-263"></a><span class="in">    ref = "ARM B",</span></span>
+<span id="cb11-264"><a href="#cb11-264"></a><span class="in">    comp = c("ARM A", "ARM C")</span></span>
+<span id="cb11-265"><a href="#cb11-265"></a><span class="in">  )</span></span>
+<span id="cb11-266"><a href="#cb11-266"></a><span class="in">)</span></span>
+<span id="cb11-267"><a href="#cb11-267"></a></span>
+<span id="cb11-268"><a href="#cb11-268"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb11-269"><a href="#cb11-269"></a><span class="in">ADSL &lt;- data[["ADSL"]]</span></span>
+<span id="cb11-270"><a href="#cb11-270"></a><span class="in">ADRS &lt;- data[["ADRS"]]</span></span>
+<span id="cb11-271"><a href="#cb11-271"></a></span>
+<span id="cb11-272"><a href="#cb11-272"></a><span class="in">## Setup App</span></span>
+<span id="cb11-273"><a href="#cb11-273"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb11-274"><a href="#cb11-274"></a><span class="in">  data = data,</span></span>
+<span id="cb11-275"><a href="#cb11-275"></a><span class="in">  modules = modules(</span></span>
+<span id="cb11-276"><a href="#cb11-276"></a><span class="in">    tm_g_forest_rsp(</span></span>
+<span id="cb11-277"><a href="#cb11-277"></a><span class="in">      label = "Forest Response",</span></span>
+<span id="cb11-278"><a href="#cb11-278"></a><span class="in">      dataname = "ADRS",</span></span>
+<span id="cb11-279"><a href="#cb11-279"></a><span class="in">      arm_var = choices_selected(</span></span>
+<span id="cb11-280"><a href="#cb11-280"></a><span class="in">        variable_choices(ADSL, c("ARM", "ARMCD")),</span></span>
+<span id="cb11-281"><a href="#cb11-281"></a><span class="in">        "ARMCD"</span></span>
+<span id="cb11-282"><a href="#cb11-282"></a><span class="in">      ),</span></span>
+<span id="cb11-283"><a href="#cb11-283"></a><span class="in">      arm_ref_comp = arm_ref_comp,</span></span>
+<span id="cb11-284"><a href="#cb11-284"></a><span class="in">      paramcd = choices_selected(</span></span>
+<span id="cb11-285"><a href="#cb11-285"></a><span class="in">        value_choices(ADRS, "PARAMCD", "PARAM"),</span></span>
+<span id="cb11-286"><a href="#cb11-286"></a><span class="in">        "BESRSPI"</span></span>
+<span id="cb11-287"><a href="#cb11-287"></a><span class="in">      ),</span></span>
+<span id="cb11-288"><a href="#cb11-288"></a><span class="in">      subgroup_var = choices_selected(</span></span>
+<span id="cb11-289"><a href="#cb11-289"></a><span class="in">        variable_choices(ADSL, names(ADSL)),</span></span>
+<span id="cb11-290"><a href="#cb11-290"></a><span class="in">        c("BMRKR2", "SEX")</span></span>
+<span id="cb11-291"><a href="#cb11-291"></a><span class="in">      ),</span></span>
+<span id="cb11-292"><a href="#cb11-292"></a><span class="in">      strata_var = choices_selected(</span></span>
+<span id="cb11-293"><a href="#cb11-293"></a><span class="in">        variable_choices(ADSL, c("STRATA1", "STRATA2")),</span></span>
+<span id="cb11-294"><a href="#cb11-294"></a><span class="in">        "STRATA2"</span></span>
+<span id="cb11-295"><a href="#cb11-295"></a><span class="in">      ),</span></span>
+<span id="cb11-296"><a href="#cb11-296"></a><span class="in">      plot_height = c(600L, 200L, 2000L),</span></span>
+<span id="cb11-297"><a href="#cb11-297"></a><span class="in">      plot_width = c(1100L, 200L, 2000L)</span></span>
+<span id="cb11-298"><a href="#cb11-298"></a><span class="in">    )</span></span>
+<span id="cb11-299"><a href="#cb11-299"></a><span class="in">  )</span></span>
+<span id="cb11-300"><a href="#cb11-300"></a><span class="in">)</span></span>
+<span id="cb11-301"><a href="#cb11-301"></a></span>
+<span id="cb11-302"><a href="#cb11-302"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb11-303"><a href="#cb11-303"></a><span class="in">```</span></span>
+<span id="cb11-304"><a href="#cb11-304"></a></span>
+<span id="cb11-305"><a href="#cb11-305"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
+<span id="cb11-306"><a href="#cb11-306"></a>:::</span>
+<span id="cb11-307"><a href="#cb11-307"></a></span>
+<span id="cb11-308"><a href="#cb11-308"></a>{{&lt; include ../../repro.qmd &gt;}}</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
