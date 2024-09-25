@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\n\nset.seed(1, kind = \"Mersenne-Twister\")\n\n# Add additional disposition variables to adsl.\nadsl0 <- adsl %>%\n  mutate(\n    STSTFL = case_when(\n      is.na(RANDDT) ~ \"N\",\n      TRUE ~ \"Y\"\n    ) %>% as.factor(),\n    COMPSTUD = sample(\n      c(\"Y\", \"N\"),\n      size = nrow(adsl),\n      replace = TRUE\n    ) %>% as.factor(),\n    STUDONS = sample(\n      c(\"Alive: On Treatment\", \"Alive: In Follow-up\", NA),\n      size = nrow(adsl),\n      replace = TRUE\n    ) %>% as.factor(),\n    STDDRS = sample(\n      c(\n        \"Death\", \"Lost To Follow-Up\",\n        \"Protocol Violation\", \"Withdrawal By Subject\",\n        \"Other\"\n      ),\n      size = nrow(adsl),\n      replace = TRUE\n    ) %>% as.factor(),\n    GOTTRT = ifelse(!is.na(ACTARMCD), \"Y\", \"N\") %>%\n      as.factor(),\n    DISTRTFL = sample(\n      c(\"Y\", \"N\"),\n      size = nrow(adsl),\n      replace = TRUE\n    ) %>% as.factor(),\n    TRTDRS = sample(\n      c(\n        \"ADVERSE EVENT\", \"PROGRESSIVE DISEASE\",\n        \"PHYSICIAN DECISION\", \"LACK OF EFFICACY\",\n        \"OTHER\"\n      ),\n      size = nrow(adsl),\n      replace = TRUE\n    ) %>% as.factor(),\n    STUDONS = case_when(COMPSTUD == \"N\" ~ STUDONS),\n    STDDRS = case_when(COMPSTUD == \"N\" & is.na(STUDONS) ~ STDDRS),\n    DISSTDFL = case_when(!is.na(STDDRS) ~ \"Y\"),\n    DISTRTFL = case_when(GOTTRT == \"Y\" ~ DISTRTFL),\n    TRTDRS = case_when(DISTRTFL == \"Y\" ~ TRTDRS),\n    DRSCAT = case_when(\n      TRTDRS %in% c(\"ADVERSE EVENT\", \"PHYSICIAN DECISION\") ~ \"Safety\",\n      !is.na(TRTDRS) ~ \"Other\"\n    )\n  ) %>%\n  var_relabel(\n    STSTFL = \"Started Study\",\n    COMPSTUD = \"Complete Study\",\n    STUDONS = \"On-study Status\",\n    DISSTDFL = \"Discontinued Study\",\n    STDDRS = \"Reason for Study Discontinuation\",\n    GOTTRT = \"Received Treatment\",\n    DISTRTFL = \"Discontinued Treatment\",\n    TRTDRS = \"Reason for Treatment Discontinuation\",\n    DRSCAT = \"Subcategory for Treatment Discontinuation\"\n  )\n# Define the split function\nsplit_fun <- keep_split_levels(\"Y\")\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ARM\",\n    split_fun = add_overall_level(\"All Patients\", first = FALSE)\n  ) %>%\n  count_values(\"STSTFL\",\n    values = \"Y\",\n    .labels = c(count_fraction = \"Started Study\")\n  ) %>%\n  count_values(\"COMPSTUD\",\n    values = \"Y\",\n    .labels = c(count_fraction = \"Completed Study\")\n  ) %>%\n  split_rows_by(\n    \"DISSTDFL\",\n    split_fun = split_fun\n  ) %>%\n  summarize_row_groups(label_fstr = \"Discontinued Study\") %>%\n  analyze_vars(\n    \"STDDRS\",\n    .stats = \"count_fraction\"\n  ) %>%\n  append_topleft(\"Status\")\n\nresult <- build_table(lyt = lyt, df = adsl0)\nresult","options":{"fig-height":5,"fig-width":7,"results":"markup","editor-font-scale":1,"warning":"true","context":"interactive","classes":"","comment":"","out-height":"","output":"true","editor-max-height":"500","label":"unnamed-chunk-1","message":"true","read-only":"false","autorun":"true","fig-cap":"","editor-quick-suggestions":"false","dpi":72,"out-width":"700px"}},{"id":2,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\n\n# Change description in variable SEX.\nadsl <- adsl %>%\n  mutate(\n    SEX = factor(case_when(\n      SEX == \"M\" ~ \"Male\",\n      SEX == \"F\" ~ \"Female\",\n      SEX == \"U\" ~ \"Unknown\",\n      SEX == \"UNDIFFERENTIATED\" ~ \"Undifferentiated\"\n    )),\n    AGEGRP = factor(\n      case_when(\n        between(AGE, 18, 40) ~ \"18-40\",\n        between(AGE, 41, 64) ~ \"41-64\",\n        AGE > 64 ~ \">=65\"\n      ),\n      levels = c(\"18-40\", \"41-64\", \">=65\")\n    )\n  )\n# Define the split function\nsplit_fun <- keep_split_levels(\"Y\")\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ARM\",\n    split_fun = add_overall_level(\"All Patients\", first = FALSE)\n  ) %>%\n  count_values(\"STSTFL\",\n    values = \"Y\",\n    .labels = c(count_fraction = \"Started Study\")\n  ) %>%\n  count_values(\"COMPSTUD\",\n    values = \"Y\",\n    .labels = c(count_fraction = \"Completed Study\")\n  ) %>%\n  split_rows_by(\n    \"DISSTDFL\",\n    split_fun = split_fun\n  ) %>%\n  summarize_row_groups(label_fstr = \"Discontinued Study\") %>%\n  analyze_vars(\n    \"STDDRS\",\n    .stats = \"count_fraction\"\n  ) %>%\n  append_topleft(\"Status\")\n\nresult <- build_table(lyt = lyt, df = adsl0)\nresult","options":{"fig-height":5,"fig-width":7,"results":"markup","editor-font-scale":1,"warning":"true","context":"interactive","classes":"","comment":"","out-height":"","output":"true","editor-max-height":"500","label":"unnamed-chunk-2","message":"true","read-only":"false","autorun":"true","fig-cap":"","editor-quick-suggestions":"false","dpi":72,"out-width":"700px"}},{"id":3,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadsl_labels <- var_labels(adsl)\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\n\nadsl <- adsl %>%\n  mutate(COUNTRY = droplevels(COUNTRY)) %>%\n  arrange(REGION1, COUNTRY)\n\nvar_labels(adsl) <- c(adsl_labels)\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\") %>%\n  add_overall_col(label = \"All Patients\") %>%\n  analyze_vars(\"COUNTRY\") %>%\n  append_varlabels(adsl, \"COUNTRY\")\n\nresult <- build_table(lyt, adsl)\nresult","options":{"fig-height":5,"fig-width":7,"results":"markup","editor-font-scale":1,"warning":"true","context":"interactive","classes":"","comment":"","out-height":"","output":"true","editor-max-height":"500","label":"unnamed-chunk-3","message":"true","read-only":"false","autorun":"true","fig-cap":"","editor-quick-suggestions":"false","dpi":72,"out-width":"700px"}},{"id":4,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(adae)\n\nadae_nonser <- adae %>% filter(AESER != \"Y\", SAFFL == \"Y\")\n\nget_adae_trimmed <- function(adsl, adae, cutoff_rate) {\n  n_per_arm <- adsl %>%\n    dplyr::count(ARM)\n\n  anl_terms <- adae %>%\n    dplyr::group_by(ARM, AEBODSYS, AEDECOD) %>%\n    dplyr::count(\n      unique_terms = n_distinct(USUBJID)\n    ) %>%\n    dplyr::select(-n) %>%\n    dplyr::ungroup()\n\n  anl_terms <- dplyr::left_join(\n    anl_terms,\n    n_per_arm,\n    by = \"ARM\"\n  ) %>%\n    dplyr::mutate(\n      ae_rate = unique_terms / n\n    ) %>%\n    dplyr::filter(ae_rate >= cutoff_rate) %>%\n    dplyr::select(AEDECOD) %>%\n    unique()\n\n  anl <- dplyr::left_join(\n    anl_terms,\n    adae,\n    by = \"AEDECOD\"\n  )\n  anl\n}\n\nadae_trim <- get_adae_trimmed(adsl, adae_nonser, cutoff_rate = 0.05)\n# Define the split function\nsplit_fun <- drop_split_levels\n\nlyt <- basic_table() %>%\n  split_cols_by(\"ARM\") %>%\n  summarize_patients_events_in_cols(\n    custom_label = \"Total number of patients with at least one non-serious adverse event occuring at a relative frequency of >=5%\" # nolint: line_length.\n  ) %>%\n  split_rows_by(\"AEBODSYS\",\n    nested = FALSE,\n    split_fun = split_fun,\n    indent_mod = -1L,\n    label_pos = \"topleft\",\n    split_label = obj_label(adae_trim$AEBODSYS)\n  ) %>%\n  split_rows_by(\"AEDECOD\", split_fun = split_fun, label_pos = \"topleft\", split_label = obj_label(adae_trim$AEDECOD)) %>%\n  summarize_patients_events_in_cols(\n    col_split = FALSE\n  )\n\nresult <- build_table(lyt, adae_trim)\nresult","options":{"fig-height":5,"fig-width":7,"results":"markup","editor-font-scale":1,"warning":"true","context":"interactive","classes":"","comment":"","out-height":"","output":"true","editor-max-height":"500","label":"unnamed-chunk-4","message":"true","read-only":"false","autorun":"true","fig-cap":"","editor-quick-suggestions":"false","dpi":72,"out-width":"700px"}},{"id":5,"code":"library(tern)\nlibrary(dplyr)\n\nadae <- random.cdisc.data::cadae\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadae <- df_explicit_na(adae)\n\nadae_serious <- adae %>% filter(AESER == \"Y\", SAFFL == \"Y\")\nadae_serious_arm <- adae_serious %>% filter(ARM == \"A: Drug X\")\n\nfilters_list <- list(\n  related = with_label(c(AEREL = \"Y\"), \"Events (Related)\"),\n  fatal = with_label(c(AESDTH = \"Y\"), \"Events (Fatal)\"),\n  fatal_related = with_label(c(AEREL = \"Y\", AESDTH = \"Y\"), \"Events (Fatal & Related)\")\n)\n# Define the split function\nsplit_fun <- drop_split_levels\n\nlyt <- basic_table() %>%\n  summarize_patients_events_in_cols(\n    filters_list = filters_list,\n    empty_stats = c(\"all\", \"related\", \"fatal\", \"fatal_related\"),\n    custom_label = \"Total number of patients with at least one serious adverse event\"\n  ) %>%\n  split_rows_by(\"AEBODSYS\",\n    nested = FALSE,\n    split_fun = split_fun,\n    indent_mod = -1L,\n    label_pos = \"topleft\",\n    split_label = obj_label(adae_trim$AEBODSYS)\n  ) %>%\n  split_rows_by(\"AEDECOD\",\n    split_fun = split_fun,\n    label_pos = \"topleft\",\n    split_label = obj_label(adae_serious_arm$AEDECOD)\n  ) %>%\n  summarize_patients_events_in_cols(\n    filters_list = filters_list,\n    col_split = FALSE\n  )\n\nresult <- build_table(lyt, adae_serious_arm)\nresult","options":{"fig-height":5,"fig-width":7,"results":"markup","editor-font-scale":1,"warning":"true","context":"interactive","classes":"","comment":"","out-height":"","output":"true","editor-max-height":"500","label":"unnamed-chunk-5","message":"true","read-only":"false","autorun":"true","fig-cap":"","editor-quick-suggestions":"false","dpi":72,"out-width":"700px"}},{"id":6,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\") %>%\n  add_overall_col(\"All Patients\") %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"AESDTH\" = \"Y\"),\n    .labels = c(count_fraction = \"Total Number of Deaths\"),\n    .formats = c(count_fraction = \"xx (xx.xx%)\")\n  )\nresult <- build_table(lyt, adae, alt_counts_df = adsl)\nresult","options":{"fig-height":5,"fig-width":7,"results":"markup","editor-font-scale":1,"warning":"true","context":"interactive","classes":"","comment":"","out-height":"","output":"true","editor-max-height":"500","label":"unnamed-chunk-6","message":"true","read-only":"false","autorun":"true","fig-cap":"","editor-quick-suggestions":"false","dpi":72,"out-width":"700px"}}];
+globalThis.qwebrCellDetails = [{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\n\nset.seed(1, kind = \"Mersenne-Twister\")\n\n# Add additional disposition variables to adsl.\nadsl0 <- adsl %>%\n  mutate(\n    STSTFL = case_when(\n      is.na(RANDDT) ~ \"N\",\n      TRUE ~ \"Y\"\n    ) %>% as.factor(),\n    COMPSTUD = sample(\n      c(\"Y\", \"N\"),\n      size = nrow(adsl),\n      replace = TRUE\n    ) %>% as.factor(),\n    STUDONS = sample(\n      c(\"Alive: On Treatment\", \"Alive: In Follow-up\", NA),\n      size = nrow(adsl),\n      replace = TRUE\n    ) %>% as.factor(),\n    STDDRS = sample(\n      c(\n        \"Death\", \"Lost To Follow-Up\",\n        \"Protocol Violation\", \"Withdrawal By Subject\",\n        \"Other\"\n      ),\n      size = nrow(adsl),\n      replace = TRUE\n    ) %>% as.factor(),\n    GOTTRT = ifelse(!is.na(ACTARMCD), \"Y\", \"N\") %>%\n      as.factor(),\n    DISTRTFL = sample(\n      c(\"Y\", \"N\"),\n      size = nrow(adsl),\n      replace = TRUE\n    ) %>% as.factor(),\n    TRTDRS = sample(\n      c(\n        \"ADVERSE EVENT\", \"PROGRESSIVE DISEASE\",\n        \"PHYSICIAN DECISION\", \"LACK OF EFFICACY\",\n        \"OTHER\"\n      ),\n      size = nrow(adsl),\n      replace = TRUE\n    ) %>% as.factor(),\n    STUDONS = case_when(COMPSTUD == \"N\" ~ STUDONS),\n    STDDRS = case_when(COMPSTUD == \"N\" & is.na(STUDONS) ~ STDDRS),\n    DISSTDFL = case_when(!is.na(STDDRS) ~ \"Y\"),\n    DISTRTFL = case_when(GOTTRT == \"Y\" ~ DISTRTFL),\n    TRTDRS = case_when(DISTRTFL == \"Y\" ~ TRTDRS),\n    DRSCAT = case_when(\n      TRTDRS %in% c(\"ADVERSE EVENT\", \"PHYSICIAN DECISION\") ~ \"Safety\",\n      !is.na(TRTDRS) ~ \"Other\"\n    )\n  ) %>%\n  var_relabel(\n    STSTFL = \"Started Study\",\n    COMPSTUD = \"Complete Study\",\n    STUDONS = \"On-study Status\",\n    DISSTDFL = \"Discontinued Study\",\n    STDDRS = \"Reason for Study Discontinuation\",\n    GOTTRT = \"Received Treatment\",\n    DISTRTFL = \"Discontinued Treatment\",\n    TRTDRS = \"Reason for Treatment Discontinuation\",\n    DRSCAT = \"Subcategory for Treatment Discontinuation\"\n  )\n# Define the split function\nsplit_fun <- keep_split_levels(\"Y\")\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ARM\",\n    split_fun = add_overall_level(\"All Patients\", first = FALSE)\n  ) %>%\n  count_values(\"STSTFL\",\n    values = \"Y\",\n    .labels = c(count_fraction = \"Started Study\")\n  ) %>%\n  count_values(\"COMPSTUD\",\n    values = \"Y\",\n    .labels = c(count_fraction = \"Completed Study\")\n  ) %>%\n  split_rows_by(\n    \"DISSTDFL\",\n    split_fun = split_fun\n  ) %>%\n  summarize_row_groups(label_fstr = \"Discontinued Study\") %>%\n  analyze_vars(\n    \"STDDRS\",\n    .stats = \"count_fraction\"\n  ) %>%\n  append_topleft(\"Status\")\n\nresult <- build_table(lyt = lyt, df = adsl0)\nresult","id":1,"options":{"editor-font-scale":1,"label":"unnamed-chunk-1","dpi":72,"fig-cap":"","editor-quick-suggestions":"false","output":"true","editor-max-height":"500","results":"markup","fig-width":7,"read-only":"false","comment":"","out-width":"700px","out-height":"","warning":"true","fig-height":5,"context":"interactive","message":"true","autorun":"true","classes":""}},{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\n\n# Change description in variable SEX.\nadsl <- adsl %>%\n  mutate(\n    SEX = factor(case_when(\n      SEX == \"M\" ~ \"Male\",\n      SEX == \"F\" ~ \"Female\",\n      SEX == \"U\" ~ \"Unknown\",\n      SEX == \"UNDIFFERENTIATED\" ~ \"Undifferentiated\"\n    )),\n    AGEGRP = factor(\n      case_when(\n        between(AGE, 18, 40) ~ \"18-40\",\n        between(AGE, 41, 64) ~ \"41-64\",\n        AGE > 64 ~ \">=65\"\n      ),\n      levels = c(\"18-40\", \"41-64\", \">=65\")\n    )\n  )\n# Define the split function\nsplit_fun <- keep_split_levels(\"Y\")\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ARM\",\n    split_fun = add_overall_level(\"All Patients\", first = FALSE)\n  ) %>%\n  count_values(\"STSTFL\",\n    values = \"Y\",\n    .labels = c(count_fraction = \"Started Study\")\n  ) %>%\n  count_values(\"COMPSTUD\",\n    values = \"Y\",\n    .labels = c(count_fraction = \"Completed Study\")\n  ) %>%\n  split_rows_by(\n    \"DISSTDFL\",\n    split_fun = split_fun\n  ) %>%\n  summarize_row_groups(label_fstr = \"Discontinued Study\") %>%\n  analyze_vars(\n    \"STDDRS\",\n    .stats = \"count_fraction\"\n  ) %>%\n  append_topleft(\"Status\")\n\nresult <- build_table(lyt = lyt, df = adsl0)\nresult","id":2,"options":{"editor-font-scale":1,"label":"unnamed-chunk-2","dpi":72,"fig-cap":"","editor-quick-suggestions":"false","output":"true","editor-max-height":"500","results":"markup","fig-width":7,"read-only":"false","comment":"","out-width":"700px","out-height":"","warning":"true","fig-height":5,"context":"interactive","message":"true","autorun":"true","classes":""}},{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadsl_labels <- var_labels(adsl)\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\n\nadsl <- adsl %>%\n  mutate(COUNTRY = droplevels(COUNTRY)) %>%\n  arrange(REGION1, COUNTRY)\n\nvar_labels(adsl) <- c(adsl_labels)\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\") %>%\n  add_overall_col(label = \"All Patients\") %>%\n  analyze_vars(\"COUNTRY\") %>%\n  append_varlabels(adsl, \"COUNTRY\")\n\nresult <- build_table(lyt, adsl)\nresult","id":3,"options":{"editor-font-scale":1,"label":"unnamed-chunk-3","dpi":72,"fig-cap":"","editor-quick-suggestions":"false","output":"true","editor-max-height":"500","results":"markup","fig-width":7,"read-only":"false","comment":"","out-width":"700px","out-height":"","warning":"true","fig-height":5,"context":"interactive","message":"true","autorun":"true","classes":""}},{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadae <- df_explicit_na(adae)\n\nadae_nonser <- adae %>% filter(AESER != \"Y\", SAFFL == \"Y\")\n\nget_adae_trimmed <- function(adsl, adae, cutoff_rate) {\n  n_per_arm <- adsl %>%\n    dplyr::count(ARM)\n\n  anl_terms <- adae %>%\n    dplyr::group_by(ARM, AEBODSYS, AEDECOD) %>%\n    dplyr::count(\n      unique_terms = n_distinct(USUBJID)\n    ) %>%\n    dplyr::select(-n) %>%\n    dplyr::ungroup()\n\n  anl_terms <- dplyr::left_join(\n    anl_terms,\n    n_per_arm,\n    by = \"ARM\"\n  ) %>%\n    dplyr::mutate(\n      ae_rate = unique_terms / n\n    ) %>%\n    dplyr::filter(ae_rate >= cutoff_rate) %>%\n    dplyr::select(AEDECOD) %>%\n    unique()\n\n  anl <- dplyr::left_join(\n    anl_terms,\n    adae,\n    by = \"AEDECOD\"\n  )\n  anl\n}\n\nadae_trim <- get_adae_trimmed(adsl, adae_nonser, cutoff_rate = 0.05)\n# Define the split function\nsplit_fun <- drop_split_levels\n\nlyt <- basic_table() %>%\n  split_cols_by(\"ARM\") %>%\n  summarize_patients_events_in_cols(\n    custom_label = \"Total number of patients with at least one non-serious adverse event occuring at a relative frequency of >=5%\" # nolint: line_length.\n  ) %>%\n  split_rows_by(\"AEBODSYS\",\n    nested = FALSE,\n    split_fun = split_fun,\n    indent_mod = -1L,\n    label_pos = \"topleft\",\n    split_label = obj_label(adae_trim$AEBODSYS)\n  ) %>%\n  split_rows_by(\"AEDECOD\", split_fun = split_fun, label_pos = \"topleft\", split_label = obj_label(adae_trim$AEDECOD)) %>%\n  summarize_patients_events_in_cols(\n    col_split = FALSE\n  )\n\nresult <- build_table(lyt, adae_trim)\nresult","id":4,"options":{"editor-font-scale":1,"label":"unnamed-chunk-4","dpi":72,"fig-cap":"","editor-quick-suggestions":"false","output":"true","editor-max-height":"500","results":"markup","fig-width":7,"read-only":"false","comment":"","out-width":"700px","out-height":"","warning":"true","fig-height":5,"context":"interactive","message":"true","autorun":"true","classes":""}},{"code":"library(tern)\nlibrary(dplyr)\n\nadae <- random.cdisc.data::cadae\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadae <- df_explicit_na(adae)\n\nadae_serious <- adae %>% filter(AESER == \"Y\", SAFFL == \"Y\")\nadae_serious_arm <- adae_serious %>% filter(ARM == \"A: Drug X\")\n\nfilters_list <- list(\n  related = with_label(c(AEREL = \"Y\"), \"Events (Related)\"),\n  fatal = with_label(c(AESDTH = \"Y\"), \"Events (Fatal)\"),\n  fatal_related = with_label(c(AEREL = \"Y\", AESDTH = \"Y\"), \"Events (Fatal & Related)\")\n)\n# Define the split function\nsplit_fun <- drop_split_levels\n\nlyt <- basic_table() %>%\n  summarize_patients_events_in_cols(\n    filters_list = filters_list,\n    empty_stats = c(\"all\", \"related\", \"fatal\", \"fatal_related\"),\n    custom_label = \"Total number of patients with at least one serious adverse event\"\n  ) %>%\n  split_rows_by(\"AEBODSYS\",\n    nested = FALSE,\n    split_fun = split_fun,\n    indent_mod = -1L,\n    label_pos = \"topleft\",\n    split_label = obj_label(adae_trim$AEBODSYS)\n  ) %>%\n  split_rows_by(\"AEDECOD\",\n    split_fun = split_fun,\n    label_pos = \"topleft\",\n    split_label = obj_label(adae_serious_arm$AEDECOD)\n  ) %>%\n  summarize_patients_events_in_cols(\n    filters_list = filters_list,\n    col_split = FALSE\n  )\n\nresult <- build_table(lyt, adae_serious_arm)\nresult","id":5,"options":{"editor-font-scale":1,"label":"unnamed-chunk-5","dpi":72,"fig-cap":"","editor-quick-suggestions":"false","output":"true","editor-max-height":"500","results":"markup","fig-width":7,"read-only":"false","comment":"","out-width":"700px","out-height":"","warning":"true","fig-height":5,"context":"interactive","message":"true","autorun":"true","classes":""}},{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadae <- random.cdisc.data::cadae\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\") %>%\n  add_overall_col(\"All Patients\") %>%\n  count_patients_with_event(\n    \"USUBJID\",\n    filters = c(\"AESDTH\" = \"Y\"),\n    .labels = c(count_fraction = \"Total Number of Deaths\"),\n    .formats = c(count_fraction = \"xx (xx.xx%)\")\n  )\nresult <- build_table(lyt, adae, alt_counts_df = adsl)\nresult","id":6,"options":{"editor-font-scale":1,"label":"unnamed-chunk-6","dpi":72,"fig-cap":"","editor-quick-suggestions":"false","output":"true","editor-max-height":"500","results":"markup","fig-width":7,"read-only":"false","comment":"","out-width":"700px","out-height":"","warning":"true","fig-height":5,"context":"interactive","message":"true","autorun":"true","classes":""}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2645,7 +2645,6 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-4" role="tab" aria-controls="tabset-7-4" aria-selected="false">Non-Serious Adverse Events <br> Reported in <span class="math inline">\(\geq\)</span> 5% of Patients in Any <br> Treatment Group (CTgov &amp; EudraCT)</a></li>
 <li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-5" role="tab" aria-controls="tabset-7-5" aria-selected="false">Serious Adverse Events, Fatal SAEs <br> and SAEs Related to Study Medication, <br> by Treatment Group (CTgov &amp; EudraCT)</a></li>
 <li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-6-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-6" role="tab" aria-controls="tabset-7-6" aria-selected="false">Death Table <br> (EudraCT only)</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-7-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-7" role="tab" aria-controls="tabset-7-7" aria-selected="false">Reproducibility</a></li>
 </ul>
 <div class="tab-content">
 <div id="tabset-7-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-7-1-tab">
@@ -3317,114 +3316,101 @@ Experimental use!
 </div>
 </section>
 </div>
-<div id="tabset-7-7" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-7-tab">
+</div>
+</div>
+<section id="reproducibility" class="level2"><h2 class="anchored" data-anchor-id="reproducibility">Reproducibility</h2>
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
-<div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-09-21 18:17:09 UTC"</code></pre>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "2024-09-25 18:14:56 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output cell-output-stdout">
-<pre><code>R version 4.4.1 (2024-06-14)
-Platform: x86_64-pc-linux-gnu
-Running under: Ubuntu 22.04.4 LTS
+<div class="cell-output cell-output-stdout">
+<pre><code>─ Session info ───────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.4.1 (2024-06-14)
+ os       Ubuntu 22.04.4 LTS
+ system   x86_64, linux-gnu
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       Etc/UTC
+ date     2024-09-25
+ pandoc   3.3 @ /usr/bin/ (via rmarkdown)
 
-Matrix products: default
-BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
-LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0
+─ Packages ───────────────────────────────────────────────────────────────────
+ package           * version     date (UTC) lib source
+ backports           1.5.0       2024-05-23 [1] CRAN (R 4.4.1)
+ brio                1.1.5       2024-04-24 [1] CRAN (R 4.4.1)
+ broom               1.0.6       2024-05-17 [1] CRAN (R 4.4.1)
+ checkmate           2.3.2       2024-07-29 [1] CRAN (R 4.4.1)
+ cli                 3.6.3       2024-06-21 [1] CRAN (R 4.4.1)
+ codetools           0.2-20      2024-03-31 [2] CRAN (R 4.4.1)
+ colorspace          2.1-1       2024-07-26 [1] CRAN (R 4.4.1)
+ digest              0.6.37      2024-08-19 [1] CRAN (R 4.4.1)
+ dplyr             * 1.1.4       2023-11-17 [1] CRAN (R 4.4.1)
+ evaluate            0.24.0      2024-06-10 [1] CRAN (R 4.4.1)
+ fansi               1.0.6       2023-12-08 [1] CRAN (R 4.4.1)
+ fastmap             1.2.0       2024-05-15 [1] CRAN (R 4.4.1)
+ forcats             1.0.0       2023-01-29 [1] CRAN (R 4.4.1)
+ formatters        * 0.5.9.9001  2024-09-25 [1] git2r (https://github.com/insightsengineering/formatters.git@85be9d5)
+ generics            0.1.3       2022-07-05 [1] CRAN (R 4.4.1)
+ ggplot2             3.5.1       2024-04-23 [1] CRAN (R 4.4.1)
+ glue                1.7.0       2024-01-09 [1] CRAN (R 4.4.1)
+ gtable              0.3.5       2024-04-22 [1] CRAN (R 4.4.1)
+ htmltools           0.5.8.1     2024-04-04 [1] CRAN (R 4.4.1)
+ htmlwidgets         1.6.4       2023-12-06 [1] CRAN (R 4.4.1)
+ jsonlite            1.8.8       2023-12-04 [1] CRAN (R 4.4.1)
+ knitr               1.48        2024-07-07 [1] CRAN (R 4.4.1)
+ lattice             0.22-6      2024-03-20 [2] CRAN (R 4.4.1)
+ lifecycle           1.0.4       2023-11-07 [1] CRAN (R 4.4.1)
+ magrittr          * 2.0.3       2022-03-30 [1] CRAN (R 4.4.1)
+ Matrix              1.7-0       2024-04-26 [1] CRAN (R 4.4.1)
+ munsell             0.5.1       2024-04-01 [1] CRAN (R 4.4.1)
+ pillar              1.9.0       2023-03-22 [1] CRAN (R 4.4.1)
+ pkgconfig           2.0.3       2019-09-22 [1] CRAN (R 4.4.1)
+ purrr               1.0.2       2023-08-10 [1] CRAN (R 4.4.1)
+ R6                  2.5.1       2021-08-19 [1] CRAN (R 4.4.1)
+ random.cdisc.data   0.3.15.9009 2024-09-25 [1] git2r (https://github.com/insightsengineering/random.cdisc.data.git@8eaaf8a)
+ rbibutils           2.2.16      2023-10-25 [1] CRAN (R 4.4.1)
+ Rdpack              2.6.1       2024-08-06 [1] CRAN (R 4.4.1)
+ rlang               1.1.4       2024-06-04 [1] CRAN (R 4.4.1)
+ rmarkdown           2.28        2024-08-17 [1] CRAN (R 4.4.1)
+ rtables           * 0.6.10.9000 2024-09-25 [1] git2r (https://github.com/insightsengineering/rtables.git@204a0fb)
+ scales              1.3.0       2023-11-28 [1] CRAN (R 4.4.1)
+ sessioninfo         1.2.2       2021-12-06 [1] CRAN (R 4.4.1)
+ stringi             1.8.4       2024-05-06 [1] CRAN (R 4.4.1)
+ stringr             1.5.1       2023-11-14 [1] CRAN (R 4.4.1)
+ survival            3.7-0       2024-06-05 [2] CRAN (R 4.4.1)
+ tern              * 0.9.6.9000  2024-09-25 [1] git2r (https://github.com/insightsengineering/tern.git@0dc93df)
+ testthat            3.2.1.1     2024-04-14 [1] CRAN (R 4.4.1)
+ tibble              3.2.1       2023-03-20 [1] CRAN (R 4.4.1)
+ tidyr               1.3.1       2024-01-24 [1] CRAN (R 4.4.1)
+ tidyselect          1.2.1       2024-03-11 [1] CRAN (R 4.4.1)
+ utf8                1.2.4       2023-10-22 [1] CRAN (R 4.4.1)
+ vctrs               0.6.5       2023-12-01 [1] CRAN (R 4.4.1)
+ withr               3.0.1       2024-07-31 [1] CRAN (R 4.4.1)
+ xfun                0.47        2024-08-17 [1] CRAN (R 4.4.1)
+ yaml                2.3.10      2024-07-26 [1] CRAN (R 4.4.1)
 
-locale:
- [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
- [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
- [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
- [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
- [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+ [1] /usr/local/lib/R/site-library
+ [2] /usr/local/lib/R/library
 
-time zone: Etc/UTC
-tzcode source: system (glibc)
-
-attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
-
-other attached packages:
-[1] dplyr_1.1.4           tern_0.9.5.9027       rtables_0.6.9.9016   
-[4] magrittr_2.0.3        formatters_0.5.9.9001
-
-loaded via a namespace (and not attached):
- [1] Matrix_1.7-0                  gtable_0.3.5                 
- [3] jsonlite_1.8.9                compiler_4.4.1               
- [5] brio_1.1.5                    tidyselect_1.2.1             
- [7] stringr_1.5.1                 tidyr_1.3.1                  
- [9] splines_4.4.1                 scales_1.3.0                 
-[11] yaml_2.3.10                   fastmap_1.2.0                
-[13] lattice_0.22-6                ggplot2_3.5.1                
-[15] R6_2.5.1                      generics_0.1.3               
-[17] knitr_1.48                    forcats_1.0.0                
-[19] rbibutils_2.2.16              htmlwidgets_1.6.4            
-[21] backports_1.5.0               checkmate_2.3.2              
-[23] tibble_3.2.1                  munsell_0.5.1                
-[25] pillar_1.9.0                  rlang_1.1.4                  
-[27] utf8_1.2.4                    testthat_3.2.1.1             
-[29] broom_1.0.6                   stringi_1.8.4                
-[31] xfun_0.47                     cli_3.6.3                    
-[33] withr_3.0.1                   Rdpack_2.6.1                 
-[35] digest_0.6.37                 grid_4.4.1                   
-[37] lifecycle_1.0.4               vctrs_0.6.5                  
-[39] evaluate_1.0.0                glue_1.7.0                   
-[41] codetools_0.2-20              survival_3.7-0               
-[43] random.cdisc.data_0.3.15.9009 fansi_1.0.6                  
-[45] colorspace_2.1-1              purrr_1.0.2                  
-[47] rmarkdown_2.28                tools_4.4.1                  
-[49] pkgconfig_2.0.3               htmltools_0.5.8.1            </code></pre>
+──────────────────────────────────────────────────────────────────────────────</code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
 <code>.lock</code> file</h3>
 <p>Download the <code>.lock</code> file and use <a href="https://rstudio.github.io/renv/reference/restore.html"><code>renv::restore()</code></a> on it to recreate environment used to generate this website.</p>
-<div class="cell" data-renv.ignore="true">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb23-2"><a href="#cb23-2"></a></span>
-<span id="cb23-3"><a href="#cb23-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
-<span id="cb23-4"><a href="#cb23-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
-<span id="cb23-5"><a href="#cb23-5"></a></span>
-<span id="cb23-6"><a href="#cb23-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
-<span id="cb23-7"><a href="#cb23-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
-<span id="cb23-8"><a href="#cb23-8"></a>  <span class="fu">paste0</span>(</span>
-<span id="cb23-9"><a href="#cb23-9"></a>    <span class="fu">gsub</span>(</span>
-<span id="cb23-10"><a href="#cb23-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
-<span id="cb23-11"><a href="#cb23-11"></a>      <span class="st">""</span>,</span>
-<span id="cb23-12"><a href="#cb23-12"></a>      <span class="fu">gsub</span>(</span>
-<span id="cb23-13"><a href="#cb23-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
-<span id="cb23-14"><a href="#cb23-14"></a>        <span class="st">""</span>,</span>
-<span id="cb23-15"><a href="#cb23-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb23-16"><a href="#cb23-16"></a>      )</span>
-<span id="cb23-17"><a href="#cb23-17"></a>    ),</span>
-<span id="cb23-18"><a href="#cb23-18"></a>    <span class="st">".lock"</span></span>
-<span id="cb23-19"><a href="#cb23-19"></a>  )</span>
-<span id="cb23-20"><a href="#cb23-20"></a>)</span>
-<span id="cb23-21"><a href="#cb23-21"></a></span>
-<span id="cb23-22"><a href="#cb23-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
-<span id="cb23-23"><a href="#cb23-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb23-24"><a href="#cb23-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb23-25"><a href="#cb23-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
 <p><a href="../../assets/www/lock/tables/disclosures/disclosurest01.lock">Download</a></p>
-</section>
-</div>
-</div>
-</div>
 
 
 <!-- -->
 
-
-</main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</section></section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
     const mode = bsSheetEl.getAttribute("data-mode");
@@ -4050,429 +4036,429 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb24" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb24-1"><a href="#cb24-1"></a><span class="co">---</span></span>
-<span id="cb24-2"><a href="#cb24-2"></a><span class="an">title:</span><span class="co"> DISCLOSUREST01</span></span>
-<span id="cb24-3"><a href="#cb24-3"></a><span class="an">subtitle:</span><span class="co"> Disclosures Outputs</span></span>
-<span id="cb24-4"><a href="#cb24-4"></a><span class="co">---</span></span>
-<span id="cb24-5"><a href="#cb24-5"></a></span>
-<span id="cb24-6"><a href="#cb24-6"></a>------------------------------------------------------------------------</span>
-<span id="cb24-7"><a href="#cb24-7"></a></span>
-<span id="cb24-8"><a href="#cb24-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb24-9"><a href="#cb24-9"></a></span>
-<span id="cb24-10"><a href="#cb24-10"></a>:::: {.panel-tabset}</span>
-<span id="cb24-11"><a href="#cb24-11"></a><span class="fu">## Patient Disposition Table &lt;br/&gt; (CTgov &amp; EudraCT)</span></span>
-<span id="cb24-12"><a href="#cb24-12"></a></span>
-<span id="cb24-13"><a href="#cb24-13"></a><span class="fu">#### Data Setup</span></span>
-<span id="cb24-14"><a href="#cb24-14"></a></span>
-<span id="cb24-15"><a href="#cb24-15"></a><span class="in">```{r setup1, message = FALSE}</span></span>
-<span id="cb24-16"><a href="#cb24-16"></a><span class="in">library(tern)</span></span>
-<span id="cb24-17"><a href="#cb24-17"></a><span class="in">library(dplyr)</span></span>
-<span id="cb24-18"><a href="#cb24-18"></a></span>
-<span id="cb24-19"><a href="#cb24-19"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb24-20"><a href="#cb24-20"></a></span>
-<span id="cb24-21"><a href="#cb24-21"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb24-22"><a href="#cb24-22"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb24-23"><a href="#cb24-23"></a></span>
-<span id="cb24-24"><a href="#cb24-24"></a><span class="in">set.seed(1, kind = "Mersenne-Twister")</span></span>
-<span id="cb24-25"><a href="#cb24-25"></a></span>
-<span id="cb24-26"><a href="#cb24-26"></a><span class="in"># Add additional disposition variables to adsl.</span></span>
-<span id="cb24-27"><a href="#cb24-27"></a><span class="in">adsl0 &lt;- adsl %&gt;%</span></span>
-<span id="cb24-28"><a href="#cb24-28"></a><span class="in">  mutate(</span></span>
-<span id="cb24-29"><a href="#cb24-29"></a><span class="in">    STSTFL = case_when(</span></span>
-<span id="cb24-30"><a href="#cb24-30"></a><span class="in">      is.na(RANDDT) ~ "N",</span></span>
-<span id="cb24-31"><a href="#cb24-31"></a><span class="in">      TRUE ~ "Y"</span></span>
-<span id="cb24-32"><a href="#cb24-32"></a><span class="in">    ) %&gt;% as.factor(),</span></span>
-<span id="cb24-33"><a href="#cb24-33"></a><span class="in">    COMPSTUD = sample(</span></span>
-<span id="cb24-34"><a href="#cb24-34"></a><span class="in">      c("Y", "N"),</span></span>
-<span id="cb24-35"><a href="#cb24-35"></a><span class="in">      size = nrow(adsl),</span></span>
-<span id="cb24-36"><a href="#cb24-36"></a><span class="in">      replace = TRUE</span></span>
-<span id="cb24-37"><a href="#cb24-37"></a><span class="in">    ) %&gt;% as.factor(),</span></span>
-<span id="cb24-38"><a href="#cb24-38"></a><span class="in">    STUDONS = sample(</span></span>
-<span id="cb24-39"><a href="#cb24-39"></a><span class="in">      c("Alive: On Treatment", "Alive: In Follow-up", NA),</span></span>
-<span id="cb24-40"><a href="#cb24-40"></a><span class="in">      size = nrow(adsl),</span></span>
-<span id="cb24-41"><a href="#cb24-41"></a><span class="in">      replace = TRUE</span></span>
-<span id="cb24-42"><a href="#cb24-42"></a><span class="in">    ) %&gt;% as.factor(),</span></span>
-<span id="cb24-43"><a href="#cb24-43"></a><span class="in">    STDDRS = sample(</span></span>
-<span id="cb24-44"><a href="#cb24-44"></a><span class="in">      c(</span></span>
-<span id="cb24-45"><a href="#cb24-45"></a><span class="in">        "Death", "Lost To Follow-Up",</span></span>
-<span id="cb24-46"><a href="#cb24-46"></a><span class="in">        "Protocol Violation", "Withdrawal By Subject",</span></span>
-<span id="cb24-47"><a href="#cb24-47"></a><span class="in">        "Other"</span></span>
-<span id="cb24-48"><a href="#cb24-48"></a><span class="in">      ),</span></span>
-<span id="cb24-49"><a href="#cb24-49"></a><span class="in">      size = nrow(adsl),</span></span>
-<span id="cb24-50"><a href="#cb24-50"></a><span class="in">      replace = TRUE</span></span>
-<span id="cb24-51"><a href="#cb24-51"></a><span class="in">    ) %&gt;% as.factor(),</span></span>
-<span id="cb24-52"><a href="#cb24-52"></a><span class="in">    GOTTRT = ifelse(!is.na(ACTARMCD), "Y", "N") %&gt;%</span></span>
-<span id="cb24-53"><a href="#cb24-53"></a><span class="in">      as.factor(),</span></span>
-<span id="cb24-54"><a href="#cb24-54"></a><span class="in">    DISTRTFL = sample(</span></span>
-<span id="cb24-55"><a href="#cb24-55"></a><span class="in">      c("Y", "N"),</span></span>
-<span id="cb24-56"><a href="#cb24-56"></a><span class="in">      size = nrow(adsl),</span></span>
-<span id="cb24-57"><a href="#cb24-57"></a><span class="in">      replace = TRUE</span></span>
-<span id="cb24-58"><a href="#cb24-58"></a><span class="in">    ) %&gt;% as.factor(),</span></span>
-<span id="cb24-59"><a href="#cb24-59"></a><span class="in">    TRTDRS = sample(</span></span>
-<span id="cb24-60"><a href="#cb24-60"></a><span class="in">      c(</span></span>
-<span id="cb24-61"><a href="#cb24-61"></a><span class="in">        "ADVERSE EVENT", "PROGRESSIVE DISEASE",</span></span>
-<span id="cb24-62"><a href="#cb24-62"></a><span class="in">        "PHYSICIAN DECISION", "LACK OF EFFICACY",</span></span>
-<span id="cb24-63"><a href="#cb24-63"></a><span class="in">        "OTHER"</span></span>
-<span id="cb24-64"><a href="#cb24-64"></a><span class="in">      ),</span></span>
-<span id="cb24-65"><a href="#cb24-65"></a><span class="in">      size = nrow(adsl),</span></span>
-<span id="cb24-66"><a href="#cb24-66"></a><span class="in">      replace = TRUE</span></span>
-<span id="cb24-67"><a href="#cb24-67"></a><span class="in">    ) %&gt;% as.factor(),</span></span>
-<span id="cb24-68"><a href="#cb24-68"></a><span class="in">    STUDONS = case_when(COMPSTUD == "N" ~ STUDONS),</span></span>
-<span id="cb24-69"><a href="#cb24-69"></a><span class="in">    STDDRS = case_when(COMPSTUD == "N" &amp; is.na(STUDONS) ~ STDDRS),</span></span>
-<span id="cb24-70"><a href="#cb24-70"></a><span class="in">    DISSTDFL = case_when(!is.na(STDDRS) ~ "Y"),</span></span>
-<span id="cb24-71"><a href="#cb24-71"></a><span class="in">    DISTRTFL = case_when(GOTTRT == "Y" ~ DISTRTFL),</span></span>
-<span id="cb24-72"><a href="#cb24-72"></a><span class="in">    TRTDRS = case_when(DISTRTFL == "Y" ~ TRTDRS),</span></span>
-<span id="cb24-73"><a href="#cb24-73"></a><span class="in">    DRSCAT = case_when(</span></span>
-<span id="cb24-74"><a href="#cb24-74"></a><span class="in">      TRTDRS %in% c("ADVERSE EVENT", "PHYSICIAN DECISION") ~ "Safety",</span></span>
-<span id="cb24-75"><a href="#cb24-75"></a><span class="in">      !is.na(TRTDRS) ~ "Other"</span></span>
-<span id="cb24-76"><a href="#cb24-76"></a><span class="in">    )</span></span>
-<span id="cb24-77"><a href="#cb24-77"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb24-78"><a href="#cb24-78"></a><span class="in">  var_relabel(</span></span>
-<span id="cb24-79"><a href="#cb24-79"></a><span class="in">    STSTFL = "Started Study",</span></span>
-<span id="cb24-80"><a href="#cb24-80"></a><span class="in">    COMPSTUD = "Complete Study",</span></span>
-<span id="cb24-81"><a href="#cb24-81"></a><span class="in">    STUDONS = "On-study Status",</span></span>
-<span id="cb24-82"><a href="#cb24-82"></a><span class="in">    DISSTDFL = "Discontinued Study",</span></span>
-<span id="cb24-83"><a href="#cb24-83"></a><span class="in">    STDDRS = "Reason for Study Discontinuation",</span></span>
-<span id="cb24-84"><a href="#cb24-84"></a><span class="in">    GOTTRT = "Received Treatment",</span></span>
-<span id="cb24-85"><a href="#cb24-85"></a><span class="in">    DISTRTFL = "Discontinued Treatment",</span></span>
-<span id="cb24-86"><a href="#cb24-86"></a><span class="in">    TRTDRS = "Reason for Treatment Discontinuation",</span></span>
-<span id="cb24-87"><a href="#cb24-87"></a><span class="in">    DRSCAT = "Subcategory for Treatment Discontinuation"</span></span>
-<span id="cb24-88"><a href="#cb24-88"></a><span class="in">  )</span></span>
-<span id="cb24-89"><a href="#cb24-89"></a><span class="in">```</span></span>
-<span id="cb24-90"><a href="#cb24-90"></a></span>
-<span id="cb24-91"><a href="#cb24-91"></a><span class="fu">#### Patient Disposition Table</span></span>
-<span id="cb24-92"><a href="#cb24-92"></a></span>
-<span id="cb24-93"><a href="#cb24-93"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb24-94"><a href="#cb24-94"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb24-95"><a href="#cb24-95"></a></span>
-<span id="cb24-96"><a href="#cb24-96"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb24-97"><a href="#cb24-97"></a><span class="in"># Define the split function</span></span>
-<span id="cb24-98"><a href="#cb24-98"></a><span class="in">split_fun &lt;- keep_split_levels("Y")</span></span>
-<span id="cb24-99"><a href="#cb24-99"></a></span>
-<span id="cb24-100"><a href="#cb24-100"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb24-101"><a href="#cb24-101"></a><span class="in">  split_cols_by(</span></span>
-<span id="cb24-102"><a href="#cb24-102"></a><span class="in">    "ARM",</span></span>
-<span id="cb24-103"><a href="#cb24-103"></a><span class="in">    split_fun = add_overall_level("All Patients", first = FALSE)</span></span>
-<span id="cb24-104"><a href="#cb24-104"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb24-105"><a href="#cb24-105"></a><span class="in">  count_values("STSTFL",</span></span>
-<span id="cb24-106"><a href="#cb24-106"></a><span class="in">    values = "Y",</span></span>
-<span id="cb24-107"><a href="#cb24-107"></a><span class="in">    .labels = c(count_fraction = "Started Study")</span></span>
-<span id="cb24-108"><a href="#cb24-108"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb24-109"><a href="#cb24-109"></a><span class="in">  count_values("COMPSTUD",</span></span>
-<span id="cb24-110"><a href="#cb24-110"></a><span class="in">    values = "Y",</span></span>
-<span id="cb24-111"><a href="#cb24-111"></a><span class="in">    .labels = c(count_fraction = "Completed Study")</span></span>
-<span id="cb24-112"><a href="#cb24-112"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb24-113"><a href="#cb24-113"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb24-114"><a href="#cb24-114"></a><span class="in">    "DISSTDFL",</span></span>
-<span id="cb24-115"><a href="#cb24-115"></a><span class="in">    split_fun = split_fun</span></span>
-<span id="cb24-116"><a href="#cb24-116"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb24-117"><a href="#cb24-117"></a><span class="in">  summarize_row_groups(label_fstr = "Discontinued Study") %&gt;%</span></span>
-<span id="cb24-118"><a href="#cb24-118"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb24-119"><a href="#cb24-119"></a><span class="in">    "STDDRS",</span></span>
-<span id="cb24-120"><a href="#cb24-120"></a><span class="in">    .stats = "count_fraction"</span></span>
-<span id="cb24-121"><a href="#cb24-121"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb24-122"><a href="#cb24-122"></a><span class="in">  append_topleft("Status")</span></span>
-<span id="cb24-123"><a href="#cb24-123"></a></span>
-<span id="cb24-124"><a href="#cb24-124"></a><span class="in">result &lt;- build_table(lyt = lyt, df = adsl0)</span></span>
-<span id="cb24-125"><a href="#cb24-125"></a><span class="in">result</span></span>
-<span id="cb24-126"><a href="#cb24-126"></a><span class="in">```</span></span>
-<span id="cb24-127"><a href="#cb24-127"></a></span>
-<span id="cb24-128"><a href="#cb24-128"></a><span class="in">`r webr_code_labels &lt;- c("setup1", "variant1")`</span></span>
-<span id="cb24-129"><a href="#cb24-129"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb24-130"><a href="#cb24-130"></a>:::</span>
-<span id="cb24-131"><a href="#cb24-131"></a></span>
-<span id="cb24-132"><a href="#cb24-132"></a><span class="fu">## Demographic Table &lt;br/&gt; (CTgov &amp; EudraCT)</span></span>
-<span id="cb24-133"><a href="#cb24-133"></a></span>
-<span id="cb24-134"><a href="#cb24-134"></a><span class="fu">#### Data Setup</span></span>
-<span id="cb24-135"><a href="#cb24-135"></a></span>
-<span id="cb24-136"><a href="#cb24-136"></a><span class="in">```{r setup2, message = FALSE}</span></span>
-<span id="cb24-137"><a href="#cb24-137"></a><span class="in">library(tern)</span></span>
-<span id="cb24-138"><a href="#cb24-138"></a><span class="in">library(dplyr)</span></span>
-<span id="cb24-139"><a href="#cb24-139"></a></span>
-<span id="cb24-140"><a href="#cb24-140"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb24-141"><a href="#cb24-141"></a></span>
-<span id="cb24-142"><a href="#cb24-142"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb24-143"><a href="#cb24-143"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb24-144"><a href="#cb24-144"></a></span>
-<span id="cb24-145"><a href="#cb24-145"></a><span class="in"># Change description in variable SEX.</span></span>
-<span id="cb24-146"><a href="#cb24-146"></a><span class="in">adsl &lt;- adsl %&gt;%</span></span>
-<span id="cb24-147"><a href="#cb24-147"></a><span class="in">  mutate(</span></span>
-<span id="cb24-148"><a href="#cb24-148"></a><span class="in">    SEX = factor(case_when(</span></span>
-<span id="cb24-149"><a href="#cb24-149"></a><span class="in">      SEX == "M" ~ "Male",</span></span>
-<span id="cb24-150"><a href="#cb24-150"></a><span class="in">      SEX == "F" ~ "Female",</span></span>
-<span id="cb24-151"><a href="#cb24-151"></a><span class="in">      SEX == "U" ~ "Unknown",</span></span>
-<span id="cb24-152"><a href="#cb24-152"></a><span class="in">      SEX == "UNDIFFERENTIATED" ~ "Undifferentiated"</span></span>
-<span id="cb24-153"><a href="#cb24-153"></a><span class="in">    )),</span></span>
-<span id="cb24-154"><a href="#cb24-154"></a><span class="in">    AGEGRP = factor(</span></span>
-<span id="cb24-155"><a href="#cb24-155"></a><span class="in">      case_when(</span></span>
-<span id="cb24-156"><a href="#cb24-156"></a><span class="in">        between(AGE, 18, 40) ~ "18-40",</span></span>
-<span id="cb24-157"><a href="#cb24-157"></a><span class="in">        between(AGE, 41, 64) ~ "41-64",</span></span>
-<span id="cb24-158"><a href="#cb24-158"></a><span class="in">        AGE &gt; 64 ~ "&gt;=65"</span></span>
-<span id="cb24-159"><a href="#cb24-159"></a><span class="in">      ),</span></span>
-<span id="cb24-160"><a href="#cb24-160"></a><span class="in">      levels = c("18-40", "41-64", "&gt;=65")</span></span>
-<span id="cb24-161"><a href="#cb24-161"></a><span class="in">    )</span></span>
-<span id="cb24-162"><a href="#cb24-162"></a><span class="in">  )</span></span>
-<span id="cb24-163"><a href="#cb24-163"></a><span class="in">```</span></span>
-<span id="cb24-164"><a href="#cb24-164"></a></span>
-<span id="cb24-165"><a href="#cb24-165"></a><span class="fu">#### Demographic Table</span></span>
-<span id="cb24-166"><a href="#cb24-166"></a></span>
-<span id="cb24-167"><a href="#cb24-167"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb24-168"><a href="#cb24-168"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb24-169"><a href="#cb24-169"></a></span>
-<span id="cb24-170"><a href="#cb24-170"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb24-171"><a href="#cb24-171"></a><span class="in">vars &lt;- c("AGE", "AGEGRP", "SEX", "RACE", "ETHNIC")</span></span>
-<span id="cb24-172"><a href="#cb24-172"></a><span class="in">var_labels &lt;- c("Age (yr)", "Age group", "Sex", "Race", "Ethnicity")</span></span>
-<span id="cb24-173"><a href="#cb24-173"></a></span>
-<span id="cb24-174"><a href="#cb24-174"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb24-175"><a href="#cb24-175"></a><span class="in">  split_cols_by(var = "ARM") %&gt;%</span></span>
-<span id="cb24-176"><a href="#cb24-176"></a><span class="in">  add_overall_col("All Patients") %&gt;%</span></span>
-<span id="cb24-177"><a href="#cb24-177"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb24-178"><a href="#cb24-178"></a><span class="in">    vars = vars,</span></span>
-<span id="cb24-179"><a href="#cb24-179"></a><span class="in">    var_labels = var_labels</span></span>
-<span id="cb24-180"><a href="#cb24-180"></a><span class="in">  )</span></span>
-<span id="cb24-181"><a href="#cb24-181"></a></span>
-<span id="cb24-182"><a href="#cb24-182"></a><span class="in">result &lt;- build_table(lyt = lyt, df = adsl)</span></span>
-<span id="cb24-183"><a href="#cb24-183"></a><span class="in">result</span></span>
-<span id="cb24-184"><a href="#cb24-184"></a><span class="in">```</span></span>
-<span id="cb24-185"><a href="#cb24-185"></a></span>
-<span id="cb24-186"><a href="#cb24-186"></a><span class="in">`r webr_code_labels &lt;- c("setup2", "variant1")`</span></span>
-<span id="cb24-187"><a href="#cb24-187"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb24-188"><a href="#cb24-188"></a>:::</span>
-<span id="cb24-189"><a href="#cb24-189"></a></span>
-<span id="cb24-190"><a href="#cb24-190"></a><span class="fu">## Enrollment by Country &lt;br/&gt; Table (EudraCT only)</span></span>
-<span id="cb24-191"><a href="#cb24-191"></a></span>
-<span id="cb24-192"><a href="#cb24-192"></a><span class="fu">#### Data Setup</span></span>
-<span id="cb24-193"><a href="#cb24-193"></a></span>
-<span id="cb24-194"><a href="#cb24-194"></a><span class="in">```{r setup3, message = FALSE}</span></span>
-<span id="cb24-195"><a href="#cb24-195"></a><span class="in">library(tern)</span></span>
-<span id="cb24-196"><a href="#cb24-196"></a><span class="in">library(dplyr)</span></span>
-<span id="cb24-197"><a href="#cb24-197"></a></span>
-<span id="cb24-198"><a href="#cb24-198"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb24-199"><a href="#cb24-199"></a><span class="in">adsl_labels &lt;- var_labels(adsl)</span></span>
-<span id="cb24-200"><a href="#cb24-200"></a></span>
-<span id="cb24-201"><a href="#cb24-201"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb24-202"><a href="#cb24-202"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb24-203"><a href="#cb24-203"></a></span>
-<span id="cb24-204"><a href="#cb24-204"></a><span class="in">adsl &lt;- adsl %&gt;%</span></span>
-<span id="cb24-205"><a href="#cb24-205"></a><span class="in">  mutate(COUNTRY = droplevels(COUNTRY)) %&gt;%</span></span>
-<span id="cb24-206"><a href="#cb24-206"></a><span class="in">  arrange(REGION1, COUNTRY)</span></span>
-<span id="cb24-207"><a href="#cb24-207"></a></span>
-<span id="cb24-208"><a href="#cb24-208"></a><span class="in">var_labels(adsl) &lt;- c(adsl_labels)</span></span>
-<span id="cb24-209"><a href="#cb24-209"></a><span class="in">```</span></span>
-<span id="cb24-210"><a href="#cb24-210"></a></span>
-<span id="cb24-211"><a href="#cb24-211"></a><span class="fu">#### Enrollment by Country Table</span></span>
-<span id="cb24-212"><a href="#cb24-212"></a></span>
-<span id="cb24-213"><a href="#cb24-213"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb24-214"><a href="#cb24-214"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb24-215"><a href="#cb24-215"></a></span>
-<span id="cb24-216"><a href="#cb24-216"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
-<span id="cb24-217"><a href="#cb24-217"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb24-218"><a href="#cb24-218"></a><span class="in">  split_cols_by("ARM") %&gt;%</span></span>
-<span id="cb24-219"><a href="#cb24-219"></a><span class="in">  add_overall_col(label = "All Patients") %&gt;%</span></span>
-<span id="cb24-220"><a href="#cb24-220"></a><span class="in">  analyze_vars("COUNTRY") %&gt;%</span></span>
-<span id="cb24-221"><a href="#cb24-221"></a><span class="in">  append_varlabels(adsl, "COUNTRY")</span></span>
-<span id="cb24-222"><a href="#cb24-222"></a></span>
-<span id="cb24-223"><a href="#cb24-223"></a><span class="in">result &lt;- build_table(lyt, adsl)</span></span>
-<span id="cb24-224"><a href="#cb24-224"></a><span class="in">result</span></span>
-<span id="cb24-225"><a href="#cb24-225"></a><span class="in">```</span></span>
-<span id="cb24-226"><a href="#cb24-226"></a></span>
-<span id="cb24-227"><a href="#cb24-227"></a><span class="in">`r webr_code_labels &lt;- c("setup3", "variant3")`</span></span>
-<span id="cb24-228"><a href="#cb24-228"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb24-229"><a href="#cb24-229"></a>:::</span>
-<span id="cb24-230"><a href="#cb24-230"></a></span>
-<span id="cb24-231"><a href="#cb24-231"></a><span class="fu">## Non-Serious Adverse Events &lt;br/&gt; Reported in $\geq$ 5% of Patients in Any &lt;br/&gt; Treatment Group (CTgov &amp; EudraCT)</span></span>
-<span id="cb24-232"><a href="#cb24-232"></a></span>
-<span id="cb24-233"><a href="#cb24-233"></a><span class="fu">#### Data Setup</span></span>
-<span id="cb24-234"><a href="#cb24-234"></a></span>
-<span id="cb24-235"><a href="#cb24-235"></a>Trimming function <span class="in">`get_adae_trimmed`</span> is defined to filter AEs with greater than 5% incidence rate.</span>
-<span id="cb24-236"><a href="#cb24-236"></a></span>
-<span id="cb24-237"><a href="#cb24-237"></a><span class="in">```{r setup4, message = FALSE}</span></span>
-<span id="cb24-238"><a href="#cb24-238"></a><span class="in">library(tern)</span></span>
-<span id="cb24-239"><a href="#cb24-239"></a><span class="in">library(dplyr)</span></span>
-<span id="cb24-240"><a href="#cb24-240"></a></span>
-<span id="cb24-241"><a href="#cb24-241"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb24-242"><a href="#cb24-242"></a><span class="in">adae &lt;- random.cdisc.data::cadae</span></span>
-<span id="cb24-243"><a href="#cb24-243"></a></span>
-<span id="cb24-244"><a href="#cb24-244"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb24-245"><a href="#cb24-245"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb24-246"><a href="#cb24-246"></a><span class="in">adae &lt;- df_explicit_na(adae)</span></span>
-<span id="cb24-247"><a href="#cb24-247"></a></span>
-<span id="cb24-248"><a href="#cb24-248"></a><span class="in">adae_nonser &lt;- adae %&gt;% filter(AESER != "Y", SAFFL == "Y")</span></span>
-<span id="cb24-249"><a href="#cb24-249"></a></span>
-<span id="cb24-250"><a href="#cb24-250"></a><span class="in">get_adae_trimmed &lt;- function(adsl, adae, cutoff_rate) {</span></span>
-<span id="cb24-251"><a href="#cb24-251"></a><span class="in">  n_per_arm &lt;- adsl %&gt;%</span></span>
-<span id="cb24-252"><a href="#cb24-252"></a><span class="in">    dplyr::count(ARM)</span></span>
-<span id="cb24-253"><a href="#cb24-253"></a></span>
-<span id="cb24-254"><a href="#cb24-254"></a><span class="in">  anl_terms &lt;- adae %&gt;%</span></span>
-<span id="cb24-255"><a href="#cb24-255"></a><span class="in">    dplyr::group_by(ARM, AEBODSYS, AEDECOD) %&gt;%</span></span>
-<span id="cb24-256"><a href="#cb24-256"></a><span class="in">    dplyr::count(</span></span>
-<span id="cb24-257"><a href="#cb24-257"></a><span class="in">      unique_terms = n_distinct(USUBJID)</span></span>
-<span id="cb24-258"><a href="#cb24-258"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb24-259"><a href="#cb24-259"></a><span class="in">    dplyr::select(-n) %&gt;%</span></span>
-<span id="cb24-260"><a href="#cb24-260"></a><span class="in">    dplyr::ungroup()</span></span>
-<span id="cb24-261"><a href="#cb24-261"></a></span>
-<span id="cb24-262"><a href="#cb24-262"></a><span class="in">  anl_terms &lt;- dplyr::left_join(</span></span>
-<span id="cb24-263"><a href="#cb24-263"></a><span class="in">    anl_terms,</span></span>
-<span id="cb24-264"><a href="#cb24-264"></a><span class="in">    n_per_arm,</span></span>
-<span id="cb24-265"><a href="#cb24-265"></a><span class="in">    by = "ARM"</span></span>
-<span id="cb24-266"><a href="#cb24-266"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb24-267"><a href="#cb24-267"></a><span class="in">    dplyr::mutate(</span></span>
-<span id="cb24-268"><a href="#cb24-268"></a><span class="in">      ae_rate = unique_terms / n</span></span>
-<span id="cb24-269"><a href="#cb24-269"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb24-270"><a href="#cb24-270"></a><span class="in">    dplyr::filter(ae_rate &gt;= cutoff_rate) %&gt;%</span></span>
-<span id="cb24-271"><a href="#cb24-271"></a><span class="in">    dplyr::select(AEDECOD) %&gt;%</span></span>
-<span id="cb24-272"><a href="#cb24-272"></a><span class="in">    unique()</span></span>
-<span id="cb24-273"><a href="#cb24-273"></a></span>
-<span id="cb24-274"><a href="#cb24-274"></a><span class="in">  anl &lt;- dplyr::left_join(</span></span>
-<span id="cb24-275"><a href="#cb24-275"></a><span class="in">    anl_terms,</span></span>
-<span id="cb24-276"><a href="#cb24-276"></a><span class="in">    adae,</span></span>
-<span id="cb24-277"><a href="#cb24-277"></a><span class="in">    by = "AEDECOD"</span></span>
-<span id="cb24-278"><a href="#cb24-278"></a><span class="in">  )</span></span>
-<span id="cb24-279"><a href="#cb24-279"></a><span class="in">  anl</span></span>
-<span id="cb24-280"><a href="#cb24-280"></a><span class="in">}</span></span>
-<span id="cb24-281"><a href="#cb24-281"></a></span>
-<span id="cb24-282"><a href="#cb24-282"></a><span class="in">adae_trim &lt;- get_adae_trimmed(adsl, adae_nonser, cutoff_rate = 0.05)</span></span>
-<span id="cb24-283"><a href="#cb24-283"></a><span class="in">```</span></span>
-<span id="cb24-284"><a href="#cb24-284"></a></span>
-<span id="cb24-285"><a href="#cb24-285"></a><span class="fu">#### Non-Serious Adverse Events Report in $\geq$ 5% of Patients in Any Treatment Group</span></span>
-<span id="cb24-286"><a href="#cb24-286"></a></span>
-<span id="cb24-287"><a href="#cb24-287"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb24-288"><a href="#cb24-288"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb24-289"><a href="#cb24-289"></a></span>
-<span id="cb24-290"><a href="#cb24-290"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
-<span id="cb24-291"><a href="#cb24-291"></a><span class="in"># Define the split function</span></span>
-<span id="cb24-292"><a href="#cb24-292"></a><span class="in">split_fun &lt;- drop_split_levels</span></span>
-<span id="cb24-293"><a href="#cb24-293"></a></span>
-<span id="cb24-294"><a href="#cb24-294"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
-<span id="cb24-295"><a href="#cb24-295"></a><span class="in">  split_cols_by("ARM") %&gt;%</span></span>
-<span id="cb24-296"><a href="#cb24-296"></a><span class="in">  summarize_patients_events_in_cols(</span></span>
-<span id="cb24-297"><a href="#cb24-297"></a><span class="in">    custom_label = "Total number of patients with at least one non-serious adverse event occuring at a relative frequency of &gt;=5%" # nolint: line_length.</span></span>
-<span id="cb24-298"><a href="#cb24-298"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb24-299"><a href="#cb24-299"></a><span class="in">  split_rows_by("AEBODSYS",</span></span>
-<span id="cb24-300"><a href="#cb24-300"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb24-301"><a href="#cb24-301"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb24-302"><a href="#cb24-302"></a><span class="in">    indent_mod = -1L,</span></span>
-<span id="cb24-303"><a href="#cb24-303"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb24-304"><a href="#cb24-304"></a><span class="in">    split_label = obj_label(adae_trim$AEBODSYS)</span></span>
-<span id="cb24-305"><a href="#cb24-305"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb24-306"><a href="#cb24-306"></a><span class="in">  split_rows_by("AEDECOD", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adae_trim$AEDECOD)) %&gt;%</span></span>
-<span id="cb24-307"><a href="#cb24-307"></a><span class="in">  summarize_patients_events_in_cols(</span></span>
-<span id="cb24-308"><a href="#cb24-308"></a><span class="in">    col_split = FALSE</span></span>
-<span id="cb24-309"><a href="#cb24-309"></a><span class="in">  )</span></span>
-<span id="cb24-310"><a href="#cb24-310"></a></span>
-<span id="cb24-311"><a href="#cb24-311"></a><span class="in">result &lt;- build_table(lyt, adae_trim)</span></span>
-<span id="cb24-312"><a href="#cb24-312"></a><span class="in">result</span></span>
-<span id="cb24-313"><a href="#cb24-313"></a><span class="in">```</span></span>
-<span id="cb24-314"><a href="#cb24-314"></a></span>
-<span id="cb24-315"><a href="#cb24-315"></a><span class="in">`r webr_code_labels &lt;- c("setup4", "variant4")`</span></span>
-<span id="cb24-316"><a href="#cb24-316"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb24-317"><a href="#cb24-317"></a>:::</span>
-<span id="cb24-318"><a href="#cb24-318"></a></span>
-<span id="cb24-319"><a href="#cb24-319"></a><span class="fu">## Serious Adverse Events, Fatal SAEs &lt;br/&gt; and SAEs Related to Study Medication, &lt;br/&gt; by Treatment Group (CTgov &amp; EudraCT)</span></span>
-<span id="cb24-320"><a href="#cb24-320"></a></span>
-<span id="cb24-321"><a href="#cb24-321"></a>For illustrative purposes, the <span class="in">`adae`</span> data is filtered by arm "A: Drug X" here.</span>
-<span id="cb24-322"><a href="#cb24-322"></a></span>
-<span id="cb24-323"><a href="#cb24-323"></a><span class="fu">#### Data Setup</span></span>
-<span id="cb24-324"><a href="#cb24-324"></a></span>
-<span id="cb24-325"><a href="#cb24-325"></a><span class="in">```{r setup5, message = FALSE}</span></span>
-<span id="cb24-326"><a href="#cb24-326"></a><span class="in">library(tern)</span></span>
-<span id="cb24-327"><a href="#cb24-327"></a><span class="in">library(dplyr)</span></span>
-<span id="cb24-328"><a href="#cb24-328"></a></span>
-<span id="cb24-329"><a href="#cb24-329"></a><span class="in">adae &lt;- random.cdisc.data::cadae</span></span>
-<span id="cb24-330"><a href="#cb24-330"></a></span>
-<span id="cb24-331"><a href="#cb24-331"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb24-332"><a href="#cb24-332"></a><span class="in">adae &lt;- df_explicit_na(adae)</span></span>
-<span id="cb24-333"><a href="#cb24-333"></a></span>
-<span id="cb24-334"><a href="#cb24-334"></a><span class="in">adae_serious &lt;- adae %&gt;% filter(AESER == "Y", SAFFL == "Y")</span></span>
-<span id="cb24-335"><a href="#cb24-335"></a><span class="in">adae_serious_arm &lt;- adae_serious %&gt;% filter(ARM == "A: Drug X")</span></span>
-<span id="cb24-336"><a href="#cb24-336"></a></span>
-<span id="cb24-337"><a href="#cb24-337"></a><span class="in">filters_list &lt;- list(</span></span>
-<span id="cb24-338"><a href="#cb24-338"></a><span class="in">  related = with_label(c(AEREL = "Y"), "Events (Related)"),</span></span>
-<span id="cb24-339"><a href="#cb24-339"></a><span class="in">  fatal = with_label(c(AESDTH = "Y"), "Events (Fatal)"),</span></span>
-<span id="cb24-340"><a href="#cb24-340"></a><span class="in">  fatal_related = with_label(c(AEREL = "Y", AESDTH = "Y"), "Events (Fatal &amp; Related)")</span></span>
-<span id="cb24-341"><a href="#cb24-341"></a><span class="in">)</span></span>
-<span id="cb24-342"><a href="#cb24-342"></a><span class="in">```</span></span>
-<span id="cb24-343"><a href="#cb24-343"></a></span>
-<span id="cb24-344"><a href="#cb24-344"></a><span class="fu">#### Serious Adverse Events, Fatal SAEs and SAEs Related to Study Medication, by Treatment Group</span></span>
-<span id="cb24-345"><a href="#cb24-345"></a></span>
-<span id="cb24-346"><a href="#cb24-346"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb24-347"><a href="#cb24-347"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb24-348"><a href="#cb24-348"></a></span>
-<span id="cb24-349"><a href="#cb24-349"></a><span class="in">```{r variant5, test = list(result_v5 = "result")}</span></span>
-<span id="cb24-350"><a href="#cb24-350"></a><span class="in"># Define the split function</span></span>
-<span id="cb24-351"><a href="#cb24-351"></a><span class="in">split_fun &lt;- drop_split_levels</span></span>
-<span id="cb24-352"><a href="#cb24-352"></a></span>
-<span id="cb24-353"><a href="#cb24-353"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
-<span id="cb24-354"><a href="#cb24-354"></a><span class="in">  summarize_patients_events_in_cols(</span></span>
-<span id="cb24-355"><a href="#cb24-355"></a><span class="in">    filters_list = filters_list,</span></span>
-<span id="cb24-356"><a href="#cb24-356"></a><span class="in">    empty_stats = c("all", "related", "fatal", "fatal_related"),</span></span>
-<span id="cb24-357"><a href="#cb24-357"></a><span class="in">    custom_label = "Total number of patients with at least one serious adverse event"</span></span>
-<span id="cb24-358"><a href="#cb24-358"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb24-359"><a href="#cb24-359"></a><span class="in">  split_rows_by("AEBODSYS",</span></span>
-<span id="cb24-360"><a href="#cb24-360"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb24-361"><a href="#cb24-361"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb24-362"><a href="#cb24-362"></a><span class="in">    indent_mod = -1L,</span></span>
-<span id="cb24-363"><a href="#cb24-363"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb24-364"><a href="#cb24-364"></a><span class="in">    split_label = obj_label(adae_trim$AEBODSYS)</span></span>
-<span id="cb24-365"><a href="#cb24-365"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb24-366"><a href="#cb24-366"></a><span class="in">  split_rows_by("AEDECOD",</span></span>
-<span id="cb24-367"><a href="#cb24-367"></a><span class="in">    split_fun = split_fun,</span></span>
-<span id="cb24-368"><a href="#cb24-368"></a><span class="in">    label_pos = "topleft",</span></span>
-<span id="cb24-369"><a href="#cb24-369"></a><span class="in">    split_label = obj_label(adae_serious_arm$AEDECOD)</span></span>
-<span id="cb24-370"><a href="#cb24-370"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb24-371"><a href="#cb24-371"></a><span class="in">  summarize_patients_events_in_cols(</span></span>
-<span id="cb24-372"><a href="#cb24-372"></a><span class="in">    filters_list = filters_list,</span></span>
-<span id="cb24-373"><a href="#cb24-373"></a><span class="in">    col_split = FALSE</span></span>
-<span id="cb24-374"><a href="#cb24-374"></a><span class="in">  )</span></span>
-<span id="cb24-375"><a href="#cb24-375"></a></span>
-<span id="cb24-376"><a href="#cb24-376"></a><span class="in">result &lt;- build_table(lyt, adae_serious_arm)</span></span>
-<span id="cb24-377"><a href="#cb24-377"></a><span class="in">result</span></span>
-<span id="cb24-378"><a href="#cb24-378"></a><span class="in">```</span></span>
-<span id="cb24-379"><a href="#cb24-379"></a></span>
-<span id="cb24-380"><a href="#cb24-380"></a><span class="in">`r webr_code_labels &lt;- c("setup5", "variant5")`</span></span>
-<span id="cb24-381"><a href="#cb24-381"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb24-382"><a href="#cb24-382"></a>:::</span>
-<span id="cb24-383"><a href="#cb24-383"></a></span>
-<span id="cb24-384"><a href="#cb24-384"></a><span class="fu">## Death Table &lt;br/&gt; (EudraCT only)</span></span>
-<span id="cb24-385"><a href="#cb24-385"></a></span>
-<span id="cb24-386"><a href="#cb24-386"></a><span class="fu">#### Data Setup</span></span>
-<span id="cb24-387"><a href="#cb24-387"></a></span>
-<span id="cb24-388"><a href="#cb24-388"></a><span class="in">```{r setup6, message = FALSE}</span></span>
-<span id="cb24-389"><a href="#cb24-389"></a><span class="in">library(tern)</span></span>
-<span id="cb24-390"><a href="#cb24-390"></a><span class="in">library(dplyr)</span></span>
-<span id="cb24-391"><a href="#cb24-391"></a></span>
-<span id="cb24-392"><a href="#cb24-392"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb24-393"><a href="#cb24-393"></a><span class="in">adae &lt;- random.cdisc.data::cadae</span></span>
-<span id="cb24-394"><a href="#cb24-394"></a><span class="in">```</span></span>
-<span id="cb24-395"><a href="#cb24-395"></a></span>
-<span id="cb24-396"><a href="#cb24-396"></a><span class="fu">#### Death Table</span></span>
-<span id="cb24-397"><a href="#cb24-397"></a></span>
-<span id="cb24-398"><a href="#cb24-398"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb24-399"><a href="#cb24-399"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb24-400"><a href="#cb24-400"></a></span>
-<span id="cb24-401"><a href="#cb24-401"></a><span class="in">```{r variant6, test = list(result_v6 = "result")}</span></span>
-<span id="cb24-402"><a href="#cb24-402"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb24-403"><a href="#cb24-403"></a><span class="in">  split_cols_by("ARM") %&gt;%</span></span>
-<span id="cb24-404"><a href="#cb24-404"></a><span class="in">  add_overall_col("All Patients") %&gt;%</span></span>
-<span id="cb24-405"><a href="#cb24-405"></a><span class="in">  count_patients_with_event(</span></span>
-<span id="cb24-406"><a href="#cb24-406"></a><span class="in">    "USUBJID",</span></span>
-<span id="cb24-407"><a href="#cb24-407"></a><span class="in">    filters = c("AESDTH" = "Y"),</span></span>
-<span id="cb24-408"><a href="#cb24-408"></a><span class="in">    .labels = c(count_fraction = "Total Number of Deaths"),</span></span>
-<span id="cb24-409"><a href="#cb24-409"></a><span class="in">    .formats = c(count_fraction = "xx (xx.xx%)")</span></span>
-<span id="cb24-410"><a href="#cb24-410"></a><span class="in">  )</span></span>
-<span id="cb24-411"><a href="#cb24-411"></a><span class="in">result &lt;- build_table(lyt, adae, alt_counts_df = adsl)</span></span>
-<span id="cb24-412"><a href="#cb24-412"></a><span class="in">result</span></span>
-<span id="cb24-413"><a href="#cb24-413"></a><span class="in">```</span></span>
-<span id="cb24-414"><a href="#cb24-414"></a></span>
-<span id="cb24-415"><a href="#cb24-415"></a><span class="in">`r webr_code_labels &lt;- c("setup6", "variant6")`</span></span>
-<span id="cb24-416"><a href="#cb24-416"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb24-417"><a href="#cb24-417"></a>:::</span>
-<span id="cb24-418"><a href="#cb24-418"></a></span>
-<span id="cb24-419"><a href="#cb24-419"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb24-420"><a href="#cb24-420"></a></span>
-<span id="cb24-421"><a href="#cb24-421"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb24-422"><a href="#cb24-422"></a></span>
-<span id="cb24-423"><a href="#cb24-423"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb21" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb21-1"><a href="#cb21-1"></a><span class="co">---</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a><span class="an">title:</span><span class="co"> DISCLOSUREST01</span></span>
+<span id="cb21-3"><a href="#cb21-3"></a><span class="an">subtitle:</span><span class="co"> Disclosures Outputs</span></span>
+<span id="cb21-4"><a href="#cb21-4"></a><span class="co">---</span></span>
+<span id="cb21-5"><a href="#cb21-5"></a></span>
+<span id="cb21-6"><a href="#cb21-6"></a>------------------------------------------------------------------------</span>
+<span id="cb21-7"><a href="#cb21-7"></a></span>
+<span id="cb21-8"><a href="#cb21-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb21-9"><a href="#cb21-9"></a></span>
+<span id="cb21-10"><a href="#cb21-10"></a>:::: {.panel-tabset}</span>
+<span id="cb21-11"><a href="#cb21-11"></a><span class="fu">## Patient Disposition Table &lt;br/&gt; (CTgov &amp; EudraCT)</span></span>
+<span id="cb21-12"><a href="#cb21-12"></a></span>
+<span id="cb21-13"><a href="#cb21-13"></a><span class="fu">#### Data Setup</span></span>
+<span id="cb21-14"><a href="#cb21-14"></a></span>
+<span id="cb21-15"><a href="#cb21-15"></a><span class="in">```{r setup1, message = FALSE}</span></span>
+<span id="cb21-16"><a href="#cb21-16"></a><span class="in">library(tern)</span></span>
+<span id="cb21-17"><a href="#cb21-17"></a><span class="in">library(dplyr)</span></span>
+<span id="cb21-18"><a href="#cb21-18"></a></span>
+<span id="cb21-19"><a href="#cb21-19"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb21-20"><a href="#cb21-20"></a></span>
+<span id="cb21-21"><a href="#cb21-21"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb21-22"><a href="#cb21-22"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb21-23"><a href="#cb21-23"></a></span>
+<span id="cb21-24"><a href="#cb21-24"></a><span class="in">set.seed(1, kind = "Mersenne-Twister")</span></span>
+<span id="cb21-25"><a href="#cb21-25"></a></span>
+<span id="cb21-26"><a href="#cb21-26"></a><span class="in"># Add additional disposition variables to adsl.</span></span>
+<span id="cb21-27"><a href="#cb21-27"></a><span class="in">adsl0 &lt;- adsl %&gt;%</span></span>
+<span id="cb21-28"><a href="#cb21-28"></a><span class="in">  mutate(</span></span>
+<span id="cb21-29"><a href="#cb21-29"></a><span class="in">    STSTFL = case_when(</span></span>
+<span id="cb21-30"><a href="#cb21-30"></a><span class="in">      is.na(RANDDT) ~ "N",</span></span>
+<span id="cb21-31"><a href="#cb21-31"></a><span class="in">      TRUE ~ "Y"</span></span>
+<span id="cb21-32"><a href="#cb21-32"></a><span class="in">    ) %&gt;% as.factor(),</span></span>
+<span id="cb21-33"><a href="#cb21-33"></a><span class="in">    COMPSTUD = sample(</span></span>
+<span id="cb21-34"><a href="#cb21-34"></a><span class="in">      c("Y", "N"),</span></span>
+<span id="cb21-35"><a href="#cb21-35"></a><span class="in">      size = nrow(adsl),</span></span>
+<span id="cb21-36"><a href="#cb21-36"></a><span class="in">      replace = TRUE</span></span>
+<span id="cb21-37"><a href="#cb21-37"></a><span class="in">    ) %&gt;% as.factor(),</span></span>
+<span id="cb21-38"><a href="#cb21-38"></a><span class="in">    STUDONS = sample(</span></span>
+<span id="cb21-39"><a href="#cb21-39"></a><span class="in">      c("Alive: On Treatment", "Alive: In Follow-up", NA),</span></span>
+<span id="cb21-40"><a href="#cb21-40"></a><span class="in">      size = nrow(adsl),</span></span>
+<span id="cb21-41"><a href="#cb21-41"></a><span class="in">      replace = TRUE</span></span>
+<span id="cb21-42"><a href="#cb21-42"></a><span class="in">    ) %&gt;% as.factor(),</span></span>
+<span id="cb21-43"><a href="#cb21-43"></a><span class="in">    STDDRS = sample(</span></span>
+<span id="cb21-44"><a href="#cb21-44"></a><span class="in">      c(</span></span>
+<span id="cb21-45"><a href="#cb21-45"></a><span class="in">        "Death", "Lost To Follow-Up",</span></span>
+<span id="cb21-46"><a href="#cb21-46"></a><span class="in">        "Protocol Violation", "Withdrawal By Subject",</span></span>
+<span id="cb21-47"><a href="#cb21-47"></a><span class="in">        "Other"</span></span>
+<span id="cb21-48"><a href="#cb21-48"></a><span class="in">      ),</span></span>
+<span id="cb21-49"><a href="#cb21-49"></a><span class="in">      size = nrow(adsl),</span></span>
+<span id="cb21-50"><a href="#cb21-50"></a><span class="in">      replace = TRUE</span></span>
+<span id="cb21-51"><a href="#cb21-51"></a><span class="in">    ) %&gt;% as.factor(),</span></span>
+<span id="cb21-52"><a href="#cb21-52"></a><span class="in">    GOTTRT = ifelse(!is.na(ACTARMCD), "Y", "N") %&gt;%</span></span>
+<span id="cb21-53"><a href="#cb21-53"></a><span class="in">      as.factor(),</span></span>
+<span id="cb21-54"><a href="#cb21-54"></a><span class="in">    DISTRTFL = sample(</span></span>
+<span id="cb21-55"><a href="#cb21-55"></a><span class="in">      c("Y", "N"),</span></span>
+<span id="cb21-56"><a href="#cb21-56"></a><span class="in">      size = nrow(adsl),</span></span>
+<span id="cb21-57"><a href="#cb21-57"></a><span class="in">      replace = TRUE</span></span>
+<span id="cb21-58"><a href="#cb21-58"></a><span class="in">    ) %&gt;% as.factor(),</span></span>
+<span id="cb21-59"><a href="#cb21-59"></a><span class="in">    TRTDRS = sample(</span></span>
+<span id="cb21-60"><a href="#cb21-60"></a><span class="in">      c(</span></span>
+<span id="cb21-61"><a href="#cb21-61"></a><span class="in">        "ADVERSE EVENT", "PROGRESSIVE DISEASE",</span></span>
+<span id="cb21-62"><a href="#cb21-62"></a><span class="in">        "PHYSICIAN DECISION", "LACK OF EFFICACY",</span></span>
+<span id="cb21-63"><a href="#cb21-63"></a><span class="in">        "OTHER"</span></span>
+<span id="cb21-64"><a href="#cb21-64"></a><span class="in">      ),</span></span>
+<span id="cb21-65"><a href="#cb21-65"></a><span class="in">      size = nrow(adsl),</span></span>
+<span id="cb21-66"><a href="#cb21-66"></a><span class="in">      replace = TRUE</span></span>
+<span id="cb21-67"><a href="#cb21-67"></a><span class="in">    ) %&gt;% as.factor(),</span></span>
+<span id="cb21-68"><a href="#cb21-68"></a><span class="in">    STUDONS = case_when(COMPSTUD == "N" ~ STUDONS),</span></span>
+<span id="cb21-69"><a href="#cb21-69"></a><span class="in">    STDDRS = case_when(COMPSTUD == "N" &amp; is.na(STUDONS) ~ STDDRS),</span></span>
+<span id="cb21-70"><a href="#cb21-70"></a><span class="in">    DISSTDFL = case_when(!is.na(STDDRS) ~ "Y"),</span></span>
+<span id="cb21-71"><a href="#cb21-71"></a><span class="in">    DISTRTFL = case_when(GOTTRT == "Y" ~ DISTRTFL),</span></span>
+<span id="cb21-72"><a href="#cb21-72"></a><span class="in">    TRTDRS = case_when(DISTRTFL == "Y" ~ TRTDRS),</span></span>
+<span id="cb21-73"><a href="#cb21-73"></a><span class="in">    DRSCAT = case_when(</span></span>
+<span id="cb21-74"><a href="#cb21-74"></a><span class="in">      TRTDRS %in% c("ADVERSE EVENT", "PHYSICIAN DECISION") ~ "Safety",</span></span>
+<span id="cb21-75"><a href="#cb21-75"></a><span class="in">      !is.na(TRTDRS) ~ "Other"</span></span>
+<span id="cb21-76"><a href="#cb21-76"></a><span class="in">    )</span></span>
+<span id="cb21-77"><a href="#cb21-77"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-78"><a href="#cb21-78"></a><span class="in">  var_relabel(</span></span>
+<span id="cb21-79"><a href="#cb21-79"></a><span class="in">    STSTFL = "Started Study",</span></span>
+<span id="cb21-80"><a href="#cb21-80"></a><span class="in">    COMPSTUD = "Complete Study",</span></span>
+<span id="cb21-81"><a href="#cb21-81"></a><span class="in">    STUDONS = "On-study Status",</span></span>
+<span id="cb21-82"><a href="#cb21-82"></a><span class="in">    DISSTDFL = "Discontinued Study",</span></span>
+<span id="cb21-83"><a href="#cb21-83"></a><span class="in">    STDDRS = "Reason for Study Discontinuation",</span></span>
+<span id="cb21-84"><a href="#cb21-84"></a><span class="in">    GOTTRT = "Received Treatment",</span></span>
+<span id="cb21-85"><a href="#cb21-85"></a><span class="in">    DISTRTFL = "Discontinued Treatment",</span></span>
+<span id="cb21-86"><a href="#cb21-86"></a><span class="in">    TRTDRS = "Reason for Treatment Discontinuation",</span></span>
+<span id="cb21-87"><a href="#cb21-87"></a><span class="in">    DRSCAT = "Subcategory for Treatment Discontinuation"</span></span>
+<span id="cb21-88"><a href="#cb21-88"></a><span class="in">  )</span></span>
+<span id="cb21-89"><a href="#cb21-89"></a><span class="in">```</span></span>
+<span id="cb21-90"><a href="#cb21-90"></a></span>
+<span id="cb21-91"><a href="#cb21-91"></a><span class="fu">#### Patient Disposition Table</span></span>
+<span id="cb21-92"><a href="#cb21-92"></a></span>
+<span id="cb21-93"><a href="#cb21-93"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-94"><a href="#cb21-94"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-95"><a href="#cb21-95"></a></span>
+<span id="cb21-96"><a href="#cb21-96"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb21-97"><a href="#cb21-97"></a><span class="in"># Define the split function</span></span>
+<span id="cb21-98"><a href="#cb21-98"></a><span class="in">split_fun &lt;- keep_split_levels("Y")</span></span>
+<span id="cb21-99"><a href="#cb21-99"></a></span>
+<span id="cb21-100"><a href="#cb21-100"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb21-101"><a href="#cb21-101"></a><span class="in">  split_cols_by(</span></span>
+<span id="cb21-102"><a href="#cb21-102"></a><span class="in">    "ARM",</span></span>
+<span id="cb21-103"><a href="#cb21-103"></a><span class="in">    split_fun = add_overall_level("All Patients", first = FALSE)</span></span>
+<span id="cb21-104"><a href="#cb21-104"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-105"><a href="#cb21-105"></a><span class="in">  count_values("STSTFL",</span></span>
+<span id="cb21-106"><a href="#cb21-106"></a><span class="in">    values = "Y",</span></span>
+<span id="cb21-107"><a href="#cb21-107"></a><span class="in">    .labels = c(count_fraction = "Started Study")</span></span>
+<span id="cb21-108"><a href="#cb21-108"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-109"><a href="#cb21-109"></a><span class="in">  count_values("COMPSTUD",</span></span>
+<span id="cb21-110"><a href="#cb21-110"></a><span class="in">    values = "Y",</span></span>
+<span id="cb21-111"><a href="#cb21-111"></a><span class="in">    .labels = c(count_fraction = "Completed Study")</span></span>
+<span id="cb21-112"><a href="#cb21-112"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-113"><a href="#cb21-113"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb21-114"><a href="#cb21-114"></a><span class="in">    "DISSTDFL",</span></span>
+<span id="cb21-115"><a href="#cb21-115"></a><span class="in">    split_fun = split_fun</span></span>
+<span id="cb21-116"><a href="#cb21-116"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-117"><a href="#cb21-117"></a><span class="in">  summarize_row_groups(label_fstr = "Discontinued Study") %&gt;%</span></span>
+<span id="cb21-118"><a href="#cb21-118"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb21-119"><a href="#cb21-119"></a><span class="in">    "STDDRS",</span></span>
+<span id="cb21-120"><a href="#cb21-120"></a><span class="in">    .stats = "count_fraction"</span></span>
+<span id="cb21-121"><a href="#cb21-121"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-122"><a href="#cb21-122"></a><span class="in">  append_topleft("Status")</span></span>
+<span id="cb21-123"><a href="#cb21-123"></a></span>
+<span id="cb21-124"><a href="#cb21-124"></a><span class="in">result &lt;- build_table(lyt = lyt, df = adsl0)</span></span>
+<span id="cb21-125"><a href="#cb21-125"></a><span class="in">result</span></span>
+<span id="cb21-126"><a href="#cb21-126"></a><span class="in">```</span></span>
+<span id="cb21-127"><a href="#cb21-127"></a></span>
+<span id="cb21-128"><a href="#cb21-128"></a><span class="in">`r webr_code_labels &lt;- c("setup1", "variant1")`</span></span>
+<span id="cb21-129"><a href="#cb21-129"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-130"><a href="#cb21-130"></a>:::</span>
+<span id="cb21-131"><a href="#cb21-131"></a></span>
+<span id="cb21-132"><a href="#cb21-132"></a><span class="fu">## Demographic Table &lt;br/&gt; (CTgov &amp; EudraCT)</span></span>
+<span id="cb21-133"><a href="#cb21-133"></a></span>
+<span id="cb21-134"><a href="#cb21-134"></a><span class="fu">#### Data Setup</span></span>
+<span id="cb21-135"><a href="#cb21-135"></a></span>
+<span id="cb21-136"><a href="#cb21-136"></a><span class="in">```{r setup2, message = FALSE}</span></span>
+<span id="cb21-137"><a href="#cb21-137"></a><span class="in">library(tern)</span></span>
+<span id="cb21-138"><a href="#cb21-138"></a><span class="in">library(dplyr)</span></span>
+<span id="cb21-139"><a href="#cb21-139"></a></span>
+<span id="cb21-140"><a href="#cb21-140"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb21-141"><a href="#cb21-141"></a></span>
+<span id="cb21-142"><a href="#cb21-142"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb21-143"><a href="#cb21-143"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb21-144"><a href="#cb21-144"></a></span>
+<span id="cb21-145"><a href="#cb21-145"></a><span class="in"># Change description in variable SEX.</span></span>
+<span id="cb21-146"><a href="#cb21-146"></a><span class="in">adsl &lt;- adsl %&gt;%</span></span>
+<span id="cb21-147"><a href="#cb21-147"></a><span class="in">  mutate(</span></span>
+<span id="cb21-148"><a href="#cb21-148"></a><span class="in">    SEX = factor(case_when(</span></span>
+<span id="cb21-149"><a href="#cb21-149"></a><span class="in">      SEX == "M" ~ "Male",</span></span>
+<span id="cb21-150"><a href="#cb21-150"></a><span class="in">      SEX == "F" ~ "Female",</span></span>
+<span id="cb21-151"><a href="#cb21-151"></a><span class="in">      SEX == "U" ~ "Unknown",</span></span>
+<span id="cb21-152"><a href="#cb21-152"></a><span class="in">      SEX == "UNDIFFERENTIATED" ~ "Undifferentiated"</span></span>
+<span id="cb21-153"><a href="#cb21-153"></a><span class="in">    )),</span></span>
+<span id="cb21-154"><a href="#cb21-154"></a><span class="in">    AGEGRP = factor(</span></span>
+<span id="cb21-155"><a href="#cb21-155"></a><span class="in">      case_when(</span></span>
+<span id="cb21-156"><a href="#cb21-156"></a><span class="in">        between(AGE, 18, 40) ~ "18-40",</span></span>
+<span id="cb21-157"><a href="#cb21-157"></a><span class="in">        between(AGE, 41, 64) ~ "41-64",</span></span>
+<span id="cb21-158"><a href="#cb21-158"></a><span class="in">        AGE &gt; 64 ~ "&gt;=65"</span></span>
+<span id="cb21-159"><a href="#cb21-159"></a><span class="in">      ),</span></span>
+<span id="cb21-160"><a href="#cb21-160"></a><span class="in">      levels = c("18-40", "41-64", "&gt;=65")</span></span>
+<span id="cb21-161"><a href="#cb21-161"></a><span class="in">    )</span></span>
+<span id="cb21-162"><a href="#cb21-162"></a><span class="in">  )</span></span>
+<span id="cb21-163"><a href="#cb21-163"></a><span class="in">```</span></span>
+<span id="cb21-164"><a href="#cb21-164"></a></span>
+<span id="cb21-165"><a href="#cb21-165"></a><span class="fu">#### Demographic Table</span></span>
+<span id="cb21-166"><a href="#cb21-166"></a></span>
+<span id="cb21-167"><a href="#cb21-167"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-168"><a href="#cb21-168"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-169"><a href="#cb21-169"></a></span>
+<span id="cb21-170"><a href="#cb21-170"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb21-171"><a href="#cb21-171"></a><span class="in">vars &lt;- c("AGE", "AGEGRP", "SEX", "RACE", "ETHNIC")</span></span>
+<span id="cb21-172"><a href="#cb21-172"></a><span class="in">var_labels &lt;- c("Age (yr)", "Age group", "Sex", "Race", "Ethnicity")</span></span>
+<span id="cb21-173"><a href="#cb21-173"></a></span>
+<span id="cb21-174"><a href="#cb21-174"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb21-175"><a href="#cb21-175"></a><span class="in">  split_cols_by(var = "ARM") %&gt;%</span></span>
+<span id="cb21-176"><a href="#cb21-176"></a><span class="in">  add_overall_col("All Patients") %&gt;%</span></span>
+<span id="cb21-177"><a href="#cb21-177"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb21-178"><a href="#cb21-178"></a><span class="in">    vars = vars,</span></span>
+<span id="cb21-179"><a href="#cb21-179"></a><span class="in">    var_labels = var_labels</span></span>
+<span id="cb21-180"><a href="#cb21-180"></a><span class="in">  )</span></span>
+<span id="cb21-181"><a href="#cb21-181"></a></span>
+<span id="cb21-182"><a href="#cb21-182"></a><span class="in">result &lt;- build_table(lyt = lyt, df = adsl)</span></span>
+<span id="cb21-183"><a href="#cb21-183"></a><span class="in">result</span></span>
+<span id="cb21-184"><a href="#cb21-184"></a><span class="in">```</span></span>
+<span id="cb21-185"><a href="#cb21-185"></a></span>
+<span id="cb21-186"><a href="#cb21-186"></a><span class="in">`r webr_code_labels &lt;- c("setup2", "variant1")`</span></span>
+<span id="cb21-187"><a href="#cb21-187"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-188"><a href="#cb21-188"></a>:::</span>
+<span id="cb21-189"><a href="#cb21-189"></a></span>
+<span id="cb21-190"><a href="#cb21-190"></a><span class="fu">## Enrollment by Country &lt;br/&gt; Table (EudraCT only)</span></span>
+<span id="cb21-191"><a href="#cb21-191"></a></span>
+<span id="cb21-192"><a href="#cb21-192"></a><span class="fu">#### Data Setup</span></span>
+<span id="cb21-193"><a href="#cb21-193"></a></span>
+<span id="cb21-194"><a href="#cb21-194"></a><span class="in">```{r setup3, message = FALSE}</span></span>
+<span id="cb21-195"><a href="#cb21-195"></a><span class="in">library(tern)</span></span>
+<span id="cb21-196"><a href="#cb21-196"></a><span class="in">library(dplyr)</span></span>
+<span id="cb21-197"><a href="#cb21-197"></a></span>
+<span id="cb21-198"><a href="#cb21-198"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb21-199"><a href="#cb21-199"></a><span class="in">adsl_labels &lt;- var_labels(adsl)</span></span>
+<span id="cb21-200"><a href="#cb21-200"></a></span>
+<span id="cb21-201"><a href="#cb21-201"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb21-202"><a href="#cb21-202"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb21-203"><a href="#cb21-203"></a></span>
+<span id="cb21-204"><a href="#cb21-204"></a><span class="in">adsl &lt;- adsl %&gt;%</span></span>
+<span id="cb21-205"><a href="#cb21-205"></a><span class="in">  mutate(COUNTRY = droplevels(COUNTRY)) %&gt;%</span></span>
+<span id="cb21-206"><a href="#cb21-206"></a><span class="in">  arrange(REGION1, COUNTRY)</span></span>
+<span id="cb21-207"><a href="#cb21-207"></a></span>
+<span id="cb21-208"><a href="#cb21-208"></a><span class="in">var_labels(adsl) &lt;- c(adsl_labels)</span></span>
+<span id="cb21-209"><a href="#cb21-209"></a><span class="in">```</span></span>
+<span id="cb21-210"><a href="#cb21-210"></a></span>
+<span id="cb21-211"><a href="#cb21-211"></a><span class="fu">#### Enrollment by Country Table</span></span>
+<span id="cb21-212"><a href="#cb21-212"></a></span>
+<span id="cb21-213"><a href="#cb21-213"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-214"><a href="#cb21-214"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-215"><a href="#cb21-215"></a></span>
+<span id="cb21-216"><a href="#cb21-216"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
+<span id="cb21-217"><a href="#cb21-217"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb21-218"><a href="#cb21-218"></a><span class="in">  split_cols_by("ARM") %&gt;%</span></span>
+<span id="cb21-219"><a href="#cb21-219"></a><span class="in">  add_overall_col(label = "All Patients") %&gt;%</span></span>
+<span id="cb21-220"><a href="#cb21-220"></a><span class="in">  analyze_vars("COUNTRY") %&gt;%</span></span>
+<span id="cb21-221"><a href="#cb21-221"></a><span class="in">  append_varlabels(adsl, "COUNTRY")</span></span>
+<span id="cb21-222"><a href="#cb21-222"></a></span>
+<span id="cb21-223"><a href="#cb21-223"></a><span class="in">result &lt;- build_table(lyt, adsl)</span></span>
+<span id="cb21-224"><a href="#cb21-224"></a><span class="in">result</span></span>
+<span id="cb21-225"><a href="#cb21-225"></a><span class="in">```</span></span>
+<span id="cb21-226"><a href="#cb21-226"></a></span>
+<span id="cb21-227"><a href="#cb21-227"></a><span class="in">`r webr_code_labels &lt;- c("setup3", "variant3")`</span></span>
+<span id="cb21-228"><a href="#cb21-228"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-229"><a href="#cb21-229"></a>:::</span>
+<span id="cb21-230"><a href="#cb21-230"></a></span>
+<span id="cb21-231"><a href="#cb21-231"></a><span class="fu">## Non-Serious Adverse Events &lt;br/&gt; Reported in $\geq$ 5% of Patients in Any &lt;br/&gt; Treatment Group (CTgov &amp; EudraCT)</span></span>
+<span id="cb21-232"><a href="#cb21-232"></a></span>
+<span id="cb21-233"><a href="#cb21-233"></a><span class="fu">#### Data Setup</span></span>
+<span id="cb21-234"><a href="#cb21-234"></a></span>
+<span id="cb21-235"><a href="#cb21-235"></a>Trimming function <span class="in">`get_adae_trimmed`</span> is defined to filter AEs with greater than 5% incidence rate.</span>
+<span id="cb21-236"><a href="#cb21-236"></a></span>
+<span id="cb21-237"><a href="#cb21-237"></a><span class="in">```{r setup4, message = FALSE}</span></span>
+<span id="cb21-238"><a href="#cb21-238"></a><span class="in">library(tern)</span></span>
+<span id="cb21-239"><a href="#cb21-239"></a><span class="in">library(dplyr)</span></span>
+<span id="cb21-240"><a href="#cb21-240"></a></span>
+<span id="cb21-241"><a href="#cb21-241"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb21-242"><a href="#cb21-242"></a><span class="in">adae &lt;- random.cdisc.data::cadae</span></span>
+<span id="cb21-243"><a href="#cb21-243"></a></span>
+<span id="cb21-244"><a href="#cb21-244"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb21-245"><a href="#cb21-245"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb21-246"><a href="#cb21-246"></a><span class="in">adae &lt;- df_explicit_na(adae)</span></span>
+<span id="cb21-247"><a href="#cb21-247"></a></span>
+<span id="cb21-248"><a href="#cb21-248"></a><span class="in">adae_nonser &lt;- adae %&gt;% filter(AESER != "Y", SAFFL == "Y")</span></span>
+<span id="cb21-249"><a href="#cb21-249"></a></span>
+<span id="cb21-250"><a href="#cb21-250"></a><span class="in">get_adae_trimmed &lt;- function(adsl, adae, cutoff_rate) {</span></span>
+<span id="cb21-251"><a href="#cb21-251"></a><span class="in">  n_per_arm &lt;- adsl %&gt;%</span></span>
+<span id="cb21-252"><a href="#cb21-252"></a><span class="in">    dplyr::count(ARM)</span></span>
+<span id="cb21-253"><a href="#cb21-253"></a></span>
+<span id="cb21-254"><a href="#cb21-254"></a><span class="in">  anl_terms &lt;- adae %&gt;%</span></span>
+<span id="cb21-255"><a href="#cb21-255"></a><span class="in">    dplyr::group_by(ARM, AEBODSYS, AEDECOD) %&gt;%</span></span>
+<span id="cb21-256"><a href="#cb21-256"></a><span class="in">    dplyr::count(</span></span>
+<span id="cb21-257"><a href="#cb21-257"></a><span class="in">      unique_terms = n_distinct(USUBJID)</span></span>
+<span id="cb21-258"><a href="#cb21-258"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb21-259"><a href="#cb21-259"></a><span class="in">    dplyr::select(-n) %&gt;%</span></span>
+<span id="cb21-260"><a href="#cb21-260"></a><span class="in">    dplyr::ungroup()</span></span>
+<span id="cb21-261"><a href="#cb21-261"></a></span>
+<span id="cb21-262"><a href="#cb21-262"></a><span class="in">  anl_terms &lt;- dplyr::left_join(</span></span>
+<span id="cb21-263"><a href="#cb21-263"></a><span class="in">    anl_terms,</span></span>
+<span id="cb21-264"><a href="#cb21-264"></a><span class="in">    n_per_arm,</span></span>
+<span id="cb21-265"><a href="#cb21-265"></a><span class="in">    by = "ARM"</span></span>
+<span id="cb21-266"><a href="#cb21-266"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-267"><a href="#cb21-267"></a><span class="in">    dplyr::mutate(</span></span>
+<span id="cb21-268"><a href="#cb21-268"></a><span class="in">      ae_rate = unique_terms / n</span></span>
+<span id="cb21-269"><a href="#cb21-269"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb21-270"><a href="#cb21-270"></a><span class="in">    dplyr::filter(ae_rate &gt;= cutoff_rate) %&gt;%</span></span>
+<span id="cb21-271"><a href="#cb21-271"></a><span class="in">    dplyr::select(AEDECOD) %&gt;%</span></span>
+<span id="cb21-272"><a href="#cb21-272"></a><span class="in">    unique()</span></span>
+<span id="cb21-273"><a href="#cb21-273"></a></span>
+<span id="cb21-274"><a href="#cb21-274"></a><span class="in">  anl &lt;- dplyr::left_join(</span></span>
+<span id="cb21-275"><a href="#cb21-275"></a><span class="in">    anl_terms,</span></span>
+<span id="cb21-276"><a href="#cb21-276"></a><span class="in">    adae,</span></span>
+<span id="cb21-277"><a href="#cb21-277"></a><span class="in">    by = "AEDECOD"</span></span>
+<span id="cb21-278"><a href="#cb21-278"></a><span class="in">  )</span></span>
+<span id="cb21-279"><a href="#cb21-279"></a><span class="in">  anl</span></span>
+<span id="cb21-280"><a href="#cb21-280"></a><span class="in">}</span></span>
+<span id="cb21-281"><a href="#cb21-281"></a></span>
+<span id="cb21-282"><a href="#cb21-282"></a><span class="in">adae_trim &lt;- get_adae_trimmed(adsl, adae_nonser, cutoff_rate = 0.05)</span></span>
+<span id="cb21-283"><a href="#cb21-283"></a><span class="in">```</span></span>
+<span id="cb21-284"><a href="#cb21-284"></a></span>
+<span id="cb21-285"><a href="#cb21-285"></a><span class="fu">#### Non-Serious Adverse Events Report in $\geq$ 5% of Patients in Any Treatment Group</span></span>
+<span id="cb21-286"><a href="#cb21-286"></a></span>
+<span id="cb21-287"><a href="#cb21-287"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-288"><a href="#cb21-288"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-289"><a href="#cb21-289"></a></span>
+<span id="cb21-290"><a href="#cb21-290"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
+<span id="cb21-291"><a href="#cb21-291"></a><span class="in"># Define the split function</span></span>
+<span id="cb21-292"><a href="#cb21-292"></a><span class="in">split_fun &lt;- drop_split_levels</span></span>
+<span id="cb21-293"><a href="#cb21-293"></a></span>
+<span id="cb21-294"><a href="#cb21-294"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
+<span id="cb21-295"><a href="#cb21-295"></a><span class="in">  split_cols_by("ARM") %&gt;%</span></span>
+<span id="cb21-296"><a href="#cb21-296"></a><span class="in">  summarize_patients_events_in_cols(</span></span>
+<span id="cb21-297"><a href="#cb21-297"></a><span class="in">    custom_label = "Total number of patients with at least one non-serious adverse event occuring at a relative frequency of &gt;=5%" # nolint: line_length.</span></span>
+<span id="cb21-298"><a href="#cb21-298"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-299"><a href="#cb21-299"></a><span class="in">  split_rows_by("AEBODSYS",</span></span>
+<span id="cb21-300"><a href="#cb21-300"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb21-301"><a href="#cb21-301"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb21-302"><a href="#cb21-302"></a><span class="in">    indent_mod = -1L,</span></span>
+<span id="cb21-303"><a href="#cb21-303"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb21-304"><a href="#cb21-304"></a><span class="in">    split_label = obj_label(adae_trim$AEBODSYS)</span></span>
+<span id="cb21-305"><a href="#cb21-305"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-306"><a href="#cb21-306"></a><span class="in">  split_rows_by("AEDECOD", split_fun = split_fun, label_pos = "topleft", split_label = obj_label(adae_trim$AEDECOD)) %&gt;%</span></span>
+<span id="cb21-307"><a href="#cb21-307"></a><span class="in">  summarize_patients_events_in_cols(</span></span>
+<span id="cb21-308"><a href="#cb21-308"></a><span class="in">    col_split = FALSE</span></span>
+<span id="cb21-309"><a href="#cb21-309"></a><span class="in">  )</span></span>
+<span id="cb21-310"><a href="#cb21-310"></a></span>
+<span id="cb21-311"><a href="#cb21-311"></a><span class="in">result &lt;- build_table(lyt, adae_trim)</span></span>
+<span id="cb21-312"><a href="#cb21-312"></a><span class="in">result</span></span>
+<span id="cb21-313"><a href="#cb21-313"></a><span class="in">```</span></span>
+<span id="cb21-314"><a href="#cb21-314"></a></span>
+<span id="cb21-315"><a href="#cb21-315"></a><span class="in">`r webr_code_labels &lt;- c("setup4", "variant4")`</span></span>
+<span id="cb21-316"><a href="#cb21-316"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-317"><a href="#cb21-317"></a>:::</span>
+<span id="cb21-318"><a href="#cb21-318"></a></span>
+<span id="cb21-319"><a href="#cb21-319"></a><span class="fu">## Serious Adverse Events, Fatal SAEs &lt;br/&gt; and SAEs Related to Study Medication, &lt;br/&gt; by Treatment Group (CTgov &amp; EudraCT)</span></span>
+<span id="cb21-320"><a href="#cb21-320"></a></span>
+<span id="cb21-321"><a href="#cb21-321"></a>For illustrative purposes, the <span class="in">`adae`</span> data is filtered by arm "A: Drug X" here.</span>
+<span id="cb21-322"><a href="#cb21-322"></a></span>
+<span id="cb21-323"><a href="#cb21-323"></a><span class="fu">#### Data Setup</span></span>
+<span id="cb21-324"><a href="#cb21-324"></a></span>
+<span id="cb21-325"><a href="#cb21-325"></a><span class="in">```{r setup5, message = FALSE}</span></span>
+<span id="cb21-326"><a href="#cb21-326"></a><span class="in">library(tern)</span></span>
+<span id="cb21-327"><a href="#cb21-327"></a><span class="in">library(dplyr)</span></span>
+<span id="cb21-328"><a href="#cb21-328"></a></span>
+<span id="cb21-329"><a href="#cb21-329"></a><span class="in">adae &lt;- random.cdisc.data::cadae</span></span>
+<span id="cb21-330"><a href="#cb21-330"></a></span>
+<span id="cb21-331"><a href="#cb21-331"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb21-332"><a href="#cb21-332"></a><span class="in">adae &lt;- df_explicit_na(adae)</span></span>
+<span id="cb21-333"><a href="#cb21-333"></a></span>
+<span id="cb21-334"><a href="#cb21-334"></a><span class="in">adae_serious &lt;- adae %&gt;% filter(AESER == "Y", SAFFL == "Y")</span></span>
+<span id="cb21-335"><a href="#cb21-335"></a><span class="in">adae_serious_arm &lt;- adae_serious %&gt;% filter(ARM == "A: Drug X")</span></span>
+<span id="cb21-336"><a href="#cb21-336"></a></span>
+<span id="cb21-337"><a href="#cb21-337"></a><span class="in">filters_list &lt;- list(</span></span>
+<span id="cb21-338"><a href="#cb21-338"></a><span class="in">  related = with_label(c(AEREL = "Y"), "Events (Related)"),</span></span>
+<span id="cb21-339"><a href="#cb21-339"></a><span class="in">  fatal = with_label(c(AESDTH = "Y"), "Events (Fatal)"),</span></span>
+<span id="cb21-340"><a href="#cb21-340"></a><span class="in">  fatal_related = with_label(c(AEREL = "Y", AESDTH = "Y"), "Events (Fatal &amp; Related)")</span></span>
+<span id="cb21-341"><a href="#cb21-341"></a><span class="in">)</span></span>
+<span id="cb21-342"><a href="#cb21-342"></a><span class="in">```</span></span>
+<span id="cb21-343"><a href="#cb21-343"></a></span>
+<span id="cb21-344"><a href="#cb21-344"></a><span class="fu">#### Serious Adverse Events, Fatal SAEs and SAEs Related to Study Medication, by Treatment Group</span></span>
+<span id="cb21-345"><a href="#cb21-345"></a></span>
+<span id="cb21-346"><a href="#cb21-346"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-347"><a href="#cb21-347"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-348"><a href="#cb21-348"></a></span>
+<span id="cb21-349"><a href="#cb21-349"></a><span class="in">```{r variant5, test = list(result_v5 = "result")}</span></span>
+<span id="cb21-350"><a href="#cb21-350"></a><span class="in"># Define the split function</span></span>
+<span id="cb21-351"><a href="#cb21-351"></a><span class="in">split_fun &lt;- drop_split_levels</span></span>
+<span id="cb21-352"><a href="#cb21-352"></a></span>
+<span id="cb21-353"><a href="#cb21-353"></a><span class="in">lyt &lt;- basic_table() %&gt;%</span></span>
+<span id="cb21-354"><a href="#cb21-354"></a><span class="in">  summarize_patients_events_in_cols(</span></span>
+<span id="cb21-355"><a href="#cb21-355"></a><span class="in">    filters_list = filters_list,</span></span>
+<span id="cb21-356"><a href="#cb21-356"></a><span class="in">    empty_stats = c("all", "related", "fatal", "fatal_related"),</span></span>
+<span id="cb21-357"><a href="#cb21-357"></a><span class="in">    custom_label = "Total number of patients with at least one serious adverse event"</span></span>
+<span id="cb21-358"><a href="#cb21-358"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-359"><a href="#cb21-359"></a><span class="in">  split_rows_by("AEBODSYS",</span></span>
+<span id="cb21-360"><a href="#cb21-360"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb21-361"><a href="#cb21-361"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb21-362"><a href="#cb21-362"></a><span class="in">    indent_mod = -1L,</span></span>
+<span id="cb21-363"><a href="#cb21-363"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb21-364"><a href="#cb21-364"></a><span class="in">    split_label = obj_label(adae_trim$AEBODSYS)</span></span>
+<span id="cb21-365"><a href="#cb21-365"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-366"><a href="#cb21-366"></a><span class="in">  split_rows_by("AEDECOD",</span></span>
+<span id="cb21-367"><a href="#cb21-367"></a><span class="in">    split_fun = split_fun,</span></span>
+<span id="cb21-368"><a href="#cb21-368"></a><span class="in">    label_pos = "topleft",</span></span>
+<span id="cb21-369"><a href="#cb21-369"></a><span class="in">    split_label = obj_label(adae_serious_arm$AEDECOD)</span></span>
+<span id="cb21-370"><a href="#cb21-370"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb21-371"><a href="#cb21-371"></a><span class="in">  summarize_patients_events_in_cols(</span></span>
+<span id="cb21-372"><a href="#cb21-372"></a><span class="in">    filters_list = filters_list,</span></span>
+<span id="cb21-373"><a href="#cb21-373"></a><span class="in">    col_split = FALSE</span></span>
+<span id="cb21-374"><a href="#cb21-374"></a><span class="in">  )</span></span>
+<span id="cb21-375"><a href="#cb21-375"></a></span>
+<span id="cb21-376"><a href="#cb21-376"></a><span class="in">result &lt;- build_table(lyt, adae_serious_arm)</span></span>
+<span id="cb21-377"><a href="#cb21-377"></a><span class="in">result</span></span>
+<span id="cb21-378"><a href="#cb21-378"></a><span class="in">```</span></span>
+<span id="cb21-379"><a href="#cb21-379"></a></span>
+<span id="cb21-380"><a href="#cb21-380"></a><span class="in">`r webr_code_labels &lt;- c("setup5", "variant5")`</span></span>
+<span id="cb21-381"><a href="#cb21-381"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-382"><a href="#cb21-382"></a>:::</span>
+<span id="cb21-383"><a href="#cb21-383"></a></span>
+<span id="cb21-384"><a href="#cb21-384"></a><span class="fu">## Death Table &lt;br/&gt; (EudraCT only)</span></span>
+<span id="cb21-385"><a href="#cb21-385"></a></span>
+<span id="cb21-386"><a href="#cb21-386"></a><span class="fu">#### Data Setup</span></span>
+<span id="cb21-387"><a href="#cb21-387"></a></span>
+<span id="cb21-388"><a href="#cb21-388"></a><span class="in">```{r setup6, message = FALSE}</span></span>
+<span id="cb21-389"><a href="#cb21-389"></a><span class="in">library(tern)</span></span>
+<span id="cb21-390"><a href="#cb21-390"></a><span class="in">library(dplyr)</span></span>
+<span id="cb21-391"><a href="#cb21-391"></a></span>
+<span id="cb21-392"><a href="#cb21-392"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb21-393"><a href="#cb21-393"></a><span class="in">adae &lt;- random.cdisc.data::cadae</span></span>
+<span id="cb21-394"><a href="#cb21-394"></a><span class="in">```</span></span>
+<span id="cb21-395"><a href="#cb21-395"></a></span>
+<span id="cb21-396"><a href="#cb21-396"></a><span class="fu">#### Death Table</span></span>
+<span id="cb21-397"><a href="#cb21-397"></a></span>
+<span id="cb21-398"><a href="#cb21-398"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb21-399"><a href="#cb21-399"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb21-400"><a href="#cb21-400"></a></span>
+<span id="cb21-401"><a href="#cb21-401"></a><span class="in">```{r variant6, test = list(result_v6 = "result")}</span></span>
+<span id="cb21-402"><a href="#cb21-402"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb21-403"><a href="#cb21-403"></a><span class="in">  split_cols_by("ARM") %&gt;%</span></span>
+<span id="cb21-404"><a href="#cb21-404"></a><span class="in">  add_overall_col("All Patients") %&gt;%</span></span>
+<span id="cb21-405"><a href="#cb21-405"></a><span class="in">  count_patients_with_event(</span></span>
+<span id="cb21-406"><a href="#cb21-406"></a><span class="in">    "USUBJID",</span></span>
+<span id="cb21-407"><a href="#cb21-407"></a><span class="in">    filters = c("AESDTH" = "Y"),</span></span>
+<span id="cb21-408"><a href="#cb21-408"></a><span class="in">    .labels = c(count_fraction = "Total Number of Deaths"),</span></span>
+<span id="cb21-409"><a href="#cb21-409"></a><span class="in">    .formats = c(count_fraction = "xx (xx.xx%)")</span></span>
+<span id="cb21-410"><a href="#cb21-410"></a><span class="in">  )</span></span>
+<span id="cb21-411"><a href="#cb21-411"></a><span class="in">result &lt;- build_table(lyt, adae, alt_counts_df = adsl)</span></span>
+<span id="cb21-412"><a href="#cb21-412"></a><span class="in">result</span></span>
+<span id="cb21-413"><a href="#cb21-413"></a><span class="in">```</span></span>
+<span id="cb21-414"><a href="#cb21-414"></a></span>
+<span id="cb21-415"><a href="#cb21-415"></a><span class="in">`r webr_code_labels &lt;- c("setup6", "variant6")`</span></span>
+<span id="cb21-416"><a href="#cb21-416"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb21-417"><a href="#cb21-417"></a>:::</span>
+<span id="cb21-418"><a href="#cb21-418"></a></span>
+<span id="cb21-419"><a href="#cb21-419"></a>::::</span>
+<span id="cb21-420"><a href="#cb21-420"></a></span>
+<span id="cb21-421"><a href="#cb21-421"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb21-422"><a href="#cb21-422"></a></span>
+<span id="cb21-423"><a href="#cb21-423"></a>{{&lt; include ../../repro.qmd &gt;}}</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

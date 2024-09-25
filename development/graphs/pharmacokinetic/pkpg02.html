@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"context":"interactive","out-height":"","editor-font-scale":1,"results":"markup","warning":"true","editor-max-height":"500","autorun":"true","output":"true","classes":"","comment":"","message":"true","label":"unnamed-chunk-1","dpi":72,"fig-cap":"","out-width":"700px","fig-height":5,"read-only":"false","fig-width":7,"editor-quick-suggestions":"false"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(nestcolor)\n\n# need adex for dose info and adpp for AUC max info\nadex <- random.cdisc.data::cadex\nadpp <- random.cdisc.data::cadpp\n\nadpp_a <- adpp %>%\n  filter(\n    PPSPEC == \"Plasma\",\n    AVISITN == \"1\",\n    PARAMCD == \"AUCIFO\"\n  ) %>%\n  mutate(AUCinf = AVAL)\n\nadex_a <- adex %>%\n  filter(\n    AVISITN == \"1\",\n    PARAMCD == \"DOSE\"\n  ) %>%\n  mutate(Dose = AVAL) %>%\n  select(USUBJID, Dose)\n\n# join the dose information to the adpp table\nadpp_adex <- left_join(adpp_a, adex_a, by = \"USUBJID\") %>%\n  group_by(`ARM`) %>%\n  mutate(count = paste0(`ARM`, \" (\", n(), \")\"))\n\n# set x and y variable names\nx_var <- \"Dose\"\ny_var <- \"AUCinf\"\n# calculate Summary Statistics (mean and sd) for each group\nSummaryStat <- adpp_adex %>% # nolint: object_name.\n  group_by(Dose = as.factor(Dose)) %>%\n  summarise(AUCsd = sd(AUCinf), meanAUC = mean(AUCinf))\nSummaryStat$Dose <- as.numeric(as.character(SummaryStat$Dose)) # nolint: object_name.\n\n# generate linear model\nmod1 <- lm(log(AUCinf) ~ log(Dose), adpp_adex)\n\n# obtain linear model coefficient values\ncf <- round(coef(mod1), 2)\n\n# generate linear model equation\neq <- paste0(\n  \"y = \", cf[1],\n  ifelse(sign(cf[2]) == 1, \" + \", \" - \"), abs(cf[2]), \" x , \",\n  \"R²\",\n  \" = \",\n  signif(summary(mod1)$adj.r.squared, 3)\n)\n\nplot <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +\n  annotate(geom = \"text\", x = min(adpp_adex[[x_var]]), y = max(adpp_adex[[y_var]]), label = eq, hjust = 0.1) +\n  geom_point(size = 1, aes(color = factor(`count`))) +\n  scale_x_continuous(\n    name = \"Dose (mg/mL)\",\n    breaks = unique(adpp_adex$Dose)\n  ) +\n  scale_y_continuous(\n    name = paste(y_var, adpp_a$AVALU),\n    transform = \"log\",\n    breaks = exp(ceiling(seq(\n      from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)),\n      by = 1\n    ))),\n    labels = as.character(ceiling(seq(\n      from = min(log(adpp_adex$AUCinf)),\n      to = max(log(adpp_adex$AUCinf)), by = 1\n    )))\n  ) +\n  geom_smooth(method = \"lm\", formula = y ~ x, se = FALSE, color = \"black\", linewidth = 0.5) +\n  # Display error bars for each dosing group (this will only appear if the sd is less than the mean)\n  geom_errorbar(\n    data = SummaryStat,\n    aes(x = `Dose`, y = `meanAUC`, ymin = `meanAUC` - `AUCsd`, ymax = `meanAUC` + AUCsd),\n    width = .05,\n    position = position_dodge(.1)\n  ) +\n  geom_point(data = SummaryStat, aes(x = Dose, y = meanAUC, size = 1), shape = 2, show.legend = FALSE) +\n  ggtitle(paste(\n    \"Dose-Proportionality Plot of Serum\", as.character(unique(adex$TRT01P)),\n    y_var, \"in\", adpp_a$AVALU\n  ), subtitle = \"Summary of serum PK parameters by treatment\") +\n  labs(color = \"Treatment Arm\") +\n  theme_nest()\n\nplot","id":1},{"options":{"context":"interactive","out-height":"","editor-font-scale":1,"results":"markup","warning":"true","editor-max-height":"500","autorun":"true","output":"true","classes":"","comment":"","message":"true","label":"unnamed-chunk-2","dpi":72,"fig-cap":"","out-width":"700px","fig-height":5,"read-only":"false","fig-width":7,"editor-quick-suggestions":"false"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(nestcolor)\n\n# need adex for dose info and adpp for AUC max info\nadex <- random.cdisc.data::cadex\nadpp <- random.cdisc.data::cadpp\n\nadpp_a <- adpp %>%\n  filter(\n    PPSPEC == \"Plasma\",\n    AVISITN == \"1\",\n    PARAMCD == \"AUCIFO\"\n  ) %>%\n  mutate(AUCinf = AVAL)\n\nadex_a <- adex %>%\n  filter(\n    AVISITN == \"1\",\n    PARAMCD == \"DOSE\"\n  ) %>%\n  mutate(Dose = AVAL) %>%\n  select(USUBJID, Dose)\n\n# join the dose information to the adpp table\nadpp_adex <- left_join(adpp_a, adex_a, by = \"USUBJID\") %>%\n  group_by(`ARM`) %>%\n  mutate(count = paste0(`ARM`, \" (\", n(), \")\"))\n\n# set x and y variable names\nx_var <- \"Dose\"\ny_var <- \"AUCinf\"\n# calculate median for each group if preferred\nSummaryStat <- adpp_adex %>% # nolint: object_name.\n  group_by(Dose = as.factor(Dose)) %>%\n  summarise(medAUC = median(AUCinf))\nSummaryStat$Dose <- as.numeric(as.character(SummaryStat$Dose)) # nolint: object_name.\n\nplot <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +\n  annotate(geom = \"text\", x = min(adpp_adex[[x_var]]), y = max(adpp_adex[[y_var]]), label = eq, hjust = 0.1) +\n  geom_point(size = 1, aes(color = factor(`count`))) +\n  geom_smooth(method = \"lm\", formula = y ~ x, se = FALSE, color = \"black\", linewidth = 0.5) +\n  geom_point(data = SummaryStat, aes(x = Dose, y = medAUC, size = 1), shape = 2, show.legend = FALSE) +\n  ggtitle(\n    paste(\n      \"Dose-Proportionality Plot of Serum\",\n      as.character(unique(adex$TRT01P)),\n      y_var,\n      \"in\",\n      adpp_a$AVALU\n    ),\n    subtitle = \"Summary of serum PK parameters by treatment\"\n  ) +\n  labs(color = \"Treatment Arm\") +\n  scale_y_continuous(\n    name = paste(y_var, adpp_a$AVALU),\n    transform = \"log\",\n    breaks = exp(ceiling(seq(from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)), by = 1))),\n    labels = as.character(ceiling(seq(from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)), by = 1)))\n  ) +\n  scale_x_continuous(\n    name = \"Dose (mg/mL)\",\n    breaks = unique(adpp_adex$Dose)\n  ) +\n  theme_nest()\n\nplot","id":2}];
+globalThis.qwebrCellDetails = [{"id":1,"code":"library(tern)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(nestcolor)\n\n# need adex for dose info and adpp for AUC max info\nadex <- random.cdisc.data::cadex\nadpp <- random.cdisc.data::cadpp\n\nadpp_a <- adpp %>%\n  filter(\n    PPSPEC == \"Plasma\",\n    AVISITN == \"1\",\n    PARAMCD == \"AUCIFO\"\n  ) %>%\n  mutate(AUCinf = AVAL)\n\nadex_a <- adex %>%\n  filter(\n    AVISITN == \"1\",\n    PARAMCD == \"DOSE\"\n  ) %>%\n  mutate(Dose = AVAL) %>%\n  select(USUBJID, Dose)\n\n# join the dose information to the adpp table\nadpp_adex <- left_join(adpp_a, adex_a, by = \"USUBJID\") %>%\n  group_by(`ARM`) %>%\n  mutate(count = paste0(`ARM`, \" (\", n(), \")\"))\n\n# set x and y variable names\nx_var <- \"Dose\"\ny_var <- \"AUCinf\"\n# calculate Summary Statistics (mean and sd) for each group\nSummaryStat <- adpp_adex %>% # nolint: object_name.\n  group_by(Dose = as.factor(Dose)) %>%\n  summarise(AUCsd = sd(AUCinf), meanAUC = mean(AUCinf))\nSummaryStat$Dose <- as.numeric(as.character(SummaryStat$Dose)) # nolint: object_name.\n\n# generate linear model\nmod1 <- lm(log(AUCinf) ~ log(Dose), adpp_adex)\n\n# obtain linear model coefficient values\ncf <- round(coef(mod1), 2)\n\n# generate linear model equation\neq <- paste0(\n  \"y = \", cf[1],\n  ifelse(sign(cf[2]) == 1, \" + \", \" - \"), abs(cf[2]), \" x , \",\n  \"R²\",\n  \" = \",\n  signif(summary(mod1)$adj.r.squared, 3)\n)\n\nplot <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +\n  annotate(geom = \"text\", x = min(adpp_adex[[x_var]]), y = max(adpp_adex[[y_var]]), label = eq, hjust = 0.1) +\n  geom_point(size = 1, aes(color = factor(`count`))) +\n  scale_x_continuous(\n    name = \"Dose (mg/mL)\",\n    breaks = unique(adpp_adex$Dose)\n  ) +\n  scale_y_continuous(\n    name = paste(y_var, adpp_a$AVALU),\n    transform = \"log\",\n    breaks = exp(ceiling(seq(\n      from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)),\n      by = 1\n    ))),\n    labels = as.character(ceiling(seq(\n      from = min(log(adpp_adex$AUCinf)),\n      to = max(log(adpp_adex$AUCinf)), by = 1\n    )))\n  ) +\n  geom_smooth(method = \"lm\", formula = y ~ x, se = FALSE, color = \"black\", linewidth = 0.5) +\n  # Display error bars for each dosing group (this will only appear if the sd is less than the mean)\n  geom_errorbar(\n    data = SummaryStat,\n    aes(x = `Dose`, y = `meanAUC`, ymin = `meanAUC` - `AUCsd`, ymax = `meanAUC` + AUCsd),\n    width = .05,\n    position = position_dodge(.1)\n  ) +\n  geom_point(data = SummaryStat, aes(x = Dose, y = meanAUC, size = 1), shape = 2, show.legend = FALSE) +\n  ggtitle(paste(\n    \"Dose-Proportionality Plot of Serum\", as.character(unique(adex$TRT01P)),\n    y_var, \"in\", adpp_a$AVALU\n  ), subtitle = \"Summary of serum PK parameters by treatment\") +\n  labs(color = \"Treatment Arm\") +\n  theme_nest()\n\nplot","options":{"results":"markup","fig-height":5,"out-height":"","label":"unnamed-chunk-1","message":"true","editor-max-height":"500","autorun":"true","comment":"","classes":"","fig-cap":"","editor-quick-suggestions":"false","warning":"true","context":"interactive","fig-width":7,"output":"true","dpi":72,"read-only":"false","out-width":"700px","editor-font-scale":1}},{"id":2,"code":"library(tern)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(nestcolor)\n\n# need adex for dose info and adpp for AUC max info\nadex <- random.cdisc.data::cadex\nadpp <- random.cdisc.data::cadpp\n\nadpp_a <- adpp %>%\n  filter(\n    PPSPEC == \"Plasma\",\n    AVISITN == \"1\",\n    PARAMCD == \"AUCIFO\"\n  ) %>%\n  mutate(AUCinf = AVAL)\n\nadex_a <- adex %>%\n  filter(\n    AVISITN == \"1\",\n    PARAMCD == \"DOSE\"\n  ) %>%\n  mutate(Dose = AVAL) %>%\n  select(USUBJID, Dose)\n\n# join the dose information to the adpp table\nadpp_adex <- left_join(adpp_a, adex_a, by = \"USUBJID\") %>%\n  group_by(`ARM`) %>%\n  mutate(count = paste0(`ARM`, \" (\", n(), \")\"))\n\n# set x and y variable names\nx_var <- \"Dose\"\ny_var <- \"AUCinf\"\n# calculate median for each group if preferred\nSummaryStat <- adpp_adex %>% # nolint: object_name.\n  group_by(Dose = as.factor(Dose)) %>%\n  summarise(medAUC = median(AUCinf))\nSummaryStat$Dose <- as.numeric(as.character(SummaryStat$Dose)) # nolint: object_name.\n\nplot <- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +\n  annotate(geom = \"text\", x = min(adpp_adex[[x_var]]), y = max(adpp_adex[[y_var]]), label = eq, hjust = 0.1) +\n  geom_point(size = 1, aes(color = factor(`count`))) +\n  geom_smooth(method = \"lm\", formula = y ~ x, se = FALSE, color = \"black\", linewidth = 0.5) +\n  geom_point(data = SummaryStat, aes(x = Dose, y = medAUC, size = 1), shape = 2, show.legend = FALSE) +\n  ggtitle(\n    paste(\n      \"Dose-Proportionality Plot of Serum\",\n      as.character(unique(adex$TRT01P)),\n      y_var,\n      \"in\",\n      adpp_a$AVALU\n    ),\n    subtitle = \"Summary of serum PK parameters by treatment\"\n  ) +\n  labs(color = \"Treatment Arm\") +\n  scale_y_continuous(\n    name = paste(y_var, adpp_a$AVALU),\n    transform = \"log\",\n    breaks = exp(ceiling(seq(from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)), by = 1))),\n    labels = as.character(ceiling(seq(from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)), by = 1)))\n  ) +\n  scale_x_continuous(\n    name = \"Dose (mg/mL)\",\n    breaks = unique(adpp_adex$Dose)\n  ) +\n  theme_nest()\n\nplot","options":{"results":"markup","fig-height":5,"out-height":"","label":"unnamed-chunk-2","message":"true","editor-max-height":"500","autorun":"true","comment":"","classes":"","fig-cap":"","editor-quick-suggestions":"false","warning":"true","context":"interactive","fig-width":7,"output":"true","dpi":72,"read-only":"false","out-width":"700px","editor-font-scale":1}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2614,52 +2614,12 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 </header><hr>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist">
-<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" aria-current="page">Data Setup</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false">Summary of Pharmacokinetic <br> Parameters – Plasma</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-3" role="tab" aria-controls="tabset-3-3" aria-selected="false">Summary of Plasma Pharmacokinetic <br> Parameters with Median Points</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-4" role="tab" aria-controls="tabset-3-4" aria-selected="false"><code>teal</code> App</a></li>
-<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-5" role="tab" aria-controls="tabset-3-5" aria-selected="false">Reproducibility</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" aria-current="page">Summary of Pharmacokinetic <br> Parameters – Plasma</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false">Summary of Plasma Pharmacokinetic <br> Parameters with Median Points</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-3" role="tab" aria-controls="tabset-3-3" aria-selected="false">Data Setup</a></li>
 </ul>
 <div class="tab-content">
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
-<div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(tern)</span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(nestcolor)</span>
-<span id="cb1-5"><a href="#cb1-5"></a></span>
-<span id="cb1-6"><a href="#cb1-6"></a><span class="co"># need adex for dose info and adpp for AUC max info</span></span>
-<span id="cb1-7"><a href="#cb1-7"></a>adex <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadex</span>
-<span id="cb1-8"><a href="#cb1-8"></a>adpp <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadpp</span>
-<span id="cb1-9"><a href="#cb1-9"></a></span>
-<span id="cb1-10"><a href="#cb1-10"></a>adpp_a <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
-<span id="cb1-11"><a href="#cb1-11"></a>  <span class="fu">filter</span>(</span>
-<span id="cb1-12"><a href="#cb1-12"></a>    PPSPEC <span class="sc">==</span> <span class="st">"Plasma"</span>,</span>
-<span id="cb1-13"><a href="#cb1-13"></a>    AVISITN <span class="sc">==</span> <span class="st">"1"</span>,</span>
-<span id="cb1-14"><a href="#cb1-14"></a>    PARAMCD <span class="sc">==</span> <span class="st">"AUCIFO"</span></span>
-<span id="cb1-15"><a href="#cb1-15"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-16"><a href="#cb1-16"></a>  <span class="fu">mutate</span>(<span class="at">AUCinf =</span> AVAL)</span>
-<span id="cb1-17"><a href="#cb1-17"></a></span>
-<span id="cb1-18"><a href="#cb1-18"></a>adex_a <span class="ot">&lt;-</span> adex <span class="sc">%&gt;%</span></span>
-<span id="cb1-19"><a href="#cb1-19"></a>  <span class="fu">filter</span>(</span>
-<span id="cb1-20"><a href="#cb1-20"></a>    AVISITN <span class="sc">==</span> <span class="st">"1"</span>,</span>
-<span id="cb1-21"><a href="#cb1-21"></a>    PARAMCD <span class="sc">==</span> <span class="st">"DOSE"</span></span>
-<span id="cb1-22"><a href="#cb1-22"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-23"><a href="#cb1-23"></a>  <span class="fu">mutate</span>(<span class="at">Dose =</span> AVAL) <span class="sc">%&gt;%</span></span>
-<span id="cb1-24"><a href="#cb1-24"></a>  <span class="fu">select</span>(USUBJID, Dose)</span>
-<span id="cb1-25"><a href="#cb1-25"></a></span>
-<span id="cb1-26"><a href="#cb1-26"></a><span class="co"># join the dose information to the adpp table</span></span>
-<span id="cb1-27"><a href="#cb1-27"></a>adpp_adex <span class="ot">&lt;-</span> <span class="fu">left_join</span>(adpp_a, adex_a, <span class="at">by =</span> <span class="st">"USUBJID"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-28"><a href="#cb1-28"></a>  <span class="fu">group_by</span>(<span class="st">`</span><span class="at">ARM</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-29"><a href="#cb1-29"></a>  <span class="fu">mutate</span>(<span class="at">count =</span> <span class="fu">paste0</span>(<span class="st">`</span><span class="at">ARM</span><span class="st">`</span>, <span class="st">" ("</span>, <span class="fu">n</span>(), <span class="st">")"</span>))</span>
-<span id="cb1-30"><a href="#cb1-30"></a></span>
-<span id="cb1-31"><a href="#cb1-31"></a><span class="co"># set x and y variable names</span></span>
-<span id="cb1-32"><a href="#cb1-32"></a>x_var <span class="ot">&lt;-</span> <span class="st">"Dose"</span></span>
-<span id="cb1-33"><a href="#cb1-33"></a>y_var <span class="ot">&lt;-</span> <span class="st">"AUCinf"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-</div>
-<div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified" data-group="webr">
 <ul class="nav nav-tabs" role="tablist">
 <li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true"><i class="fa-regular fa-file-lines" aria-label="file-lines"></i> Preview</a></li>
@@ -2669,63 +2629,63 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
 <div class="cell" data-test="{&quot;plot_v1&quot;:&quot;plot&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># calculate Summary Statistics (mean and sd) for each group</span></span>
-<span id="cb2-2"><a href="#cb2-2"></a>SummaryStat <span class="ot">&lt;-</span> adpp_adex <span class="sc">%&gt;%</span> </span>
-<span id="cb2-3"><a href="#cb2-3"></a>  <span class="fu">group_by</span>(<span class="at">Dose =</span> <span class="fu">as.factor</span>(Dose)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-4"><a href="#cb2-4"></a>  <span class="fu">summarise</span>(<span class="at">AUCsd =</span> <span class="fu">sd</span>(AUCinf), <span class="at">meanAUC =</span> <span class="fu">mean</span>(AUCinf))</span>
-<span id="cb2-5"><a href="#cb2-5"></a>SummaryStat<span class="sc">$</span>Dose <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">as.character</span>(SummaryStat<span class="sc">$</span>Dose)) </span>
-<span id="cb2-6"><a href="#cb2-6"></a></span>
-<span id="cb2-7"><a href="#cb2-7"></a><span class="co"># generate linear model</span></span>
-<span id="cb2-8"><a href="#cb2-8"></a>mod1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(AUCinf) <span class="sc">~</span> <span class="fu">log</span>(Dose), adpp_adex)</span>
-<span id="cb2-9"><a href="#cb2-9"></a></span>
-<span id="cb2-10"><a href="#cb2-10"></a><span class="co"># obtain linear model coefficient values</span></span>
-<span id="cb2-11"><a href="#cb2-11"></a>cf <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">coef</span>(mod1), <span class="dv">2</span>)</span>
-<span id="cb2-12"><a href="#cb2-12"></a></span>
-<span id="cb2-13"><a href="#cb2-13"></a><span class="co"># generate linear model equation</span></span>
-<span id="cb2-14"><a href="#cb2-14"></a>eq <span class="ot">&lt;-</span> <span class="fu">paste0</span>(</span>
-<span id="cb2-15"><a href="#cb2-15"></a>  <span class="st">"y = "</span>, cf[<span class="dv">1</span>],</span>
-<span id="cb2-16"><a href="#cb2-16"></a>  <span class="fu">ifelse</span>(<span class="fu">sign</span>(cf[<span class="dv">2</span>]) <span class="sc">==</span> <span class="dv">1</span>, <span class="st">" + "</span>, <span class="st">" - "</span>), <span class="fu">abs</span>(cf[<span class="dv">2</span>]), <span class="st">" x , "</span>,</span>
-<span id="cb2-17"><a href="#cb2-17"></a>  <span class="st">"R²"</span>,</span>
-<span id="cb2-18"><a href="#cb2-18"></a>  <span class="st">" = "</span>,</span>
-<span id="cb2-19"><a href="#cb2-19"></a>  <span class="fu">signif</span>(<span class="fu">summary</span>(mod1)<span class="sc">$</span>adj.r.squared, <span class="dv">3</span>)</span>
-<span id="cb2-20"><a href="#cb2-20"></a>)</span>
-<span id="cb2-21"><a href="#cb2-21"></a></span>
-<span id="cb2-22"><a href="#cb2-22"></a>plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(adpp_adex, <span class="fu">aes</span>(<span class="at">x =</span> .data[[x_var]], <span class="at">y =</span> .data[[y_var]])) <span class="sc">+</span></span>
-<span id="cb2-23"><a href="#cb2-23"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="fu">min</span>(adpp_adex[[x_var]]), <span class="at">y =</span> <span class="fu">max</span>(adpp_adex[[y_var]]), <span class="at">label =</span> eq, <span class="at">hjust =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
-<span id="cb2-24"><a href="#cb2-24"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">1</span>, <span class="fu">aes</span>(<span class="at">color =</span> <span class="fu">factor</span>(<span class="st">`</span><span class="at">count</span><span class="st">`</span>))) <span class="sc">+</span></span>
-<span id="cb2-25"><a href="#cb2-25"></a>  <span class="fu">scale_x_continuous</span>(</span>
-<span id="cb2-26"><a href="#cb2-26"></a>    <span class="at">name =</span> <span class="st">"Dose (mg/mL)"</span>,</span>
-<span id="cb2-27"><a href="#cb2-27"></a>    <span class="at">breaks =</span> <span class="fu">unique</span>(adpp_adex<span class="sc">$</span>Dose)</span>
-<span id="cb2-28"><a href="#cb2-28"></a>  ) <span class="sc">+</span></span>
-<span id="cb2-29"><a href="#cb2-29"></a>  <span class="fu">scale_y_continuous</span>(</span>
-<span id="cb2-30"><a href="#cb2-30"></a>    <span class="at">name =</span> <span class="fu">paste</span>(y_var, adpp_a<span class="sc">$</span>AVALU),</span>
-<span id="cb2-31"><a href="#cb2-31"></a>    <span class="at">transform =</span> <span class="st">"log"</span>,</span>
-<span id="cb2-32"><a href="#cb2-32"></a>    <span class="at">breaks =</span> <span class="fu">exp</span>(<span class="fu">ceiling</span>(<span class="fu">seq</span>(</span>
-<span id="cb2-33"><a href="#cb2-33"></a>      <span class="at">from =</span> <span class="fu">min</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)), <span class="at">to =</span> <span class="fu">max</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)),</span>
-<span id="cb2-34"><a href="#cb2-34"></a>      <span class="at">by =</span> <span class="dv">1</span></span>
-<span id="cb2-35"><a href="#cb2-35"></a>    ))),</span>
-<span id="cb2-36"><a href="#cb2-36"></a>    <span class="at">labels =</span> <span class="fu">as.character</span>(<span class="fu">ceiling</span>(<span class="fu">seq</span>(</span>
-<span id="cb2-37"><a href="#cb2-37"></a>      <span class="at">from =</span> <span class="fu">min</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)),</span>
-<span id="cb2-38"><a href="#cb2-38"></a>      <span class="at">to =</span> <span class="fu">max</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)), <span class="at">by =</span> <span class="dv">1</span></span>
-<span id="cb2-39"><a href="#cb2-39"></a>    )))</span>
-<span id="cb2-40"><a href="#cb2-40"></a>  ) <span class="sc">+</span></span>
-<span id="cb2-41"><a href="#cb2-41"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">formula =</span> y <span class="sc">~</span> x, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb2-42"><a href="#cb2-42"></a>  <span class="co"># Display error bars for each dosing group (this will only appear if the sd is less than the mean)</span></span>
-<span id="cb2-43"><a href="#cb2-43"></a>  <span class="fu">geom_errorbar</span>(</span>
-<span id="cb2-44"><a href="#cb2-44"></a>    <span class="at">data =</span> SummaryStat,</span>
-<span id="cb2-45"><a href="#cb2-45"></a>    <span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">Dose</span><span class="st">`</span>, <span class="at">y =</span> <span class="st">`</span><span class="at">meanAUC</span><span class="st">`</span>, <span class="at">ymin =</span> <span class="st">`</span><span class="at">meanAUC</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">AUCsd</span><span class="st">`</span>, <span class="at">ymax =</span> <span class="st">`</span><span class="at">meanAUC</span><span class="st">`</span> <span class="sc">+</span> AUCsd),</span>
-<span id="cb2-46"><a href="#cb2-46"></a>    <span class="at">width =</span> .<span class="dv">05</span>,</span>
-<span id="cb2-47"><a href="#cb2-47"></a>    <span class="at">position =</span> <span class="fu">position_dodge</span>(.<span class="dv">1</span>)</span>
-<span id="cb2-48"><a href="#cb2-48"></a>  ) <span class="sc">+</span></span>
-<span id="cb2-49"><a href="#cb2-49"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> SummaryStat, <span class="fu">aes</span>(<span class="at">x =</span> Dose, <span class="at">y =</span> meanAUC, <span class="at">size =</span> <span class="dv">1</span>), <span class="at">shape =</span> <span class="dv">2</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb2-50"><a href="#cb2-50"></a>  <span class="fu">ggtitle</span>(<span class="fu">paste</span>(</span>
-<span id="cb2-51"><a href="#cb2-51"></a>    <span class="st">"Dose-Proportionality Plot of Serum"</span>, <span class="fu">as.character</span>(<span class="fu">unique</span>(adex<span class="sc">$</span>TRT01P)),</span>
-<span id="cb2-52"><a href="#cb2-52"></a>    y_var, <span class="st">"in"</span>, adpp_a<span class="sc">$</span>AVALU</span>
-<span id="cb2-53"><a href="#cb2-53"></a>  ), <span class="at">subtitle =</span> <span class="st">"Summary of serum PK parameters by treatment"</span>) <span class="sc">+</span></span>
-<span id="cb2-54"><a href="#cb2-54"></a>  <span class="fu">labs</span>(<span class="at">color =</span> <span class="st">"Treatment Arm"</span>) <span class="sc">+</span></span>
-<span id="cb2-55"><a href="#cb2-55"></a>  <span class="fu">theme_nest</span>()</span>
-<span id="cb2-56"><a href="#cb2-56"></a></span>
-<span id="cb2-57"><a href="#cb2-57"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># calculate Summary Statistics (mean and sd) for each group</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a>SummaryStat <span class="ot">&lt;-</span> adpp_adex <span class="sc">%&gt;%</span> </span>
+<span id="cb1-3"><a href="#cb1-3"></a>  <span class="fu">group_by</span>(<span class="at">Dose =</span> <span class="fu">as.factor</span>(Dose)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a>  <span class="fu">summarise</span>(<span class="at">AUCsd =</span> <span class="fu">sd</span>(AUCinf), <span class="at">meanAUC =</span> <span class="fu">mean</span>(AUCinf))</span>
+<span id="cb1-5"><a href="#cb1-5"></a>SummaryStat<span class="sc">$</span>Dose <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">as.character</span>(SummaryStat<span class="sc">$</span>Dose)) </span>
+<span id="cb1-6"><a href="#cb1-6"></a></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="co"># generate linear model</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>mod1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(AUCinf) <span class="sc">~</span> <span class="fu">log</span>(Dose), adpp_adex)</span>
+<span id="cb1-9"><a href="#cb1-9"></a></span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="co"># obtain linear model coefficient values</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>cf <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">coef</span>(mod1), <span class="dv">2</span>)</span>
+<span id="cb1-12"><a href="#cb1-12"></a></span>
+<span id="cb1-13"><a href="#cb1-13"></a><span class="co"># generate linear model equation</span></span>
+<span id="cb1-14"><a href="#cb1-14"></a>eq <span class="ot">&lt;-</span> <span class="fu">paste0</span>(</span>
+<span id="cb1-15"><a href="#cb1-15"></a>  <span class="st">"y = "</span>, cf[<span class="dv">1</span>],</span>
+<span id="cb1-16"><a href="#cb1-16"></a>  <span class="fu">ifelse</span>(<span class="fu">sign</span>(cf[<span class="dv">2</span>]) <span class="sc">==</span> <span class="dv">1</span>, <span class="st">" + "</span>, <span class="st">" - "</span>), <span class="fu">abs</span>(cf[<span class="dv">2</span>]), <span class="st">" x , "</span>,</span>
+<span id="cb1-17"><a href="#cb1-17"></a>  <span class="st">"R²"</span>,</span>
+<span id="cb1-18"><a href="#cb1-18"></a>  <span class="st">" = "</span>,</span>
+<span id="cb1-19"><a href="#cb1-19"></a>  <span class="fu">signif</span>(<span class="fu">summary</span>(mod1)<span class="sc">$</span>adj.r.squared, <span class="dv">3</span>)</span>
+<span id="cb1-20"><a href="#cb1-20"></a>)</span>
+<span id="cb1-21"><a href="#cb1-21"></a></span>
+<span id="cb1-22"><a href="#cb1-22"></a>plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(adpp_adex, <span class="fu">aes</span>(<span class="at">x =</span> .data[[x_var]], <span class="at">y =</span> .data[[y_var]])) <span class="sc">+</span></span>
+<span id="cb1-23"><a href="#cb1-23"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="fu">min</span>(adpp_adex[[x_var]]), <span class="at">y =</span> <span class="fu">max</span>(adpp_adex[[y_var]]), <span class="at">label =</span> eq, <span class="at">hjust =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb1-24"><a href="#cb1-24"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">1</span>, <span class="fu">aes</span>(<span class="at">color =</span> <span class="fu">factor</span>(<span class="st">`</span><span class="at">count</span><span class="st">`</span>))) <span class="sc">+</span></span>
+<span id="cb1-25"><a href="#cb1-25"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb1-26"><a href="#cb1-26"></a>    <span class="at">name =</span> <span class="st">"Dose (mg/mL)"</span>,</span>
+<span id="cb1-27"><a href="#cb1-27"></a>    <span class="at">breaks =</span> <span class="fu">unique</span>(adpp_adex<span class="sc">$</span>Dose)</span>
+<span id="cb1-28"><a href="#cb1-28"></a>  ) <span class="sc">+</span></span>
+<span id="cb1-29"><a href="#cb1-29"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb1-30"><a href="#cb1-30"></a>    <span class="at">name =</span> <span class="fu">paste</span>(y_var, adpp_a<span class="sc">$</span>AVALU),</span>
+<span id="cb1-31"><a href="#cb1-31"></a>    <span class="at">transform =</span> <span class="st">"log"</span>,</span>
+<span id="cb1-32"><a href="#cb1-32"></a>    <span class="at">breaks =</span> <span class="fu">exp</span>(<span class="fu">ceiling</span>(<span class="fu">seq</span>(</span>
+<span id="cb1-33"><a href="#cb1-33"></a>      <span class="at">from =</span> <span class="fu">min</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)), <span class="at">to =</span> <span class="fu">max</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)),</span>
+<span id="cb1-34"><a href="#cb1-34"></a>      <span class="at">by =</span> <span class="dv">1</span></span>
+<span id="cb1-35"><a href="#cb1-35"></a>    ))),</span>
+<span id="cb1-36"><a href="#cb1-36"></a>    <span class="at">labels =</span> <span class="fu">as.character</span>(<span class="fu">ceiling</span>(<span class="fu">seq</span>(</span>
+<span id="cb1-37"><a href="#cb1-37"></a>      <span class="at">from =</span> <span class="fu">min</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)),</span>
+<span id="cb1-38"><a href="#cb1-38"></a>      <span class="at">to =</span> <span class="fu">max</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)), <span class="at">by =</span> <span class="dv">1</span></span>
+<span id="cb1-39"><a href="#cb1-39"></a>    )))</span>
+<span id="cb1-40"><a href="#cb1-40"></a>  ) <span class="sc">+</span></span>
+<span id="cb1-41"><a href="#cb1-41"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">formula =</span> y <span class="sc">~</span> x, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb1-42"><a href="#cb1-42"></a>  <span class="co"># Display error bars for each dosing group (this will only appear if the sd is less than the mean)</span></span>
+<span id="cb1-43"><a href="#cb1-43"></a>  <span class="fu">geom_errorbar</span>(</span>
+<span id="cb1-44"><a href="#cb1-44"></a>    <span class="at">data =</span> SummaryStat,</span>
+<span id="cb1-45"><a href="#cb1-45"></a>    <span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">Dose</span><span class="st">`</span>, <span class="at">y =</span> <span class="st">`</span><span class="at">meanAUC</span><span class="st">`</span>, <span class="at">ymin =</span> <span class="st">`</span><span class="at">meanAUC</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">AUCsd</span><span class="st">`</span>, <span class="at">ymax =</span> <span class="st">`</span><span class="at">meanAUC</span><span class="st">`</span> <span class="sc">+</span> AUCsd),</span>
+<span id="cb1-46"><a href="#cb1-46"></a>    <span class="at">width =</span> .<span class="dv">05</span>,</span>
+<span id="cb1-47"><a href="#cb1-47"></a>    <span class="at">position =</span> <span class="fu">position_dodge</span>(.<span class="dv">1</span>)</span>
+<span id="cb1-48"><a href="#cb1-48"></a>  ) <span class="sc">+</span></span>
+<span id="cb1-49"><a href="#cb1-49"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> SummaryStat, <span class="fu">aes</span>(<span class="at">x =</span> Dose, <span class="at">y =</span> meanAUC, <span class="at">size =</span> <span class="dv">1</span>), <span class="at">shape =</span> <span class="dv">2</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb1-50"><a href="#cb1-50"></a>  <span class="fu">ggtitle</span>(<span class="fu">paste</span>(</span>
+<span id="cb1-51"><a href="#cb1-51"></a>    <span class="st">"Dose-Proportionality Plot of Serum"</span>, <span class="fu">as.character</span>(<span class="fu">unique</span>(adex<span class="sc">$</span>TRT01P)),</span>
+<span id="cb1-52"><a href="#cb1-52"></a>    y_var, <span class="st">"in"</span>, adpp_a<span class="sc">$</span>AVALU</span>
+<span id="cb1-53"><a href="#cb1-53"></a>  ), <span class="at">subtitle =</span> <span class="st">"Summary of serum PK parameters by treatment"</span>) <span class="sc">+</span></span>
+<span id="cb1-54"><a href="#cb1-54"></a>  <span class="fu">labs</span>(<span class="at">color =</span> <span class="st">"Treatment Arm"</span>) <span class="sc">+</span></span>
+<span id="cb1-55"><a href="#cb1-55"></a>  <span class="fu">theme_nest</span>()</span>
+<span id="cb1-56"><a href="#cb1-56"></a></span>
+<span id="cb1-57"><a href="#cb1-57"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="pkpg02_files/figure-html/plot1-1.png" class="img-fluid figure-img" width="672"></p>
@@ -2763,7 +2723,7 @@ Experimental use!
 </div>
 </div>
 </div>
-<div id="tabset-3-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-3-tab">
+<div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
 <div class="tabset-margin-container"></div><div class="panel-tabset nav-justified" data-group="webr">
 <ul class="nav nav-tabs" role="tablist">
 <li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true"><i class="fa-regular fa-file-lines" aria-label="file-lines"></i> Preview</a></li>
@@ -2773,41 +2733,41 @@ Experimental use!
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
 <div class="cell" data-test="{&quot;plot_v2&quot;:&quot;plot&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># calculate median for each group if preferred</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a>SummaryStat <span class="ot">&lt;-</span> adpp_adex <span class="sc">%&gt;%</span> </span>
-<span id="cb3-3"><a href="#cb3-3"></a>  <span class="fu">group_by</span>(<span class="at">Dose =</span> <span class="fu">as.factor</span>(Dose)) <span class="sc">%&gt;%</span></span>
-<span id="cb3-4"><a href="#cb3-4"></a>  <span class="fu">summarise</span>(<span class="at">medAUC =</span> <span class="fu">median</span>(AUCinf))</span>
-<span id="cb3-5"><a href="#cb3-5"></a>SummaryStat<span class="sc">$</span>Dose <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">as.character</span>(SummaryStat<span class="sc">$</span>Dose)) </span>
-<span id="cb3-6"><a href="#cb3-6"></a></span>
-<span id="cb3-7"><a href="#cb3-7"></a>plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(adpp_adex, <span class="fu">aes</span>(<span class="at">x =</span> .data[[x_var]], <span class="at">y =</span> .data[[y_var]])) <span class="sc">+</span></span>
-<span id="cb3-8"><a href="#cb3-8"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="fu">min</span>(adpp_adex[[x_var]]), <span class="at">y =</span> <span class="fu">max</span>(adpp_adex[[y_var]]), <span class="at">label =</span> eq, <span class="at">hjust =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
-<span id="cb3-9"><a href="#cb3-9"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">1</span>, <span class="fu">aes</span>(<span class="at">color =</span> <span class="fu">factor</span>(<span class="st">`</span><span class="at">count</span><span class="st">`</span>))) <span class="sc">+</span></span>
-<span id="cb3-10"><a href="#cb3-10"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">formula =</span> y <span class="sc">~</span> x, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb3-11"><a href="#cb3-11"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> SummaryStat, <span class="fu">aes</span>(<span class="at">x =</span> Dose, <span class="at">y =</span> medAUC, <span class="at">size =</span> <span class="dv">1</span>), <span class="at">shape =</span> <span class="dv">2</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb3-12"><a href="#cb3-12"></a>  <span class="fu">ggtitle</span>(</span>
-<span id="cb3-13"><a href="#cb3-13"></a>    <span class="fu">paste</span>(</span>
-<span id="cb3-14"><a href="#cb3-14"></a>      <span class="st">"Dose-Proportionality Plot of Serum"</span>,</span>
-<span id="cb3-15"><a href="#cb3-15"></a>      <span class="fu">as.character</span>(<span class="fu">unique</span>(adex<span class="sc">$</span>TRT01P)),</span>
-<span id="cb3-16"><a href="#cb3-16"></a>      y_var,</span>
-<span id="cb3-17"><a href="#cb3-17"></a>      <span class="st">"in"</span>,</span>
-<span id="cb3-18"><a href="#cb3-18"></a>      adpp_a<span class="sc">$</span>AVALU</span>
-<span id="cb3-19"><a href="#cb3-19"></a>    ),</span>
-<span id="cb3-20"><a href="#cb3-20"></a>    <span class="at">subtitle =</span> <span class="st">"Summary of serum PK parameters by treatment"</span></span>
-<span id="cb3-21"><a href="#cb3-21"></a>  ) <span class="sc">+</span></span>
-<span id="cb3-22"><a href="#cb3-22"></a>  <span class="fu">labs</span>(<span class="at">color =</span> <span class="st">"Treatment Arm"</span>) <span class="sc">+</span></span>
-<span id="cb3-23"><a href="#cb3-23"></a>  <span class="fu">scale_y_continuous</span>(</span>
-<span id="cb3-24"><a href="#cb3-24"></a>    <span class="at">name =</span> <span class="fu">paste</span>(y_var, adpp_a<span class="sc">$</span>AVALU),</span>
-<span id="cb3-25"><a href="#cb3-25"></a>    <span class="at">transform =</span> <span class="st">"log"</span>,</span>
-<span id="cb3-26"><a href="#cb3-26"></a>    <span class="at">breaks =</span> <span class="fu">exp</span>(<span class="fu">ceiling</span>(<span class="fu">seq</span>(<span class="at">from =</span> <span class="fu">min</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)), <span class="at">to =</span> <span class="fu">max</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)), <span class="at">by =</span> <span class="dv">1</span>))),</span>
-<span id="cb3-27"><a href="#cb3-27"></a>    <span class="at">labels =</span> <span class="fu">as.character</span>(<span class="fu">ceiling</span>(<span class="fu">seq</span>(<span class="at">from =</span> <span class="fu">min</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)), <span class="at">to =</span> <span class="fu">max</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)), <span class="at">by =</span> <span class="dv">1</span>)))</span>
-<span id="cb3-28"><a href="#cb3-28"></a>  ) <span class="sc">+</span></span>
-<span id="cb3-29"><a href="#cb3-29"></a>  <span class="fu">scale_x_continuous</span>(</span>
-<span id="cb3-30"><a href="#cb3-30"></a>    <span class="at">name =</span> <span class="st">"Dose (mg/mL)"</span>,</span>
-<span id="cb3-31"><a href="#cb3-31"></a>    <span class="at">breaks =</span> <span class="fu">unique</span>(adpp_adex<span class="sc">$</span>Dose)</span>
-<span id="cb3-32"><a href="#cb3-32"></a>  ) <span class="sc">+</span></span>
-<span id="cb3-33"><a href="#cb3-33"></a>  <span class="fu">theme_nest</span>()</span>
-<span id="cb3-34"><a href="#cb3-34"></a></span>
-<span id="cb3-35"><a href="#cb3-35"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># calculate median for each group if preferred</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>SummaryStat <span class="ot">&lt;-</span> adpp_adex <span class="sc">%&gt;%</span> </span>
+<span id="cb2-3"><a href="#cb2-3"></a>  <span class="fu">group_by</span>(<span class="at">Dose =</span> <span class="fu">as.factor</span>(Dose)) <span class="sc">%&gt;%</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>  <span class="fu">summarise</span>(<span class="at">medAUC =</span> <span class="fu">median</span>(AUCinf))</span>
+<span id="cb2-5"><a href="#cb2-5"></a>SummaryStat<span class="sc">$</span>Dose <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">as.character</span>(SummaryStat<span class="sc">$</span>Dose)) </span>
+<span id="cb2-6"><a href="#cb2-6"></a></span>
+<span id="cb2-7"><a href="#cb2-7"></a>plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(adpp_adex, <span class="fu">aes</span>(<span class="at">x =</span> .data[[x_var]], <span class="at">y =</span> .data[[y_var]])) <span class="sc">+</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="fu">min</span>(adpp_adex[[x_var]]), <span class="at">y =</span> <span class="fu">max</span>(adpp_adex[[y_var]]), <span class="at">label =</span> eq, <span class="at">hjust =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb2-9"><a href="#cb2-9"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">1</span>, <span class="fu">aes</span>(<span class="at">color =</span> <span class="fu">factor</span>(<span class="st">`</span><span class="at">count</span><span class="st">`</span>))) <span class="sc">+</span></span>
+<span id="cb2-10"><a href="#cb2-10"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">formula =</span> y <span class="sc">~</span> x, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb2-11"><a href="#cb2-11"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> SummaryStat, <span class="fu">aes</span>(<span class="at">x =</span> Dose, <span class="at">y =</span> medAUC, <span class="at">size =</span> <span class="dv">1</span>), <span class="at">shape =</span> <span class="dv">2</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a>  <span class="fu">ggtitle</span>(</span>
+<span id="cb2-13"><a href="#cb2-13"></a>    <span class="fu">paste</span>(</span>
+<span id="cb2-14"><a href="#cb2-14"></a>      <span class="st">"Dose-Proportionality Plot of Serum"</span>,</span>
+<span id="cb2-15"><a href="#cb2-15"></a>      <span class="fu">as.character</span>(<span class="fu">unique</span>(adex<span class="sc">$</span>TRT01P)),</span>
+<span id="cb2-16"><a href="#cb2-16"></a>      y_var,</span>
+<span id="cb2-17"><a href="#cb2-17"></a>      <span class="st">"in"</span>,</span>
+<span id="cb2-18"><a href="#cb2-18"></a>      adpp_a<span class="sc">$</span>AVALU</span>
+<span id="cb2-19"><a href="#cb2-19"></a>    ),</span>
+<span id="cb2-20"><a href="#cb2-20"></a>    <span class="at">subtitle =</span> <span class="st">"Summary of serum PK parameters by treatment"</span></span>
+<span id="cb2-21"><a href="#cb2-21"></a>  ) <span class="sc">+</span></span>
+<span id="cb2-22"><a href="#cb2-22"></a>  <span class="fu">labs</span>(<span class="at">color =</span> <span class="st">"Treatment Arm"</span>) <span class="sc">+</span></span>
+<span id="cb2-23"><a href="#cb2-23"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb2-24"><a href="#cb2-24"></a>    <span class="at">name =</span> <span class="fu">paste</span>(y_var, adpp_a<span class="sc">$</span>AVALU),</span>
+<span id="cb2-25"><a href="#cb2-25"></a>    <span class="at">transform =</span> <span class="st">"log"</span>,</span>
+<span id="cb2-26"><a href="#cb2-26"></a>    <span class="at">breaks =</span> <span class="fu">exp</span>(<span class="fu">ceiling</span>(<span class="fu">seq</span>(<span class="at">from =</span> <span class="fu">min</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)), <span class="at">to =</span> <span class="fu">max</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)), <span class="at">by =</span> <span class="dv">1</span>))),</span>
+<span id="cb2-27"><a href="#cb2-27"></a>    <span class="at">labels =</span> <span class="fu">as.character</span>(<span class="fu">ceiling</span>(<span class="fu">seq</span>(<span class="at">from =</span> <span class="fu">min</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)), <span class="at">to =</span> <span class="fu">max</span>(<span class="fu">log</span>(adpp_adex<span class="sc">$</span>AUCinf)), <span class="at">by =</span> <span class="dv">1</span>)))</span>
+<span id="cb2-28"><a href="#cb2-28"></a>  ) <span class="sc">+</span></span>
+<span id="cb2-29"><a href="#cb2-29"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb2-30"><a href="#cb2-30"></a>    <span class="at">name =</span> <span class="st">"Dose (mg/mL)"</span>,</span>
+<span id="cb2-31"><a href="#cb2-31"></a>    <span class="at">breaks =</span> <span class="fu">unique</span>(adpp_adex<span class="sc">$</span>Dose)</span>
+<span id="cb2-32"><a href="#cb2-32"></a>  ) <span class="sc">+</span></span>
+<span id="cb2-33"><a href="#cb2-33"></a>  <span class="fu">theme_nest</span>()</span>
+<span id="cb2-34"><a href="#cb2-34"></a></span>
+<span id="cb2-35"><a href="#cb2-35"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="pkpg02_files/figure-html/plot2-1.png" class="img-fluid figure-img" width="672"></p>
@@ -2845,122 +2805,142 @@ Experimental use!
 </div>
 </div>
 </div>
-<div id="tabset-3-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-4-tab">
-<div class="cell" data-webshot="webshot2" data-screenshot.force="true" data-screenshot.opts="{&quot;delay&quot;:5}">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># In progress</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="tabset-3-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-3-tab">
+<div class="cell">
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">library</span>(tern)</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="fu">library</span>(nestcolor)</span>
+<span id="cb3-5"><a href="#cb3-5"></a></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="co"># need adex for dose info and adpp for AUC max info</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a>adex <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadex</span>
+<span id="cb3-8"><a href="#cb3-8"></a>adpp <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadpp</span>
+<span id="cb3-9"><a href="#cb3-9"></a></span>
+<span id="cb3-10"><a href="#cb3-10"></a>adpp_a <span class="ot">&lt;-</span> adpp <span class="sc">%&gt;%</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a>  <span class="fu">filter</span>(</span>
+<span id="cb3-12"><a href="#cb3-12"></a>    PPSPEC <span class="sc">==</span> <span class="st">"Plasma"</span>,</span>
+<span id="cb3-13"><a href="#cb3-13"></a>    AVISITN <span class="sc">==</span> <span class="st">"1"</span>,</span>
+<span id="cb3-14"><a href="#cb3-14"></a>    PARAMCD <span class="sc">==</span> <span class="st">"AUCIFO"</span></span>
+<span id="cb3-15"><a href="#cb3-15"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb3-16"><a href="#cb3-16"></a>  <span class="fu">mutate</span>(<span class="at">AUCinf =</span> AVAL)</span>
+<span id="cb3-17"><a href="#cb3-17"></a></span>
+<span id="cb3-18"><a href="#cb3-18"></a>adex_a <span class="ot">&lt;-</span> adex <span class="sc">%&gt;%</span></span>
+<span id="cb3-19"><a href="#cb3-19"></a>  <span class="fu">filter</span>(</span>
+<span id="cb3-20"><a href="#cb3-20"></a>    AVISITN <span class="sc">==</span> <span class="st">"1"</span>,</span>
+<span id="cb3-21"><a href="#cb3-21"></a>    PARAMCD <span class="sc">==</span> <span class="st">"DOSE"</span></span>
+<span id="cb3-22"><a href="#cb3-22"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb3-23"><a href="#cb3-23"></a>  <span class="fu">mutate</span>(<span class="at">Dose =</span> AVAL) <span class="sc">%&gt;%</span></span>
+<span id="cb3-24"><a href="#cb3-24"></a>  <span class="fu">select</span>(USUBJID, Dose)</span>
+<span id="cb3-25"><a href="#cb3-25"></a></span>
+<span id="cb3-26"><a href="#cb3-26"></a><span class="co"># join the dose information to the adpp table</span></span>
+<span id="cb3-27"><a href="#cb3-27"></a>adpp_adex <span class="ot">&lt;-</span> <span class="fu">left_join</span>(adpp_a, adex_a, <span class="at">by =</span> <span class="st">"USUBJID"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-28"><a href="#cb3-28"></a>  <span class="fu">group_by</span>(<span class="st">`</span><span class="at">ARM</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-29"><a href="#cb3-29"></a>  <span class="fu">mutate</span>(<span class="at">count =</span> <span class="fu">paste0</span>(<span class="st">`</span><span class="at">ARM</span><span class="st">`</span>, <span class="st">" ("</span>, <span class="fu">n</span>(), <span class="st">")"</span>))</span>
+<span id="cb3-30"><a href="#cb3-30"></a></span>
+<span id="cb3-31"><a href="#cb3-31"></a><span class="co"># set x and y variable names</span></span>
+<span id="cb3-32"><a href="#cb3-32"></a>x_var <span class="ot">&lt;-</span> <span class="st">"Dose"</span></span>
+<span id="cb3-33"><a href="#cb3-33"></a>y_var <span class="ot">&lt;-</span> <span class="st">"AUCinf"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
-<div id="tabset-3-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-5-tab">
+</div>
+</div>
+<section id="reproducibility" class="level2"><h2 class="anchored" data-anchor-id="reproducibility">Reproducibility</h2>
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
-<div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">Sys.time</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-09-21 18:19:20 UTC"</code></pre>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "2024-09-25 18:17:08 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
 <div class="cell" data-renv.ignore="true">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output cell-output-stdout">
-<pre><code>R version 4.4.1 (2024-06-14)
-Platform: x86_64-pc-linux-gnu
-Running under: Ubuntu 22.04.4 LTS
+<div class="cell-output cell-output-stdout">
+<pre><code>─ Session info ───────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.4.1 (2024-06-14)
+ os       Ubuntu 22.04.4 LTS
+ system   x86_64, linux-gnu
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       Etc/UTC
+ date     2024-09-25
+ pandoc   3.3 @ /usr/bin/ (via rmarkdown)
 
-Matrix products: default
-BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
-LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0
+─ Packages ───────────────────────────────────────────────────────────────────
+ package           * version     date (UTC) lib source
+ backports           1.5.0       2024-05-23 [1] CRAN (R 4.4.1)
+ brio                1.1.5       2024-04-24 [1] CRAN (R 4.4.1)
+ broom               1.0.6       2024-05-17 [1] CRAN (R 4.4.1)
+ checkmate           2.3.2       2024-07-29 [1] CRAN (R 4.4.1)
+ cli                 3.6.3       2024-06-21 [1] CRAN (R 4.4.1)
+ codetools           0.2-20      2024-03-31 [2] CRAN (R 4.4.1)
+ colorspace          2.1-1       2024-07-26 [1] CRAN (R 4.4.1)
+ digest              0.6.37      2024-08-19 [1] CRAN (R 4.4.1)
+ dplyr             * 1.1.4       2023-11-17 [1] CRAN (R 4.4.1)
+ evaluate            0.24.0      2024-06-10 [1] CRAN (R 4.4.1)
+ fansi               1.0.6       2023-12-08 [1] CRAN (R 4.4.1)
+ farver              2.1.2       2024-05-13 [1] CRAN (R 4.4.1)
+ fastmap             1.2.0       2024-05-15 [1] CRAN (R 4.4.1)
+ formatters        * 0.5.9.9001  2024-09-25 [1] git2r (https://github.com/insightsengineering/formatters.git@85be9d5)
+ generics            0.1.3       2022-07-05 [1] CRAN (R 4.4.1)
+ ggplot2           * 3.5.1       2024-04-23 [1] CRAN (R 4.4.1)
+ glue                1.7.0       2024-01-09 [1] CRAN (R 4.4.1)
+ gtable              0.3.5       2024-04-22 [1] CRAN (R 4.4.1)
+ htmltools           0.5.8.1     2024-04-04 [1] CRAN (R 4.4.1)
+ htmlwidgets         1.6.4       2023-12-06 [1] CRAN (R 4.4.1)
+ jsonlite            1.8.8       2023-12-04 [1] CRAN (R 4.4.1)
+ knitr               1.48        2024-07-07 [1] CRAN (R 4.4.1)
+ lattice             0.22-6      2024-03-20 [2] CRAN (R 4.4.1)
+ lifecycle           1.0.4       2023-11-07 [1] CRAN (R 4.4.1)
+ magrittr          * 2.0.3       2022-03-30 [1] CRAN (R 4.4.1)
+ Matrix              1.7-0       2024-04-26 [1] CRAN (R 4.4.1)
+ mgcv                1.9-1       2023-12-21 [2] CRAN (R 4.4.1)
+ munsell             0.5.1       2024-04-01 [1] CRAN (R 4.4.1)
+ nestcolor         * 0.1.2.9015  2024-09-25 [1] git2r (https://github.com/insightsengineering/nestcolor.git@fe8b71c)
+ nlme                3.1-166     2024-08-14 [2] CRAN (R 4.4.1)
+ pillar              1.9.0       2023-03-22 [1] CRAN (R 4.4.1)
+ pkgconfig           2.0.3       2019-09-22 [1] CRAN (R 4.4.1)
+ purrr               1.0.2       2023-08-10 [1] CRAN (R 4.4.1)
+ R6                  2.5.1       2021-08-19 [1] CRAN (R 4.4.1)
+ random.cdisc.data   0.3.15.9009 2024-09-25 [1] git2r (https://github.com/insightsengineering/random.cdisc.data.git@8eaaf8a)
+ rbibutils           2.2.16      2023-10-25 [1] CRAN (R 4.4.1)
+ Rdpack              2.6.1       2024-08-06 [1] CRAN (R 4.4.1)
+ rlang               1.1.4       2024-06-04 [1] CRAN (R 4.4.1)
+ rmarkdown           2.28        2024-08-17 [1] CRAN (R 4.4.1)
+ rtables           * 0.6.10.9000 2024-09-25 [1] git2r (https://github.com/insightsengineering/rtables.git@204a0fb)
+ scales              1.3.0       2023-11-28 [1] CRAN (R 4.4.1)
+ sessioninfo         1.2.2       2021-12-06 [1] CRAN (R 4.4.1)
+ stringi             1.8.4       2024-05-06 [1] CRAN (R 4.4.1)
+ stringr             1.5.1       2023-11-14 [1] CRAN (R 4.4.1)
+ survival            3.7-0       2024-06-05 [2] CRAN (R 4.4.1)
+ tern              * 0.9.6.9000  2024-09-25 [1] git2r (https://github.com/insightsengineering/tern.git@0dc93df)
+ testthat            3.2.1.1     2024-04-14 [1] CRAN (R 4.4.1)
+ tibble              3.2.1       2023-03-20 [1] CRAN (R 4.4.1)
+ tidyr               1.3.1       2024-01-24 [1] CRAN (R 4.4.1)
+ tidyselect          1.2.1       2024-03-11 [1] CRAN (R 4.4.1)
+ utf8                1.2.4       2023-10-22 [1] CRAN (R 4.4.1)
+ vctrs               0.6.5       2023-12-01 [1] CRAN (R 4.4.1)
+ withr               3.0.1       2024-07-31 [1] CRAN (R 4.4.1)
+ xfun                0.47        2024-08-17 [1] CRAN (R 4.4.1)
+ yaml                2.3.10      2024-07-26 [1] CRAN (R 4.4.1)
 
-locale:
- [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
- [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
- [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
- [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
- [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+ [1] /usr/local/lib/R/site-library
+ [2] /usr/local/lib/R/library
 
-time zone: Etc/UTC
-tzcode source: system (glibc)
-
-attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
-
-other attached packages:
-[1] nestcolor_0.1.2.9015  ggplot2_3.5.1         dplyr_1.1.4          
-[4] tern_0.9.5.9027       rtables_0.6.9.9016    magrittr_2.0.3       
-[7] formatters_0.5.9.9001
-
-loaded via a namespace (and not attached):
- [1] utf8_1.2.4                    generics_0.1.3               
- [3] tidyr_1.3.1                   stringi_1.8.4                
- [5] lattice_0.22-6                digest_0.6.37                
- [7] evaluate_1.0.0                grid_4.4.1                   
- [9] fastmap_1.2.0                 jsonlite_1.8.9               
-[11] Matrix_1.7-0                  backports_1.5.0              
-[13] brio_1.1.5                    survival_3.7-0               
-[15] mgcv_1.9-1                    purrr_1.0.2                  
-[17] fansi_1.0.6                   scales_1.3.0                 
-[19] codetools_0.2-20              Rdpack_2.6.1                 
-[21] cli_3.6.3                     rlang_1.1.4                  
-[23] rbibutils_2.2.16              munsell_0.5.1                
-[25] splines_4.4.1                 withr_3.0.1                  
-[27] yaml_2.3.10                   tools_4.4.1                  
-[29] checkmate_2.3.2               colorspace_2.1-1             
-[31] broom_1.0.6                   vctrs_0.6.5                  
-[33] R6_2.5.1                      lifecycle_1.0.4              
-[35] stringr_1.5.1                 htmlwidgets_1.6.4            
-[37] pkgconfig_2.0.3               pillar_1.9.0                 
-[39] gtable_0.3.5                  glue_1.7.0                   
-[41] xfun_0.47                     tibble_3.2.1                 
-[43] tidyselect_1.2.1              knitr_1.48                   
-[45] farver_2.1.2                  htmltools_0.5.8.1            
-[47] nlme_3.1-166                  rmarkdown_2.28               
-[49] testthat_3.2.1.1              random.cdisc.data_0.3.15.9009
-[51] compiler_4.4.1               </code></pre>
+──────────────────────────────────────────────────────────────────────────────</code></pre>
 </div>
 </div>
 </section><section id="lock-file" class="level3"><h3 class="anchored" data-anchor-id="lock-file">
 <code>.lock</code> file</h3>
 <p>Download the <code>.lock</code> file and use <a href="https://rstudio.github.io/renv/reference/restore.html"><code>renv::restore()</code></a> on it to recreate environment used to generate this website.</p>
-<div class="cell" data-renv.ignore="true">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>parent_file_path <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb9-2"><a href="#cb9-2"></a></span>
-<span id="cb9-3"><a href="#cb9-3"></a>book_root_dir <span class="ot">&lt;-</span> parent_file_path</span>
-<span id="cb9-4"><a href="#cb9-4"></a><span class="cf">while</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(book_root_dir, <span class="st">"_quarto.yml"</span>))) book_root_dir <span class="ot">&lt;-</span> <span class="fu">dirname</span>(book_root_dir)</span>
-<span id="cb9-5"><a href="#cb9-5"></a></span>
-<span id="cb9-6"><a href="#cb9-6"></a>lock_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
-<span id="cb9-7"><a href="#cb9-7"></a>  <span class="st">"../../assets/www/lock"</span>,</span>
-<span id="cb9-8"><a href="#cb9-8"></a>  <span class="fu">paste0</span>(</span>
-<span id="cb9-9"><a href="#cb9-9"></a>    <span class="fu">gsub</span>(</span>
-<span id="cb9-10"><a href="#cb9-10"></a>      <span class="fu">file.path</span>(book_root_dir, <span class="st">""</span>),</span>
-<span id="cb9-11"><a href="#cb9-11"></a>      <span class="st">""</span>,</span>
-<span id="cb9-12"><a href="#cb9-12"></a>      <span class="fu">gsub</span>(</span>
-<span id="cb9-13"><a href="#cb9-13"></a>        <span class="st">"</span><span class="sc">\\</span><span class="st">.rmarkdown$"</span>,</span>
-<span id="cb9-14"><a href="#cb9-14"></a>        <span class="st">""</span>,</span>
-<span id="cb9-15"><a href="#cb9-15"></a>        knitr<span class="sc">::</span><span class="fu">current_input</span>(<span class="at">dir =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb9-16"><a href="#cb9-16"></a>      )</span>
-<span id="cb9-17"><a href="#cb9-17"></a>    ),</span>
-<span id="cb9-18"><a href="#cb9-18"></a>    <span class="st">".lock"</span></span>
-<span id="cb9-19"><a href="#cb9-19"></a>  )</span>
-<span id="cb9-20"><a href="#cb9-20"></a>)</span>
-<span id="cb9-21"><a href="#cb9-21"></a></span>
-<span id="cb9-22"><a href="#cb9-22"></a>withr<span class="sc">::</span><span class="fu">with_options</span>(</span>
-<span id="cb9-23"><a href="#cb9-23"></a>  <span class="fu">list</span>(<span class="at">renv.verbose =</span> <span class="cn">FALSE</span>),</span>
-<span id="cb9-24"><a href="#cb9-24"></a>  renv<span class="sc">::</span><span class="fu">snapshot</span>(parent_file_path, <span class="at">lockfile =</span> lock_path, <span class="at">prompt =</span> <span class="cn">FALSE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb9-25"><a href="#cb9-25"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
 <p><a href="../../assets/www/lock/graphs/pharmacokinetic/pkpg02.lock">Download</a></p>
-</section>
-</div>
-</div>
-</div>
 
 
 <!-- -->
 
-
-</main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</section></section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
     const mode = bsSheetEl.getAttribute("data-mode");
@@ -3586,187 +3566,182 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb10" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb10-1"><a href="#cb10-1"></a><span class="co">---</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a><span class="an">title:</span><span class="co"> PKPG02</span></span>
-<span id="cb10-3"><a href="#cb10-3"></a><span class="an">subtitle:</span><span class="co"> Pharmacokinetic Parameter Summary of Serum PK Parameters by Treatment</span></span>
-<span id="cb10-4"><a href="#cb10-4"></a><span class="co">---</span></span>
-<span id="cb10-5"><a href="#cb10-5"></a></span>
-<span id="cb10-6"><a href="#cb10-6"></a>------------------------------------------------------------------------</span>
-<span id="cb10-7"><a href="#cb10-7"></a></span>
-<span id="cb10-8"><a href="#cb10-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb10-9"><a href="#cb10-9"></a></span>
-<span id="cb10-10"><a href="#cb10-10"></a>:::: {.panel-tabset}</span>
-<span id="cb10-11"><a href="#cb10-11"></a><span class="fu">## Data Setup</span></span>
-<span id="cb10-12"><a href="#cb10-12"></a></span>
-<span id="cb10-13"><a href="#cb10-13"></a><span class="in">```{r setup, message = FALSE}</span></span>
-<span id="cb10-14"><a href="#cb10-14"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb10-15"><a href="#cb10-15"></a></span>
-<span id="cb10-16"><a href="#cb10-16"></a><span class="in">library(tern)</span></span>
-<span id="cb10-17"><a href="#cb10-17"></a><span class="in">library(dplyr)</span></span>
-<span id="cb10-18"><a href="#cb10-18"></a><span class="in">library(ggplot2)</span></span>
-<span id="cb10-19"><a href="#cb10-19"></a><span class="in">library(nestcolor)</span></span>
-<span id="cb10-20"><a href="#cb10-20"></a></span>
-<span id="cb10-21"><a href="#cb10-21"></a><span class="in"># need adex for dose info and adpp for AUC max info</span></span>
-<span id="cb10-22"><a href="#cb10-22"></a><span class="in">adex &lt;- random.cdisc.data::cadex</span></span>
-<span id="cb10-23"><a href="#cb10-23"></a><span class="in">adpp &lt;- random.cdisc.data::cadpp</span></span>
-<span id="cb10-24"><a href="#cb10-24"></a></span>
-<span id="cb10-25"><a href="#cb10-25"></a><span class="in">adpp_a &lt;- adpp %&gt;%</span></span>
-<span id="cb10-26"><a href="#cb10-26"></a><span class="in">  filter(</span></span>
-<span id="cb10-27"><a href="#cb10-27"></a><span class="in">    PPSPEC == "Plasma",</span></span>
-<span id="cb10-28"><a href="#cb10-28"></a><span class="in">    AVISITN == "1",</span></span>
-<span id="cb10-29"><a href="#cb10-29"></a><span class="in">    PARAMCD == "AUCIFO"</span></span>
-<span id="cb10-30"><a href="#cb10-30"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-31"><a href="#cb10-31"></a><span class="in">  mutate(AUCinf = AVAL)</span></span>
-<span id="cb10-32"><a href="#cb10-32"></a></span>
-<span id="cb10-33"><a href="#cb10-33"></a><span class="in">adex_a &lt;- adex %&gt;%</span></span>
-<span id="cb10-34"><a href="#cb10-34"></a><span class="in">  filter(</span></span>
-<span id="cb10-35"><a href="#cb10-35"></a><span class="in">    AVISITN == "1",</span></span>
-<span id="cb10-36"><a href="#cb10-36"></a><span class="in">    PARAMCD == "DOSE"</span></span>
-<span id="cb10-37"><a href="#cb10-37"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb10-38"><a href="#cb10-38"></a><span class="in">  mutate(Dose = AVAL) %&gt;%</span></span>
-<span id="cb10-39"><a href="#cb10-39"></a><span class="in">  select(USUBJID, Dose)</span></span>
-<span id="cb10-40"><a href="#cb10-40"></a></span>
-<span id="cb10-41"><a href="#cb10-41"></a><span class="in"># join the dose information to the adpp table</span></span>
-<span id="cb10-42"><a href="#cb10-42"></a><span class="in">adpp_adex &lt;- left_join(adpp_a, adex_a, by = "USUBJID") %&gt;%</span></span>
-<span id="cb10-43"><a href="#cb10-43"></a><span class="in">  group_by(`ARM`) %&gt;%</span></span>
-<span id="cb10-44"><a href="#cb10-44"></a><span class="in">  mutate(count = paste0(`ARM`, " (", n(), ")"))</span></span>
-<span id="cb10-45"><a href="#cb10-45"></a></span>
-<span id="cb10-46"><a href="#cb10-46"></a><span class="in"># set x and y variable names</span></span>
-<span id="cb10-47"><a href="#cb10-47"></a><span class="in">x_var &lt;- "Dose"</span></span>
-<span id="cb10-48"><a href="#cb10-48"></a><span class="in">y_var &lt;- "AUCinf"</span></span>
-<span id="cb10-49"><a href="#cb10-49"></a><span class="in">```</span></span>
-<span id="cb10-50"><a href="#cb10-50"></a></span>
-<span id="cb10-51"><a href="#cb10-51"></a><span class="fu">## Summary of Pharmacokinetic &lt;br/&gt; Parameters -- Plasma</span></span>
-<span id="cb10-52"><a href="#cb10-52"></a></span>
-<span id="cb10-53"><a href="#cb10-53"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb10-54"><a href="#cb10-54"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb10-55"><a href="#cb10-55"></a></span>
-<span id="cb10-56"><a href="#cb10-56"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
-<span id="cb10-57"><a href="#cb10-57"></a><span class="in">```{r plot1, test = list(plot_v1 = "plot"), opts.label = "skip_test_strict"}</span></span>
-<span id="cb10-58"><a href="#cb10-58"></a><span class="in"># calculate Summary Statistics (mean and sd) for each group</span></span>
-<span id="cb10-59"><a href="#cb10-59"></a><span class="in">SummaryStat &lt;- adpp_adex %&gt;% # nolint: object_name.</span></span>
-<span id="cb10-60"><a href="#cb10-60"></a><span class="in">  group_by(Dose = as.factor(Dose)) %&gt;%</span></span>
-<span id="cb10-61"><a href="#cb10-61"></a><span class="in">  summarise(AUCsd = sd(AUCinf), meanAUC = mean(AUCinf))</span></span>
-<span id="cb10-62"><a href="#cb10-62"></a><span class="in">SummaryStat$Dose &lt;- as.numeric(as.character(SummaryStat$Dose)) # nolint: object_name.</span></span>
-<span id="cb10-63"><a href="#cb10-63"></a></span>
-<span id="cb10-64"><a href="#cb10-64"></a><span class="in"># generate linear model</span></span>
-<span id="cb10-65"><a href="#cb10-65"></a><span class="in">mod1 &lt;- lm(log(AUCinf) ~ log(Dose), adpp_adex)</span></span>
-<span id="cb10-66"><a href="#cb10-66"></a></span>
-<span id="cb10-67"><a href="#cb10-67"></a><span class="in"># obtain linear model coefficient values</span></span>
-<span id="cb10-68"><a href="#cb10-68"></a><span class="in">cf &lt;- round(coef(mod1), 2)</span></span>
-<span id="cb10-69"><a href="#cb10-69"></a></span>
-<span id="cb10-70"><a href="#cb10-70"></a><span class="in"># generate linear model equation</span></span>
-<span id="cb10-71"><a href="#cb10-71"></a><span class="in">eq &lt;- paste0(</span></span>
-<span id="cb10-72"><a href="#cb10-72"></a><span class="in">  "y = ", cf[1],</span></span>
-<span id="cb10-73"><a href="#cb10-73"></a><span class="in">  ifelse(sign(cf[2]) == 1, " + ", " - "), abs(cf[2]), " x , ",</span></span>
-<span id="cb10-74"><a href="#cb10-74"></a><span class="in">  "R²",</span></span>
-<span id="cb10-75"><a href="#cb10-75"></a><span class="in">  " = ",</span></span>
-<span id="cb10-76"><a href="#cb10-76"></a><span class="in">  signif(summary(mod1)$adj.r.squared, 3)</span></span>
-<span id="cb10-77"><a href="#cb10-77"></a><span class="in">)</span></span>
-<span id="cb10-78"><a href="#cb10-78"></a></span>
-<span id="cb10-79"><a href="#cb10-79"></a><span class="in">plot &lt;- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +</span></span>
-<span id="cb10-80"><a href="#cb10-80"></a><span class="in">  annotate(geom = "text", x = min(adpp_adex[[x_var]]), y = max(adpp_adex[[y_var]]), label = eq, hjust = 0.1) +</span></span>
-<span id="cb10-81"><a href="#cb10-81"></a><span class="in">  geom_point(size = 1, aes(color = factor(`count`))) +</span></span>
-<span id="cb10-82"><a href="#cb10-82"></a><span class="in">  scale_x_continuous(</span></span>
-<span id="cb10-83"><a href="#cb10-83"></a><span class="in">    name = "Dose (mg/mL)",</span></span>
-<span id="cb10-84"><a href="#cb10-84"></a><span class="in">    breaks = unique(adpp_adex$Dose)</span></span>
-<span id="cb10-85"><a href="#cb10-85"></a><span class="in">  ) +</span></span>
-<span id="cb10-86"><a href="#cb10-86"></a><span class="in">  scale_y_continuous(</span></span>
-<span id="cb10-87"><a href="#cb10-87"></a><span class="in">    name = paste(y_var, adpp_a$AVALU),</span></span>
-<span id="cb10-88"><a href="#cb10-88"></a><span class="in">    transform = "log",</span></span>
-<span id="cb10-89"><a href="#cb10-89"></a><span class="in">    breaks = exp(ceiling(seq(</span></span>
-<span id="cb10-90"><a href="#cb10-90"></a><span class="in">      from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)),</span></span>
-<span id="cb10-91"><a href="#cb10-91"></a><span class="in">      by = 1</span></span>
-<span id="cb10-92"><a href="#cb10-92"></a><span class="in">    ))),</span></span>
-<span id="cb10-93"><a href="#cb10-93"></a><span class="in">    labels = as.character(ceiling(seq(</span></span>
-<span id="cb10-94"><a href="#cb10-94"></a><span class="in">      from = min(log(adpp_adex$AUCinf)),</span></span>
-<span id="cb10-95"><a href="#cb10-95"></a><span class="in">      to = max(log(adpp_adex$AUCinf)), by = 1</span></span>
-<span id="cb10-96"><a href="#cb10-96"></a><span class="in">    )))</span></span>
-<span id="cb10-97"><a href="#cb10-97"></a><span class="in">  ) +</span></span>
-<span id="cb10-98"><a href="#cb10-98"></a><span class="in">  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "black", linewidth = 0.5) +</span></span>
-<span id="cb10-99"><a href="#cb10-99"></a><span class="in">  # Display error bars for each dosing group (this will only appear if the sd is less than the mean)</span></span>
-<span id="cb10-100"><a href="#cb10-100"></a><span class="in">  geom_errorbar(</span></span>
-<span id="cb10-101"><a href="#cb10-101"></a><span class="in">    data = SummaryStat,</span></span>
-<span id="cb10-102"><a href="#cb10-102"></a><span class="in">    aes(x = `Dose`, y = `meanAUC`, ymin = `meanAUC` - `AUCsd`, ymax = `meanAUC` + AUCsd),</span></span>
-<span id="cb10-103"><a href="#cb10-103"></a><span class="in">    width = .05,</span></span>
-<span id="cb10-104"><a href="#cb10-104"></a><span class="in">    position = position_dodge(.1)</span></span>
-<span id="cb10-105"><a href="#cb10-105"></a><span class="in">  ) +</span></span>
-<span id="cb10-106"><a href="#cb10-106"></a><span class="in">  geom_point(data = SummaryStat, aes(x = Dose, y = meanAUC, size = 1), shape = 2, show.legend = FALSE) +</span></span>
-<span id="cb10-107"><a href="#cb10-107"></a><span class="in">  ggtitle(paste(</span></span>
-<span id="cb10-108"><a href="#cb10-108"></a><span class="in">    "Dose-Proportionality Plot of Serum", as.character(unique(adex$TRT01P)),</span></span>
-<span id="cb10-109"><a href="#cb10-109"></a><span class="in">    y_var, "in", adpp_a$AVALU</span></span>
-<span id="cb10-110"><a href="#cb10-110"></a><span class="in">  ), subtitle = "Summary of serum PK parameters by treatment") +</span></span>
-<span id="cb10-111"><a href="#cb10-111"></a><span class="in">  labs(color = "Treatment Arm") +</span></span>
-<span id="cb10-112"><a href="#cb10-112"></a><span class="in">  theme_nest()</span></span>
-<span id="cb10-113"><a href="#cb10-113"></a></span>
-<span id="cb10-114"><a href="#cb10-114"></a><span class="in">plot</span></span>
-<span id="cb10-115"><a href="#cb10-115"></a><span class="in">```</span></span>
-<span id="cb10-116"><a href="#cb10-116"></a></span>
-<span id="cb10-117"><a href="#cb10-117"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot1")`</span></span>
-<span id="cb10-118"><a href="#cb10-118"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb10-119"><a href="#cb10-119"></a>:::</span>
-<span id="cb10-120"><a href="#cb10-120"></a></span>
-<span id="cb10-121"><a href="#cb10-121"></a><span class="fu">## Summary of Plasma Pharmacokinetic &lt;br/&gt; Parameters with Median Points</span></span>
-<span id="cb10-122"><a href="#cb10-122"></a></span>
-<span id="cb10-123"><a href="#cb10-123"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb10-124"><a href="#cb10-124"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb10-125"><a href="#cb10-125"></a></span>
-<span id="cb10-126"><a href="#cb10-126"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
-<span id="cb10-127"><a href="#cb10-127"></a><span class="in">```{r plot2, test = list(plot_v2 = "plot"), opts.label = "skip_test_strict"}</span></span>
-<span id="cb10-128"><a href="#cb10-128"></a><span class="in"># calculate median for each group if preferred</span></span>
-<span id="cb10-129"><a href="#cb10-129"></a><span class="in">SummaryStat &lt;- adpp_adex %&gt;% # nolint: object_name.</span></span>
-<span id="cb10-130"><a href="#cb10-130"></a><span class="in">  group_by(Dose = as.factor(Dose)) %&gt;%</span></span>
-<span id="cb10-131"><a href="#cb10-131"></a><span class="in">  summarise(medAUC = median(AUCinf))</span></span>
-<span id="cb10-132"><a href="#cb10-132"></a><span class="in">SummaryStat$Dose &lt;- as.numeric(as.character(SummaryStat$Dose)) # nolint: object_name.</span></span>
-<span id="cb10-133"><a href="#cb10-133"></a></span>
-<span id="cb10-134"><a href="#cb10-134"></a><span class="in">plot &lt;- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +</span></span>
-<span id="cb10-135"><a href="#cb10-135"></a><span class="in">  annotate(geom = "text", x = min(adpp_adex[[x_var]]), y = max(adpp_adex[[y_var]]), label = eq, hjust = 0.1) +</span></span>
-<span id="cb10-136"><a href="#cb10-136"></a><span class="in">  geom_point(size = 1, aes(color = factor(`count`))) +</span></span>
-<span id="cb10-137"><a href="#cb10-137"></a><span class="in">  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "black", linewidth = 0.5) +</span></span>
-<span id="cb10-138"><a href="#cb10-138"></a><span class="in">  geom_point(data = SummaryStat, aes(x = Dose, y = medAUC, size = 1), shape = 2, show.legend = FALSE) +</span></span>
-<span id="cb10-139"><a href="#cb10-139"></a><span class="in">  ggtitle(</span></span>
-<span id="cb10-140"><a href="#cb10-140"></a><span class="in">    paste(</span></span>
-<span id="cb10-141"><a href="#cb10-141"></a><span class="in">      "Dose-Proportionality Plot of Serum",</span></span>
-<span id="cb10-142"><a href="#cb10-142"></a><span class="in">      as.character(unique(adex$TRT01P)),</span></span>
-<span id="cb10-143"><a href="#cb10-143"></a><span class="in">      y_var,</span></span>
-<span id="cb10-144"><a href="#cb10-144"></a><span class="in">      "in",</span></span>
-<span id="cb10-145"><a href="#cb10-145"></a><span class="in">      adpp_a$AVALU</span></span>
-<span id="cb10-146"><a href="#cb10-146"></a><span class="in">    ),</span></span>
-<span id="cb10-147"><a href="#cb10-147"></a><span class="in">    subtitle = "Summary of serum PK parameters by treatment"</span></span>
-<span id="cb10-148"><a href="#cb10-148"></a><span class="in">  ) +</span></span>
-<span id="cb10-149"><a href="#cb10-149"></a><span class="in">  labs(color = "Treatment Arm") +</span></span>
-<span id="cb10-150"><a href="#cb10-150"></a><span class="in">  scale_y_continuous(</span></span>
-<span id="cb10-151"><a href="#cb10-151"></a><span class="in">    name = paste(y_var, adpp_a$AVALU),</span></span>
-<span id="cb10-152"><a href="#cb10-152"></a><span class="in">    transform = "log",</span></span>
-<span id="cb10-153"><a href="#cb10-153"></a><span class="in">    breaks = exp(ceiling(seq(from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)), by = 1))),</span></span>
-<span id="cb10-154"><a href="#cb10-154"></a><span class="in">    labels = as.character(ceiling(seq(from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)), by = 1)))</span></span>
-<span id="cb10-155"><a href="#cb10-155"></a><span class="in">  ) +</span></span>
-<span id="cb10-156"><a href="#cb10-156"></a><span class="in">  scale_x_continuous(</span></span>
-<span id="cb10-157"><a href="#cb10-157"></a><span class="in">    name = "Dose (mg/mL)",</span></span>
-<span id="cb10-158"><a href="#cb10-158"></a><span class="in">    breaks = unique(adpp_adex$Dose)</span></span>
-<span id="cb10-159"><a href="#cb10-159"></a><span class="in">  ) +</span></span>
-<span id="cb10-160"><a href="#cb10-160"></a><span class="in">  theme_nest()</span></span>
-<span id="cb10-161"><a href="#cb10-161"></a></span>
-<span id="cb10-162"><a href="#cb10-162"></a><span class="in">plot</span></span>
-<span id="cb10-163"><a href="#cb10-163"></a><span class="in">```</span></span>
-<span id="cb10-164"><a href="#cb10-164"></a></span>
-<span id="cb10-165"><a href="#cb10-165"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot2")`</span></span>
-<span id="cb10-166"><a href="#cb10-166"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb10-167"><a href="#cb10-167"></a>:::</span>
-<span id="cb10-168"><a href="#cb10-168"></a></span>
-<span id="cb10-169"><a href="#cb10-169"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb10-170"><a href="#cb10-170"></a></span>
-<span id="cb10-171"><a href="#cb10-171"></a><span class="fu">## `teal` App</span></span>
-<span id="cb10-172"><a href="#cb10-172"></a></span>
-<span id="cb10-173"><a href="#cb10-173"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb10-174"><a href="#cb10-174"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb10-175"><a href="#cb10-175"></a></span>
-<span id="cb10-176"><a href="#cb10-176"></a><span class="in"># In progress</span></span>
-<span id="cb10-177"><a href="#cb10-177"></a><span class="in">```</span></span>
-<span id="cb10-178"><a href="#cb10-178"></a></span>
-<span id="cb10-179"><a href="#cb10-179"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
-<span id="cb10-180"><a href="#cb10-180"></a></span>
-<span id="cb10-181"><a href="#cb10-181"></a>::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb6" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1"></a><span class="co">---</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="an">title:</span><span class="co"> PKPG02</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="an">subtitle:</span><span class="co"> Pharmacokinetic Parameter Summary of Serum PK Parameters by Treatment</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a><span class="co">---</span></span>
+<span id="cb6-5"><a href="#cb6-5"></a></span>
+<span id="cb6-6"><a href="#cb6-6"></a>------------------------------------------------------------------------</span>
+<span id="cb6-7"><a href="#cb6-7"></a></span>
+<span id="cb6-8"><a href="#cb6-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb6-9"><a href="#cb6-9"></a></span>
+<span id="cb6-10"><a href="#cb6-10"></a>:::: {.panel-tabset}</span>
+<span id="cb6-11"><a href="#cb6-11"></a></span>
+<span id="cb6-12"><a href="#cb6-12"></a><span class="in">```{r setup, echo = FALSE}</span></span>
+<span id="cb6-13"><a href="#cb6-13"></a><span class="in">library(tern)</span></span>
+<span id="cb6-14"><a href="#cb6-14"></a><span class="in">library(dplyr)</span></span>
+<span id="cb6-15"><a href="#cb6-15"></a><span class="in">library(ggplot2)</span></span>
+<span id="cb6-16"><a href="#cb6-16"></a><span class="in">library(nestcolor)</span></span>
+<span id="cb6-17"><a href="#cb6-17"></a></span>
+<span id="cb6-18"><a href="#cb6-18"></a><span class="in"># need adex for dose info and adpp for AUC max info</span></span>
+<span id="cb6-19"><a href="#cb6-19"></a><span class="in">adex &lt;- random.cdisc.data::cadex</span></span>
+<span id="cb6-20"><a href="#cb6-20"></a><span class="in">adpp &lt;- random.cdisc.data::cadpp</span></span>
+<span id="cb6-21"><a href="#cb6-21"></a></span>
+<span id="cb6-22"><a href="#cb6-22"></a><span class="in">adpp_a &lt;- adpp %&gt;%</span></span>
+<span id="cb6-23"><a href="#cb6-23"></a><span class="in">  filter(</span></span>
+<span id="cb6-24"><a href="#cb6-24"></a><span class="in">    PPSPEC == "Plasma",</span></span>
+<span id="cb6-25"><a href="#cb6-25"></a><span class="in">    AVISITN == "1",</span></span>
+<span id="cb6-26"><a href="#cb6-26"></a><span class="in">    PARAMCD == "AUCIFO"</span></span>
+<span id="cb6-27"><a href="#cb6-27"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb6-28"><a href="#cb6-28"></a><span class="in">  mutate(AUCinf = AVAL)</span></span>
+<span id="cb6-29"><a href="#cb6-29"></a></span>
+<span id="cb6-30"><a href="#cb6-30"></a><span class="in">adex_a &lt;- adex %&gt;%</span></span>
+<span id="cb6-31"><a href="#cb6-31"></a><span class="in">  filter(</span></span>
+<span id="cb6-32"><a href="#cb6-32"></a><span class="in">    AVISITN == "1",</span></span>
+<span id="cb6-33"><a href="#cb6-33"></a><span class="in">    PARAMCD == "DOSE"</span></span>
+<span id="cb6-34"><a href="#cb6-34"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb6-35"><a href="#cb6-35"></a><span class="in">  mutate(Dose = AVAL) %&gt;%</span></span>
+<span id="cb6-36"><a href="#cb6-36"></a><span class="in">  select(USUBJID, Dose)</span></span>
+<span id="cb6-37"><a href="#cb6-37"></a></span>
+<span id="cb6-38"><a href="#cb6-38"></a><span class="in"># join the dose information to the adpp table</span></span>
+<span id="cb6-39"><a href="#cb6-39"></a><span class="in">adpp_adex &lt;- left_join(adpp_a, adex_a, by = "USUBJID") %&gt;%</span></span>
+<span id="cb6-40"><a href="#cb6-40"></a><span class="in">  group_by(`ARM`) %&gt;%</span></span>
+<span id="cb6-41"><a href="#cb6-41"></a><span class="in">  mutate(count = paste0(`ARM`, " (", n(), ")"))</span></span>
+<span id="cb6-42"><a href="#cb6-42"></a></span>
+<span id="cb6-43"><a href="#cb6-43"></a><span class="in"># set x and y variable names</span></span>
+<span id="cb6-44"><a href="#cb6-44"></a><span class="in">x_var &lt;- "Dose"</span></span>
+<span id="cb6-45"><a href="#cb6-45"></a><span class="in">y_var &lt;- "AUCinf"</span></span>
+<span id="cb6-46"><a href="#cb6-46"></a><span class="in">```</span></span>
+<span id="cb6-47"><a href="#cb6-47"></a></span>
+<span id="cb6-48"><a href="#cb6-48"></a><span class="fu">## Summary of Pharmacokinetic &lt;br/&gt; Parameters -- Plasma</span></span>
+<span id="cb6-49"><a href="#cb6-49"></a></span>
+<span id="cb6-50"><a href="#cb6-50"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb6-51"><a href="#cb6-51"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb6-52"><a href="#cb6-52"></a></span>
+<span id="cb6-53"><a href="#cb6-53"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
+<span id="cb6-54"><a href="#cb6-54"></a><span class="in">```{r plot1, test = list(plot_v1 = "plot"), opts.label = "skip_test_strict"}</span></span>
+<span id="cb6-55"><a href="#cb6-55"></a><span class="in"># calculate Summary Statistics (mean and sd) for each group</span></span>
+<span id="cb6-56"><a href="#cb6-56"></a><span class="in">SummaryStat &lt;- adpp_adex %&gt;% # nolint: object_name.</span></span>
+<span id="cb6-57"><a href="#cb6-57"></a><span class="in">  group_by(Dose = as.factor(Dose)) %&gt;%</span></span>
+<span id="cb6-58"><a href="#cb6-58"></a><span class="in">  summarise(AUCsd = sd(AUCinf), meanAUC = mean(AUCinf))</span></span>
+<span id="cb6-59"><a href="#cb6-59"></a><span class="in">SummaryStat$Dose &lt;- as.numeric(as.character(SummaryStat$Dose)) # nolint: object_name.</span></span>
+<span id="cb6-60"><a href="#cb6-60"></a></span>
+<span id="cb6-61"><a href="#cb6-61"></a><span class="in"># generate linear model</span></span>
+<span id="cb6-62"><a href="#cb6-62"></a><span class="in">mod1 &lt;- lm(log(AUCinf) ~ log(Dose), adpp_adex)</span></span>
+<span id="cb6-63"><a href="#cb6-63"></a></span>
+<span id="cb6-64"><a href="#cb6-64"></a><span class="in"># obtain linear model coefficient values</span></span>
+<span id="cb6-65"><a href="#cb6-65"></a><span class="in">cf &lt;- round(coef(mod1), 2)</span></span>
+<span id="cb6-66"><a href="#cb6-66"></a></span>
+<span id="cb6-67"><a href="#cb6-67"></a><span class="in"># generate linear model equation</span></span>
+<span id="cb6-68"><a href="#cb6-68"></a><span class="in">eq &lt;- paste0(</span></span>
+<span id="cb6-69"><a href="#cb6-69"></a><span class="in">  "y = ", cf[1],</span></span>
+<span id="cb6-70"><a href="#cb6-70"></a><span class="in">  ifelse(sign(cf[2]) == 1, " + ", " - "), abs(cf[2]), " x , ",</span></span>
+<span id="cb6-71"><a href="#cb6-71"></a><span class="in">  "R²",</span></span>
+<span id="cb6-72"><a href="#cb6-72"></a><span class="in">  " = ",</span></span>
+<span id="cb6-73"><a href="#cb6-73"></a><span class="in">  signif(summary(mod1)$adj.r.squared, 3)</span></span>
+<span id="cb6-74"><a href="#cb6-74"></a><span class="in">)</span></span>
+<span id="cb6-75"><a href="#cb6-75"></a></span>
+<span id="cb6-76"><a href="#cb6-76"></a><span class="in">plot &lt;- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +</span></span>
+<span id="cb6-77"><a href="#cb6-77"></a><span class="in">  annotate(geom = "text", x = min(adpp_adex[[x_var]]), y = max(adpp_adex[[y_var]]), label = eq, hjust = 0.1) +</span></span>
+<span id="cb6-78"><a href="#cb6-78"></a><span class="in">  geom_point(size = 1, aes(color = factor(`count`))) +</span></span>
+<span id="cb6-79"><a href="#cb6-79"></a><span class="in">  scale_x_continuous(</span></span>
+<span id="cb6-80"><a href="#cb6-80"></a><span class="in">    name = "Dose (mg/mL)",</span></span>
+<span id="cb6-81"><a href="#cb6-81"></a><span class="in">    breaks = unique(adpp_adex$Dose)</span></span>
+<span id="cb6-82"><a href="#cb6-82"></a><span class="in">  ) +</span></span>
+<span id="cb6-83"><a href="#cb6-83"></a><span class="in">  scale_y_continuous(</span></span>
+<span id="cb6-84"><a href="#cb6-84"></a><span class="in">    name = paste(y_var, adpp_a$AVALU),</span></span>
+<span id="cb6-85"><a href="#cb6-85"></a><span class="in">    transform = "log",</span></span>
+<span id="cb6-86"><a href="#cb6-86"></a><span class="in">    breaks = exp(ceiling(seq(</span></span>
+<span id="cb6-87"><a href="#cb6-87"></a><span class="in">      from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)),</span></span>
+<span id="cb6-88"><a href="#cb6-88"></a><span class="in">      by = 1</span></span>
+<span id="cb6-89"><a href="#cb6-89"></a><span class="in">    ))),</span></span>
+<span id="cb6-90"><a href="#cb6-90"></a><span class="in">    labels = as.character(ceiling(seq(</span></span>
+<span id="cb6-91"><a href="#cb6-91"></a><span class="in">      from = min(log(adpp_adex$AUCinf)),</span></span>
+<span id="cb6-92"><a href="#cb6-92"></a><span class="in">      to = max(log(adpp_adex$AUCinf)), by = 1</span></span>
+<span id="cb6-93"><a href="#cb6-93"></a><span class="in">    )))</span></span>
+<span id="cb6-94"><a href="#cb6-94"></a><span class="in">  ) +</span></span>
+<span id="cb6-95"><a href="#cb6-95"></a><span class="in">  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "black", linewidth = 0.5) +</span></span>
+<span id="cb6-96"><a href="#cb6-96"></a><span class="in">  # Display error bars for each dosing group (this will only appear if the sd is less than the mean)</span></span>
+<span id="cb6-97"><a href="#cb6-97"></a><span class="in">  geom_errorbar(</span></span>
+<span id="cb6-98"><a href="#cb6-98"></a><span class="in">    data = SummaryStat,</span></span>
+<span id="cb6-99"><a href="#cb6-99"></a><span class="in">    aes(x = `Dose`, y = `meanAUC`, ymin = `meanAUC` - `AUCsd`, ymax = `meanAUC` + AUCsd),</span></span>
+<span id="cb6-100"><a href="#cb6-100"></a><span class="in">    width = .05,</span></span>
+<span id="cb6-101"><a href="#cb6-101"></a><span class="in">    position = position_dodge(.1)</span></span>
+<span id="cb6-102"><a href="#cb6-102"></a><span class="in">  ) +</span></span>
+<span id="cb6-103"><a href="#cb6-103"></a><span class="in">  geom_point(data = SummaryStat, aes(x = Dose, y = meanAUC, size = 1), shape = 2, show.legend = FALSE) +</span></span>
+<span id="cb6-104"><a href="#cb6-104"></a><span class="in">  ggtitle(paste(</span></span>
+<span id="cb6-105"><a href="#cb6-105"></a><span class="in">    "Dose-Proportionality Plot of Serum", as.character(unique(adex$TRT01P)),</span></span>
+<span id="cb6-106"><a href="#cb6-106"></a><span class="in">    y_var, "in", adpp_a$AVALU</span></span>
+<span id="cb6-107"><a href="#cb6-107"></a><span class="in">  ), subtitle = "Summary of serum PK parameters by treatment") +</span></span>
+<span id="cb6-108"><a href="#cb6-108"></a><span class="in">  labs(color = "Treatment Arm") +</span></span>
+<span id="cb6-109"><a href="#cb6-109"></a><span class="in">  theme_nest()</span></span>
+<span id="cb6-110"><a href="#cb6-110"></a></span>
+<span id="cb6-111"><a href="#cb6-111"></a><span class="in">plot</span></span>
+<span id="cb6-112"><a href="#cb6-112"></a><span class="in">```</span></span>
+<span id="cb6-113"><a href="#cb6-113"></a></span>
+<span id="cb6-114"><a href="#cb6-114"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot1")`</span></span>
+<span id="cb6-115"><a href="#cb6-115"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb6-116"><a href="#cb6-116"></a>:::</span>
+<span id="cb6-117"><a href="#cb6-117"></a></span>
+<span id="cb6-118"><a href="#cb6-118"></a><span class="fu">## Summary of Plasma Pharmacokinetic &lt;br/&gt; Parameters with Median Points</span></span>
+<span id="cb6-119"><a href="#cb6-119"></a></span>
+<span id="cb6-120"><a href="#cb6-120"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb6-121"><a href="#cb6-121"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb6-122"><a href="#cb6-122"></a></span>
+<span id="cb6-123"><a href="#cb6-123"></a><span class="co">&lt;!-- skip strict because of https://github.com/r-lib/gtable/pull/94 --&gt;</span></span>
+<span id="cb6-124"><a href="#cb6-124"></a><span class="in">```{r plot2, test = list(plot_v2 = "plot"), opts.label = "skip_test_strict"}</span></span>
+<span id="cb6-125"><a href="#cb6-125"></a><span class="in"># calculate median for each group if preferred</span></span>
+<span id="cb6-126"><a href="#cb6-126"></a><span class="in">SummaryStat &lt;- adpp_adex %&gt;% # nolint: object_name.</span></span>
+<span id="cb6-127"><a href="#cb6-127"></a><span class="in">  group_by(Dose = as.factor(Dose)) %&gt;%</span></span>
+<span id="cb6-128"><a href="#cb6-128"></a><span class="in">  summarise(medAUC = median(AUCinf))</span></span>
+<span id="cb6-129"><a href="#cb6-129"></a><span class="in">SummaryStat$Dose &lt;- as.numeric(as.character(SummaryStat$Dose)) # nolint: object_name.</span></span>
+<span id="cb6-130"><a href="#cb6-130"></a></span>
+<span id="cb6-131"><a href="#cb6-131"></a><span class="in">plot &lt;- ggplot(adpp_adex, aes(x = .data[[x_var]], y = .data[[y_var]])) +</span></span>
+<span id="cb6-132"><a href="#cb6-132"></a><span class="in">  annotate(geom = "text", x = min(adpp_adex[[x_var]]), y = max(adpp_adex[[y_var]]), label = eq, hjust = 0.1) +</span></span>
+<span id="cb6-133"><a href="#cb6-133"></a><span class="in">  geom_point(size = 1, aes(color = factor(`count`))) +</span></span>
+<span id="cb6-134"><a href="#cb6-134"></a><span class="in">  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "black", linewidth = 0.5) +</span></span>
+<span id="cb6-135"><a href="#cb6-135"></a><span class="in">  geom_point(data = SummaryStat, aes(x = Dose, y = medAUC, size = 1), shape = 2, show.legend = FALSE) +</span></span>
+<span id="cb6-136"><a href="#cb6-136"></a><span class="in">  ggtitle(</span></span>
+<span id="cb6-137"><a href="#cb6-137"></a><span class="in">    paste(</span></span>
+<span id="cb6-138"><a href="#cb6-138"></a><span class="in">      "Dose-Proportionality Plot of Serum",</span></span>
+<span id="cb6-139"><a href="#cb6-139"></a><span class="in">      as.character(unique(adex$TRT01P)),</span></span>
+<span id="cb6-140"><a href="#cb6-140"></a><span class="in">      y_var,</span></span>
+<span id="cb6-141"><a href="#cb6-141"></a><span class="in">      "in",</span></span>
+<span id="cb6-142"><a href="#cb6-142"></a><span class="in">      adpp_a$AVALU</span></span>
+<span id="cb6-143"><a href="#cb6-143"></a><span class="in">    ),</span></span>
+<span id="cb6-144"><a href="#cb6-144"></a><span class="in">    subtitle = "Summary of serum PK parameters by treatment"</span></span>
+<span id="cb6-145"><a href="#cb6-145"></a><span class="in">  ) +</span></span>
+<span id="cb6-146"><a href="#cb6-146"></a><span class="in">  labs(color = "Treatment Arm") +</span></span>
+<span id="cb6-147"><a href="#cb6-147"></a><span class="in">  scale_y_continuous(</span></span>
+<span id="cb6-148"><a href="#cb6-148"></a><span class="in">    name = paste(y_var, adpp_a$AVALU),</span></span>
+<span id="cb6-149"><a href="#cb6-149"></a><span class="in">    transform = "log",</span></span>
+<span id="cb6-150"><a href="#cb6-150"></a><span class="in">    breaks = exp(ceiling(seq(from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)), by = 1))),</span></span>
+<span id="cb6-151"><a href="#cb6-151"></a><span class="in">    labels = as.character(ceiling(seq(from = min(log(adpp_adex$AUCinf)), to = max(log(adpp_adex$AUCinf)), by = 1)))</span></span>
+<span id="cb6-152"><a href="#cb6-152"></a><span class="in">  ) +</span></span>
+<span id="cb6-153"><a href="#cb6-153"></a><span class="in">  scale_x_continuous(</span></span>
+<span id="cb6-154"><a href="#cb6-154"></a><span class="in">    name = "Dose (mg/mL)",</span></span>
+<span id="cb6-155"><a href="#cb6-155"></a><span class="in">    breaks = unique(adpp_adex$Dose)</span></span>
+<span id="cb6-156"><a href="#cb6-156"></a><span class="in">  ) +</span></span>
+<span id="cb6-157"><a href="#cb6-157"></a><span class="in">  theme_nest()</span></span>
+<span id="cb6-158"><a href="#cb6-158"></a></span>
+<span id="cb6-159"><a href="#cb6-159"></a><span class="in">plot</span></span>
+<span id="cb6-160"><a href="#cb6-160"></a><span class="in">```</span></span>
+<span id="cb6-161"><a href="#cb6-161"></a></span>
+<span id="cb6-162"><a href="#cb6-162"></a><span class="in">`r webr_code_labels &lt;- c("setup", "plot2")`</span></span>
+<span id="cb6-163"><a href="#cb6-163"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb6-164"><a href="#cb6-164"></a>:::</span>
+<span id="cb6-165"><a href="#cb6-165"></a></span>
+<span id="cb6-166"><a href="#cb6-166"></a><span class="fu">## Data Setup</span></span>
+<span id="cb6-167"><a href="#cb6-167"></a></span>
+<span id="cb6-168"><a href="#cb6-168"></a><span class="in">```{r setup}</span></span>
+<span id="cb6-169"><a href="#cb6-169"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb6-170"><a href="#cb6-170"></a><span class="in">```</span></span>
+<span id="cb6-171"><a href="#cb6-171"></a></span>
+<span id="cb6-172"><a href="#cb6-172"></a>::::</span>
+<span id="cb6-173"><a href="#cb6-173"></a></span>
+<span id="cb6-174"><a href="#cb6-174"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb6-175"><a href="#cb6-175"></a></span>
+<span id="cb6-176"><a href="#cb6-176"></a>{{&lt; include ../../repro.qmd &gt;}}</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
