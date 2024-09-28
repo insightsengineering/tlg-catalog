@@ -5,19 +5,11 @@ subtitle: Tables for RBMI
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-We use a publicly available example dataset from an antidepressant clinical trial of an active drug versus placebo from the `rbmi` package.
-The relevant endpoint is the Hamilton 17-item depression rating scale (`HAMD17`) which was assessed at baseline and at weeks 1, 2, 4, and 6.
-Study drug discontinuation occurred in 24% of subjects from the active drug and 26% of subjects from placebo.
-All data after study drug discontinuation are missing and there is a single additional intermittent missing observation.
-
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(tern.rbmi)
 library(dplyr)
 set.seed(123)
@@ -116,10 +108,12 @@ draws_vars$subjid <- "TMP_ID"
 
 Define which imputation method to use, then create samples for the imputation parameters by running the `draws()` function.
 
-```{r, warning=FALSE}
+<!-- skip strict because of https://github.com/insightsengineering/rbmi/issues/409 -->
+
+```{r, warning = FALSE, opts.label = "skip_test_strict"}
 #| code-fold: show
 
-draws_method <- method_bayes()
+draws_method <- method_bayes(seed = 123)
 
 draws_obj <- rbmi::draws(
   data = data_full,
@@ -152,8 +146,11 @@ impute_obj <- rbmi::impute(
 The next step is to run the analysis model on each imputed dataset.
 This is done by defining an analysis function and then calling `rbmi::analyse()` to apply this function to each imputed dataset.
 
-```{r}
+<!-- skip strict because of https://github.com/insightsengineering/rbmi/issues/409 -->
+
+```{r, opts.label = "skip_test_strict"}
 #| code-fold: show
+#| opts_label: "skip_test_strict" #
 
 # Define analysis model
 analyse_fun <- ancova
@@ -179,7 +176,9 @@ analyse_obj <- rbmi::analyse(
 The `rbmi::pool()` function can be used to summarize the analysis results across multiple imputed datasets to provide an overall statistic with a standard error, confidence intervals and a p-value for the hypothesis test of the null hypothesis that the effect is equal to 0.
 Using the `broom::tidy()` function the `rbmi` final results are reshaped.
 
-```{r}
+<!-- skip strict because of https://github.com/insightsengineering/rbmi/issues/409 -->
+
+```{r, opts.label = "skip_test_strict"}
 #| code-fold: show
 
 library(broom)
@@ -208,8 +207,19 @@ result <- basic_table() %>%
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+## Data Setup
+
+We use a publicly available example dataset from an antidepressant clinical trial of an active drug versus placebo from the `rbmi` package.
+The relevant endpoint is the Hamilton 17-item depression rating scale (`HAMD17`) which was assessed at baseline and at weeks 1, 2, 4, and 6.
+Study drug discontinuation occurred in 24% of subjects from the active drug and 26% of subjects from placebo.
+All data after study drug discontinuation are missing and there is a single additional intermittent missing observation.
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 {{< include ../../repro.qmd >}}
-
-:::

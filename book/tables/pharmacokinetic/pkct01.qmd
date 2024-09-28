@@ -5,21 +5,17 @@ subtitle: Summary Concentration Table
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
-library(scda)
+```{r setup, echo = FALSE}
 library(dplyr)
 library(tern)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl") %>%
+adsl <- random.cdisc.data::cadsl %>%
   filter(ACTARM == "A: Drug X")
-adpc <- synthetic_cdisc_dataset("latest", "adpc") %>%
+adpc <- random.cdisc.data::cadpc %>%
   filter(ACTARM == "A: Drug X", PARAM == "Plasma Drug X")
 
 # Setting up the data
@@ -31,7 +27,10 @@ adpc_1 <- adpc %>%
   ) %>%
   select(NOMTPT, ACTARM, VISIT, AVAL, PARAM, AVALCAT1)
 
-adpc_1$NOMTPT <- factor(adpc_1$NOMTPT, levels = levels(adpc_1$NOMTPT)[order(as.numeric(gsub(".*?([0-9\\.]+).*", "\\1", levels(adpc_1$NOMTPT))))])
+adpc_1$NOMTPT <- factor(
+  adpc_1$NOMTPT,
+  levels = levels(adpc_1$NOMTPT)[order(as.numeric(gsub(".*?([0-9\\.]+).*", "\\1", levels(adpc_1$NOMTPT))))]
+)
 
 # Row structure
 lyt_rows <- basic_table() %>%
@@ -59,6 +58,9 @@ lyt_rows <- basic_table() %>%
 
 ## Standard Table (Stats in Columns)
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant1, test = list(result_v1 = "result")}
 lyt <- lyt_rows %>%
   analyze_vars_in_cols(
@@ -80,13 +82,24 @@ result <- build_table(lyt, df = adpc_1, alt_counts_df = adsl) %>% prune_table()
 
 # Decorating
 main_title(result) <- "Summary of PK Concentrations by Nominal Time and Treatment: PK Evaluable"
-subtitles(result) <- c("Protocol: xxxxx", paste("Analyte: ", unique(adpc_1$PARAM)), paste("Treatment:", unique(adpc_1$ACTARM)))
+subtitles(result) <- c(
+  "Protocol: xxxxx",
+  paste("Analyte: ", unique(adpc_1$PARAM)),
+  paste("Treatment:", unique(adpc_1$ACTARM))
+)
 main_footer(result) <- "NE: Not Estimable"
 
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table Implementing 1/3 Imputation Rule
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 lyt <- lyt_rows %>%
@@ -109,13 +122,24 @@ result <- build_table(lyt, df = adpc_1, alt_counts_df = adsl) %>% prune_table()
 
 # Decorating
 main_title(result) <- "Summary of PK Concentrations by Nominal Time and Treatment: PK Evaluable"
-subtitles(result) <- c("Protocol: xxxxx", paste("Analyte: ", unique(adpc_1$PARAM)), paste("Treatment:", unique(adpc_1$ACTARM)))
+subtitles(result) <- c(
+  "Protocol: xxxxx",
+  paste("Analyte: ", unique(adpc_1$PARAM)),
+  paste("Treatment:", unique(adpc_1$ACTARM))
+)
 main_footer(result) <- c("NE: Not Estimable", "ND: Not Derived")
 
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table Implementing 1/2 Imputation Rule
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant3, test = list(result_v3 = "result")}
 lyt <- lyt_rows %>%
@@ -138,21 +162,28 @@ result <- build_table(lyt, df = adpc_1, alt_counts_df = adsl) %>% prune_table()
 
 # Decorate table
 main_title(result) <- "Summary of PK Concentrations by Nominal Time and Treatment: PK Evaluable"
-subtitles(result) <- c("Protocol: xxxxx", paste("Analyte: ", unique(adpc_1$PARAM)), paste("Treatment:", unique(adpc_1$ACTARM)))
+subtitles(result) <- c(
+  "Protocol: xxxxx",
+  paste("Analyte: ", unique(adpc_1$PARAM)),
+  paste("Treatment:", unique(adpc_1$ACTARM))
+)
 main_footer(result) <- "ND: Not Derived"
 
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
-## `teal` App
+## Data Setup
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r setup}
 #| code-fold: show
-
-# In progress
 ```
 
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
+
 {{< include ../../repro.qmd >}}
-:::

@@ -5,24 +5,17 @@ subtitle: Shift Table of Qualitative ECG Assessments
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-For the EGT04 template, data imputation should be avoided, and missing data explicit and accounted for, so the contingency table sum adds up to the group N.
-For illustration purposes, missing data are added to the example dataset.
-
-```{r setup, message=FALSE}
-#| code-fold: show
-
-library(scda)
+```{r setup, echo = FALSE}
 library(tern)
 library(dplyr)
 set.seed(123)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adeg <- synthetic_cdisc_dataset("latest", "adeg")
+adsl <- random.cdisc.data::cadsl
+adeg <- random.cdisc.data::cadeg
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -38,8 +31,8 @@ adeg_f <- subset(
     WORS02FL == "Y" # "Worst Post-Baseline Observation"
 )
 
-adeg_f$AVALC[sample(1:nrow(adeg_f), size = 5)] <- "Missing"
-adeg_f$BASEC[sample(1:nrow(adeg_f), size = 5)] <- "Missing"
+adeg_f$AVALC[sample(seq_len(nrow(adeg_f)), size = 5)] <- "Missing"
+adeg_f$BASEC[sample(seq_len(nrow(adeg_f)), size = 5)] <- "Missing"
 adeg_f$AVALC <- factor(
   adeg_f$AVALC,
   levels = c("NORMAL", "ABNORMAL", "Missing"),
@@ -64,6 +57,9 @@ adeg_f <- adeg_f %>% mutate(postbaseline_label = "Post-Baseline")
 The EGT04 template consists of a stacked list of contingency tables, one per group.
 For each group, the n's across all cells must add up to the group N in the analysis, and percentages are calculated using N as the denominator.
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant1, test = list(result_v1 = "result")}
 # Define the split function
 split_fun <- drop_split_levels
@@ -85,16 +81,21 @@ result <- build_table(lyt, adeg_f)
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
-## `teal` App
+## Data Setup
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+For the EGT04 template, data imputation should be avoided, and missing data explicit and accounted for, so the contingency table sum adds up to the group N.
+For illustration purposes, missing data are added to the example dataset.
+
+```{r setup}
 #| code-fold: show
-
-# In progress
 ```
 
-{{< include ../../repro.qmd >}}
+::::
 
-:::
+{{< include ../../_utils/save_results.qmd >}}
+
+{{< include ../../repro.qmd >}}

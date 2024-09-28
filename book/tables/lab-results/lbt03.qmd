@@ -5,22 +5,16 @@ subtitle: Laboratory Test Results Change from Baseline by Visit
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-For illustration purposes, this example focuses on "C-Reactive Protein Measurement" starting from baseline, while excluding visit at week 1 for subjects who were randomized to the placebo group.
-
-```{r setup, message=FALSE}
-#| code-fold: show
-
-library(scda)
+```{r setup, echo = FALSE}
 library(dplyr)
 library(tern)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adlb <- synthetic_cdisc_dataset("latest", "adlb")
+adsl <- random.cdisc.data::cadsl
+adlb <- random.cdisc.data::cadlb
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -31,8 +25,7 @@ saved_labels <- var_labels(adlb)
 adlb_f <- adlb %>%
   filter(
     PARAM == "C-Reactive Protein Measurement",
-    !(ARM == "B: Placebo" &
-      AVISIT == "WEEK 1 DAY 8"),
+    !(ARM == "B: Placebo" & AVISIT == "WEEK 1 DAY 8"),
     AVISIT != "SCREENING"
   ) %>%
   dplyr::mutate(
@@ -47,6 +40,9 @@ var_labels(adlb_f) <- c(saved_labels, "")
 
 The `LBT03` template is the result of a junction between the analysis of `AVAL` at baseline and `CHG` at visit time.
 `AVAL` is summarized for baseline visits and and `CHG` is summarized for post-baseline visits.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant1, test = list(result_v1 = "result")}
 # Define the split function
@@ -70,7 +66,14 @@ result <- build_table(
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 In the final step, a new variable is derived from `AVISIT` that can specify the method of estimation of the evaluated change.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 adlb_f <- adlb_f %>% mutate(AVISIT_header = recode(AVISIT,
@@ -107,23 +110,37 @@ result <- build_table(
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+For illustration purposes, this example focuses on "C-Reactive Protein Measurement" starting from baseline, while excluding visit at week 1 for subjects who were randomized to the placebo group.
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
 Here, we pre-process and manually define the variable "Baseline or Absolute Change from Baseline".
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
-  library(dplyr)
-
-  ADSL <- df_explicit_na(synthetic_cdisc_dataset("latest", "adsl"))
-  ADLB <- df_explicit_na(synthetic_cdisc_dataset("latest", "adlb")) %>%
+  ADSL <- df_explicit_na(random.cdisc.data::cadsl)
+  ADLB <- df_explicit_na(random.cdisc.data::cadlb) %>%
     filter(
       !(ARM == "B: Placebo" & AVISIT == "WEEK 1 DAY 8"),
       AVISIT != "SCREENING"
@@ -145,7 +162,7 @@ data <- within(data, {
       AVAL_CHG = AVAL - (!ABLFLL) * sum(AVAL * ABLFLL)
     ) %>%
     ungroup() %>%
-    var_relabel(
+    col_relabel(
       AVAL_CHG = "Baseline or Absolute Change from Baseline",
       ABLFLL = "Baseline Flag (TRUE/FALSE)",
       AVISIT_header = "Analysis Visit"
@@ -171,7 +188,8 @@ app <- init(
         selected = "ARM"
       ),
       by_vars = choices_selected(
-        choices = variable_choices(ADLB, c("PARAM", "AVISIT_header")), # note: order matters here. If `PARAM` is first, the split will be first by `PARAM`and then by `AVISIT`
+        # note: order matters here. If `PARAM` is first, the split will be first by `PARAM`and then by `AVISIT`
+        choices = variable_choices(ADLB, c("PARAM", "AVISIT_header")),
         selected = c("PARAM", "AVISIT_header")
       ),
       summarize_vars = choices_selected(
@@ -190,5 +208,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

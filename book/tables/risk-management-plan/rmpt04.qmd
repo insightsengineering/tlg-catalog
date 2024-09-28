@@ -5,26 +5,22 @@ subtitle: Extent of Exposure by Ethnic Origin for Risk Management Plan
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(tern)
-library(scda)
 library(dplyr)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adex <- synthetic_cdisc_dataset("latest", "adex")
+adsl <- random.cdisc.data::cadsl
+adex <- random.cdisc.data::cadex
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
 adex <- df_explicit_na(adex)
 
-# Simulate ADEX records with PARAMCD == "TDURD" as they are not in sample scda dataset.
+# Simulate ADEX records with PARAMCD == "TDURD" as they are not in sample random.cdisc.data dataset.
 set.seed(1, kind = "Mersenne-Twister")
 adex2 <- adex %>%
   distinct(USUBJID, .keep_all = TRUE) %>%
@@ -49,6 +45,9 @@ adsl_f <- adsl %>% filter(adsl$SAFFL == "Y")
 
 ## Standard Table
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant1, test = list(result_v1 = "result")}
 lyt <- basic_table(
   title = "Extent of Exposure by Ethnic Origin: Safety-Evaluable Patients",
@@ -67,26 +66,40 @@ result <- build_table(lyt, df = anl, alt_counts_df = adsl_f)
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
   library(dplyr)
 
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-  ADEX <- synthetic_cdisc_dataset("latest", "adex")
+  ADSL <- random.cdisc.data::cadsl
+  ADEX <- random.cdisc.data::cadex
 
-  labels <- var_labels(ADEX)
+  labels <- col_labels(ADEX)
   set.seed(1, kind = "Mersenne-Twister")
 
-  labels <- var_labels(ADEX)
+  labels <- col_labels(ADEX)
   ADEX <- ADEX %>%
     distinct(USUBJID, .keep_all = TRUE) %>%
     mutate(
@@ -97,7 +110,7 @@ data <- within(data, {
     ) %>%
     bind_rows(ADEX)
 
-  var_labels(ADEX) <- labels
+  col_labels(ADEX) <- labels
 })
 datanames <- c("ADSL", "ADEX")
 datanames(data) <- datanames
@@ -119,7 +132,7 @@ app <- init(
       ),
       col_by_var = choices_selected(
         choices = variable_choices(ADEX, subset = c("ARM")),
-        selected = NULL
+        selected = "ARM"
       ),
       row_by_var = choices_selected(
         choices = variable_choices(ADEX, subset = c("ETHNIC", "SEX")),
@@ -138,5 +151,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

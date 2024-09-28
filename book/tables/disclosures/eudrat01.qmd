@@ -5,22 +5,16 @@ subtitle: Non-Serious Adverse Events Reported in $\geq$ 5% of Patients in Any Tr
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-Define a trimming function `get_adae_trimmed` to filter for AEs of greater than 5% incidence rate.
-
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(tern)
-library(scda)
 library(dplyr)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adae <- synthetic_cdisc_dataset("latest", "adae")
+adsl <- random.cdisc.data::cadsl
+adae <- random.cdisc.data::cadae
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -65,6 +59,9 @@ adae_trim <- get_adae_trimmed(adsl, adae_nonser, cutoff_rate = 0.05)
 
 ## Standard Table
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant1, test = list(result_v1 = "result")}
 # Define the split function
 split_fun <- drop_split_levels
@@ -72,7 +69,7 @@ split_fun <- drop_split_levels
 lyt <- basic_table() %>%
   split_cols_by("ARM") %>%
   summarize_patients_events_in_cols(
-    custom_label = "Total number of patients with at least one non-serious adverse event occuring at a relative frequency of >=5% and number of events"
+    custom_label = "Total number of patients with at least one non-serious adverse event occuring at a relative frequency of >=5% and number of events" # nolint: line_length.
   ) %>%
   split_rows_by("AEBODSYS",
     nested = FALSE,
@@ -90,16 +87,20 @@ result <- build_table(lyt, adae_trim)
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
-## `teal` App
+## Data Setup
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+Define a trimming function `get_adae_trimmed` to filter for AEs of greater than 5% incidence rate.
+
+```{r setup}
 #| code-fold: show
-
-# In progress
 ```
 
-{{< include ../../repro.qmd >}}
+::::
 
-:::
+{{< include ../../_utils/save_results.qmd >}}
+
+{{< include ../../repro.qmd >}}

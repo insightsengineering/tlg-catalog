@@ -5,23 +5,17 @@ subtitle: Laboratory Test Shifts to NCI CTCAE Grade 3-4 Post-Baseline
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-Because the `scda` dataset `adlb` doesn't have the `PARCAT1` variable, this variable is created from `LBCAT` in pre-processing.
-
-```{r setup, message=FALSE}
-#| code-fold: show
-
-library(scda)
+```{r setup, echo = FALSE}
 library(tern)
 library(dplyr)
 library(forcats)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adlb <- synthetic_cdisc_dataset("latest", "adlb")
+adsl <- random.cdisc.data::cadsl
+adlb <- random.cdisc.data::cadlb
 
 adlb <- adlb %>%
   mutate(
@@ -70,14 +64,24 @@ adlb <- adlb %>% var_relabel(
 
 ## Standard Table
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant1, test = list(result_v1 = "result")}
-# Argument exclude_base_abn must be TRUE to include patients with normal or abnormal in the opposite direction in the denom
+# Argument exclude_base_abn must be TRUE to include patients with normal or abnormal in the opposite
+# direction in the denom.
 # So for "High" direction, subjects with baseline grade 3-4 are not in the denom.
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(var = "ARM") %>%
   add_overall_col("All Patients") %>%
-  split_rows_by("PARCAT1", split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb$PARCAT1)) %>%
-  split_rows_by("PARAM", split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb$PARAM)) %>%
+  split_rows_by(
+    "PARCAT1",
+    split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb$PARCAT1)
+  ) %>%
+  split_rows_by(
+    "PARAM",
+    split_fun = drop_split_levels, label_pos = "topleft", split_label = obj_label(adlb$PARAM)
+  ) %>%
   count_abnormal(
     var = "ANRIND",
     abnormal = list(Low = "LOW", High = "HIGH"),
@@ -91,31 +95,54 @@ result <- build_table(lyt, adlb, alt_counts_df = adsl)
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table Modifying Cut Point
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 result <- build_table(lyt, adlb_alt_cut, alt_counts_df = adsl)
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant1", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+Because the `random.cdisc.data` dataset `adlb` doesn't have the `PARCAT1` variable, this variable is created from `LBCAT` in pre-processing.
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
 The current module `tm_t_abnormality` is only displaying rows that are not all-zero, so the result could be a little different from static output where all-zero rows can be shown.
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
   library(dplyr)
   library(forcats)
 
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-  ADLB <- synthetic_cdisc_dataset("latest", "adlb") %>%
+  ADSL <- random.cdisc.data::cadsl
+  ADLB <- random.cdisc.data::cadlb %>%
     mutate(
       ANRIND = fct_collapse(ATOXGR,
         "LOW" = c("-3", "-4"),
@@ -129,7 +156,7 @@ data <- within(data, {
       )
     ) %>%
     filter(ONTRTFL == "Y") %>%
-    var_relabel(ANRIND = "Direction of Abnormality")
+    col_relabel(ANRIND = "Direction of Abnormality")
 })
 datanames <- c("ADSL", "ADLB")
 datanames(data) <- datanames
@@ -174,5 +201,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

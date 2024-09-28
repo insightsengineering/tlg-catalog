@@ -5,24 +5,20 @@ subtitle: Cox Regression
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
 Cox models are the most commonly used methods to estimate the magnitude of the effect in survival analyses.
 It assumes proportional hazards; that is, it assumes that the ratio of the hazards of the two groups (e.g. two arms) is constant over time.
 This ratio is referred to as the "hazard ratio" and is one of the most commonly reported metrics to describe the effect size in survival analysis.
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
-library(scda)
+```{r setup, echo = FALSE}
 library(dplyr)
 library(tern)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adtte <- synthetic_cdisc_dataset("latest", "adtte")
+adsl <- random.cdisc.data::cadsl
+adtte <- random.cdisc.data::cadtte
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -56,6 +52,9 @@ All variables specified within `variables` must be present in the data used when
 
 To see the same model as a `data.frame` object, these three arguments (as well as the data) can be passed to the `fit_coxreg_univar` function, and the resulting list tidied using `broom::tidy()`.
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant1, test = list(result_v1 = "result")}
 variables <- list(
   time = "AVAL",
@@ -73,10 +72,17 @@ result <- build_table(lyt = lyt, df = anl)
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Cox Regression <br/> with Interaction Term
 
 The argument `control` can be used to modify standard outputs; `control_coxreg()` helps in adopting the right settings (see `?control_coxreg`).
 For instance, `control` is used to include the interaction terms.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 variables <- list(
@@ -99,11 +105,18 @@ result <- build_table(lyt = lyt, df = anl)
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Cox Regression <br/> Specifying Covariates
 
 The optional argument `at` allows the user to provide the expected level of estimation for the interaction when the predictor is a quantitative variable.
 For instance, it might be relevant to choose the age at which the hazard ratio should be estimated.
 If no input is provided to `at`, the median value is used in the row name (as in the previous tab).
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant3, test = list(result_v3 = "result")}
 variables <- list(
@@ -127,10 +140,17 @@ result <- build_table(lyt = lyt, df = anl)
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Cox Regression Setting <br/> Strata, Ties, Alpha Level
 
 Additional controls can be customized using `control_coxreg` (see `?control_coxreg`) such as the ties calculation method and the confidence level.
 Stratification variables can be added via the `strata` element of the `variables` list.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant4, test = list(result_v4 = "result")}
 variables <- list(
@@ -161,11 +181,26 @@ result <- build_table(lyt = lyt, df = anl)
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant4")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 arm_ref_comp <- list(
@@ -182,10 +217,8 @@ arm_ref_comp <- list(
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
-
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-  ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
+  ADSL <- random.cdisc.data::cadsl
+  ADTTE <- random.cdisc.data::cadtte
 
   # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
   ADSL <- df_explicit_na(ADSL)
@@ -205,7 +238,7 @@ app <- init(
     tm_t_coxreg(
       label = "Cox Reg.",
       dataname = "ADTTE",
-      arm_var = choices_selected(c("ARM", "ARMCD", "ACTARMCD"), "ARM"),
+      arm_var = choices_selected(c("ARM", "ACTARMCD"), "ARM"),
       arm_ref_comp = arm_ref_comp,
       paramcd = choices_selected(
         value_choices(ADTTE, "PARAMCD", "PARAM"), "OS"
@@ -223,5 +256,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

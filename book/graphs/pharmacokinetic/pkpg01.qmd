@@ -5,23 +5,19 @@ subtitle: Plot of Mean Cumulative Percentage (%) of Recovered Drug in Urine
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(tern)
-library(scda)
 library(dplyr)
 library(ggplot2)
 library(nestcolor)
 set.seed(123)
 
 # loading in the data
-adpp <- synthetic_cdisc_dataset("latest", "adpp")
+adpp <- random.cdisc.data::cadpp
 
 # filtering the rows for specific data entries
 adpp <- adpp %>%
@@ -44,8 +40,12 @@ levels(adpp$ARM) <- c(
 
 ## Plot with Two Cohorts
 
-```{r plot1, test = list(plot_v1 = "plot")}
-use_title <- "Plot of Mean (+/- SD) Cummulative Percentage (%) of Recovered Drug in Urine \nby Analyte, Visit: PK Evaluable Patients"
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot1, test = list(plot_v1 = "plot"), opts.label = "skip_test_strict"}
+use_title <- "Plot of Mean (+/- SD) Cummulative Percentage (%) of Recovered Drug in Urine \nby Analyte, Visit: PK Evaluable Patients" # nolint: line_length.
 use_subtitle <- "Analyte: Plasma Drug X \nVisit: CYCLE 1 DAY 1 \nPK Parameter:"
 use_footnote <- "Program: \nOutput:"
 
@@ -79,12 +79,20 @@ plot <- result + theme(plot.caption = element_text(hjust = 0)) +
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot with Six Cohorts
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 In this case we need to process the data further by artificially adding more random rows.
 Of course this step is not necessary in the case that data already has more cohorts.
 
-```{r plot2, test = list(plot_v2 = "plot")}
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot2, test = list(plot_v2 = "plot"), opts.label = "skip_test_strict"}
 adpp_hck <- adpp %>%
   mutate(AVAL + 1 * rnorm(nrow(adpp), mean = 1, sd = 1)) %>%
   mutate(ARM = as.factor(sample(
@@ -101,7 +109,7 @@ adpp_hck <- adpp %>%
 
 adpp <- bind_rows(adpp, adpp_hck)
 
-use_title <- "Plot of Mean (+/- SD) Cummulative Percentage (%) of Recovered Drug in Urine \nby Analyte, Visit: PK Evaluable Patients"
+use_title <- "Plot of Mean (+/- SD) Cummulative Percentage (%) of Recovered Drug in Urine \nby Analyte, Visit: PK Evaluable Patients" # nolint: line_length.
 use_subtitle <- "Analyte: Plasma Drug X \nVisit: CYCLE 1 DAY 1 \nPK Parameter:"
 use_footnote <- "Program: \nOutput:"
 
@@ -135,15 +143,18 @@ plot <- result + theme(plot.caption = element_text(hjust = 0)) +
 plot
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "plot2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
-## `teal` App
+## Data Setup
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r setup}
 #| code-fold: show
-
-# In progress
 ```
 
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
+
 {{< include ../../repro.qmd >}}
-:::

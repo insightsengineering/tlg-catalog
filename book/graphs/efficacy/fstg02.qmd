@@ -5,19 +5,15 @@ subtitle: Subgroup Analysis of Survival Duration
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(tern)
 library(dplyr)
 library(forcats)
 library(nestcolor)
-library(scda)
 
 preprocess_adtte <- function(adtte) {
   # Save variable labels before data processing steps.
@@ -50,13 +46,17 @@ preprocess_adtte <- function(adtte) {
   adtte
 }
 
-anl <- synthetic_cdisc_dataset("latest", "adtte") %>%
+anl <- random.cdisc.data::cadtte %>%
   preprocess_adtte()
 ```
 
 ## Standard Plot
 
-```{r plot1, test = list(plot_v1 = "plot"), fig.width = 15, fig.height = 4}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 -->
+```{r plot1, test = list(plot_v1 = "plot"), fig.width = 15, fig.height = 4, opts.label = ifelse(packageVersion("rtables") < "0.6.6.9011", "skip_test_strict", "")}
 anl1 <- anl
 
 df <- extract_survival_subgroups(
@@ -77,9 +77,17 @@ plot <- g_forest(tbl = result)
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot Specifying Class Variables and <br/> Options for the Treatment Variable
 
-```{r plot2, test = list(plot_v2 = "plot"), fig.width = 15, fig.height = 4}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 -->
+```{r plot2, test = list(plot_v2 = "plot"), fig.width = 15, fig.height = 4, opts.label = ifelse(packageVersion("rtables") < "0.6.6.9011", "skip_test_strict", "")}
 anl2 <- anl %>%
   mutate(
     # Recode levels of arm.
@@ -111,9 +119,17 @@ plot <- g_forest(tbl = result)
 plot
 ```
 
-## Plot Selecting Columns and <br/> Changing the Alpha Level)
+`r webr_code_labels <- c("setup", "plot2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
-```{r plot3, test = list(plot_v3 = "plot"), fig.width = 8, fig.height = 4}
+## Plot Selecting Columns and <br/> Changing the Alpha Level
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 -->
+```{r plot3, test = list(plot_v3 = "plot"), fig.width = 8, fig.height = 4, opts.label = ifelse(packageVersion("rtables") < "0.6.6.9011", "skip_test_strict", "")}
 anl3 <- anl
 
 df <- extract_survival_subgroups(
@@ -134,9 +150,17 @@ plot <- g_forest(tbl = result)
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot with Fixed <br/> Symbol Size
 
-```{r plot4, test = list(plot_v4 = "plot"), fig.width = 15, fig.height = 4}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 -->
+```{r plot4, test = list(plot_v4 = "plot"), fig.width = 15, fig.height = 4, opts.label = ifelse(packageVersion("rtables") < "0.6.6.9011", "skip_test_strict", "")}
 anl4 <- anl
 
 df <- extract_survival_subgroups(
@@ -160,34 +184,49 @@ plot <- g_forest(
 plot
 ```
 
-```{r test parameters, test = list(width = "width", height = "height", plot_v3.width = "plot_v3.width"), echo=FALSE}
+```{r test parameters, test = list(width = "width", height = "height", plot_v3.width = "plot_v3.width"), echo = FALSE}
 width <- 15
 height <- 4
-plot_v3.width <- 8
+plot_v3.width <- 8 # nolint: object_name.
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "plot4")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
   library(dplyr)
   library(forcats)
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+
+  ADSL <- random.cdisc.data::cadsl
   ADSL <- ADSL %>%
     filter(ARM %in% c("B: Placebo", "A: Drug X")) %>%
     mutate(ARM = droplevels(fct_relevel(ARM, "B: Placebo"))) %>%
     mutate(ARMCD = droplevels(fct_relevel(ARMCD, "ARM B")))
   ADSL$RACE <- droplevels(ADSL$RACE)
 
-  ADTTE <- synthetic_cdisc_dataset("latest", "adtte")
-  adtte_labels <- var_labels(ADTTE)
+  ADTTE <- random.cdisc.data::cadtte
+  adtte_labels <- col_labels(ADTTE)
 
   ADTTE <- ADTTE %>%
     filter(
@@ -204,7 +243,7 @@ data <- within(data, {
       AVAL = day2month(AVAL),
       AVALU = "Months"
     ) %>%
-    var_relabel(
+    col_relabel(
       ARM = adtte_labels["ARM"],
       SEX = adtte_labels["SEX"],
       is_event = "Event Flag",
@@ -240,5 +279,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

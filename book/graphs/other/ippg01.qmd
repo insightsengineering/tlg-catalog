@@ -5,25 +5,21 @@ subtitle: Individual Patient Plot Over Time
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
 For illustration purposes, we will subset the `adlb` dataset for safety population in treatment arm A and a specific lab parameter (`ALT`).
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(tern)
-library(scda)
 library(dplyr)
 library(ggplot2)
 library(nestcolor)
 
 # use small sample size
-adsl <- synthetic_cdisc_dataset("latest", "adsl") %>% slice(1:15)
-adlb <- synthetic_cdisc_dataset("latest", "adlb") %>% filter(USUBJID %in% adsl$USUBJID)
+adsl <- random.cdisc.data::cadsl %>% slice(1:15)
+adlb <- random.cdisc.data::cadlb %>% filter(USUBJID %in% adsl$USUBJID)
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adlb <- df_explicit_na(adlb)
@@ -40,10 +36,14 @@ adlb_f <- adlb %>%
 
 ## Standard Plot
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 The user can select different `plotting_choices` depending on their preference.
 To demonstrate, separate plots are produced with a maximum of 3 observations each.
 
-```{r plots1, test = list(plots_v1 = "plots")}
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plots1, test = list(plots_v1 = "plots"), opts.label = "skip_test_strict"}
 plots <- g_ipp(
   df = adlb_f,
   xvar = "AVISIT",
@@ -59,12 +59,20 @@ plots <- g_ipp(
 plots
 ```
 
+`r webr_code_labels <- c("setup", "plots1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot with Patient Baselines as Reference
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 Here, patients' individual baseline values will be shown for reference.
 Note that users can provide their own custom theme to the function via the `ggtheme` argument.
 
-```{r plots2, test = list(plots_v2 = "plots")}
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plots2, test = list(plots_v2 = "plots"), opts.label = "skip_test_strict"}
 plots <- g_ipp(
   df = adlb_f,
   xvar = "AVISIT",
@@ -83,23 +91,36 @@ plots <- g_ipp(
 plots
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "plots2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(tern)
-  library(scda)
   library(dplyr)
 
   # use small sample size
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl") %>% slice(1:15)
-  ADLB <- synthetic_cdisc_dataset("latest", "adlb") %>% filter(USUBJID %in% ADSL$USUBJID)
+  ADSL <- random.cdisc.data::cadsl %>% slice(1:15)
+  ADLB <- random.cdisc.data::cadlb %>% filter(USUBJID %in% ADSL$USUBJID)
 
   # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
   ADSL <- df_explicit_na(ADSL)
@@ -146,7 +167,7 @@ app <- init(
         variable_choices(ADLB, c("AVISIT")),
         "AVISIT"
       ),
-      base_var = choices_selected(
+      baseline_var = choices_selected(
         variable_choices(ADLB, c("BASE")),
         "BASE",
         fixed = TRUE
@@ -160,5 +181,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

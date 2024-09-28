@@ -5,19 +5,15 @@ subtitle: Listing of Anti-Drug Antibody Data for Treatment Emergent ADA Positive
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(dplyr)
 library(rlistings)
-library(scda)
 
-adab <- synthetic_cdisc_dataset("latest", "adab") %>%
+adab <- random.cdisc.data::cadab %>%
   filter(NFRLT %% 1 == 0 & NFRLT > 0)
 
 trt <- "A: Drug X"
@@ -50,7 +46,7 @@ adab_x <- adab %>%
       ")"
     )),
     PTES = ifelse(
-      ifelse("Treatment induced ADA" %in% names(.), `Treatment induced ADA` == 1, F),
+      ifelse("Treatment induced ADA" %in% names(.), `Treatment induced ADA` == 1, FALSE),
       ifelse(
         "Transient ADA" %in% names(.) & `Transient ADA` == 1,
         "Induced (Transient)",
@@ -62,10 +58,10 @@ adab_x <- adab %>%
   mutate(
     AVAL = paste0(
       ifelse(
-        ifelse("ADA interpreted per sample result" %in% names(.), `ADA interpreted per sample result` == 0, F),
+        ifelse("ADA interpreted per sample result" %in% names(.), `ADA interpreted per sample result` == 0, FALSE),
         "NEGATIVE",
         ifelse(
-          ifelse("Antibody titer units" %in% names(.), !is.na(`Antibody titer units`), F),
+          ifelse("Antibody titer units" %in% names(.), !is.na(`Antibody titer units`), FALSE),
           ifelse(
             `Antibody titer units` < min_titer,
             paste0("<", format(min_titer, nsmall = 2)),
@@ -75,7 +71,7 @@ adab_x <- adab %>%
         )
       ),
       ifelse(
-        ifelse("NAB interpreted per sample result" %in% names(.), `NAB interpreted per sample result` == 1, F),
+        ifelse("NAB interpreted per sample result" %in% names(.), `NAB interpreted per sample result` == 1, FALSE),
         "*",
         ""
       )
@@ -101,6 +97,9 @@ out <- out %>%
 
 ## Standard Listing
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r lsting, test = list(lsting = "lsting")}
 lsting <- as_listing(
   out,
@@ -111,6 +110,7 @@ lsting <- as_listing(
     "\nProtocol: ", unique(adab$PARCAT1)[1]
   ),
   subtitles = paste("\nTreatment Group:", trt),
+  # nolint start: line_length.
   main_footer = "Minimum reportable titer = 1.10 (example only)
 --- = No sample evaluated
 ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies)
@@ -120,12 +120,24 @@ Treatment-enhanced ADA = a patient with positive ADA result at baseline who has 
 Transient ADA = ADA positive result detected (a) at only one post-baseline sampling timepoint (excluding last timepoint) OR (b) at 2 or more timepoints during treatment where the first and last ADA positive samples  are separated by a period of < 16 weeks, irrespective of any negative samples in between.
 Persistent ADA =  ADA positive result detected (a) at the last post-baseline sampling timepoint, OR (b) at 2 or more time points during treatment where the first and last ADA positive samples are separated by a period ≥ 16 weeks, irrespective of any negative samples in between.
 Asterisk denotes sample that tested positive for Neutralizing Antibodies."
+  # nolint end: line_length.
 )
 
 head(lsting, 20)
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "lsting")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 {{< include ../../repro.qmd >}}
-:::

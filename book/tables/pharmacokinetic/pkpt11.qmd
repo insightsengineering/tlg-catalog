@@ -5,19 +5,16 @@ subtitle: Pharmacokinetic Parameter Estimated Ratios of Geometric Means and 90% 
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
-library(scda)
+<!-- skip strict because of https://github.com/insightsengineering/tern/pull/1182 -->
+```{r setup, echo = FALSE}
 library(dplyr)
 library(tern)
 
-adpp <- synthetic_cdisc_dataset("latest", "adpp")
+adpp <- random.cdisc.data::cadpp
 
 # Comparator Dose - A: Drug X
 arm_var <- "TRT01A"
@@ -80,14 +77,15 @@ s_gmr <- function(df,
   )
 }
 
-afun_pk_gmr <- function(.formats = list(
-                          n = "xx.",
-                          geom_mean_ratio = format_sigfig(3),
-                          gmr_ci_lwr = format_sigfig(3),
-                          gmr_ci_upr = format_sigfig(3)
-                        ),
-                        compare_dose = comp_dose,
-                        denom = TRUE) {
+afun_pk_gmr <- function(
+    .formats = list(
+      n = "xx.",
+      geom_mean_ratio = format_sigfig(3),
+      gmr_ci_lwr = format_sigfig(3),
+      gmr_ci_upr = format_sigfig(3)
+    ),
+    compare_dose = comp_dose,
+    denom = TRUE) {
   checkmate::assert_list(.formats)
   checkmate::assert_subset(names(.formats), c("n", "geom_mean_ratio", "gmr_ci_lwr", "gmr_ci_upr"))
 
@@ -110,6 +108,9 @@ afun_pk_gmr <- function(.formats = list(
 ```
 
 ## Standard Table -- Plasma
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant1, test = list(result_v1 = "result")}
 # create layout
@@ -157,15 +158,18 @@ subtitles(result) <- paste("Analyte:", unique(adpp0$PPCAT))
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
-## `teal` App
+## Data Setup
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r setup}
 #| code-fold: show
-
-# In progress
 ```
 
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
+
 {{< include ../../repro.qmd >}}
-:::

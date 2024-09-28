@@ -5,26 +5,41 @@ subtitle: Baseline Prevalence and Incidence of NAbs
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(tern)
 library(dplyr)
-library(scda)
 library(tibble)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adab <- synthetic_cdisc_dataset("latest", "adab")
+adsl <- random.cdisc.data::cadsl
+adab <- random.cdisc.data::cadab
 
-combodf <- tribble(
-  ~valname, ~label, ~levelcombo, ~exargs,
-  "all_X", "All Drug X", c("A: Drug X", "C: Combination"), list(),
-  "all_pt", "All Patients", c("A: Drug X", "B: Placebo", "C: Combination"), list()
+# Order needed for the columns is c(1, 3, 4, 2, 5)
+reorder_facets <- function(splret, spl, fulldf, ...) {
+  ord <- c(1, 3, 4, 2, 5)
+  make_split_result(
+    splret$values[ord],
+    splret$datasplit[ord],
+    splret$labels[ord]
+  )
+}
+
+# Create a custom split function for adding the new columns (facets) and sorting them
+custom_column_split_fun <- make_split_fun(
+  post = list(
+    add_combo_facet("all_X",
+      label = "All Drug X",
+      levels = c("A: Drug X", "C: Combination")
+    ),
+    add_combo_facet("all_pt",
+      label = "All Patients",
+      levels = c("A: Drug X", "B: Placebo", "C: Combination")
+    ),
+    reorder_facets
+  )
 )
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
@@ -56,9 +71,21 @@ adab_b <- df_explicit_na(adab) %>%
   ) %>%
   mutate(
     ADABLPFL = ADABLPFL == "Y",
-    PADABLPFL = if (exists("ADA interpreted per sample result", where = .)) `ADA interpreted per sample result` == "TRUE" else FALSE,
-    PNABBLFL = if (exists("NAB interpreted per sample result", where = .)) `NAB interpreted per sample result` == "TRUE" else FALSE,
-    NNABBLFL = if (exists("NAB interpreted per sample result", where = .)) `NAB interpreted per sample result` == "FALSE" else FALSE
+    PADABLPFL = if (exists("ADA interpreted per sample result", where = .)) {
+      `ADA interpreted per sample result` == "TRUE"
+    } else {
+      FALSE
+    },
+    PNABBLFL = if (exists("NAB interpreted per sample result", where = .)) {
+      `NAB interpreted per sample result` == "TRUE"
+    } else {
+      FALSE
+    },
+    NNABBLFL = if (exists("NAB interpreted per sample result", where = .)) {
+      `NAB interpreted per sample result` == "FALSE"
+    } else {
+      FALSE
+    }
   ) %>%
   var_relabel(
     ADABLPFL = "Baseline evaluable patients for ADA",
@@ -125,12 +152,17 @@ adab_pb <- left_join(adab_pb_ada, adab_pb_adap, by = mergecol) %>%
 
 ## Standard Table
 
-```{r variant1, test = list(result_v1 = "result")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 -->
+
+```{r variant1, test = list(result_v1 = "result"), opts.label = ifelse(packageVersion("rtables") < "0.6.6.9011", "skip_test_strict", "")}
 # Layout for Baseline Prevalence of NAbs
 lyt_bl <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(
     "ACTARM",
-    split_fun = add_combo_levels(combodf)
+    split_fun = custom_column_split_fun
   ) %>%
   count_patients_with_flags(
     "USUBJID",
@@ -160,7 +192,7 @@ lyt_bl <- basic_table(show_colcounts = TRUE) %>%
 lyt_pb <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(
     "ACTARM",
-    split_fun = add_combo_levels(combodf)
+    split_fun = custom_column_split_fun
   ) %>%
   count_patients_with_flags(
     "USUBJID",
@@ -192,32 +224,29 @@ result_2 <- build_table(lyt_pb, df = adab_pb, alt_counts_df = adsl)
 # Combine tables.
 result <- rbind(result_1, result_2)
 
-# Change the column order.
-result <- cbind_rtables(result[, 1], result[, 3]) %>%
-  cbind_rtables(result[, 4]) %>%
-  cbind_rtables(result[, 2]) %>%
-  cbind_rtables(result[, 5])
-
 main_title(result) <- paste(
   "Baseline Prevalence and Incidence of Neutralizing Antibodies (NAbs)"
 )
 subtitles(result) <- paste("Protocol:", unique(adab$PARCAT1)[1])
-main_footer(result) <- paste(
-  "NAb = Neutralizing Antibodies ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies) Baseline evaluable patient for ADA = a patient with an ADA assay result from a baseline sample(s) Baseline evaluable patient for NAb = a patient with a NAb assay result from a baseline sample(s) Post-baseline evaluable patient for ADA = a patient with an ADA assay result from at least one post-baseline sample Post-baseline evaluable patient for NAb = a patient with a NAb assay result from at least one post-baseline sample Number of patients positive for ADA = the number of post-baseline evaluable patients for ADA determined to have Treatment Emergent ADA during the study period.
+# nolint start: line_length.
+main_footer(result) <- "NAb = Neutralizing Antibodies ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies) Baseline evaluable patient for ADA = a patient with an ADA assay result from a baseline sample(s) Baseline evaluable patient for NAb = a patient with a NAb assay result from a baseline sample(s) Post-baseline evaluable patient for ADA = a patient with an ADA assay result from at least one post-baseline sample Post-baseline evaluable patient for NAb = a patient with a NAb assay result from at least one post-baseline sample Number of patients positive for ADA = the number of post-baseline evaluable patients for ADA determined to have Treatment Emergent ADA during the study period.
 Number of patients positive for NAb = the number (and percentage) of post-baseline evaluable patients for ADA determined to have at least one positive post-baseline NAb result during the study period. Number of patients negative for NAb = number of post-baseline evaluable patients with all negative post-baseline NAb results."
-)
+# nolint end: line_length.
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
-## `teal` App
+## Data Setup
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r setup}
 #| code-fold: show
-
-# In progress
 ```
 
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
+
 {{< include ../../repro.qmd >}}
-:::

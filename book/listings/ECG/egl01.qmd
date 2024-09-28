@@ -5,19 +5,15 @@ subtitle: 'Listing of ECG Data: Safety-Evaluable Patients'
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(dplyr)
-library(scda)
 library(rlistings)
 
-adeg <- synthetic_cdisc_dataset("latest", "adeg")
+adeg <- random.cdisc.data::cadeg
 
 get_param_unit_range <- function(dataset) {
   u_rng <- lapply(unique(dataset$PARAMCD), function(p) {
@@ -52,7 +48,19 @@ anl_eg <- adeg_sub %>%
   )
 
 out <- anl_eg %>%
-  select(CRTNPT, AGSXRC, TRT01A, AVISIT, ADY, AVAL_ANRIND_HR, CHG_HR, AVAL_ANRIND_QT, CHG_QT, AVAL_ANRIND_RR, CHG_RR) %>%
+  select(
+    CRTNPT,
+    AGSXRC,
+    TRT01A,
+    AVISIT,
+    ADY,
+    AVAL_ANRIND_HR,
+    CHG_HR,
+    AVAL_ANRIND_QT,
+    CHG_QT,
+    AVAL_ANRIND_RR,
+    CHG_RR
+  ) %>%
   var_relabel(
     CRTNPT = "Center/Subject ID",
     AGSXRC = "Age/Sex/Race",
@@ -70,20 +78,33 @@ out <- anl_eg %>%
 
 ## Standard Listing
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r lsting, test = list(lsting = "lsting")}
 lsting <- as_listing(
   out,
   key_cols = c("TRT01A", "CRTNPT", "AGSXRC", "AVISIT", "ADY"),
   disp_cols = names(out),
   main_title = "Listing of ECG Data: Safety-Evaluable Patients",
-  main_footer = "Baseline is the patient's last observation prior to initiation of study drug. Abnormalities are flagged as high (H) or low (L) if
-  outside the Roche standard reference range."
+  main_footer = "Baseline is the patient's last observation prior to initiation of study drug. Abnormalities are flagged as high (H) or low (L) if outside the Roche standard reference range." # nolint: line_length.
 )
 
 head(lsting, 20)
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "lsting")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 {{< include ../../repro.qmd >}}
-:::

@@ -5,20 +5,16 @@ subtitle: Enrollment Variants
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(dplyr)
 library(forcats)
-library(scda)
 library(tern)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adsl <- random.cdisc.data::cadsl
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -46,6 +42,9 @@ adsl <- adsl %>%
 
 ## ENT01 -- Enrollment by Region, <br/> Country, and Investigator Number
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant1, test = list(result_v1 = "result")}
 # Define the split function
 split_fun <- drop_split_levels
@@ -66,7 +65,14 @@ result <- build_table(lyt, adsl) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## ENT01A -- Enrollment by Country <br/> and Investigator Number
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -83,7 +89,14 @@ result <- build_table(lyt, adsl) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## ENT02 -- Enrollment by Region, Country, <br/> and Investigator Number/Name
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant3, test = list(result_v3 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -102,7 +115,14 @@ result <- build_table(lyt, adsl) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## ENT02A -- Enrollment by Country <br/> and Investigator Number/Name
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant4, test = list(result_v4 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -119,28 +139,44 @@ result <- build_table(lyt, adsl) %>%
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant4")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
+
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
 
 Note that for this module application, only the variables passed into `by_vars` are used when `row_groups` is selected.
 Variables passed into `analyze_vars` are additionally used when `row_groups` is deselected.
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+<!-- skip eval because of https://github.com/insightsengineering/teal.modules.clinical/pull/1083 -->
+
+```{r teal, opts.label = c("skip_if_testing", "app"), eval = packageVersion("teal.modules.clinical") >= "0.9.0.9003"}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
   library(dplyr)
-  library(forcats)
-  library(scda)
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
+
+  ADSL <- random.cdisc.data::cadsl
 
   # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
   ADSL <- df_explicit_na(ADSL)
 
-  adsl_labels <- var_labels(ADSL)
+  adsl_labels <- col_labels(ADSL)
 
   ADSL <- ADSL %>%
     mutate(
@@ -156,7 +192,7 @@ data <- within(data, {
       INVID_INVNAM = factor(INVID_INVNAM)
     )
 
-  var_labels(ADSL) <- c(adsl_labels, "Investigator Number/Name")
+  col_labels(ADSL) <- c(adsl_labels, c(INVID_INVNAM = "Investigator Number/Name"))
 })
 datanames <- "ADSL"
 datanames(data) <- datanames
@@ -198,5 +234,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

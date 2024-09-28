@@ -5,21 +5,17 @@ subtitle: Adverse Events by Baseline Characteristic, by SMQ and Preferred Term
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(dplyr)
 library(tern)
-library(scda)
 library(stringr)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adae <- synthetic_cdisc_dataset("latest", "adae")
+adsl <- random.cdisc.data::cadsl
+adae <- random.cdisc.data::cadae
 
 adsl_labels <- var_labels(adsl)
 adae_labels <- var_labels(adae)
@@ -97,6 +93,9 @@ adae_smq_1 <- adae_smq_all %>%
 
 ## Adverse Events by Sex, <br/> by SMQ and Preferred Term
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant1, test = list(result_v1 = "result")}
 criteria_fun <- function(tr) !is(tr, "ContentRow") && all_zero_or_na(tr)
 
@@ -139,7 +138,14 @@ result <- build_table(
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Adverse Events by Sex, by SMQ and <br/> Preferred Term (with Customized Queries)
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 criteria_fun <- function(tr) {
@@ -163,7 +169,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     split_label = "Standardized MedDRA Query"
   ) %>%
   analyze_num_patients(
-    var = "USUBJID",
+    vars = "USUBJID",
     .stats = c("unique", "nonunique"),
     .labels = c(
       unique = "Total number of patients with at least one adverse event",
@@ -191,7 +197,14 @@ result <- build_table(
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Adverse Events by Other Baseline <br/> Characteristics (e.g. Age Group)
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant3, test = list(result_v3 = "result")}
 criteria_fun <- function(tr) !is(tr, "ContentRow") && all_zero_or_na(tr)
@@ -235,19 +248,34 @@ result <- build_table(
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
   library(dplyr)
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl") %>%
+
+  ADSL <- random.cdisc.data::cadsl %>%
     mutate(
       AGE65 = case_when(
         AGE >= 65 ~ ">= 65",
@@ -258,7 +286,7 @@ data <- within(data, {
         levels = c("< 65", ">= 65")
       )
     )
-  ADAE <- synthetic_cdisc_dataset("latest", "adae") %>%
+  ADAE <- random.cdisc.data::cadae %>%
     mutate(
       AGE65 = case_when(
         AGE >= 65 ~ ">= 65",
@@ -316,5 +344,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

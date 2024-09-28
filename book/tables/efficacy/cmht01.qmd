@@ -5,20 +5,16 @@ subtitle: Cochran-Mantel-Haenszel (CMH) Summary
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(tern)
-library(scda)
 library(dplyr)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adqs <- synthetic_cdisc_dataset("latest", "adqs")
+adsl <- random.cdisc.data::cadsl
+adqs <- random.cdisc.data::cadqs
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -27,7 +23,11 @@ adqs <- df_explicit_na(adqs)
 
 ## Table of Single Parameter
 
-```{r variant1, test = list(result_v1 = "result")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/therneau/survival/issues/240 -->
+```{r variant1, test = list(result_v1 = "result"), opts.label = ifelse(packageVersion("survival") < "3.5-8", "skip_test_strict", "")}
 anl_01 <- adqs %>%
   filter(PARAMCD == "FKSI-FWB" & AVISIT == "WEEK 1 DAY 8") %>%
   mutate(is_rsp = PCHG > 15) %>%
@@ -74,9 +74,17 @@ result <- build_table(
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table of Multiple Parameters
 
-```{r variant2, test = list(result_v2 = "result")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/therneau/survival/issues/240 -->
+```{r variant2, test = list(result_v2 = "result"), opts.label = ifelse(packageVersion("survival") < "3.5-8", "skip_test_strict", "")}
 anl_02 <- adqs %>%
   filter(AVISIT == "WEEK 1 DAY 8") %>%
   mutate(is_rsp = PCHG > 15) %>%
@@ -134,20 +142,33 @@ result <- build_table(
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
-
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-  ADRS <- synthetic_cdisc_dataset("latest", "adrs")
+  ADSL <- random.cdisc.data::cadsl
+  ADRS <- random.cdisc.data::cadrs
 })
 datanames <- c("ADSL", "ADRS")
 datanames(data) <- datanames
@@ -187,5 +208,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

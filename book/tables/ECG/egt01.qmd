@@ -5,25 +5,21 @@ subtitle: ECG Results and Change from Baseline by Visit
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(dplyr)
 library(tern)
-library(scda)
 
 # Data should be filtered for the studied Parameter (`PARAM`) and the
 # Analysis Visit (`AVISIT`). According to the GDSR template, the values for
 # the `AVISIT` reported in the EGT01 standard may be:
 # 'POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST'.
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adeg <- synthetic_cdisc_dataset("latest", "adeg")
+adsl <- random.cdisc.data::cadsl
+adeg <- random.cdisc.data::cadeg
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -35,6 +31,9 @@ adeg_f <- adeg %>%
 ```
 
 ## Standard Table
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant1, test = list(result_v1 = "result")}
 # Define the split function
@@ -79,20 +78,35 @@ result <- build_table(lyt, adeg_f, alt_counts_df = adsl)
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
+<!-- skip eval because of https://github.com/insightsengineering/teal.modules.clinical/pull/1087 -->
+
+```{r teal, opts.label = c("skip_if_testing", "app"), eval = packageVersion("teal.modules.clinical") >= "0.9.0.9007"}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
-
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-  ADEG <- synthetic_cdisc_dataset("latest", "adeg")
+  ADSL <- random.cdisc.data::cadsl
+  ADEG <- random.cdisc.data::cadeg
 
   # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
   ADSL <- df_explicit_na(ADSL)
@@ -139,5 +153,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

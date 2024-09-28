@@ -5,21 +5,17 @@ subtitle: Tables for Mixed-Effect Model Repeated Measures Analysis
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(dplyr)
 library(tern.mmrm)
-library(scda)
 library(broom)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adqs <- synthetic_cdisc_dataset("latest", "adqs")
+adsl <- random.cdisc.data::cadsl
+adqs <- random.cdisc.data::cadqs
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -44,9 +40,9 @@ var_labels(adqs_f) <- var_labels(adqs)
 
 ## Least Squares Means
 
-### Considering the treatment variable in the model
+#### Considering the treatment variable in the model
 
-```{r variant1, test = list(result_v1 = "result"), message=FALSE}
+```{r variant1, test = list(result_v1 = "result"), message = FALSE}
 mmrm_results <- fit_mmrm(
   vars = list(
     response = "CHG",
@@ -75,7 +71,7 @@ result <- basic_table(show_colcounts = TRUE) %>%
 result
 ```
 
-### Not considering the treatment variable in the model
+#### Not considering the treatment variable in the model
 
 ```{r variant2, test = list(result_v2 = "result")}
 mmrm_results_no_arm <- fit_mmrm(
@@ -106,12 +102,12 @@ result <- basic_table(show_colcounts = TRUE) %>%
 result
 ```
 
-### Adding baseline rows
+#### Adding baseline rows
 
 It may be of interest to summarize some different statistics at the baseline visit or summarize a different variable in the data set not used in the MMRM.
 For example, the model may use the variable `CHG` but the baseline visit row may summarize the `AVAL` variable, thus we would need to create two tables and then combine them to accomplish this.
 
-```{r}
+```{r variant_baseline, test = list(result_baseline = "result")}
 # First have the least-square means table.
 a <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by("ARMCD", ref_group = mmrm_results$ref_level) %>%
@@ -138,7 +134,7 @@ col_info(b) <- EmptyColInfo
 rbind(b, a)
 ```
 
-### Considering visit averages
+#### Considering visit averages
 
 It may also be of interest to summarize several different statistics for an averaged combination of various visits in the MMRM.
 For example, you may want to see the statistics for the average of the first 2 visits, or the average statistics of all visits combined.
@@ -182,19 +178,22 @@ result
 
 #### Considering the treatment variable in the model
 
-```{r}
+<!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 -->
+```{r, opts.label = ifelse(packageVersion("rtables") < "0.6.6.9011", "skip_test_strict", "")}
 as.rtable(mmrm_results, type = "fixed")
 ```
 
 #### Not considering the treatment variable in the model
 
-```{r}
+<!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 -->
+```{r, opts.label = ifelse(packageVersion("rtables") < "0.6.6.9011", "skip_test_strict", "")}
 as.rtable(mmrm_results_no_arm, type = "fixed")
 ```
 
 ## Covariance Matrix
 
-```{r}
+<!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 -->
+```{r, opts.label = ifelse(packageVersion("rtables") < "0.6.6.9011", "skip_test_strict", "")}
 as.rtable(mmrm_results, type = "cov")
 ```
 
@@ -207,21 +206,28 @@ Statistics to evaluate choice of covariance structure are being investigated and
 as.rtable(mmrm_results, type = "diagnostic")
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
   library(dplyr)
 
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-  ADQS <- synthetic_cdisc_dataset("latest", "adqs") %>%
+  ADSL <- random.cdisc.data::cadsl
+  ADQS <- random.cdisc.data::cadqs %>%
     filter(ABLFL != "Y" & ABLFL2 != "Y") %>%
     filter(AVISIT %in% c("WEEK 1 DAY 8", "WEEK 2 DAY 15", "WEEK 3 DAY 22")) %>%
     mutate(
@@ -271,4 +277,3 @@ shinyApp(app$ui, app$server)
 ```
 
 {{< include ../../repro.qmd >}}
-:::

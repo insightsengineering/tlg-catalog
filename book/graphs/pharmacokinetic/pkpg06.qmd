@@ -5,22 +5,18 @@ subtitle: Boxplot of Metabolite to Parent Ratios by Treatment
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(dplyr)
-library(scda)
 library(ggplot2)
 library(tidyr)
 library(tern)
 library(nestcolor)
 
-adpp <- synthetic_cdisc_dataset("latest", "adpp")
+adpp <- random.cdisc.data::cadpp
 
 # Filter NAs
 adpp <- adpp %>%
@@ -64,19 +60,39 @@ outliers <- function(x) {
 
 #### Drug X Boxplot
 
-```{r plot1, test = list(plot_v1 = "plot")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot1, test = list(plot_v1 = "plot"), opts.label = "skip_test_strict"}
 plot <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +
   geom_boxplot(outlier.size = 2) +
   stat_boxplot(geom = "errorbar") +
-  stat_summary(geom = "point", fun = "mean", col = "black", size = 5, shape = 8, position = position_dodge(0.75)) +
+  stat_summary(
+    geom = "point",
+    fun = "mean",
+    col = "black",
+    size = 5,
+    shape = 8,
+    position = position_dodge(0.75)
+  ) +
   geom_text(
     data = . %>% dplyr::group_by(PARAMCD, ACTARM) %>% dplyr::filter(ratio %in% boxplot.stats(ratio)$out),
     aes(x = PARAMCD, y = ratio, label = USUBJID, col = ACTARM),
-    size = 3, hjust = -0.2, position = position_dodge(0.75), show.legend = F
+    size = 3,
+    hjust = -0.2,
+    position = position_dodge(0.75),
+    show.legend = FALSE
   ) +
   labs(
     title = "Boxplot of Metabolite to Parent Ratios by Treatment",
-    subtitle = paste0("Analyte: Plasma Drug X, Metabolite Drug X ", "\nPK Parameter: ", as.character(paste(unique(anl_x$PARAMCD), collapse = ", ")), "\nVisit: ", as.character((unique(anl_x$AVISIT)))),
+    subtitle = paste0(
+      "Analyte: Plasma Drug X, Metabolite Drug X ",
+      "\nPK Parameter: ",
+      as.character(paste(unique(anl_x$PARAMCD), collapse = ", ")),
+      "\nVisit: ",
+      as.character((unique(anl_x$AVISIT)))
+    ),
     caption = "Program: \nOutput:",
     x = "Parameter",
     y = "Metabolite to Parent Ratio"
@@ -88,21 +104,45 @@ plot <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 #### Drug Y Boxplot
 
-```{r plot2, test = list(plot_v2 = "plot")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot2, test = list(plot_v2 = "plot"), opts.label = "skip_test_strict"}
 plot <- ggplot(anl_y, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +
   geom_boxplot(outlier.size = 2) +
   stat_boxplot(geom = "errorbar") +
-  stat_summary(geom = "point", fun = "mean", col = "black", size = 5, shape = 8, position = position_dodge(0.75)) +
+  stat_summary(
+    geom = "point",
+    fun = "mean",
+    col = "black",
+    size = 5,
+    shape = 8,
+    position = position_dodge(0.75)
+  ) +
   geom_text(
     data = . %>% dplyr::group_by(PARAMCD, ACTARM) %>% dplyr::filter(ratio %in% boxplot.stats(ratio)$out),
     aes(x = PARAMCD, y = ratio, label = USUBJID, color = ACTARM),
-    size = 3, hjust = -0.2, position = position_dodge(0.75), show.legend = F
+    size = 3,
+    hjust = -0.2,
+    position = position_dodge(0.75),
+    show.legend = FALSE
   ) +
   labs(
     title = "Boxplot of Metabolite to Parent Ratios by Treatment",
-    subtitle = paste0("Analyte: Plasma Drug Y, Metabolite Drug Y ", "\nPK Parameter: ", as.character(paste(unique(anl_y$PARAMCD), collapse = ", ")), "\nVisit: ", as.character((unique(anl_y$AVISIT)))),
+    subtitle = paste0(
+      "Analyte: Plasma Drug Y, Metabolite Drug Y ",
+      "\nPK Parameter: ",
+      as.character(paste(unique(anl_y$PARAMCD), collapse = ", ")),
+      "\nVisit: ",
+      as.character((unique(anl_y$AVISIT)))
+    ),
     caption = "Program: \nOutput:",
     x = "Parameter",
     y = "Metabolite to Parent Ratio"
@@ -114,9 +154,17 @@ plot <- ggplot(anl_y, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot with Whiskers at <br/> Minimum and Maximum Values
 
-```{r plot3, test = list(plot_v3 = "plot")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot3, test = list(plot_v3 = "plot"), opts.label = "skip_test_strict"}
 # whiskers are formed with the minimum and maximum values
 plot <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +
   geom_boxplot(outlier.size = 0) +
@@ -124,7 +172,13 @@ plot <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +
   stat_summary(geom = "point", fun = "mean", col = "black", size = 5, shape = 8, position = position_dodge(0.75)) +
   labs(
     title = "Boxplot of Metabolite to Parent Ratios by Treatment",
-    subtitle = paste0("Analyte: Plasma Drug X, Metabolite Drug X ", "\nPK Parameter: ", as.character(paste(unique(anl_x$PARAMCD), collapse = ", ")), "\nVisit: ", as.character((unique(anl_x$AVISIT)))),
+    subtitle = paste0(
+      "Analyte: Plasma Drug X, Metabolite Drug X ",
+      "\nPK Parameter: ",
+      as.character(paste(unique(anl_x$PARAMCD), collapse = ", ")),
+      "\nVisit: ",
+      as.character((unique(anl_x$AVISIT)))
+    ),
     caption = "Program:\nOutput:",
     x = "Parameter",
     y = "Metabolite to Parent Ratio"
@@ -136,9 +190,17 @@ plot <- ggplot(anl_x, aes(x = PARAMCD, y = ratio, fill = ACTARM)) +
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot with Whiskers at <br/> 5th and 95th Percentiles
 
-```{r plot4, test = list(plot_v4 = "plot")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot4, test = list(plot_v4 = "plot"), opts.label = "skip_test_strict"}
 anl_x_without_outliers <- anl_x %>%
   dplyr::group_by(PARAMCD, ACTARM) %>%
   dplyr::mutate(outlier = ifelse(outliers(ratio), ratio, as.numeric(NA)))
@@ -147,24 +209,45 @@ plot <- ggplot(anl_x, aes(PARAMCD, ratio, fill = ACTARM, label = USUBJID)) +
     fun.data = quantiles, geom = "boxplot",
     position = position_dodge(1)
   ) +
-  stat_summary(geom = "point", fun = "mean", col = "black", size = 5, shape = 8, position = position_dodge(1)) +
+  stat_summary(
+    geom = "point",
+    fun = "mean",
+    col = "black",
+    size = 5,
+    shape = 8,
+    position = position_dodge(1)
+  ) +
   stat_summary(
     fun.data = quantiles, geom = "errorbar",
     position = position_dodge(1)
   ) +
   geom_point(
     data = anl_x_without_outliers,
-    aes(x = PARAMCD, y = outlier), na.rm = T,
-    size = 2, position = position_dodge(1), show.legend = F
+    aes(x = PARAMCD, y = outlier),
+    na.rm = TRUE,
+    size = 2,
+    position = position_dodge(1),
+    show.legend = FALSE
   ) +
   geom_text(
     data = anl_x_without_outliers,
-    aes(x = PARAMCD, y = outlier, label = USUBJID, color = ACTARM), na.rm = T,
-    size = 3, hjust = -0.2, vjust = 1, position = position_dodge(1), show.legend = F
+    aes(x = PARAMCD, y = outlier, label = USUBJID, color = ACTARM),
+    na.rm = TRUE,
+    size = 3,
+    hjust = -0.2,
+    vjust = 1,
+    position = position_dodge(1),
+    show.legend = FALSE
   ) +
   labs(
     title = "Boxplot of Metabolite to Parent Ratios by Treatment",
-    subtitle = paste0("Analyte: Plasma Drug X, Metabolite Drug X ", "\nPK Parameter: ", as.character(paste(unique(anl_x$PARAMCD), collapse = ", ")), "\nVisit: ", as.character((unique(anl_x$AVISIT)))),
+    subtitle = paste0(
+      "Analyte: Plasma Drug X, Metabolite Drug X ",
+      "\nPK Parameter: ",
+      as.character(paste(unique(anl_x$PARAMCD), collapse = ", ")),
+      "\nVisit: ",
+      as.character((unique(anl_x$AVISIT)))
+    ),
     caption = "Program: \nOutput:",
     x = "Parameter",
     y = "Metabolite to Parent Ratio"
@@ -176,16 +259,18 @@ plot <- ggplot(anl_x, aes(PARAMCD, ratio, fill = ACTARM, label = USUBJID)) +
 plot
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "plot4")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
-## `teal` App
+## Data Setup
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r setup}
 #| code-fold: show
-
-# In progress
 ```
 
-{{< include ../../repro.qmd >}}
+::::
 
-:::
+{{< include ../../_utils/save_results.qmd >}}
+
+{{< include ../../repro.qmd >}}

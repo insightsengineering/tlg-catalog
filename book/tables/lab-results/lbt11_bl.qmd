@@ -5,20 +5,16 @@ subtitle: Time to First Increase in Liver Laboratory Test Result Meeting Hy's La
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(tern)
-library(scda)
 library(dplyr)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adaette <- synthetic_cdisc_dataset("latest", "adaette")
+adsl <- random.cdisc.data::cadsl
+adaette <- random.cdisc.data::cadaette
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -58,6 +54,9 @@ anl <- adaette %>%
 
 ## Time-To-Event Summary
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant1, test = list(result_v1 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
   split_cols_by(var = "ARMCD", ref_group = "ARM A") %>%
@@ -80,7 +79,14 @@ result <- build_table(lyt, df = anl, alt_counts_df = adsl_safl)
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Time-To-Event Summary <br/> Selecting Sections to Display
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -97,7 +103,14 @@ result <- build_table(lyt, df = anl, alt_counts_df = adsl_safl)
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Time-To-Event Summary <br/> with Stratified Analysis
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant3, test = list(result_v3 = "result")}
 strata <- c("RACE", "SEX")
@@ -122,7 +135,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     vars = "AVAL",
     is_event = "is_event",
     var_labels = paste0("Stratified By: ", paste(strata, collapse = ", ")),
-    strat = strata,
+    strata = strata,
     table_names = "coxph_stratified"
   )
 
@@ -130,21 +143,35 @@ result <- build_table(lyt, df = anl, alt_counts_df = adsl_safl)
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
   library(dplyr)
 
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-  ADAETTE <- synthetic_cdisc_dataset("latest", "adaette")
+  ADSL <- random.cdisc.data::cadsl
+  ADAETTE <- random.cdisc.data::cadaette
 
   # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
   ADSL <- df_explicit_na(ADSL)
@@ -200,5 +227,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

@@ -5,26 +5,23 @@ subtitle: Table of Mean Dose-Normalized Selected Pharmacokinetic Parameters (Sta
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
-library(scda)
+```{r setup, echo = FALSE}
 library(dplyr)
 library(tern)
 library(stringr)
 
-adpp <- synthetic_cdisc_dataset("latest", "adpp")
-adpp <- adpp %>% filter(AVISIT == "CYCLE 1 DAY 1", str_detect(tolower(PARAM), regex("norm by dose", ignore_case = TRUE)))
+adpp <- random.cdisc.data::cadpp
+adpp <- adpp %>%
+  filter(AVISIT == "CYCLE 1 DAY 1", str_detect(tolower(PARAM), regex("norm by dose", ignore_case = TRUE)))
 ```
 
 ## Standard Table -- Urine
 
-```{r}
+```{r lyt}
 # lyt creation
 lyt <- basic_table() %>%
   split_rows_by(
@@ -73,7 +70,11 @@ lyt <- basic_table() %>%
 
 #### Plasma Drug X
 
-```{r variant1, test = list(result_v1 = "result")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/insightsengineering/tern/pull/1182 -->
+```{r variant1, test = list(result_v1 = "result"), opts.label = ifelse(packageVersion("tern") < "0.9.3.9020", "skip_test_strict", "")}
 adpp0 <- adpp %>%
   filter(PPCAT == "Plasma Drug X") %>%
   h_pkparam_sort() %>%
@@ -86,9 +87,17 @@ subtitles(result) <- paste("Analyte:", unique(adpp0$PPCAT), "\nVisit:", unique(a
 result
 ```
 
+`r webr_code_labels <- c("setup", "lyt", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 #### Plasma Drug Y
 
-```{r variant2, test = list(result_v2 = "result")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/insightsengineering/tern/pull/1182 -->
+```{r variant2, test = list(result_v2 = "result"), opts.label = ifelse(packageVersion("tern") < "0.9.3.9020", "skip_test_strict", "")}
 adpp1 <- adpp %>%
   filter(PPCAT == "Plasma Drug Y") %>%
   h_pkparam_sort() %>%
@@ -101,15 +110,18 @@ subtitles(result) <- paste("Analyte:", unique(adpp1$PPCAT), "\nVisit:", unique(a
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "lyt", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
-## `teal` App
+## Data Setup
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r setup}
 #| code-fold: show
-
-# In progress
 ```
 
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
+
 {{< include ../../repro.qmd >}}
-:::

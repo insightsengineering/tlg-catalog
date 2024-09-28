@@ -5,25 +5,16 @@ subtitle: Laboratory Test Results Shift Table -- Highest NCI CTCAE Grade Post-Ba
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-Please note that for each variant, the `adlb` dataset needs to be filtered on correct flags like `WGRLOFL`, `WGRHIFL`, et al., otherwise the layout function will not return the correct counts.
-There is an option to create a record for a lab test where no record is found at that visit.
-If you specified `add_derived_type = "PHANTOM"` & `dtype_phantom_cond`, you don't have to use the `h_adsl_adlb_merge_using_worst_flag` function to preprocess your `adlb` dataset.
-Otherwise please follow the pre-processing steps below before applying the layout functions.
-
-```{r setup, message=FALSE}
-#| code-fold: show
-
-library(scda)
+```{r setup, echo = FALSE}
 library(dplyr)
 library(tern)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adlb <- synthetic_cdisc_dataset("latest", "adlb")
+adsl <- random.cdisc.data::cadsl
+adlb <- random.cdisc.data::cadlb
 
 adsl <- df_explicit_na(adsl)
 adlb <- df_explicit_na(adlb)
@@ -38,6 +29,9 @@ adlb <- adlb %>% filter(SAFFL == "Y")
 
 Note that the worst laboratory flag (below `WGRHIFL`) must be selected appropriately in the pre-processing step.
 New grouping variables `ATOXGR_GP` (post-baseline) and `BTOXGR_GP` (baseline) are created to display the correct output.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant1, test = list(result_v1 = "result")}
 adlb_f <- adlb %>% filter(WGRHIFL == "Y")
@@ -91,10 +85,17 @@ result <- basic_table(show_colcounts = TRUE) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Standard Table (Low)
 
 Note that the worst laboratory flag (below `WGRLOFL`) must be selected appropriately in the pre-processing step.
 New grouping variables `ATOXGR_GP` (post-baseline) and `BTOXGR_GP` (baseline) are created to display the correct output.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 adlb_f <- adlb %>% filter(WGRLOFL == "Y")
@@ -148,9 +149,16 @@ result <- basic_table(show_colcounts = TRUE) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table Without Patients with <br/> Missing Baseline (High)
 
 Note that missing baseline values are filtered out in the pre-processing step.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant3, test = list(result_v3 = "result")}
 adlb_f <- adlb %>% filter(WGRHIFL == "Y")
@@ -204,9 +212,16 @@ result <- basic_table(show_colcounts = TRUE) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with Missing Baseline <br/> Considered as Grade 0 (Low)
 
 Note that when BTOXGR is missing, the grouping variable `BTOXGR_GP` now is `"Not Low"` instead of `"Missing"` compared to *Standard Table (Low)*.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant4, test = list(result_v4 = "result")}
 adlb_f <- adlb %>% filter(WGRLOFL == "Y")
@@ -259,9 +274,16 @@ result <- basic_table(show_colcounts = TRUE) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant4")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with Fill-In of Grades
 
 Pre-processing is the same as *Standard Table (High)*, but in order to keep all levels, `prune_table()` is not applied.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant5, test = list(result_v5 = "result")}
 adlb_f <- adlb %>% filter(WGRHIFL == "Y")
@@ -314,21 +336,38 @@ result <- basic_table(show_colcounts = TRUE) %>%
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant5")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+Please note that for each variant, the `adlb` dataset needs to be filtered on correct flags like `WGRLOFL`, `WGRHIFL`, et al., otherwise the layout function will not return the correct counts.
+There is an option to create a record for a lab test where no record is found at that visit.
+If you specified `add_derived_type = "PHANTOM"` & `dtype_phantom_cond`, you don't have to use the `h_adsl_adlb_merge_using_worst_flag` function to preprocess your `adlb` dataset.
+Otherwise please follow the pre-processing steps below before applying the layout functions.
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
-  library(dplyr)
-
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-  ADLB <- synthetic_cdisc_dataset("latest", "adlb")
+  ADSL <- random.cdisc.data::cadsl
+  ADLB <- random.cdisc.data::cadlb
 })
 datanames <- c("ADSL", "ADLB")
 datanames(data) <- datanames
@@ -380,5 +419,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

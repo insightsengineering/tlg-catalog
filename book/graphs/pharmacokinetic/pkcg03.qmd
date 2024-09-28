@@ -5,25 +5,21 @@ subtitle: Plot of Mean PK Concentration Over Time by Cohort
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(tern)
-library(scda)
 library(dplyr)
 library(ggplot2)
 library(nestcolor)
 
-adsl_f <- synthetic_cdisc_dataset("latest", "adsl") %>%
+adsl_f <- random.cdisc.data::cadsl %>%
   filter(SAFFL == "Y" & ARM != "B: Placebo") %>%
   df_explicit_na()
 
-adpc <- synthetic_cdisc_dataset("latest", "adpc") %>%
+adpc <- random.cdisc.data::cadpc %>%
   mutate(Patient_ID = sub(".*id-", "", USUBJID)) %>%
   filter(PARAM == "Plasma Drug X") %>%
   droplevels() %>%
@@ -32,7 +28,11 @@ adpc <- synthetic_cdisc_dataset("latest", "adpc") %>%
 
 ## Plot in Linear Scale
 
-```{r plot1, test = list(plot_v1 = "plot")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot1, test = list(plot_v1 = "plot"), opts.label = "skip_test_strict"}
 use_title <- "Plot of Mean (+/- SD) Plasma Concentrations Over Time by Treatment, \nPK Evaluable Patients"
 use_subtitle <- "Analyte:"
 use_footnote <- "Program: \nOutput:"
@@ -63,9 +63,17 @@ plot <- result + theme(plot.caption = element_text(hjust = 0))
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot in Log Scale
 
-```{r plot2, warning=FALSE, test = list(plot_v2 = "plot")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot2, warning = FALSE, test = list(plot_v2 = "plot"), opts.label = "skip_test_strict"}
 use_title <- "Plot of Mean (+/- SD) Log-Scale Plasma Concentrations Over Time by Treatment, \nPK Evaluable Patients"
 use_subtitle <- "Analyte:"
 use_footnote <- "Program: \nOutput:"
@@ -96,19 +104,22 @@ result <- g_lineplot(
 )
 
 plot <- result + theme(plot.caption = element_text(hjust = 0)) +
-  ggplot2::scale_y_log10(breaks = c(0.001, 0.01, 0.1, 1, 10), label = c(0.001, 0.01, 0.1, 1, 10))
+  ggplot2::scale_y_log10(breaks = c(0.001, 0.01, 0.1, 1, 10), labels = c(0.001, 0.01, 0.1, 1, 10))
 plot
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "plot2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
-## `teal` App
+## Data Setup
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r setup}
 #| code-fold: show
-
-# In progress
 ```
 
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
+
 {{< include ../../repro.qmd >}}
-:::

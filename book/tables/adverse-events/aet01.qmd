@@ -5,22 +5,16 @@ subtitle: Safety Summary
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-To illustrate, additional variables such as flags (TRUE/FALSE) for select AEs of interest and select AE baskets are added to the `adae` dataset.
-
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(tern)
 library(dplyr)
-library(scda)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adae <- synthetic_cdisc_dataset("latest", "adae")
+adsl <- random.cdisc.data::cadsl
+adae <- random.cdisc.data::cadae
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -34,12 +28,18 @@ set.seed(99)
 adae <- adae %>%
   mutate(
     AEDECOD = with_label(as.character(AEDECOD), "Dictionary-Derived Term"),
-    AESDTH = with_label(sample(c("N", "Y"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)), "Results in Death"),
-    AEACN = with_label(sample(
-      c("DOSE NOT CHANGED", "DOSE INCREASED", "DRUG INTERRUPTED", "DRUG WITHDRAWN"),
-      size = nrow(adae),
-      replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)
-    ), "Action Taken with Study Treatment"),
+    AESDTH = with_label(
+      sample(c("N", "Y"), size = nrow(adae), replace = TRUE, prob = c(0.99, 0.01)),
+      "Results in Death"
+    ),
+    AEACN = with_label(
+      sample(
+        c("DOSE NOT CHANGED", "DOSE INCREASED", "DRUG INTERRUPTED", "DRUG WITHDRAWN"),
+        size = nrow(adae),
+        replace = TRUE, prob = c(0.68, 0.02, 0.25, 0.05)
+      ),
+      "Action Taken with Study Treatment"
+    ),
     FATAL = with_label(AESDTH == "Y", "AE with fatal outcome"),
     SEV = with_label(AESEV == "SEVERE", "Severe AE (at greatest intensity)"),
     SER = with_label(AESER == "Y", "Serious AE"),
@@ -71,7 +71,11 @@ adae <- adae %>%
 
 ## Standard Table
 
-```{r variant1, test = list(result_v1 = "result")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/insightsengineering/rtables/issues/830 -->
+```{r variant1, test = list(result_v1 = "result"), opts.label = ifelse(packageVersion("rtables") < "0.6.6.9011", "skip_test_strict", "")}
 aesi_vars <- c("FATAL", "SER", "SERWD", "SERDSM", "RELSER", "WD", "DSM", "REL", "RELWD", "RELDSM", "SEV")
 
 # Layout for variables from adsl dataset.
@@ -127,7 +131,14 @@ result <- rbind(
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with Medical <br/> Concepts Section
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 aesi_vars <- c("FATAL", "SER", "SERWD", "SERDSM", "RELSER", "WD", "DSM", "REL", "RELWD", "RELDSM", "CTC35")
@@ -194,7 +205,14 @@ result <- rbind(
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with <br/> Modified Rows
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant3, test = list(result_v3 = "result")}
 aesi_vars <- c("FATAL", "SER", "WD", "REL", "CTC35", "CTC45")
@@ -256,7 +274,14 @@ result <- rbind(
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with Rows Counting <br/> Events & Additional Sections
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant4, test = list(result_v4 = "result")}
 count_subj_vars <- c("FATAL", "SER", "WD", "DSM", "REL", "CTC35")
@@ -334,20 +359,44 @@ result <- rbind(
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant4")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+To illustrate, additional variables such as flags (TRUE/FALSE) for select AEs of interest and select AE baskets are added to the `adae` dataset.
+
+```{r setup}
+#| code-fold: show
+```
+
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
   library(dplyr)
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-  ADAE <- synthetic_cdisc_dataset("latest", "adae")
+
+  ADSL <- random.cdisc.data::cadsl
+  ADAE <- random.cdisc.data::cadae
 
   add_event_flags <- function(dat) {
     dat %>%
@@ -359,7 +408,7 @@ data <- within(data, {
         TMP_SMQ02 = !is.na(SMQ02NAM),
         TMP_CQ01 = !is.na(CQ01NAM)
       ) %>%
-      var_relabel(
+      col_relabel(
         TMPFL_SER = "Serious AE",
         TMPFL_REL = "Related AE",
         TMPFL_GR5 = "Grade 5 AE",
@@ -413,5 +462,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

@@ -5,20 +5,17 @@ subtitle: Pharmacokinetic Parameter Summary of Plasma by Treatment (Stats in Col
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
-library(scda)
+<!-- skip strict because of https://github.com/insightsengineering/tern/pull/1182 -->
+```{r setup, echo = FALSE}
 library(dplyr)
 library(tern)
 
 # Preprocess analysis data ----
-adpp <- synthetic_cdisc_dataset("latest", "adpp")
+adpp <- random.cdisc.data::cadpp
 adpp <- adpp %>%
   filter(PPSPEC == "Plasma") %>%
   filter(AVISIT %in% c("CYCLE 1 DAY 1", "CYCLE 1 DAY 2")) %>%
@@ -27,7 +24,7 @@ adpp <- adpp %>%
   mutate(PARAM = reorder(PARAM, TLG_ORDER))
 
 # Preprocess subject-level data ----
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adsl <- random.cdisc.data::cadsl
 
 # Workaround needed to include (N=xx) population counts
 # Repeat ADSL by the number of levels in AVISIT
@@ -73,7 +70,7 @@ adsl_y_splitvars <- adsl_tmp %>%
 
 ## Standard Table
 
-```{r}
+```{r lyt}
 # lyt creation
 lyt <- basic_table() %>%
   split_rows_by(
@@ -124,11 +121,14 @@ lyt <- basic_table() %>%
       min = format_sigfig(3),
       max = format_sigfig(3)
     ),
-    na_level = "NE"
+    na_str = "NE"
   )
 ```
 
 #### Plasma Drug X
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant1, test = list(result_v1 = "result")}
 result <- build_table(lyt, df = adpp_x, alt_counts_df = adsl_x_splitvars)
@@ -138,7 +138,14 @@ result <- paginate_table(result, landscape = TRUE)
 result
 ```
 
+`r webr_code_labels <- c("setup", "lyt", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 #### Plasma Drug X: Remove Rows with 0s
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 result <- build_table(lyt, df = adpp_x, alt_counts_df = adsl_x_splitvars) %>%
@@ -150,7 +157,14 @@ result <- paginate_table(result, landscape = TRUE)
 result
 ```
 
+`r webr_code_labels <- c("setup", "lyt", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 #### Plasma Drug Y
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant3, test = list(result_v3 = "result")}
 result <- build_table(lyt, df = adpp_y, alt_counts_df = adsl_y_splitvars)
@@ -160,15 +174,18 @@ result <- paginate_table(result, landscape = TRUE)
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "lyt", "variant3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
-## `teal` App
+## Data Setup
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r setup}
 #| code-fold: show
-
-# In progress
 ```
 
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
+
 {{< include ../../repro.qmd >}}
-:::

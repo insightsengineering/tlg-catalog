@@ -5,20 +5,16 @@ subtitle: Medical History
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(tern)
 library(dplyr)
-library(scda)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-admh <- synthetic_cdisc_dataset("latest", "admh")
+adsl <- random.cdisc.data::cadsl
+admh <- random.cdisc.data::cadmh
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -38,6 +34,9 @@ admh_f <- admh %>%
 
 ## Standard Table
 
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
 ```{r variant1, test = list(result_v1 = "result")}
 split_fun <- drop_split_levels
 
@@ -55,7 +54,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     split_label = obj_label(admh_f$MHBODSYS)
   ) %>%
   analyze_num_patients(
-    var = "USUBJID",
+    vars = "USUBJID",
     .stats = c("unique", "nonunique"),
     .labels = c("Total number of patients with at least one condition", "Total number of conditions"),
     show_labels = "hidden"
@@ -69,7 +68,14 @@ result <- build_table(lyt, admh_f, alt_counts_df = adsl_f) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table of History <br/> Prior to Study
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 admh_f_prior <- admh_f %>%
@@ -81,7 +87,14 @@ result <- build_table(lyt, admh_f_prior, alt_counts_df = adsl_f) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with Total Number <br/> of Conditions Suppressed
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant3, test = list(result_v3 = "result")}
 split_fun <- drop_split_levels
@@ -100,7 +113,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     split_label = obj_label(admh_f$MHBODSYS)
   ) %>%
   analyze_num_patients(
-    var = "USUBJID",
+    vars = "USUBJID",
     .stats = c("unique"),
     .labels = c("Total number of patients with at least one condition"),
     show_labels = "hidden"
@@ -114,6 +127,10 @@ result <- build_table(lyt, admh_f, alt_counts_df = adsl) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with Total Number of Conditions Per Body <br/> System After The Summary of Patients
 
 Not currently supported by `rtables`.
@@ -122,6 +139,9 @@ Users, please notify us if this variation is important to you.
 ## Table Showing Additional <br/> "All Patients" Column
 
 Conditions are further sorted by decreasing high level terms and low level terms.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant4, test = list(result_v4 = "result")}
 split_fun <- drop_split_levels
@@ -160,21 +180,36 @@ result <- build_table(lyt, admh_f, alt_counts_df = adsl_f) %>%
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant4")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
+  library(dplyr)
 
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl") %>%
+  ADSL <- random.cdisc.data::cadsl %>%
     filter(SAFFL == "Y")
-  ADMH <- synthetic_cdisc_dataset("latest", "admh") %>%
+  ADMH <- random.cdisc.data::cadmh %>%
     filter(SAFFL == "Y" & MHBODSYS != "" & MHDECOD != "")
 })
 datanames <- c("ADSL", "ADMH")
@@ -209,5 +244,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}

@@ -5,23 +5,19 @@ subtitle: Bar Chart
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(binom)
 library(dplyr)
 library(ggplot2)
-library(scda)
 library(tidyr)
 library(tern)
 library(nestcolor)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
+adsl <- random.cdisc.data::cadsl
 
 # filtered population
 patpop_df <- adsl %>%
@@ -30,16 +26,19 @@ patpop_df <- adsl %>%
 patpop <- setNames(patpop_df$patpop, patpop_df$STUDYID)
 denom <- patpop_df$patpop
 
-adae <- synthetic_cdisc_dataset("latest", "adae") %>%
+adae <- random.cdisc.data::cadae %>%
   mutate(AETOXGRC = as.character(AETOXGR))
 attributes(adae$AETOXGRC)$label <- "Analysis Toxicity Grade (C)"
 vl_ae <- var_labels(adae)
 
-adlb <- synthetic_cdisc_dataset("latest", "adlb")
+adlb <- random.cdisc.data::cadlb
 vl_lb <- var_labels(adlb)
 ```
 
 ## Plot of Frequency
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r plot1, test = list(plot_v1 = "plot")}
 anl <- adae %>%
@@ -56,7 +55,14 @@ plot <- ggplot(anl, aes(x = .data[["ACTARM"]])) +
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot of Percentage
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r plot2, test = list(plot_v2 = "plot")}
 anl <- adae %>%
@@ -80,7 +86,14 @@ plot <- ggplot(anl, aes(x = .data[["ACTARM"]])) +
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot of Frequency with <br/> Total Number of Subjects
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r plot3, test = list(plot_v3 = "plot")}
 anl <- adae %>%
@@ -101,7 +114,14 @@ plot <- ggplot(anl, aes(x = .data[["xvarlabel"]])) +
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot of Frequency <br/> with Horizontal Bars
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r plot4, test = list(plot_v4 = "plot")}
 anl <- adae %>%
@@ -118,9 +138,17 @@ plot <- ggplot(anl, aes(x = .data[["ACTARM"]])) +
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot4")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot of Percentage <br/> and Confidence Intervals
 
-```{r plot5, test = list(plot_v5 = "plot")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of partial arg match in `bionom` https://github.com/cran/binom/blob/master/R/binom.confint.R#L31 -->
+```{r plot5, test = list(plot_v5 = "plot"), opts.label = "skip_test_strict"}
 anl <- adlb %>%
   filter(PARAMCD == "ALT" & ANRIND == "HIGH")
 anl <- anl[!duplicated(anl$USUBJID), ]
@@ -137,14 +165,22 @@ anlpop <- as.data.frame(table(anl$ANRIND, anl$ACTARM)) %>%
   select(ACTARM, EVENTCOUNT)
 
 anl <- left_join(patpop5, anlpop, by = "ACTARM")
-CIs <- binom.confint(x = anl$EVENTCOUNT, n = anl$TRTPOP, methods = "exact")
+CIs <- binom.confint(x = anl$EVENTCOUNT, n = anl$TRTPOP, methods = "exact") # nolint: object_name.
 anl <- cbind(anl, CIs[, 4:6])
 
 plot <- ggplot(anl) +
-  geom_bar(aes(x = ACTARM, y = mean * 100), stat = "identity", fill = getOption("ggplot2.discrete.fill")[1], alpha = 0.7) +
-  geom_errorbar(aes(x = ACTARM, ymin = lower * 100, ymax = upper * 100),
-    width = 0.5, colour = "#20b4ff",
-    alpha = 0.9, linewidth = 1.0
+  geom_bar(
+    aes(x = ACTARM, y = mean * 100),
+    stat = "identity",
+    fill = getOption("ggplot2.discrete.fill")[1],
+    alpha = 0.7
+  ) +
+  geom_errorbar(
+    aes(x = ACTARM, ymin = lower * 100, ymax = upper * 100),
+    width = 0.5,
+    colour = "#20b4ff",
+    alpha = 0.9,
+    linewidth = 1.0
   ) +
   theme(plot.title = element_text(hjust = 0.5)) +
   ggtitle("Percent of Subjects with Abnormaly High ALT: Safety-Evaluable Subjects") +
@@ -153,9 +189,17 @@ plot <- ggplot(anl) +
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot5")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot of Percentage by <br/> Treatment and Covariate
 
-```{r plot6, test = list(plot_v6 = "plot")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot6, test = list(plot_v6 = "plot"), opts.label = "skip_test_strict"}
 anl <- adae %>%
   filter(AESER == "Y")
 
@@ -178,9 +222,17 @@ plot <- ggplot(anl, aes(x = .data[["ACTARM"]], fill = .data[["SEX"]])) +
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot6")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot of Percentage by <br/> Covariate and Treatment
 
-```{r plot7, test = list(plot_v7 = "plot")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot7, test = list(plot_v7 = "plot"), opts.label = "skip_test_strict"}
 anl <- adae %>%
   filter(AESER == "Y")
 
@@ -202,7 +254,14 @@ plot <- ggplot(anl, aes(x = .data[["SEX"]], fill = .data[["ACTARM"]])) +
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot7")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot of Percentage <br/> with Mean and Median
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r plot8, test = list(plot_v8 = "plot")}
 anl1 <- adlb %>%
@@ -258,16 +317,24 @@ tbl <- ggplot(sd_l, aes(x = ACTARM, y = stat_lbl, label = value)) +
   theme_bw() +
   tbl_theme
 
-plot <- ggpubr::ggarrange(graph, tbl,
-  heights = c(4, 1),
+plot <- cowplot::plot_grid(graph, tbl,
+  rel_heights = c(4, 1),
   ncol = 1, nrow = 2, align = "v"
 )
 plot
 ```
 
+`r webr_code_labels <- c("setup", "plot8")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Plot of Categorical <br/> Variable
 
-```{r plot9, test = list(plot_v9 = "plot")}
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+<!-- skip strict because of https://github.com/r-lib/gtable/pull/94 -->
+```{r plot9, test = list(plot_v9 = "plot"), opts.label = "skip_test_strict"}
 anl <- adae
 
 anl <- anl %>%
@@ -294,16 +361,18 @@ plot <- ggplot(anl, aes(x = .data[["ACTARM"]], fill = .data[["AETOXGRC"]])) +
 plot
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "plot9")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
-## `teal` App
+## Data Setup
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+```{r setup}
 #| code-fold: show
-
-# In progress
 ```
 
-{{< include ../../repro.qmd >}}
+::::
 
-:::
+{{< include ../../_utils/save_results.qmd >}}
+
+{{< include ../../repro.qmd >}}

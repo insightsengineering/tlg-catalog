@@ -5,20 +5,16 @@ subtitle: Adverse Events
 
 ------------------------------------------------------------------------
 
-{{< include ../../test-utils/envir_hook.qmd >}}
+{{< include ../../_utils/envir_hook.qmd >}}
 
-::: panel-tabset
-## Data Setup
+:::: {.panel-tabset}
 
-```{r setup, message=FALSE}
-#| code-fold: show
-
+```{r setup, echo = FALSE}
 library(dplyr)
 library(tern)
-library(scda)
 
-adsl <- synthetic_cdisc_dataset("latest", "adsl")
-adae <- synthetic_cdisc_dataset("latest", "adae")
+adsl <- random.cdisc.data::cadsl
+adae <- random.cdisc.data::cadae
 
 # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
 adsl <- df_explicit_na(adsl)
@@ -34,6 +30,9 @@ split_fun <- drop_split_levels
 ```
 
 ## Standard Table
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant1, test = list(result_v1 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -70,11 +69,19 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
   append_varlabels(adae, "AEDECOD", indent = 1L)
 
 result <- build_table(lyt, df = adae, alt_counts_df = adsl)
+result
 ```
+
+`r webr_code_labels <- c("setup", "variant1")`
+{{< include ../../_utils/webr.qmd >}}
+:::
 
 The variable `result` corresponds to the adverse events table.
 However, it includes many empty rows accounting for events which were not reported.
 The table can be post-processed to prune empty rows and to sort rows, for example by occurrence.
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant2, test = list(result_v2 = "result")}
 result <- result %>%
@@ -91,7 +98,14 @@ result <- result %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant1", "variant2")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with <br/> Event Totals
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant3, test = list(result_v3 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -130,7 +144,7 @@ lyt <- basic_table(show_colcounts = TRUE) %>%
     .indent_mods = c(count = -1L)
   )
 
-result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>% # col_count = c(table(adsl$ACTARM), sum(table(adsl$ACTARM)))
+result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
   prune_table() %>%
   sort_at_path(
     path = c("AEBODSYS", "*", "AEDECOD"),
@@ -144,7 +158,14 @@ result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>% # col_count = c(
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant3")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with <br/> High-Level Term
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant4, test = list(result_v4 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -211,7 +232,14 @@ result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant4")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with Preferred <br/> Terms Only
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant5, test = list(result_v5 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -237,7 +265,14 @@ result <- build_table(lyt, df = adae, alt_counts_df = adsl) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant5")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table with Fill-In of <br/> Treatment Groups
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant6, test = list(result_v6 = "result")}
 adae_5 <- adae %>% dplyr::filter(ACTARM != "C: Combination")
@@ -285,7 +320,14 @@ result <- build_table(lyt, df = adae_5, alt_counts_df = adsl) %>%
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant6")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table of AEs with an Incidence Rate <br/> $\geq$ 5% in Any Treatment Group (subsetting <br/> preferred terms based on frequency)
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant7, test = list(result_v7 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -333,7 +375,14 @@ result <- prune_table(result, keep_rows(row_condition))
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant7")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table of AEs with an Incidence Rate $\geq$ 5% in <br/> Any Treatment Group (subsetting preferred terms <br/> based on frequency with high-level terms)
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant8, test = list(result_v8 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -397,7 +446,14 @@ result <- prune_table(result, keep_rows(row_condition))
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant8")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table of AEs with an Incidence Rate $\geq$ 10% <br/> in Any Treatment Group (subsetting <br/> preferred terms based on frequency)
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant9, test = list(result_v9 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -445,7 +501,14 @@ result <- prune_table(result, keep_rows(row_condition))
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant9")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table of AEs with an Incidence Rate $\geq$ 3 <br/> Patients in Any Treatment Group (subsetting <br/> preferred terms based on number of patients)
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant10, test = list(result_v10 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -493,7 +556,14 @@ result <- prune_table(result, keep_rows(row_condition))
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant10")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table of AEs with a Difference in Incidence Rate $\geq$ 5% <br/> Between Any Treatment (subsetting preferred terms based <br/> on difference in percentage between treatment groups)
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant11, test = list(result_v11 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -541,7 +611,14 @@ result <- prune_table(result, keep_rows(row_condition))
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant11")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table of AEs with an Incidence Rate $\geq$ 5% <br/> in B: Placebo (subsetting preferred terms based <br/> on frequency for a particular treatment group)
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant12, test = list(result_v12 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -589,7 +666,14 @@ result <- prune_table(result, keep_rows(row_condition))
 result
 ```
 
+`r webr_code_labels <- c("setup", "variant12")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
 ## Table of AEs with a Difference in Incidence Rate $\geq$ 5% Between <br/> Arm A and Arm B or Arm C (displaying preferred terms with a <br/> difference of at least x% between selected treatment groups)
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
 
 ```{r variant13, test = list(result_v13 = "result")}
 lyt <- basic_table(show_colcounts = TRUE) %>%
@@ -636,19 +720,33 @@ result <- prune_table(result, keep_rows(row_condition))
 result
 ```
 
-{{< include ../../test-utils/save_results.qmd >}}
+`r webr_code_labels <- c("setup", "variant13")`
+{{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
 
 ## `teal` App
 
-```{r teal, message=FALSE, opts.label=c('skip_if_testing', 'app')}
+::: {.panel-tabset .nav-justified}
+## {{< fa regular file-lines fa-sm fa-fw >}} Preview
+
+```{r teal, opts.label = c("skip_if_testing", "app")}
 library(teal.modules.clinical)
 
 ## Data reproducible code
 data <- teal_data()
 data <- within(data, {
-  library(scda)
-  ADSL <- synthetic_cdisc_dataset("latest", "adsl")
-  ADAE <- synthetic_cdisc_dataset("latest", "adae")
+  ADSL <- random.cdisc.data::cadsl
+  ADAE <- random.cdisc.data::cadae
 
   # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.
   ADSL <- df_explicit_na(ADSL)
@@ -686,5 +784,7 @@ app <- init(
 shinyApp(app$ui, app$server)
 ```
 
-{{< include ../../repro.qmd >}}
+{{< include ../../_utils/shinylive.qmd >}}
 :::
+
+{{< include ../../repro.qmd >}}
