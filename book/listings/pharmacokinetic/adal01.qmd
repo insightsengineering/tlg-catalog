@@ -49,17 +49,22 @@ adab_f <- adab1 %>%
     id_cols = c(USUBJID, VISIT, NFRLT, ISTPT, AVAL_pk),
     names_from = PARAMCD,
     values_from = AVAL_ab
-  ) 
+  )
 # Select the necessary ADA parameters
-adab_f1 <- adab_f %>% 
-  select(USUBJID, VISIT, NFRLT, ISTPT, AVAL_pk, R1800000, R1800001, RESULT1, RESULT2, ADASTAT1, ADASTAT2) %>% 
-  mutate(ADA = R1800000, NAB = R1800001) %>% select(-R1800000, -R1800001)
+adab_f1 <- adab_f %>%
+  select(USUBJID, VISIT, NFRLT, ISTPT, AVAL_pk, R1800000, R1800001, RESULT1, RESULT2, ADASTAT1, ADASTAT2) %>%
+  mutate(ADA = R1800000, NAB = R1800001) %>%
+  select(-R1800000, -R1800001)
 
 
 # Find subject level ADA status
-adab_s <- adab_f1 %>% select(USUBJID, ADASTAT1, ADASTAT2) %>% filter(!is.na(ADASTAT1), !is.na(ADASTAT2))
+adab_s <- adab_f1 %>%
+  select(USUBJID, ADASTAT1, ADASTAT2) %>%
+  filter(!is.na(ADASTAT1), !is.na(ADASTAT2))
 # Find time-vary ADA records
-adab_r <- adab_f1 %>% select(-ADASTAT1, -ADASTAT2) %>% filter(!is.na(VISIT))
+adab_r <- adab_f1 %>%
+  select(-ADASTAT1, -ADASTAT2) %>%
+  filter(!is.na(VISIT))
 
 adab_o <- adab_r %>% left_join(adab_s, by = "USUBJID")
 
@@ -70,16 +75,15 @@ out <- adab_o %>%
     RESULT1 = ifelse(RESULT1 == 1, "Positive", "Negative"),
     RESULT2 = ifelse(RESULT2 == 1, "Positive", "Negative"),
     ADASTAT1 = ifelse(ADASTAT1 == 1, "Positive", "Negative"),
-    ADASTAT2 = ifelse(ADASTAT2 == 1, "Positive", "Negative")
-    ,
-    # ADA = ifelse(ADA < min_titer_ada, NA, ADA), 
+    ADASTAT2 = ifelse(ADASTAT2 == 1, "Positive", "Negative"),
+    # ADA = ifelse(ADA < min_titer_ada, NA, ADA),
     # NAB = ifelse(NAB < min_titer_nab, NA, NAB),
     AVAL_pk = ifelse(AVAL_pk < min_conc, "BLQ", AVAL_pk)
   ) %>%
   select(
     USUBJID, VISIT, ISTPT, NFRLT, ADA, NAB, RESULT1, RESULT2, ADASTAT1, ADASTAT2,
     AVAL_pk
-  ) %>% 
+  ) %>%
   mutate_at(
     c("NFRLT", "ADA", "NAB", "AVAL_pk"),
     ~ ifelse(is.na(.), replace(., is.na(.), "N/A"), format(round(., 2), nsmall = 2))
@@ -88,10 +92,12 @@ out <- adab_o %>%
 var_labels(out) <- names(out)
 
 out <- out %>%
-  arrange(USUBJID, VISIT, desc(ISTPT), NFRLT) %>% 
-  group_by(USUBJID) %>% 
-  mutate(ADASTAT1 = ifelse(row_number() == 1, ADASTAT1, ""),
-         ADASTAT2 = ifelse(row_number() == 1, ADASTAT2, "")) %>%    # Keep only the first value in ADA status, set others to ""
+  arrange(USUBJID, VISIT, desc(ISTPT), NFRLT) %>%
+  group_by(USUBJID) %>%
+  mutate(
+    ADASTAT1 = ifelse(row_number() == 1, ADASTAT1, ""),
+    ADASTAT2 = ifelse(row_number() == 1, ADASTAT2, "")
+  ) %>% # Keep only the first value in ADA status, set others to ""
   var_relabel(
     USUBJID = "Subject ID",
     VISIT = "Visit",
@@ -105,8 +111,6 @@ out <- out %>%
     ADASTAT2 = "Patient\nTreatment\nEmergent NAb\nStatus",
     AVAL_pk = paste0("Drug\nConcentration\n(", conc_u, ") (3)")
   )
-
-
 ```
 
 ## Standard Listing
