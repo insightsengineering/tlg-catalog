@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"comment":"","results":"markup","dpi":72,"editor-font-scale":1,"output":"true","label":"unnamed-chunk-1","fig-height":5,"read-only":"false","fig-cap":"","message":"true","context":"interactive","editor-quick-suggestions":"false","out-width":"700px","classes":"","out-height":"","warning":"true","autorun":"true","editor-max-height":"500","fig-width":7},"id":1,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadab <- random.cdisc.data::cadab\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadab <- df_explicit_na(adab) %>%\n  mutate(ADPBLPFL = \"Y\") %>% # temp fix\n  filter(\n    ADPBLPFL == \"Y\",\n    !PARAM %in% c(\n      \"NAB interpreted per sample result\",\n      \"NAB Status of a patient\",\n      \"Treatment enhanced ADA\"\n    )\n  ) %>%\n  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%\n  unique() %>%\n  tidyr::pivot_wider(\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate(\n    across(\n      any_of(c(\n        \"Treatment induced ADA\",\n        \"Transient ADA\",\n        \"Persistent ADA\"\n      )),\n      as.logical\n    )\n  ) %>%\n  mutate(\n    ADPBLPFL = ADPBLPFL == \"Y\",\n    TI_ADA = if (exists(\"Treatment induced ADA\", where = .)) `Treatment induced ADA` else FALSE\n  ) %>%\n  var_relabel(\n    ADPBLPFL = \"Post-baseline evaluable patients\",\n    TI_ADA = \"Treatment-induced ADA patients\"\n  )\n\nadab_ti <- adab %>%\n  filter(TI_ADA)\n# Layout for post-baseline evaluable patient variables from adab dataset.\nlyt_adab <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ACTARM\",\n    split_fun = drop_split_levels\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"ADPBLPFL\",\n    .stats = \"count\",\n    table_names = \"post_baseline\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"TI_ADA\"\n  )\n\n# Layout for treatment-induced patient variables from adab dataset.\nlyt_adab_ti <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ACTARM\",\n    split_fun = keep_split_levels(c(\"A: Drug X\", \"C: Combination\", \"<Missing>\")) # temp fix\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(\"Transient ADA\", \"Persistent ADA\"),\n    var_labels = \"Treatment-induced ADA patients with\",\n    show_labels = \"visible\"\n  ) %>%\n  analyze_vars(\n    \"Time to onset of ADA\",\n    .stats = \"median\",\n    nested = FALSE,\n    .labels = c(median = \"Median time to onset of ADA (weeks)\")\n  ) %>%\n  analyze_vars(\n    \"Antibody titer units\",\n    .stats = \"range\",\n    nested = FALSE,\n    .labels = c(range = \"ADA titer range (min - max)\")\n  )\n\nresult_adab <- build_table(lyt_adab, df = adab, alt_counts_df = adsl)\nresult_adab_ti <- build_table(lyt_adab_ti, df = adab_ti, alt_counts_df = adsl)\n\n# Combine tables.\ncol_info(result_adab) <- col_info(result_adab_ti)\nresult <- rbind(\n  result_adab,\n  result_adab_ti\n)\n\nmain_title(result) <- paste(\n  \"Summary of Patients with Treatment-Induced ADA, PK Population\"\n)\nsubtitles(result) <- paste(\"Protocol:\", unique(adab$PARCAT1)[1])\nmain_footer(result) <- paste(\n  \"ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic\n  Antibodies)\n  Treatment-induced ADA = negative or missing baseline.\n  ADA result(s) and at least one positive post-baseline ADA result.\n  Transient ADA = ADA positive result detected (a) at only one post-baseline\n  sampling timepoint (excluding last timepoint) OR (b) at 2 or more timepoints\n  during treatment where the first and last ADA positive samples are separated\n  by a period of < 16 weeks, irrespective of any negative samples in between.\n  Persistent ADA = ADA positive result detected (a) at the last post-baseline\n  sampling timepoint, OR (b) at 2 or more time points during treatment where\n  the first and last ADA positive samples are separated by a period ≥ 16\n  weeks, irrespective of any negative samples in between.\"\n)\nresult"}];
+globalThis.qwebrCellDetails = [{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadab <- random.cdisc.data::cadab\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadab <- df_explicit_na(adab) %>%\n  mutate(ADPBLPFL = \"Y\") %>% # temp fix\n  filter(\n    ADPBLPFL == \"Y\",\n    !PARAM %in% c(\n      \"NAB interpreted per sample result\",\n      \"NAB Status of a patient\",\n      \"Treatment enhanced ADA\"\n    )\n  ) %>%\n  select(-PARAMCD, -AVALC, -AVALU, -ARRLT, -NRRLT) %>%\n  unique() %>%\n  tidyr::pivot_wider(\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate(\n    across(\n      any_of(c(\n        \"Treatment induced ADA\",\n        \"Transient ADA\",\n        \"Persistent ADA\"\n      )),\n      as.logical\n    )\n  ) %>%\n  mutate(\n    ADPBLPFL = ADPBLPFL == \"Y\",\n    TI_ADA = if (exists(\"Treatment induced ADA\", where = .)) `Treatment induced ADA` else FALSE\n  ) %>%\n  var_relabel(\n    ADPBLPFL = \"Post-baseline evaluable patients\",\n    TI_ADA = \"Treatment-induced ADA patients\"\n  )\n\nadab_ti <- adab %>%\n  filter(TI_ADA)\n# Layout for post-baseline evaluable patient variables from adab dataset.\nlyt_adab <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ACTARM\",\n    split_fun = drop_split_levels\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"ADPBLPFL\",\n    .stats = \"count\",\n    table_names = \"post_baseline\"\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = \"TI_ADA\"\n  )\n\n# Layout for treatment-induced patient variables from adab dataset.\nlyt_adab_ti <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    \"ACTARM\",\n    split_fun = keep_split_levels(levels(adab_ti$ACTARM)[-2]) # temp fix\n  ) %>%\n  count_patients_with_flags(\n    \"USUBJID\",\n    flag_variables = c(\"Transient ADA\", \"Persistent ADA\"),\n    var_labels = \"Treatment-induced ADA patients with\",\n    show_labels = \"visible\"\n  ) %>%\n  analyze_vars(\n    \"Time to onset of ADA\",\n    .stats = \"median\",\n    nested = FALSE,\n    .labels = c(median = \"Median time to onset of ADA (weeks)\")\n  ) %>%\n  analyze_vars(\n    \"Antibody titer units\",\n    .stats = \"range\",\n    nested = FALSE,\n    .labels = c(range = \"ADA titer range (min - max)\")\n  )\n\nresult_adab <- build_table(lyt_adab, df = adab, alt_counts_df = adsl)\nresult_adab_ti <- build_table(lyt_adab_ti, df = adab_ti, alt_counts_df = adsl)\n\n# Combine tables.\ncol_info(result_adab) <- col_info(result_adab_ti)\nresult <- rbind(\n  result_adab,\n  result_adab_ti\n)\n\nmain_title(result) <- paste(\n  \"Summary of Patients with Treatment-Induced ADA, PK Population\"\n)\nsubtitles(result) <- paste(\"Protocol:\", unique(adab$PARCAT1)[1])\nmain_footer(result) <- paste(\n  \"ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic\n  Antibodies)\n  Treatment-induced ADA = negative or missing baseline.\n  ADA result(s) and at least one positive post-baseline ADA result.\n  Transient ADA = ADA positive result detected (a) at only one post-baseline\n  sampling timepoint (excluding last timepoint) OR (b) at 2 or more timepoints\n  during treatment where the first and last ADA positive samples are separated\n  by a period of < 16 weeks, irrespective of any negative samples in between.\n  Persistent ADA = ADA positive result detected (a) at the last post-baseline\n  sampling timepoint, OR (b) at 2 or more time points during treatment where\n  the first and last ADA positive samples are separated by a period ≥ 16\n  weeks, irrespective of any negative samples in between.\"\n)\nresult","options":{"output":"true","label":"unnamed-chunk-1","warning":"true","fig-height":5,"fig-cap":"","fig-width":7,"context":"interactive","editor-quick-suggestions":"false","comment":"","editor-max-height":"500","editor-font-scale":1,"out-width":"700px","dpi":72,"message":"true","read-only":"false","results":"markup","out-height":"","classes":"","autorun":"true"},"id":1}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2648,7 +2648,7 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <span id="cb1-19"><a href="#cb1-19"></a>lyt_adab_ti <span class="ot">&lt;-</span> <span class="fu">basic_table</span>(<span class="at">show_colcounts =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb1-20"><a href="#cb1-20"></a>  <span class="fu">split_cols_by</span>(</span>
 <span id="cb1-21"><a href="#cb1-21"></a>    <span class="st">"ACTARM"</span>,</span>
-<span id="cb1-22"><a href="#cb1-22"></a>    <span class="at">split_fun =</span> <span class="fu">keep_split_levels</span>(<span class="fu">c</span>(<span class="st">"A: Drug X"</span>, <span class="st">"C: Combination"</span>, <span class="st">"&lt;Missing&gt;"</span>)) <span class="co"># temp fix</span></span>
+<span id="cb1-22"><a href="#cb1-22"></a>    <span class="at">split_fun =</span> <span class="fu">keep_split_levels</span>(<span class="fu">levels</span>(adab_ti<span class="sc">$</span>ACTARM)[<span class="sc">-</span><span class="dv">2</span>]) <span class="co"># temp fix</span></span>
 <span id="cb1-23"><a href="#cb1-23"></a>  ) <span class="sc">%&gt;%</span></span>
 <span id="cb1-24"><a href="#cb1-24"></a>  <span class="fu">count_patients_with_flags</span>(</span>
 <span id="cb1-25"><a href="#cb1-25"></a>    <span class="st">"USUBJID"</span>,</span>
@@ -2702,18 +2702,18 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 <pre><code>Summary of Patients with Treatment-Induced ADA, PK Population
 Protocol: A: Drug X Antibody
 
-—————————————————————————————————————————————————————————————————————————————
-                                      A: Drug X   C: Combination   &lt;Missing&gt; 
-                                       (N=134)       (N=132)         (N=0)   
-—————————————————————————————————————————————————————————————————————————————
-Post-baseline evaluable patients         134           132            266    
-Treatment-induced ADA patients            0             0          64 (24.1%)
-Treatment-induced ADA patients with                                          
-  Transient ADA                           0             0              0     
-  Persistent ADA                          0             0              0     
-Median time to onset of ADA (weeks)      NA             NA            0.1    
-ADA titer range (min - max)              NA             NA             NA    
-—————————————————————————————————————————————————————————————————————————————
+—————————————————————————————————————————————————————————————————
+                                      A: Drug X    C: Combination
+                                       (N=134)        (N=132)    
+—————————————————————————————————————————————————————————————————
+Post-baseline evaluable patients         134            132      
+Treatment-induced ADA patients        38 (28.4%)     26 (19.7%)  
+Treatment-induced ADA patients with                              
+  Transient ADA                           0              0       
+  Persistent ADA                          0              0       
+Median time to onset of ADA (weeks)      0.1            0.1      
+ADA titer range (min - max)               NA             NA      
+—————————————————————————————————————————————————————————————————
 
 ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic
   Antibodies)
@@ -2815,7 +2815,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-10-09 18:13:07 UTC"</code></pre>
+<pre><code>[1] "2024-10-10 16:16:40 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2831,7 +2831,7 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-10-09
+ date     2024-10-10
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -2845,7 +2845,7 @@ Experimental use!
  colorspace          2.1-1   2024-07-26 [1] CRAN (R 4.4.1)
  digest              0.6.37  2024-08-19 [1] CRAN (R 4.4.1)
  dplyr             * 1.1.4   2023-11-17 [1] CRAN (R 4.4.1)
- evaluate            1.0.0   2024-09-17 [1] CRAN (R 4.4.1)
+ evaluate            1.0.1   2024-10-10 [1] CRAN (R 4.4.1)
  fansi               1.0.6   2023-12-08 [1] CRAN (R 4.4.1)
  fastmap             1.2.0   2024-05-15 [1] CRAN (R 4.4.1)
  forcats             1.0.0   2023-01-29 [1] CRAN (R 4.4.1)
@@ -2867,7 +2867,7 @@ Experimental use!
  pkgconfig           2.0.3   2019-09-22 [1] CRAN (R 4.4.1)
  purrr               1.0.2   2023-08-10 [1] CRAN (R 4.4.1)
  R6                  2.5.1   2021-08-19 [1] CRAN (R 4.4.1)
- random.cdisc.data   0.3.15  2024-10-09 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
+ random.cdisc.data   0.3.16  2024-10-10 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
  rbibutils           2.3     2024-10-04 [1] CRAN (R 4.4.1)
  Rdpack              2.6.1   2024-08-06 [1] CRAN (R 4.4.1)
  rlang               1.1.4   2024-06-04 [1] CRAN (R 4.4.1)
@@ -3615,7 +3615,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb6-84"><a href="#cb6-84"></a><span class="in">lyt_adab_ti &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
 <span id="cb6-85"><a href="#cb6-85"></a><span class="in">  split_cols_by(</span></span>
 <span id="cb6-86"><a href="#cb6-86"></a><span class="in">    "ACTARM",</span></span>
-<span id="cb6-87"><a href="#cb6-87"></a><span class="in">    split_fun = keep_split_levels(c("A: Drug X", "C: Combination", "&lt;Missing&gt;")) # temp fix</span></span>
+<span id="cb6-87"><a href="#cb6-87"></a><span class="in">    split_fun = keep_split_levels(levels(adab_ti$ACTARM)[-2]) # temp fix</span></span>
 <span id="cb6-88"><a href="#cb6-88"></a><span class="in">  ) %&gt;%</span></span>
 <span id="cb6-89"><a href="#cb6-89"></a><span class="in">  count_patients_with_flags(</span></span>
 <span id="cb6-90"><a href="#cb6-90"></a><span class="in">    "USUBJID",</span></span>
