@@ -6,18 +6,18 @@
       Summary of Patients with Treatment-Induced ADA, PK Population
       Protocol: A: Drug X Antibody
       
-      —————————————————————————————————————————————————————————————————————————————
-                                            A: Drug X   C: Combination   <Missing> 
-                                             (N=134)       (N=132)         (N=0)   
-      —————————————————————————————————————————————————————————————————————————————
-      Post-baseline evaluable patients         134           132            266    
-      Treatment-induced ADA patients            0             0          64 (24.1%)
-      Treatment-induced ADA patients with                                          
-        Transient ADA                           0             0              0     
-        Persistent ADA                          0             0              0     
-      Median time to onset of ADA (weeks)      NA             NA            0.1    
-      ADA titer range (min - max)              NA             NA             NA    
-      —————————————————————————————————————————————————————————————————————————————
+      —————————————————————————————————————————————————————————————————
+                                            A: Drug X    C: Combination
+                                             (N=134)        (N=132)    
+      —————————————————————————————————————————————————————————————————
+      Post-baseline evaluable patients         134            132      
+      Treatment-induced ADA patients        38 (28.4%)     26 (19.7%)  
+      Treatment-induced ADA patients with                              
+        Transient ADA                           0              0       
+        Persistent ADA                          0              0       
+      Median time to onset of ADA (weeks)      0.1            0.1      
+      ADA titer range (min - max)               NA             NA      
+      —————————————————————————————————————————————————————————————————
       
       ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic
         Antibodies)

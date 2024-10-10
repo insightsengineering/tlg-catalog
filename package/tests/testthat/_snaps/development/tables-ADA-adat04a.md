@@ -7,8 +7,8 @@
       Protocol: A: Drug X Antibody
       
       ————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-                                                     A: Drug X   C: Combination   All Drug X   B: Placebo   All Patients
-                                                      (N=134)       (N=132)        (N=266)      (N=134)       (N=400)   
+                                                           A: Drug X   C: Combination   All Drug X   B: Placebo   All Patients
+                                                            (N=134)       (N=132)        (N=266)      (N=134)       (N=400)   
       ————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
       Baseline Prevalence of NAbs                                                                                             
         Baseline evaluable patients for ADA                   134           132            266           0            266     
