@@ -1,0 +1,152 @@
+---
+title: ADAL01
+subtitle: Listing of Anti-Drug Antibody Data for Patients with At Least One ADA Sample Datum by Treatment
+---
+
+------------------------------------------------------------------------
+
+{{< include ../../_utils/envir_hook.qmd >}}
+
+:::: panel-tabset
+```{r setup, message=FALSE, echo=FALSE}
+#| code-fold: show
+
+library(dplyr)
+library(rlistings)
+library(random.cdisc.data)
+
+adpc <- cadpc
+adab <- cadab
+
+trt <- "A: Drug X"
+min_titer_ada <- 1.10
+min_titer_nab <- 1.10
+min_conc <- 3.0
+
+if (unique(adpc$RELTMU) == "hr") adpc$NFRLT <- adpc$NFRLT / 24
+adpc_f <- adpc %>% filter(PARAM == "Plasma Drug X")
+
+
+drug_a <- unique(adab$PARCAT1)[1]
+drugcd <- unique(adab$PARAMCD[adab$PARAM == "Antibody titer units"])[1]
+conc_u <- unique(adpc_f$AVALU)
+
+adpc_f <- adpc_f %>% select(USUBJID, NFRLT, AVAL)
+adab1 <- adab %>%
+  filter(ARM == trt) %>%
+  select(-PARAM, -PARCAT1, -AVALC, -AVALU) %>%
+  left_join(
+    adpc_f,
+    by = c("USUBJID", "NFRLT"),
+    suffix = c("_ab", "_pk")
+  ) %>%
+  filter(!is.na(AVAL_ab))
+
+adab_f <- adab1 %>%
+  tidyr::pivot_wider(
+    id_cols = c(USUBJID, VISIT, NFRLT, ISTPT, AVAL_pk),
+    names_from = PARAMCD,
+    values_from = AVAL_ab
+  )
+# Select the necessary ADA parameters
+adab_f1 <- adab_f %>%
+  select(USUBJID, VISIT, NFRLT, ISTPT, AVAL_pk, R1800000, R1800001, RESULT1, RESULT2, ADASTAT1, ADASTAT2) %>%
+  mutate(ADA = R1800000, NAB = R1800001) %>%
+  select(-R1800000, -R1800001)
+
+
+# Find subject level ADA status
+adab_s <- adab_f1 %>%
+  select(USUBJID, ADASTAT1, ADASTAT2) %>%
+  filter(!is.na(ADASTAT1), !is.na(ADASTAT2))
+# Find time-vary ADA records
+adab_r <- adab_f1 %>%
+  select(-ADASTAT1, -ADASTAT2) %>%
+  filter(!is.na(VISIT))
+
+adab_o <- adab_r %>% left_join(adab_s, by = "USUBJID")
+
+out <- adab_o %>%
+  mutate(AVAL_pk = ifelse(AVAL_pk == 0, NA, AVAL_pk)) %>%
+  mutate(NFRLT = as.numeric(NFRLT)) %>%
+  mutate(
+    RESULT1 = ifelse(RESULT1 == 1, "Positive", "Negative"),
+    RESULT2 = ifelse(RESULT2 == 1, "Positive", "Negative"),
+    ADASTAT1 = ifelse(ADASTAT1 == 1, "Positive", "Negative"),
+    ADASTAT2 = ifelse(ADASTAT2 == 1, "Positive", "Negative"),
+    # ADA = ifelse(ADA < min_titer_ada, NA, ADA),
+    # NAB = ifelse(NAB < min_titer_nab, NA, NAB),
+    AVAL_pk = ifelse(AVAL_pk < min_conc, "BLQ", AVAL_pk)
+  ) %>%
+  select(
+    USUBJID, VISIT, ISTPT, NFRLT, ADA, NAB, RESULT1, RESULT2, ADASTAT1, ADASTAT2,
+    AVAL_pk
+  ) %>%
+  mutate_at(
+    c("NFRLT", "ADA", "NAB", "AVAL_pk"),
+    ~ ifelse(is.na(.), replace(., is.na(.), "N/A"), format(round(., 2), nsmall = 2))
+  )
+
+var_labels(out) <- names(out)
+
+out <- out %>%
+  arrange(USUBJID, VISIT, desc(ISTPT), NFRLT) %>%
+  group_by(USUBJID) %>%
+  mutate(
+    ADASTAT1 = ifelse(row_number() == 1, ADASTAT1, ""),
+    ADASTAT2 = ifelse(row_number() == 1, ADASTAT2, "")
+  ) %>% # Keep only the first value in ADA status, set others to ""
+  var_relabel(
+    USUBJID = "Subject ID",
+    VISIT = "Visit",
+    ISTPT = "Timepoint",
+    NFRLT = "Nominal\nTime\n(hr)",
+    RESULT1 = "Sample\nADA\nResult",
+    ADA = "ADA\nTiter\nUnits\n(1)",
+    ADASTAT1 = "Patient\nTreatment\nEmergent ADA\nStatus",
+    RESULT2 = "Sample\nNeutralizing\nAntibody\n(NAb) Result",
+    NAB = "NAb\nTiter\nUnits\n(2)",
+    ADASTAT2 = "Patient\nTreatment\nEmergent NAb\nStatus",
+    AVAL_pk = paste0("Drug\nConcentration\n(", conc_u, ") (3)")
+  )
+```
+
+## Standard Listing
+
+::: {.panel-tabset .nav-justified group="webr"}
+## {{< fa regular file-lines sm fw >}} Preview
+
+```{r lsting, test = list(lsting = "lsting")}
+lsting <- as_listing(
+  out,
+  key_cols = c("USUBJID", "VISIT"),
+  disp_cols = names(out),
+  main_title = paste0(
+    "Listing of Anti-", drugcd, " Antibody Data for Patients with At Least One ADA Sample Datum by Treatment, ",
+    "PK Population\nProtocol: ", drug_a
+  ),
+  subtitles = paste("\nTreatment Group:", trt),
+  main_footer = "(1) Minimum reportable titer = 1.10 (example only)
+(2) Minimum reportable titer = 1.10 (example only)
+(3) Minimum reportable concentration = 3.0 (example only)
+BLQ = Below Limit of Quantitation, LTR = Lower than Reportable, N/A = Not Applicable, N.C. = Not Calculable,
+ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies)
+ROXXXXXXX is also known as [drug]"
+)
+
+tail(lsting, 50)[1:24, ]
+```
+
+`r webr_code_labels <- c("setup", "lsting")` {{< include ../../_utils/webr.qmd >}}
+:::
+
+## Data Setup
+
+```{r setup}
+#| code-fold: show
+```
+::::
+
+{{< include ../../_utils/save_results.qmd >}}
+
+{{< include ../../repro.qmd >}}
