@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"out-width":"700px","classes":"","warning":"true","context":"interactive","editor-max-height":"500","label":"unnamed-chunk-1","fig-height":5,"output":"true","comment":"","message":"true","read-only":"false","results":"markup","dpi":72,"editor-font-scale":1,"fig-cap":"","autorun":"true","fig-width":7,"out-height":"","editor-quick-suggestions":"false"},"code":"library(dplyr)\nlibrary(tern)\n\nadsl <- random.cdisc.data::cadsl\nadab <- random.cdisc.data::cadab\nadpc <- random.cdisc.data::cadpc\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadab <- df_explicit_na(adab)\nadpc <- df_explicit_na(adpc)\n\n# Adjust zzz parameter\nmax_conc <- 15\n\nadpc <- adpc %>% select(USUBJID, NFRLT, AVAL, AVALU, AVALCAT1)\n\nanl <- adab %>%\n  filter(., PARAM == \"ADA interpreted per sample result\") %>%\n  select(-AVAL, AVALC, AVALU)\n\nanl <- merge(anl, adpc, by = c(\"USUBJID\", \"NFRLT\")) %>%\n  mutate(AVAL_LT = ifelse(AVAL <= max_conc, TRUE, FALSE))\n# parameters in columns\nadat03_stats <- c(\"n\", \"mean\", \"sd\", \"median\", \"min\", \"max\", \"cv\", \"geom_mean\", \"count_fraction\")\nadat03_lbls <- c(\n  n = \"Total Number\\nof Measurable\\n Samples\",\n  mean = \"Mean\",\n  sd = \"SD\",\n  median = \"Median\",\n  min = \"Minimum\",\n  max = \"Maximum\",\n  cv = \"CV (%)\",\n  geom_mean = \"Geometric Mean\",\n  count_fraction = paste0(\"Samples with\\nConcentration\\n≤ \", max_conc, \"μg/mL\")\n)\nadat03_fmts <- c(\n  n = \"xx.\",\n  mean = format_sigfig(3),\n  sd = format_sigfig(3),\n  median = format_sigfig(3),\n  min = format_sigfig(3),\n  max = format_sigfig(3),\n  cv = \"xx.x\",\n  geom_mean = format_sigfig(3),\n  count_fraction = format_count_fraction\n)\n\nafun_list <- lapply(\n  1:9,\n  function(i) make_afun(s_summary, .stats = adat03_stats[i], .formats = adat03_fmts[i], .labels = \"Overall\")\n)\n\n# lyt creation\nlyt <- basic_table() %>%\n  split_rows_by(\n    var = \"ARM\",\n    label_pos = \"topleft\",\n    split_label = \"Treatment Group\",\n    split_fun = drop_split_levels,\n    section_div = \"\"\n  ) %>%\n  add_rowcounts() %>%\n  split_rows_by(\n    var = \"VISIT\",\n    label_pos = \"topleft\",\n    split_label = \"Visit\",\n    split_fun = drop_split_levels,\n    child_labels = \"hidden\"\n  ) %>%\n  analyze_vars_in_cols(\n    vars = c(rep(\"AVAL\", 8), \"AVAL_LT\"),\n    .stats = adat03_stats,\n    .labels = adat03_lbls,\n    .formats = adat03_fmts\n  ) %>%\n  analyze_colvars(\n    afun_list,\n    nested = FALSE,\n    extra_args = list(\".labels\" = \"Overall\")\n  )\n\nresult <- build_table(lyt, anl, alt_counts_df = adsl)\n\nmain_title(result) <- paste(\n  \"Summary of Serum Concentrations (μg/mL) at Timepoints Where ADA Samples Were Collected and Analyzed\\n\n  Protocol:\", unique(adab$PARCAT1)[1]\n)\nsubtitles(result) <- paste(\"Analyte:\", unique(adab$PARAMCD)[1])\nfnotes_at_path(result, rowpath = NULL, colpath = c(\"multivars\", \"AVAL\")) <- \"Refers to the total no. of measurable ADA samples that have a corresponding measurable drug concentration sample (i.e. results with valid numeric values and LTRs). LTR results on post-dose samples are replaced by aaa µg/mL i.e. half of MQC value.\" # nolint: line_length.\nfnotes_at_path(result, rowpath = NULL, colpath = c(\"multivars\", \"AVAL_LT\")) <- \"In validation, the assay was able to detect yyy ng/mL of surrogate ADA in the presence of zzz µg/mL of [drug]. BLQ = Below Limit of Quantitation, LTR = Lower than Reportable, MQC = Minimum Quantifiable Concentration, ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies). RXXXXXXX is also known as [drug]\" # nolint: line_length.\n\nresult","id":1}];
+globalThis.qwebrCellDetails = [{"options":{"autorun":"true","comment":"","label":"unnamed-chunk-1","warning":"true","dpi":72,"message":"true","fig-cap":"","out-height":"","out-width":"700px","results":"markup","editor-quick-suggestions":"false","read-only":"false","editor-max-height":"500","output":"true","fig-width":7,"fig-height":5,"classes":"","context":"interactive","editor-font-scale":1},"id":1,"code":"library(dplyr)\nlibrary(tern)\n\nadsl <- random.cdisc.data::cadsl\nadab <- random.cdisc.data::cadab\nadpc <- random.cdisc.data::cadpc\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadab <- df_explicit_na(adab)\nadpc <- df_explicit_na(adpc)\n\n# Adjust zzz parameter\nmax_conc <- 15\n\nadpc <- adpc %>% select(USUBJID, NFRLT, AVAL, AVALU, AVALCAT1)\n\nanl <- adab %>%\n  filter(., PARAM == \"ADA interpreted per sample result\") %>%\n  select(-AVAL, AVALC, AVALU)\n\nanl <- merge(anl, adpc, by = c(\"USUBJID\", \"NFRLT\")) %>%\n  mutate(AVAL_LT = ifelse(AVAL <= max_conc, TRUE, FALSE))\n# parameters in columns\nadat03_stats <- c(\"n\", \"mean\", \"sd\", \"median\", \"min\", \"max\", \"cv\", \"geom_mean\", \"count_fraction\")\nadat03_lbls <- c(\n  n = \"Total Number\\nof Measurable\\n Samples\",\n  mean = \"Mean\",\n  sd = \"SD\",\n  median = \"Median\",\n  min = \"Minimum\",\n  max = \"Maximum\",\n  cv = \"CV (%)\",\n  geom_mean = \"Geometric Mean\",\n  count_fraction = paste0(\"Samples with\\nConcentration\\n≤ \", max_conc, \"μg/mL\")\n)\nadat03_fmts <- c(\n  n = \"xx.\",\n  mean = format_sigfig(3),\n  sd = format_sigfig(3),\n  median = format_sigfig(3),\n  min = format_sigfig(3),\n  max = format_sigfig(3),\n  cv = \"xx.x\",\n  geom_mean = format_sigfig(3),\n  count_fraction = format_count_fraction\n)\n\nafun_list <- lapply(\n  1:9,\n  function(i) make_afun(s_summary, .stats = adat03_stats[i], .formats = adat03_fmts[i], .labels = \"Overall\")\n)\n\n# lyt creation\nlyt <- basic_table() %>%\n  split_rows_by(\n    var = \"ARM\",\n    label_pos = \"topleft\",\n    split_label = \"Treatment Group\",\n    split_fun = drop_split_levels,\n    section_div = \"\"\n  ) %>%\n  add_rowcounts() %>%\n  split_rows_by(\n    var = \"VISIT\",\n    label_pos = \"topleft\",\n    split_label = \"Visit\",\n    split_fun = drop_split_levels,\n    child_labels = \"hidden\"\n  ) %>%\n  analyze_vars_in_cols(\n    vars = c(rep(\"AVAL\", 8), \"AVAL_LT\"),\n    .stats = adat03_stats,\n    .labels = adat03_lbls,\n    .formats = adat03_fmts\n  ) %>%\n  analyze_colvars(\n    afun_list,\n    nested = FALSE,\n    extra_args = list(\".labels\" = \"Overall\")\n  )\n\nresult <- build_table(lyt, anl, alt_counts_df = adsl)\n\nmain_title(result) <- paste(\n  \"Summary of Serum Concentrations (μg/mL) at Timepoints Where ADA Samples Were Collected and Analyzed\\n\n  Protocol:\", unique(adab$PARCAT1)[1]\n)\nsubtitles(result) <- paste(\"Analyte:\", unique(adab$PARAMCD)[1])\nfnotes_at_path(result, rowpath = NULL, colpath = c(\"multivars\", \"AVAL\")) <- \"Refers to the total no. of measurable ADA samples that have a corresponding measurable drug concentration sample (i.e. results with valid numeric values and LTRs). LTR results on post-dose samples are replaced by aaa µg/mL i.e. half of MQC value.\" # nolint: line_length.\nfnotes_at_path(result, rowpath = NULL, colpath = c(\"multivars\", \"AVAL_LT\")) <- \"In validation, the assay was able to detect yyy ng/mL of surrogate ADA in the presence of zzz µg/mL of [drug]. BLQ = Below Limit of Quantitation, LTR = Lower than Reportable, MQC = Minimum Quantifiable Concentration, ADA = Anti-Drug Antibodies (is also referred to as ATA, or Anti-Therapeutic Antibodies). RXXXXXXX is also known as [drug]\" # nolint: line_length.\n\nresult"}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2788,7 +2788,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-09-25 17:49:21 UTC"</code></pre>
+<pre><code>[1] "2024-10-10 16:47:14 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2797,39 +2797,39 @@ Experimental use!
 <pre><code>─ Session info ───────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.4.1 (2024-06-14)
- os       Ubuntu 22.04.4 LTS
+ os       Ubuntu 22.04.5 LTS
  system   x86_64, linux-gnu
  ui       X11
  language (EN)
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-09-25
- pandoc   3.3 @ /usr/bin/ (via rmarkdown)
+ date     2024-10-10
+ pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
  package           * version     date (UTC) lib source
  backports           1.5.0       2024-05-23 [1] CRAN (R 4.4.1)
  brio                1.1.5       2024-04-24 [1] CRAN (R 4.4.1)
- broom               1.0.6       2024-05-17 [1] CRAN (R 4.4.1)
+ broom               1.0.7       2024-09-26 [1] CRAN (R 4.4.1)
  checkmate           2.3.2       2024-07-29 [1] CRAN (R 4.4.1)
  cli                 3.6.3       2024-06-21 [1] CRAN (R 4.4.1)
  codetools           0.2-20      2024-03-31 [2] CRAN (R 4.4.1)
  colorspace          2.1-1       2024-07-26 [1] CRAN (R 4.4.1)
  digest              0.6.37      2024-08-19 [1] CRAN (R 4.4.1)
  dplyr             * 1.1.4       2023-11-17 [1] CRAN (R 4.4.1)
- evaluate            0.24.0      2024-06-10 [1] CRAN (R 4.4.1)
+ evaluate            1.0.0       2024-09-17 [1] CRAN (R 4.4.1)
  fansi               1.0.6       2023-12-08 [1] CRAN (R 4.4.1)
  fastmap             1.2.0       2024-05-15 [1] CRAN (R 4.4.1)
  forcats             1.0.0       2023-01-29 [1] CRAN (R 4.4.1)
- formatters        * 0.5.9.9001  2024-09-25 [1] git2r (https://github.com/insightsengineering/formatters.git@85be9d5)
+ formatters        * 0.5.9.9001  2024-10-10 [1] git2r (https://github.com/insightsengineering/formatters.git@85be9d5)
  generics            0.1.3       2022-07-05 [1] CRAN (R 4.4.1)
  ggplot2             3.5.1       2024-04-23 [1] CRAN (R 4.4.1)
- glue                1.7.0       2024-01-09 [1] CRAN (R 4.4.1)
+ glue                1.8.0       2024-09-30 [1] CRAN (R 4.4.1)
  gtable              0.3.5       2024-04-22 [1] CRAN (R 4.4.1)
  htmltools           0.5.8.1     2024-04-04 [1] CRAN (R 4.4.1)
  htmlwidgets         1.6.4       2023-12-06 [1] CRAN (R 4.4.1)
- jsonlite            1.8.8       2023-12-04 [1] CRAN (R 4.4.1)
+ jsonlite            1.8.9       2024-09-20 [1] CRAN (R 4.4.1)
  knitr               1.48        2024-07-07 [1] CRAN (R 4.4.1)
  lattice             0.22-6      2024-03-20 [2] CRAN (R 4.4.1)
  lifecycle           1.0.4       2023-11-07 [1] CRAN (R 4.4.1)
@@ -2840,18 +2840,18 @@ Experimental use!
  pkgconfig           2.0.3       2019-09-22 [1] CRAN (R 4.4.1)
  purrr               1.0.2       2023-08-10 [1] CRAN (R 4.4.1)
  R6                  2.5.1       2021-08-19 [1] CRAN (R 4.4.1)
- random.cdisc.data   0.3.15.9009 2024-09-25 [1] git2r (https://github.com/insightsengineering/random.cdisc.data.git@8eaaf8a)
- rbibutils           2.2.16      2023-10-25 [1] CRAN (R 4.4.1)
+ random.cdisc.data   0.3.16.9000 2024-10-10 [1] git2r (https://github.com/insightsengineering/random.cdisc.data.git@2694f66)
+ rbibutils           2.3         2024-10-04 [1] CRAN (R 4.4.1)
  Rdpack              2.6.1       2024-08-06 [1] CRAN (R 4.4.1)
  rlang               1.1.4       2024-06-04 [1] CRAN (R 4.4.1)
  rmarkdown           2.28        2024-08-17 [1] CRAN (R 4.4.1)
- rtables           * 0.6.10.9000 2024-09-25 [1] git2r (https://github.com/insightsengineering/rtables.git@204a0fb)
+ rtables           * 0.6.10.9001 2024-10-10 [1] git2r (https://github.com/insightsengineering/rtables.git@5d29a34)
  scales              1.3.0       2023-11-28 [1] CRAN (R 4.4.1)
  sessioninfo         1.2.2       2021-12-06 [1] CRAN (R 4.4.1)
  stringi             1.8.4       2024-05-06 [1] CRAN (R 4.4.1)
  stringr             1.5.1       2023-11-14 [1] CRAN (R 4.4.1)
  survival            3.7-0       2024-06-05 [2] CRAN (R 4.4.1)
- tern              * 0.9.6.9000  2024-09-25 [1] git2r (https://github.com/insightsengineering/tern.git@0dc93df)
+ tern              * 0.9.6.9005  2024-10-10 [1] git2r (https://github.com/insightsengineering/tern.git@eae5ff2)
  testthat            3.2.1.1     2024-04-14 [1] CRAN (R 4.4.1)
  tibble              3.2.1       2023-03-20 [1] CRAN (R 4.4.1)
  tidyr               1.3.1       2024-01-24 [1] CRAN (R 4.4.1)
@@ -2859,7 +2859,7 @@ Experimental use!
  utf8                1.2.4       2023-10-22 [1] CRAN (R 4.4.1)
  vctrs               0.6.5       2023-12-01 [1] CRAN (R 4.4.1)
  withr               3.0.1       2024-07-31 [1] CRAN (R 4.4.1)
- xfun                0.47        2024-08-17 [1] CRAN (R 4.4.1)
+ xfun                0.48        2024-10-03 [1] CRAN (R 4.4.1)
  yaml                2.3.10      2024-07-26 [1] CRAN (R 4.4.1)
 
  [1] /usr/local/lib/R/site-library
