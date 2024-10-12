@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"code":"library(dplyr)\nlibrary(rlistings)\n\nadrs <- random.cdisc.data::cadrs\nadtte <- random.cdisc.data::cadtte\nadex <- random.cdisc.data::cadex\n\nout_ex <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  mutate(ID = paste(SITEID, SUBJID, sep = \"/\")) %>%\n  select(ID, AVAL)\n\nout_rs <- adrs %>%\n  filter(PARAM %in% c(\"Investigator End Of Induction Response\", \"Best Confirmed Overall Response by Investigator\")) %>%\n  mutate(ID = paste(SITEID, SUBJID, sep = \"/\")) %>%\n  select(ID, AVALC, PARAM) %>%\n  tidyr::pivot_wider(\n    id_cols = ID,\n    names_from = PARAM,\n    values_from = AVALC\n  ) %>%\n  right_join(out_ex, ., by = \"ID\", multiple = \"all\")\n\nadtte_flt <- adtte %>%\n  filter(PARAMCD %in% c(\"OS\", \"PFS\", \"CRSD\")) %>%\n  mutate(\n    PARAM = paste(PARAM, paste0(\"(\", AVALU, \")\"), sep = \" \"), ID = paste(SITEID, SUBJID, sep = \"/\"),\n    trigeventpfs = ifelse(CNSR == 0, EVNTDESC, NA)\n  )\n\n# Select triggering event variable\nout_trg <- adtte_flt %>%\n  select(ID, trigeventpfs)\n\nout_tte <- adtte_flt %>%\n  select(ID, TRT01A, PARAM, AVAL, trigeventpfs) %>%\n  tidyr::pivot_wider(\n    id_cols = c(ID, TRT01A),\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate_at(\n    c(\"Overall Survival (DAYS)\", \"Progression Free Survival (DAYS)\", \"Duration of Confirmed Response (DAYS)\"),\n    function(x) format(round(x, 1), nsmall = 1)\n  ) %>%\n  select(\n    ID,\n    TRT01A,\n    `Overall Survival (DAYS)`,\n    `Progression Free Survival (DAYS)`,\n    `Duration of Confirmed Response (DAYS)`\n  ) %>%\n  right_join(out_trg, ., by = \"ID\", multiple = \"all\")\n\nout <- out_tte %>%\n  right_join(out_rs, ., by = \"ID\", multiple = \"all\") %>%\n  select(\n    \"ID\", \"TRT01A\", \"AVAL\", \"Best Confirmed Overall Response by Investigator\",\n    \"Investigator End Of Induction Response\", \"Overall Survival (DAYS)\", \"Progression Free Survival (DAYS)\",\n    \"trigeventpfs\", \"Duration of Confirmed Response (DAYS)\"\n  )\n\nvar_labels(out) <- names(out)\nout <- out %>%\n  var_relabel(\n    ID = \"Center/Patient ID\",\n    TRT01A = \"Treatment\",\n    AVAL = \"Number of Doses\\nReceived\",\n    `Best Confirmed Overall Response by Investigator` = \"Best Confirmed\\nOverall Response\\nby Investigator\",\n    `Investigator End Of Induction Response` = \"Investigator\\nEnd Of Induction\\nResponse\",\n    trigeventpfs = \"Triggering Event\\n for PFS\",\n    `Overall Survival (DAYS)` = \"Overall Survival\\n(days)\",\n    `Progression Free Survival (DAYS)` = \"PFS\\n(days)\",\n    `Duration of Confirmed Response (DAYS)` = \"Duration of\\nConfirmed Response\\n(days)\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"ID\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Individual Efficacy Data\",\n  main_footer = \"PFS = Progression Free Survival\"\n)\n\nhead(lsting, 20)","options":{"context":"interactive","dpi":72,"message":"true","out-width":"700px","results":"markup","fig-width":7,"fig-cap":"","output":"true","classes":"","warning":"true","editor-font-scale":1,"label":"unnamed-chunk-1","read-only":"false","editor-quick-suggestions":"false","editor-max-height":"500","comment":"","out-height":"","fig-height":5,"autorun":"true"}}];
+globalThis.qwebrCellDetails = [{"id":1,"code":"library(dplyr)\nlibrary(rlistings)\n\nadrs <- random.cdisc.data::cadrs\nadtte <- random.cdisc.data::cadtte\nadex <- random.cdisc.data::cadex\n\nout_ex <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  mutate(ID = paste(SITEID, SUBJID, sep = \"/\")) %>%\n  select(ID, AVAL)\n\nout_rs <- adrs %>%\n  filter(PARAM %in% c(\"Investigator End Of Induction Response\", \"Best Confirmed Overall Response by Investigator\")) %>%\n  mutate(ID = paste(SITEID, SUBJID, sep = \"/\")) %>%\n  select(ID, AVALC, PARAM) %>%\n  tidyr::pivot_wider(\n    id_cols = ID,\n    names_from = PARAM,\n    values_from = AVALC\n  ) %>%\n  right_join(out_ex, ., by = \"ID\", multiple = \"all\")\n\nadtte_flt <- adtte %>%\n  filter(PARAMCD %in% c(\"OS\", \"PFS\", \"CRSD\")) %>%\n  mutate(\n    PARAM = paste(PARAM, paste0(\"(\", AVALU, \")\"), sep = \" \"), ID = paste(SITEID, SUBJID, sep = \"/\"),\n    trigeventpfs = ifelse(CNSR == 0, EVNTDESC, NA)\n  )\n\n# Select triggering event variable\nout_trg <- adtte_flt %>%\n  select(ID, trigeventpfs)\n\nout_tte <- adtte_flt %>%\n  select(ID, TRT01A, PARAM, AVAL, trigeventpfs) %>%\n  tidyr::pivot_wider(\n    id_cols = c(ID, TRT01A),\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate_at(\n    c(\"Overall Survival (DAYS)\", \"Progression Free Survival (DAYS)\", \"Duration of Confirmed Response (DAYS)\"),\n    function(x) format(round(x, 1), nsmall = 1)\n  ) %>%\n  select(\n    ID,\n    TRT01A,\n    `Overall Survival (DAYS)`,\n    `Progression Free Survival (DAYS)`,\n    `Duration of Confirmed Response (DAYS)`\n  ) %>%\n  right_join(out_trg, ., by = \"ID\", multiple = \"all\")\n\nout <- out_tte %>%\n  right_join(out_rs, ., by = \"ID\", multiple = \"all\") %>%\n  select(\n    \"ID\", \"TRT01A\", \"AVAL\", \"Best Confirmed Overall Response by Investigator\",\n    \"Investigator End Of Induction Response\", \"Overall Survival (DAYS)\", \"Progression Free Survival (DAYS)\",\n    \"trigeventpfs\", \"Duration of Confirmed Response (DAYS)\"\n  )\n\nvar_labels(out) <- names(out)\nout <- out %>%\n  var_relabel(\n    ID = \"Center/Patient ID\",\n    TRT01A = \"Treatment\",\n    AVAL = \"Number of Doses\\nReceived\",\n    `Best Confirmed Overall Response by Investigator` = \"Best Confirmed\\nOverall Response\\nby Investigator\",\n    `Investigator End Of Induction Response` = \"Investigator\\nEnd Of Induction\\nResponse\",\n    trigeventpfs = \"Triggering Event\\n for PFS\",\n    `Overall Survival (DAYS)` = \"Overall Survival\\n(days)\",\n    `Progression Free Survival (DAYS)` = \"PFS\\n(days)\",\n    `Duration of Confirmed Response (DAYS)` = \"Duration of\\nConfirmed Response\\n(days)\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"ID\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Individual Efficacy Data\",\n  main_footer = \"PFS = Progression Free Survival\"\n)\n\nhead(lsting, 20)","options":{"label":"unnamed-chunk-1","warning":"true","editor-font-scale":1,"comment":"","fig-width":7,"results":"markup","classes":"","fig-cap":"","autorun":"true","output":"true","message":"true","dpi":72,"read-only":"false","context":"interactive","out-width":"700px","editor-quick-suggestions":"false","out-height":"","editor-max-height":"500","fig-height":5}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2791,7 +2791,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-10-09 18:16:24 UTC"</code></pre>
+<pre><code>[1] "2024-10-12 18:15:18 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2807,7 +2807,7 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-10-09
+ date     2024-10-12
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -2819,7 +2819,7 @@ Experimental use!
  codetools           0.2-20  2024-03-31 [2] CRAN (R 4.4.1)
  digest              0.6.37  2024-08-19 [1] CRAN (R 4.4.1)
  dplyr             * 1.1.4   2023-11-17 [1] CRAN (R 4.4.1)
- evaluate            1.0.0   2024-09-17 [1] CRAN (R 4.4.1)
+ evaluate            1.0.1   2024-10-10 [1] CRAN (R 4.4.1)
  fansi               1.0.6   2023-12-08 [1] CRAN (R 4.4.1)
  fastmap             1.2.0   2024-05-15 [1] CRAN (R 4.4.1)
  formatters        * 0.5.9   2024-09-12 [1] CRAN (R 4.4.1)
@@ -2835,7 +2835,7 @@ Experimental use!
  pkgconfig           2.0.3   2019-09-22 [1] CRAN (R 4.4.1)
  purrr               1.0.2   2023-08-10 [1] CRAN (R 4.4.1)
  R6                  2.5.1   2021-08-19 [1] CRAN (R 4.4.1)
- random.cdisc.data   0.3.15  2024-10-09 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
+ random.cdisc.data   0.3.16  2024-10-12 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
  rlang               1.1.4   2024-06-04 [1] CRAN (R 4.4.1)
  rlistings         * 0.2.9   2024-06-20 [1] CRAN (R 4.4.1)
  rmarkdown           2.28    2024-08-17 [1] CRAN (R 4.4.1)
