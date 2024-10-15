@@ -1,5 +1,5 @@
 test_article <- function(article_path) {
-  if (isTRUE(if_render_articles)) {
+  if (isTRUE(if_render_articles) && isTRUE(if_book_exists)) {
     quarto::quarto_render(
       file.path(test_book_path, article_path),
       as_job = FALSE,
