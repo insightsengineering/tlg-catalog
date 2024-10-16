@@ -1,7 +1,7 @@
 test_profile <- Sys.getenv("QUARTO_PROFILE", "stable")
 test_book_path <- testthat::test_path("_book")
 test_data_path <- testthat::test_path("_data")
-Sys.setenv("QUARTO_TESTTHAT_DATA_PATH" = normalizePath(test_data_path))
+Sys.setenv("TLG_CATALOG_PKG_TEST_DATA_PATH" = normalizePath(test_data_path))
 
 # Flags for developers
 # use it if you want to disable render of book or render individual articles instead
@@ -10,8 +10,9 @@ Sys.setenv("QUARTO_TESTTHAT_DATA_PATH" = normalizePath(test_data_path))
 # (ii) set if_render_article to TRUE
 # (iii) assure proper value of `test_profile` ("development" or "stable")
 # (iv) run `devtools::test(filter = "<article_name>")`
-if_render_book <- TRUE # Remember to change this to FALSE if you want to render articles (otherwise loop)
-if_render_articles <- !if_render_book
+if_book_exists <- file.exists(test_book_path)
+if_render_book <- FALSE # Remember to change this to FALSE if you want to render articles (otherwise loop)
+if_render_articles <- FALSE
 if_test_plots <- FALSE # Additional option for optional skip of local plot tests
 # Example for render articles (NOTE: KEEP THESE COMMENTED WHEN RUNNING!!):
 # setwd("package")
@@ -26,7 +27,7 @@ if (isTRUE(if_render_book) && isTRUE(if_render_articles)) {
   stop("Render both book and articles at the same time is not efficient! Please set one of them to FALSE.")
 }
 
-if (isTRUE(if_render_book)) {
+if (isTRUE(if_render_book) && isTRUE(if_book_exists)) {
   cat("Start rendering the book...\n")
   quarto::quarto_render(
     test_book_path,
@@ -41,4 +42,4 @@ if (isTRUE(if_render_book)) {
 
 # clean up
 withr::defer(Sys.unsetenv("QUARTO_PROFILE"), testthat::teardown_env())
-withr::defer(Sys.unsetenv("QUARTO_TESTTHAT_DATA_PATH"), testthat::teardown_env())
+withr::defer(Sys.unsetenv("TLG_CATALOG_PKG_TEST_DATA_PATH"), testthat::teardown_env())
