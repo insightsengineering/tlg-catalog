@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"options":{"output":"true","fig-cap":"","warning":"true","message":"true","context":"interactive","label":"unnamed-chunk-1","fig-height":5,"editor-quick-suggestions":"false","fig-width":7,"comment":"","editor-max-height":"500","read-only":"false","classes":"","dpi":72,"out-height":"","results":"markup","autorun":"true","editor-font-scale":1,"out-width":"700px"},"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\n\nadvs_label <- var_labels(advs)\n\nadvs <- advs %>%\n  filter(\n    PARAMCD == \"DIABP\",\n    PARAM == \"Diastolic Blood Pressure\"\n  ) %>%\n  mutate(\n    PARAMCD = droplevels(PARAMCD),\n    PARAM = droplevels(PARAM)\n  )\n\n# post-baseline\nadvs_pb <- advs %>%\n  filter(ABLFL != \"Y\", ABLFL2 != \"Y\")\n\nadvs_pb_max <- advs_pb %>%\n  group_by(PARAM, USUBJID) %>%\n  arrange(desc(AVAL)) %>%\n  slice(1) %>%\n  ungroup() %>%\n  mutate(AVISIT = \"Post-Baseline Maximum\")\n\nadvs_pb_min <- advs_pb %>%\n  group_by(PARAM, USUBJID) %>%\n  arrange(AVAL) %>%\n  slice(1) %>%\n  ungroup() %>%\n  mutate(AVISIT = \"Post-Baseline Minimum\")\n\nadvs_pb_last <- advs_pb %>%\n  group_by(PARAM, USUBJID) %>%\n  arrange(desc(AVISITN)) %>%\n  slice(1) %>%\n  ungroup() %>%\n  mutate(AVISIT = \"Post-Baseline Last\")\n\n# Please note that for real data, per ADaM Spec 1.1, the advs_f can be obtained by filtering on PARAMCD, then\n# ANL01FL == 'Y' or AVISIT in c('POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST')\n\nadvs_f <- rbind(\n  advs,\n  advs_pb_last,\n  advs_pb_min,\n  advs_pb_max\n)\n\nadvs_f <- advs_f %>%\n  mutate(AVISIT = droplevels(AVISIT))\n\nvar_labels(advs_f) <- advs_label\nsplit_fun <- drop_split_levels\n\nafun <- function(x, .var, .spl_context, ...) {\n  n_fun <- sum(!is.na(x), na.rm = TRUE)\n  if (n_fun == 0) {\n    mean_sd_fun <- c(NA, NA)\n    median_fun <- NA\n    min_max_fun <- c(NA, NA)\n  } else {\n    mean_sd_fun <- c(mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))\n    median_fun <- median(x, na.rm = TRUE)\n    min_max_fun <- c(min(x), max(x))\n  }\n  is_chg <- .var == \"CHG\"\n  is_baseline <- .spl_context$value[which(.spl_context$split == \"AVISIT\")] == \"BASELINE\"\n  if (is_baseline && is_chg) n_fun <- mean_sd_fun <- median_fun <- min_max_fun <- NULL\n\n  in_rows(\n    \"n\" = n_fun,\n    \"Mean (SD)\" = mean_sd_fun,\n    \"Median\" = median_fun,\n    \"Min - Max\" = min_max_fun,\n    .formats = list(\"n\" = \"xx\", \"Mean (SD)\" = \"xx.xx (xx.xx)\", \"Median\" = \"xx.xx\", \"Min - Max\" = \"xx.xx - xx.xx\"),\n    .format_na_strs = list(\"n\" = \"NE\", \"Mean (SD)\" = \"NE (NE)\", \"Median\" = \"NE\", \"Min - Max\" = \"NE - NE\")\n  )\n}\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"AVISIT\", split_fun = split_fun, label_pos = \"topleft\", split_label = \"\\n\\nAnalysis Visit\") %>%\n  split_cols_by_multivar(\n    vars = c(\"AVAL\", \"CHG\"),\n    varlabels = c(\"Value at Visit\", \"Change from\\nBaseline\")\n  ) %>%\n  analyze_colvars(afun = afun)\n\nresult <- build_table(lyt = lyt, df = advs_f, alt_counts_df = adsl)\nresult"}];
+globalThis.qwebrCellDetails = [{"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\n\nadvs_label <- var_labels(advs)\n\nadvs <- advs %>%\n  filter(\n    PARAMCD == \"DIABP\",\n    PARAM == \"Diastolic Blood Pressure\"\n  ) %>%\n  mutate(\n    PARAMCD = droplevels(PARAMCD),\n    PARAM = droplevels(PARAM)\n  )\n\n# post-baseline\nadvs_pb <- advs %>%\n  filter(ABLFL != \"Y\", ABLFL2 != \"Y\")\n\nadvs_pb_max <- advs_pb %>%\n  group_by(PARAM, USUBJID) %>%\n  arrange(desc(AVAL)) %>%\n  slice(1) %>%\n  ungroup() %>%\n  mutate(AVISIT = \"Post-Baseline Maximum\")\n\nadvs_pb_min <- advs_pb %>%\n  group_by(PARAM, USUBJID) %>%\n  arrange(AVAL) %>%\n  slice(1) %>%\n  ungroup() %>%\n  mutate(AVISIT = \"Post-Baseline Minimum\")\n\nadvs_pb_last <- advs_pb %>%\n  group_by(PARAM, USUBJID) %>%\n  arrange(desc(AVISITN)) %>%\n  slice(1) %>%\n  ungroup() %>%\n  mutate(AVISIT = \"Post-Baseline Last\")\n\n# Please note that for real data, per ADaM Spec 1.1, the advs_f can be obtained by filtering on PARAMCD, then\n# ANL01FL == 'Y' or AVISIT in c('POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST')\n\nadvs_f <- rbind(\n  advs,\n  advs_pb_last,\n  advs_pb_min,\n  advs_pb_max\n)\n\nadvs_f <- advs_f %>%\n  mutate(AVISIT = droplevels(AVISIT))\n\nvar_labels(advs_f) <- advs_label\nsplit_fun <- drop_split_levels\n\nafun <- function(x, .var, .spl_context, ...) {\n  n_fun <- sum(!is.na(x), na.rm = TRUE)\n  if (n_fun == 0) {\n    mean_sd_fun <- c(NA, NA)\n    median_fun <- NA\n    min_max_fun <- c(NA, NA)\n  } else {\n    mean_sd_fun <- c(mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))\n    median_fun <- median(x, na.rm = TRUE)\n    min_max_fun <- c(min(x), max(x))\n  }\n  is_chg <- .var == \"CHG\"\n  is_baseline <- .spl_context$value[which(.spl_context$split == \"AVISIT\")] == \"BASELINE\"\n  if (is_baseline && is_chg) n_fun <- mean_sd_fun <- median_fun <- min_max_fun <- NULL\n\n  in_rows(\n    \"n\" = n_fun,\n    \"Mean (SD)\" = mean_sd_fun,\n    \"Median\" = median_fun,\n    \"Min - Max\" = min_max_fun,\n    .formats = list(\"n\" = \"xx\", \"Mean (SD)\" = \"xx.xx (xx.xx)\", \"Median\" = \"xx.xx\", \"Min - Max\" = \"xx.xx - xx.xx\"),\n    .format_na_strs = list(\"n\" = \"NE\", \"Mean (SD)\" = \"NE (NE)\", \"Median\" = \"NE\", \"Min - Max\" = \"NE - NE\")\n  )\n}\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"AVISIT\", split_fun = split_fun, label_pos = \"topleft\", split_label = \"\\n\\nAnalysis Visit\") %>%\n  split_cols_by_multivar(\n    vars = c(\"AVAL\", \"CHG\"),\n    varlabels = c(\"Value at Visit\", \"Change from\\nBaseline\")\n  ) %>%\n  analyze_colvars(afun = afun)\n\nresult <- build_table(lyt = lyt, df = advs_f, alt_counts_df = adsl)\nresult","options":{"output":"true","message":"true","fig-width":7,"out-height":"","editor-quick-suggestions":"false","editor-font-scale":1,"results":"markup","fig-cap":"","editor-max-height":"500","label":"unnamed-chunk-1","comment":"","context":"interactive","warning":"true","dpi":72,"read-only":"false","out-width":"700px","autorun":"true","fig-height":5,"classes":""},"id":1}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -3075,7 +3075,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-10-19 17:45:37 UTC"</code></pre>
+<pre><code>[1] "2024-10-23 17:46:01 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -3091,7 +3091,7 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-10-19
+ date     2024-10-23
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -3136,7 +3136,7 @@ Experimental use!
  lattice                 0.22-6   2024-03-20 [2] CRAN (R 4.4.1)
  lazyeval                0.2.2    2019-03-15 [1] CRAN (R 4.4.1)
  lifecycle               1.0.4    2023-11-07 [1] CRAN (R 4.4.1)
- logger                  0.3.0    2024-03-05 [1] CRAN (R 4.4.1)
+ logger                  0.4.0    2024-10-22 [1] CRAN (R 4.4.1)
  magrittr              * 2.0.3    2022-03-30 [1] CRAN (R 4.4.1)
  MASS                    7.3-61   2024-06-13 [2] CRAN (R 4.4.1)
  Matrix                  1.7-0    2024-04-26 [1] CRAN (R 4.4.1)
@@ -3154,7 +3154,7 @@ Experimental use!
  ps                      1.8.0    2024-09-12 [1] CRAN (R 4.4.1)
  purrr                   1.0.2    2023-08-10 [1] CRAN (R 4.4.1)
  R6                      2.5.1    2021-08-19 [1] CRAN (R 4.4.1)
- random.cdisc.data       0.3.16   2024-10-19 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
+ random.cdisc.data       0.3.16   2024-10-23 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
  rbibutils               2.3      2024-10-04 [1] CRAN (R 4.4.1)
  Rcpp                    1.0.13   2024-07-17 [1] CRAN (R 4.4.1)
  Rdpack                  2.6.1    2024-08-06 [1] CRAN (R 4.4.1)
