@@ -337,7 +337,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\n\nadsl <- random.cdisc.data::cadsl\nadlb <- random.cdisc.data::cadlb\n\nadlb_labels <- var_labels(adlb)\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadlb <- df_explicit_na(adlb)\n\n# Select worst post-baseline records.\nadlb_f <- adlb %>%\n  filter(ATOXGR != \"<Missing>\") %>%\n  filter(ONTRTFL == \"Y\") %>%\n  filter(WGRLOFL == \"Y\" | WGRHIFL == \"Y\")\n\nvar_labels(adlb_f) <- adlb_labels\n\n# Derive GRADE_DIR and GRADE_ANL to use in layout from ATOXGR\nadlb_f <- adlb_f %>%\n  mutate(\n    GRADE_DIR = factor(\n      case_when(\n        ATOXGR %in% c(\"-1\", \"-2\", \"-3\", \"-4\") & .data$WGRLOFL == \"Y\" ~ \"LOW\",\n        ATOXGR == \"0\" ~ \"ZERO\",\n        ATOXGR %in% c(\"1\", \"2\", \"3\", \"4\") & .data$WGRHIFL == \"Y\" ~ \"HIGH\",\n        TRUE ~ \"NONE\"\n      ),\n      levels = c(\"LOW\", \"ZERO\", \"HIGH\", \"NONE\")\n    ),\n    GRADE_ANL = forcats::fct_relevel(\n      forcats::fct_recode(ATOXGR,\n        `1` = \"-1\", `2` = \"-2\", `3` = \"-3\", `4` = \"-4\"\n      ),\n      c(\"0\", \"1\", \"2\", \"3\", \"4\")\n    )\n  ) %>%\n  var_relabel(\n    GRADE_DIR = \"Direction of Abnormality\",\n    GRADE_ANL = \"Analysis Grade\"\n  )\n\n# Construct analysis map\nmap <- expand.grid(\n  PARAM = levels(adlb$PARAM),\n  GRADE_DIR = c(\"LOW\", \"HIGH\"),\n  GRADE_ANL = as.character(1:4),\n  stringsAsFactors = FALSE\n) %>%\n  arrange(PARAM, desc(GRADE_DIR), GRADE_ANL)\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\n    \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$PARAM)\n  ) %>%\n  summarize_num_patients(\n    var = \"USUBJID\",\n    required = \"ATOXGR\",\n    .stats = \"unique_count\"\n  ) %>%\n  split_rows_by(\n    \"GRADE_DIR\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$GRADE_DIR),\n    split_fun = trim_levels_to_map(map)\n  ) %>%\n  count_abnormal_by_worst_grade(\n    var = \"GRADE_ANL\",\n    variables = list(id = \"USUBJID\", param = \"PARAM\", grade_dir = \"GRADE_DIR\"),\n    .indent_mods = 4L\n  ) %>%\n  append_topleft(\"            Highest NCI CTCAE Grade\")\n\nresult <- build_table(lyt = lyt, df = adlb_f, alt_counts_df = adsl)\nresult <- result %>% prune_table()\n\nresult","options":{"fig-cap":"","dpi":72,"message":"true","read-only":"false","fig-height":5,"label":"unnamed-chunk-1","comment":"","classes":"","results":"markup","warning":"true","output":"true","autorun":"true","editor-quick-suggestions":"false","fig-width":7,"context":"interactive","out-width":"700px","editor-font-scale":1,"editor-max-height":"500","out-height":""}}];
+globalThis.qwebrCellDetails = [{"id":1,"options":{"editor-font-scale":1,"fig-cap":"","message":"true","fig-width":7,"comment":"","label":"unnamed-chunk-1","out-height":"","classes":"","results":"markup","editor-quick-suggestions":"false","warning":"true","out-width":"700px","dpi":72,"autorun":"true","context":"interactive","fig-height":5,"output":"true","read-only":"false","editor-max-height":"500"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(forcats)\n\nadsl <- random.cdisc.data::cadsl\nadlb <- random.cdisc.data::cadlb\n\nadlb_labels <- var_labels(adlb)\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadlb <- df_explicit_na(adlb)\n\n# Select worst post-baseline records.\nadlb_f <- adlb %>%\n  filter(ATOXGR != \"<Missing>\") %>%\n  filter(ONTRTFL == \"Y\") %>%\n  filter(WGRLOFL == \"Y\" | WGRHIFL == \"Y\")\n\nvar_labels(adlb_f) <- adlb_labels\n\n# Derive GRADE_DIR and GRADE_ANL to use in layout from ATOXGR\nadlb_f <- adlb_f %>%\n  mutate(\n    GRADE_DIR = factor(\n      case_when(\n        ATOXGR %in% c(\"-1\", \"-2\", \"-3\", \"-4\") & .data$WGRLOFL == \"Y\" ~ \"LOW\",\n        ATOXGR == \"0\" ~ \"ZERO\",\n        ATOXGR %in% c(\"1\", \"2\", \"3\", \"4\") & .data$WGRHIFL == \"Y\" ~ \"HIGH\",\n        TRUE ~ \"NONE\"\n      ),\n      levels = c(\"LOW\", \"ZERO\", \"HIGH\", \"NONE\")\n    ),\n    GRADE_ANL = forcats::fct_relevel(\n      forcats::fct_recode(ATOXGR,\n        `1` = \"-1\", `2` = \"-2\", `3` = \"-3\", `4` = \"-4\"\n      ),\n      c(\"0\", \"1\", \"2\", \"3\", \"4\")\n    )\n  ) %>%\n  var_relabel(\n    GRADE_DIR = \"Direction of Abnormality\",\n    GRADE_ANL = \"Analysis Grade\"\n  )\n\n# Construct analysis map\nmap <- expand.grid(\n  PARAM = levels(adlb$PARAM),\n  GRADE_DIR = c(\"LOW\", \"HIGH\"),\n  GRADE_ANL = as.character(1:4),\n  stringsAsFactors = FALSE\n) %>%\n  arrange(PARAM, desc(GRADE_DIR), GRADE_ANL)\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\n    \"PARAM\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$PARAM)\n  ) %>%\n  summarize_num_patients(\n    var = \"USUBJID\",\n    required = \"ATOXGR\",\n    .stats = \"unique_count\"\n  ) %>%\n  split_rows_by(\n    \"GRADE_DIR\",\n    label_pos = \"topleft\",\n    split_label = obj_label(adlb_f$GRADE_DIR),\n    split_fun = trim_levels_to_map(map)\n  ) %>%\n  count_abnormal_by_worst_grade(\n    var = \"GRADE_ANL\",\n    variables = list(id = \"USUBJID\", param = \"PARAM\", grade_dir = \"GRADE_DIR\"),\n    .indent_mods = 4L\n  ) %>%\n  append_topleft(\"            Highest NCI CTCAE Grade\")\n\nresult <- build_table(lyt = lyt, df = adlb_f, alt_counts_df = adsl)\nresult <- result %>% prune_table()\n\nresult"}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2945,7 +2945,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-10-26 17:56:36 UTC"</code></pre>
+<pre><code>[1] "2024-10-30 17:54:14 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2961,7 +2961,7 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-10-26
+ date     2024-10-30
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -3018,10 +3018,10 @@ Experimental use!
  pkgconfig               2.0.3    2019-09-22 [1] CRAN (R 4.4.1)
  processx                3.8.4    2024-03-16 [1] CRAN (R 4.4.1)
  promises                1.3.0    2024-04-05 [1] CRAN (R 4.4.1)
- ps                      1.8.0    2024-09-12 [1] CRAN (R 4.4.1)
+ ps                      1.8.1    2024-10-28 [1] CRAN (R 4.4.1)
  purrr                   1.0.2    2023-08-10 [1] CRAN (R 4.4.1)
  R6                      2.5.1    2021-08-19 [1] CRAN (R 4.4.1)
- random.cdisc.data       0.3.16   2024-10-26 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
+ random.cdisc.data       0.3.16   2024-10-30 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
  rbibutils               2.3      2024-10-04 [1] CRAN (R 4.4.1)
  Rcpp                    1.0.13   2024-07-17 [1] CRAN (R 4.4.1)
  Rdpack                  2.6.1    2024-08-06 [1] CRAN (R 4.4.1)
@@ -3043,7 +3043,7 @@ Experimental use!
  teal                  * 0.15.2   2024-03-07 [1] CRAN (R 4.4.1)
  teal.code             * 0.5.0    2024-01-11 [1] CRAN (R 4.4.1)
  teal.data             * 0.6.0    2024-04-30 [1] CRAN (R 4.4.1)
- teal.logger             0.3.0    2024-10-26 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
+ teal.logger             0.3.0    2024-10-30 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
  teal.modules.clinical * 0.9.1    2024-04-27 [1] CRAN (R 4.4.1)
  teal.reporter           0.3.1    2024-03-15 [1] CRAN (R 4.4.1)
  teal.slice            * 0.5.1    2024-04-30 [1] CRAN (R 4.4.1)
@@ -3061,7 +3061,7 @@ Experimental use!
  webshot                 0.5.5    2023-06-26 [1] CRAN (R 4.4.1)
  webshot2                0.1.1    2023-08-11 [1] CRAN (R 4.4.1)
  websocket               1.4.2    2024-07-22 [1] CRAN (R 4.4.1)
- withr                   3.0.1    2024-07-31 [1] CRAN (R 4.4.1)
+ withr                   3.0.2    2024-10-28 [1] CRAN (R 4.4.1)
  xfun                    0.48     2024-10-03 [1] CRAN (R 4.4.1)
  xtable                  1.8-4    2019-04-21 [1] CRAN (R 4.4.1)
  yaml                    2.3.10   2024-07-26 [1] CRAN (R 4.4.1)
