@@ -61,7 +61,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/package/.staged.dependencies
             book/_freeze
           key: ${{ runner.os }}-tlg-catalog-dev
 
@@ -70,14 +69,15 @@ jobs:
           echo "gchat_webhook=${{ secrets.GCHAT_WEBHOOK }}" >> $GITHUB_ENV
         shell: bash
 
-      - name: Run Staged dependencies 🎦
-        uses: insightsengineering/staged-dependencies-action@v1
-        env:
-          GITHUB_PAT: ${{ secrets.REPO_GITHUB_TOKEN }}
+      - name: Setup R dependencies 🎦
+        uses: insightsengineering/setup-r-dependencies@new_param_cache_version #@TODO: revert
         with:
-          path: "./package"
-          enable-check: false
-          direction: upstream
+          github-token: ${{ secrets.REPO_GITHUB_TOKEN }}
+          repository-path: "./package"
+          skip-desc-branch: true
+          skip-desc-dev: true
+          repository-list: "https://pharmaverse.r-universe.dev/, PPM@latest"
+          cache-version: "dev"
 
       - name: Render catalog 🖨
         run: |
@@ -98,7 +98,7 @@ jobs:
         with:
           name: site-development
           path: site.zip
-        
+
       - name: Remove large WebR assets 🧹
         run: |
           packages_path <- sprintf("./book/_site/site_libs/quarto-contrib/shinylive-%s/shinylive/webr/packages", shinylive::assets_version())
@@ -112,12 +112,12 @@ jobs:
               unlink(x, recursive = TRUE)
             }
           }
-          
+
           # refresh the `metadata.rds` file
           metadata_path <- file.path(packages_path, "metadata.rds")
           metadata <- readRDS(metadata_path)
           new_metadata <- metadata[intersect(names(metadata), list.dirs(packages_path, full.names = FALSE))]
-          saveRDS(new_metadata, metadata_path)        
+          saveRDS(new_metadata, metadata_path)
         shell: Rscript {0}
 
       - name: Publish docs 📔
@@ -161,11 +161,15 @@ jobs:
           echo "gchat_webhook=${{ secrets.GCHAT_WEBHOOK }}" >> $GITHUB_ENV
         shell: bash
 
-      - name: Install packages 🎦
-        run: |
-          devtools::install_dev_deps(".", repos = c("https://insightsengineering.r-universe.dev/", "https://cloud.r-project.org/"))
-        shell: Rscript {0}
-        working-directory: package
+      - name: Setup R dependencies 🎦
+        uses: insightsengineering/setup-r-dependencies@new_param_cache_version #@TODO: revert
+        with:
+          github-token: ${{ secrets.REPO_GITHUB_TOKEN }}
+          repository-path: "./package"
+          skip-desc-branch: true
+          skip-desc-dev: true
+          repository-list: "https://insightsengineering.r-universe.dev/, PPM@latest"
+          cache-version: "stable"
 
       - name: Render catalog 🖨
         run: |
@@ -179,7 +183,7 @@ jobs:
           zip -r9 ../../site.zip *
         shell: bash
         working-directory: book/_site
-        
+
       - name: Remove large WebR assets 🧹
         run: |
           packages_path <- sprintf("./book/_site/site_libs/quarto-contrib/shinylive-%s/shinylive/webr/packages", shinylive::assets_version())
@@ -193,12 +197,12 @@ jobs:
               unlink(x, recursive = TRUE)
             }
           }
-          
+
           # refresh the `metadata.rds` file
           metadata_path <- file.path(packages_path, "metadata.rds")
           metadata <- readRDS(metadata_path)
           new_metadata <- metadata[intersect(names(metadata), list.dirs(packages_path, full.names = FALSE))]
-          saveRDS(new_metadata, metadata_path)        
+          saveRDS(new_metadata, metadata_path)
         shell: Rscript {0}
 
 

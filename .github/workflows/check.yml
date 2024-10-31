@@ -20,34 +20,58 @@ jobs:
     if: github.event_name != 'push'
     name: Audit Dependencies 🕵️‍♂️
     uses: insightsengineering/r.pkg.template/.github/workflows/audit.yaml@main
-  r-cmd:
+  r-cmd-dev:
     if: github.event_name != 'push'
     name: R CMD Check (development) 🧬
-    uses: insightsengineering/r.pkg.template/.github/workflows/build-check-install.yaml@main
+    uses: insightsengineering/r.pkg.template/.github/workflows/build-check-install.yaml@bci_params
     secrets:
       REPO_GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
     with:
-      install-deps-from-package-repositories: "R-universe=https://pharmaverse.r-universe.dev/,CRAN=https://cloud.r-project.org/"
       package-subdirectory: package
       additional-env-vars: |
         NOT_CRAN=true
         QUARTO_PROFILE=development
         TLG_CATALOG_PKG_BUILD_RENDER=TRUE
       concurrency-group: development
+      deps-installation-method: setup-r-dependencies
+      lookup-refs: |
+        insightsengineering/random.cdisc.data
+        insightsengineering/formatters
+        insightsengineering/rlistings
+        insightsengineering/rtables
+        insightsengineering/tern
+        insightsengineering/tern.mmrm
+        insightsengineering/tern.rbmi
+        insightsengineering/teal.data
+        insightsengineering/teal.code
+        insightsengineering/teal.logger
+        insightsengineering/teal.reporter
+        insightsengineering/teal.slice
+        insightsengineering/teal.transform
+        insightsengineering/teal.widgets
+        insightsengineering/teal
+        insightsengineering/teal.modules.general
+        insightsengineering/teal.modules.clinical
+      skip-desc-dev: true
+      repository-list: "https://pharmaverse.r-universe.dev/, PPM@latest"
+      cache-version: "dev"
   r-cmd-stable:
     if: github.event_name != 'push'
     name: R CMD Check (stable) 🧬
-    uses: insightsengineering/r.pkg.template/.github/workflows/build-check-install.yaml@main
+    uses: insightsengineering/r.pkg.template/.github/workflows/build-check-install.yaml@bci_params
     secrets:
       REPO_GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
     with:
-      install-deps-from-package-repositories: "R-universe=https://insightsengineering.r-universe.dev/,CRAN=https://cloud.r-project.org/"
       package-subdirectory: package
       additional-env-vars: |
         NOT_CRAN=true
         QUARTO_PROFILE=stable
         TLG_CATALOG_PKG_BUILD_RENDER=TRUE
       concurrency-group: stable
+      deps-installation-method: setup-r-dependencies
+      skip-desc-dev: true
+      skip-desc-branch: true
+      cache-version: "stable"
   linter:
     if: github.event_name != 'push'
     name: SuperLinter 🦸‍♀️
