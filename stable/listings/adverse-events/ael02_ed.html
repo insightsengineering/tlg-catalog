@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"fig-height":5,"warning":"true","fig-width":7,"out-height":"","label":"unnamed-chunk-1","results":"markup","editor-quick-suggestions":"false","autorun":"true","out-width":"700px","dpi":72,"classes":"","message":"true","context":"interactive","fig-cap":"","read-only":"false","comment":"","editor-font-scale":1,"editor-max-height":"500","output":"true"},"id":1,"code":"library(dplyr)\nlibrary(rlistings)\nlibrary(lubridate)\n\nadae <- random.cdisc.data::cadae\n\nadae_anl <- adae %>%\n  filter(SAFFL == \"Y\") %>%\n  mutate(\n    DHM = as.period(LDOSEDTM %--% ASTDTM),\n    TMOM = minute(DHM) + ifelse(second(DHM) >= 30, 1, 0),\n    TMOH = hour(DHM) + ifelse(TMOM == 60, 1, 0),\n    TMOD = day(DHM) + ifelse(TMOH == 24, 1, 0)\n  ) %>%\n  mutate(\n    TMOM = TMOM %% 60,\n    TMOH = TMOH %% 24\n  )\n\nout <- adae_anl %>%\n  mutate(\n    ADURN = AENDY - ASTDY + 1,\n    cent_subj = paste(SITEID, SUBJID, sep = \"/\"),\n    ASR = paste(AGE, SEX, RACE, sep = \"/\"),\n    AESER_F = if_else(AESER == \"Y\", \"Yes\", \"No\", \"\"),\n    AEREL_F = if_else(AEREL == \"Y\", \"Yes\", \"No\", \"\"),\n    AECONTRT_F = if_else(AECONTRT == \"Y\", \"Yes\", \"No\", \"\"),\n    AEOUT_F = case_when(\n      AEOUT == \"FATAL\" ~ 1,\n      AEOUT == \"NOT RECOVERED/NOT RESOLVED\" ~ 2,\n      AEOUT == \"RECOVERED/RESOLVED\" ~ 3,\n      AEOUT == \"RECOVERED/RESOLVED WITH SEQUELAE\" ~ 4,\n      AEOUT == \"RECOVERING/RESOLVING\" ~ 5,\n      AEOUT == \"UNKNOWN\" ~ 6\n    ),\n    AEACN_F = case_when(\n      AEACN == \"DOSE INCREASED\" ~ 1,\n      AEACN == \"DOSE NOT CHANGED\" ~ 2,\n      AEACN == \"DOSE REDUCED\" | AEACN == \"DOSE RATE REDUCED\" ~ 3,\n      AEACN == \"DRUG INTERRUPTED\" ~ 4,\n      AEACN == \"DRUG WITHDRAWN\" ~ 5,\n      AEACN == \"NOT APPLICABLE\" | AEACN == \"NOT EVALUABLE\" ~ 6,\n      AEACN == \"UNKNOWN\" ~ 7\n    )\n  ) %>%\n  select(\n    cent_subj, ASR, TRT01A, AEDECOD, ASTDY, TMOD, TMOH, TMOM,\n    ADURN, AESER_F, AESEV, AEREL_F, AEOUT_F, AECONTRT_F, AEACN_F\n  )\n\nout <- out %>% var_relabel(\n  cent_subj  = \"Center/Patient ID\",\n  ASR        = \"Age/Sex/Race\",\n  TRT01A     = \"Treatment\",\n  AEDECOD    = \"Adverse\\nEvent MedDRA\\nPreferred Term\",\n  ASTDY      = \"Study\\nDay of\\nOnset\",\n  TMOD       = \"Time from\\nLast Dose\\nto Onset\\ndays\",\n  TMOH       = \"Time from\\nLast Dose\\nto Onset\\nhrs\",\n  TMOM       = \"Time from\\nLast Dose\\nto Onset\\nmins\",\n  ADURN      = \"AE\\nDuration\\nin Days\",\n  AESER_F    = \"Serious\",\n  AESEV      = \"Most\\nExtreme\\nIntensity\",\n  AEREL_F    = \"Caused by\\nStudy\\nDrug\",\n  AEOUT_F    = \"Outcome\\n(1)\",\n  AECONTRT_F = \"Treatment\\nfor AE\",\n  AEACN_F    = \"Action\\nTaken\\n(2)\"\n)\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"cent_subj\", \"ASR\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Adverse Events (for early development studies)\",\n  main_footer = \"\n(1) Outcome: 1 = fatal; 2 = not recovered/not resolved; 3 = recovered/resolved;\n    4 = recovered/resolved with sequelae; 5 = recovering/resolving; 6 = unknown.\n(2) Action taken with study drug: 1 = dose increased; 2 = dose not changed;\n    3 = dose reduced; 4 = drug interrupted; 5 = drug withdrawn; 6 = not applicable;\n    7 = unknown.\n*  Study day derived from imputed onset date.\n** Duration derived from imputed onset date and/or end date.\"\n)\n\nhead(lsting, 20)"}];
+globalThis.qwebrCellDetails = [{"code":"library(dplyr)\nlibrary(rlistings)\nlibrary(lubridate)\n\nadae <- random.cdisc.data::cadae\n\nadae_anl <- adae %>%\n  filter(SAFFL == \"Y\") %>%\n  mutate(\n    DHM = as.period(LDOSEDTM %--% ASTDTM),\n    TMOM = minute(DHM) + ifelse(second(DHM) >= 30, 1, 0),\n    TMOH = hour(DHM) + ifelse(TMOM == 60, 1, 0),\n    TMOD = day(DHM) + ifelse(TMOH == 24, 1, 0)\n  ) %>%\n  mutate(\n    TMOM = TMOM %% 60,\n    TMOH = TMOH %% 24\n  )\n\nout <- adae_anl %>%\n  mutate(\n    ADURN = AENDY - ASTDY + 1,\n    cent_subj = paste(SITEID, SUBJID, sep = \"/\"),\n    ASR = paste(AGE, SEX, RACE, sep = \"/\"),\n    AESER_F = if_else(AESER == \"Y\", \"Yes\", \"No\", \"\"),\n    AEREL_F = if_else(AEREL == \"Y\", \"Yes\", \"No\", \"\"),\n    AECONTRT_F = if_else(AECONTRT == \"Y\", \"Yes\", \"No\", \"\"),\n    AEOUT_F = case_when(\n      AEOUT == \"FATAL\" ~ 1,\n      AEOUT == \"NOT RECOVERED/NOT RESOLVED\" ~ 2,\n      AEOUT == \"RECOVERED/RESOLVED\" ~ 3,\n      AEOUT == \"RECOVERED/RESOLVED WITH SEQUELAE\" ~ 4,\n      AEOUT == \"RECOVERING/RESOLVING\" ~ 5,\n      AEOUT == \"UNKNOWN\" ~ 6\n    ),\n    AEACN_F = case_when(\n      AEACN == \"DOSE INCREASED\" ~ 1,\n      AEACN == \"DOSE NOT CHANGED\" ~ 2,\n      AEACN == \"DOSE REDUCED\" | AEACN == \"DOSE RATE REDUCED\" ~ 3,\n      AEACN == \"DRUG INTERRUPTED\" ~ 4,\n      AEACN == \"DRUG WITHDRAWN\" ~ 5,\n      AEACN == \"NOT APPLICABLE\" | AEACN == \"NOT EVALUABLE\" ~ 6,\n      AEACN == \"UNKNOWN\" ~ 7\n    )\n  ) %>%\n  select(\n    cent_subj, ASR, TRT01A, AEDECOD, ASTDY, TMOD, TMOH, TMOM,\n    ADURN, AESER_F, AESEV, AEREL_F, AEOUT_F, AECONTRT_F, AEACN_F\n  )\n\nout <- out %>% var_relabel(\n  cent_subj  = \"Center/Patient ID\",\n  ASR        = \"Age/Sex/Race\",\n  TRT01A     = \"Treatment\",\n  AEDECOD    = \"Adverse\\nEvent MedDRA\\nPreferred Term\",\n  ASTDY      = \"Study\\nDay of\\nOnset\",\n  TMOD       = \"Time from\\nLast Dose\\nto Onset\\ndays\",\n  TMOH       = \"Time from\\nLast Dose\\nto Onset\\nhrs\",\n  TMOM       = \"Time from\\nLast Dose\\nto Onset\\nmins\",\n  ADURN      = \"AE\\nDuration\\nin Days\",\n  AESER_F    = \"Serious\",\n  AESEV      = \"Most\\nExtreme\\nIntensity\",\n  AEREL_F    = \"Caused by\\nStudy\\nDrug\",\n  AEOUT_F    = \"Outcome\\n(1)\",\n  AECONTRT_F = \"Treatment\\nfor AE\",\n  AEACN_F    = \"Action\\nTaken\\n(2)\"\n)\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"cent_subj\", \"ASR\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Adverse Events (for early development studies)\",\n  main_footer = \"\n(1) Outcome: 1 = fatal; 2 = not recovered/not resolved; 3 = recovered/resolved;\n    4 = recovered/resolved with sequelae; 5 = recovering/resolving; 6 = unknown.\n(2) Action taken with study drug: 1 = dose increased; 2 = dose not changed;\n    3 = dose reduced; 4 = drug interrupted; 5 = drug withdrawn; 6 = not applicable;\n    7 = unknown.\n*  Study day derived from imputed onset date.\n** Duration derived from imputed onset date and/or end date.\"\n)\n\nhead(lsting, 20)","options":{"dpi":72,"fig-cap":"","autorun":"true","editor-quick-suggestions":"false","read-only":"false","classes":"","editor-max-height":"500","results":"markup","out-width":"700px","label":"unnamed-chunk-1","message":"true","comment":"","output":"true","out-height":"","fig-width":7,"warning":"true","editor-font-scale":1,"context":"interactive","fig-height":5},"id":1}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2798,7 +2798,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-10-30 18:20:06 UTC"</code></pre>
+<pre><code>[1] "2024-11-02 18:40:56 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2814,7 +2814,7 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-10-30
+ date     2024-11-02
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -2842,7 +2842,7 @@ Experimental use!
  pillar              1.9.0   2023-03-22 [1] CRAN (R 4.4.1)
  pkgconfig           2.0.3   2019-09-22 [1] CRAN (R 4.4.1)
  R6                  2.5.1   2021-08-19 [1] CRAN (R 4.4.1)
- random.cdisc.data   0.3.16  2024-10-30 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
+ random.cdisc.data   0.3.16  2024-11-02 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
  rlang               1.1.4   2024-06-04 [1] CRAN (R 4.4.1)
  rlistings         * 0.2.9   2024-06-20 [1] CRAN (R 4.4.1)
  rmarkdown           2.28    2024-08-17 [1] CRAN (R 4.4.1)
@@ -2856,7 +2856,7 @@ Experimental use!
  utf8                1.2.4   2023-10-22 [1] CRAN (R 4.4.1)
  vctrs               0.6.5   2023-12-01 [1] CRAN (R 4.4.1)
  withr               3.0.2   2024-10-28 [1] CRAN (R 4.4.1)
- xfun                0.48    2024-10-03 [1] CRAN (R 4.4.1)
+ xfun                0.49    2024-10-31 [1] CRAN (R 4.4.1)
  yaml                2.3.10  2024-07-26 [1] CRAN (R 4.4.1)
 
  [1] /usr/local/lib/R/site-library

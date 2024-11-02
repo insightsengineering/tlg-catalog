@@ -332,7 +332,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"code":"library(dplyr)\nlibrary(rlistings)\n\nadlb <- random.cdisc.data::cadlb %>%\n  filter(!is.na(AVAL))\n\nadlb_x <- adlb %>%\n  mutate(ANRIND = factor(\n    case_when(\n      ANRIND == \"LOW\" & AVAL > stats::quantile(adlb$AVAL, probs = c(0.1)) ~ \"L\",\n      ANRIND == \"HIGH\" & AVAL < stats::quantile(adlb$AVAL, probs = c(0.9)) ~ \"H\",\n      ANRIND == \"LOW\" & AVAL <= stats::quantile(adlb$AVAL, probs = c(0.1)) ~ \"LL\",\n      ANRIND == \"HIGH\" & AVAL >= stats::quantile(adlb$AVAL, probs = c(0.9)) ~ \"HH\",\n      TRUE ~ as.character(ANRIND)\n    ),\n    levels = c(\"\", \"H\", \"HH\", \"L\", \"LL\", \"NORMAL\")\n  ))\n\nadlb_x <- adlb_x %>%\n  filter(!is.na(LBSEQ) & !is.na(ADY) & ANRIND != \"\") %>%\n  mutate(\n    CPID = paste(SITEID, SUBJID, sep = \"/\"),\n    PARAM_U = paste0(PARAMCD, \"\\n(\", AVALU, \")\"),\n    AVALC = as.character(format(round(AVAL, 2), nsmall = 2))\n  ) %>%\n  mutate(AVAL_GR = ifelse(\n    !ANRIND %in% c(\"H\", \"HH\", \"L\", \"LL\"),\n    AVALC,\n    paste(AVALC, ANRIND, sep = \" / \")\n  )) %>%\n  select(CPID, TRT01A, ADY, LBSEQ, PARAM_U, AVAL_GR) %>%\n  unique()\n\nout <- adlb_x %>%\n  arrange(CPID, ADY, PARAM_U, LBSEQ) %>%\n  tidyr::pivot_wider(\n    id_cols = c(TRT01A, CPID, ADY),\n    names_from = PARAM_U,\n    values_from = AVAL_GR\n  ) %>%\n  group_by(CPID) %>%\n  mutate(DLD = ADY - lag(ADY)) %>%\n  ungroup() %>%\n  select(CPID, TRT01A, ADY, DLD, unique(adlb_x$PARAM_U))\n\nvar_labels(out) <- names(out)\nout <- out %>%\n  var_relabel(\n    TRT01A = \"Treatment\",\n    CPID = \"Center/Patient ID\",\n    ADY = \"Study\\nDay\",\n    DLD = \"Days Since\\nLast Dose of\\nStudy Drug\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"CPID\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Laboratory Test Results Using Roche Safety Lab Standardization\",\n  main_footer = \"Abnormalities are flagged as high (H) or low (L) if outside the Roche standard reference range; high high (HH) or low low (LL) if outside the Roche marked reference range with a clinically relevant change from baseline. \" # nolint: line_length.\n)\n\nhead(lsting, 20)","id":1,"options":{"label":"unnamed-chunk-1","editor-max-height":"500","warning":"true","results":"markup","editor-font-scale":1,"autorun":"true","dpi":72,"out-width":"700px","message":"true","context":"interactive","editor-quick-suggestions":"false","comment":"","read-only":"false","fig-height":5,"out-height":"","fig-cap":"","output":"true","classes":"","fig-width":7}}];
+globalThis.qwebrCellDetails = [{"options":{"output":"true","fig-cap":"","fig-width":7,"results":"markup","out-width":"700px","comment":"","editor-quick-suggestions":"false","message":"true","warning":"true","label":"unnamed-chunk-1","classes":"","autorun":"true","read-only":"false","context":"interactive","editor-font-scale":1,"dpi":72,"fig-height":5,"editor-max-height":"500","out-height":""},"id":1,"code":"library(dplyr)\nlibrary(rlistings)\n\nadlb <- random.cdisc.data::cadlb %>%\n  filter(!is.na(AVAL))\n\nadlb_x <- adlb %>%\n  mutate(ANRIND = factor(\n    case_when(\n      ANRIND == \"LOW\" & AVAL > stats::quantile(adlb$AVAL, probs = c(0.1)) ~ \"L\",\n      ANRIND == \"HIGH\" & AVAL < stats::quantile(adlb$AVAL, probs = c(0.9)) ~ \"H\",\n      ANRIND == \"LOW\" & AVAL <= stats::quantile(adlb$AVAL, probs = c(0.1)) ~ \"LL\",\n      ANRIND == \"HIGH\" & AVAL >= stats::quantile(adlb$AVAL, probs = c(0.9)) ~ \"HH\",\n      TRUE ~ as.character(ANRIND)\n    ),\n    levels = c(\"\", \"H\", \"HH\", \"L\", \"LL\", \"NORMAL\")\n  ))\n\nadlb_x <- adlb_x %>%\n  filter(!is.na(LBSEQ) & !is.na(ADY) & ANRIND != \"\") %>%\n  mutate(\n    CPID = paste(SITEID, SUBJID, sep = \"/\"),\n    PARAM_U = paste0(PARAMCD, \"\\n(\", AVALU, \")\"),\n    AVALC = as.character(format(round(AVAL, 2), nsmall = 2))\n  ) %>%\n  mutate(AVAL_GR = ifelse(\n    !ANRIND %in% c(\"H\", \"HH\", \"L\", \"LL\"),\n    AVALC,\n    paste(AVALC, ANRIND, sep = \" / \")\n  )) %>%\n  select(CPID, TRT01A, ADY, LBSEQ, PARAM_U, AVAL_GR) %>%\n  unique()\n\nout <- adlb_x %>%\n  arrange(CPID, ADY, PARAM_U, LBSEQ) %>%\n  tidyr::pivot_wider(\n    id_cols = c(TRT01A, CPID, ADY),\n    names_from = PARAM_U,\n    values_from = AVAL_GR\n  ) %>%\n  group_by(CPID) %>%\n  mutate(DLD = ADY - lag(ADY)) %>%\n  ungroup() %>%\n  select(CPID, TRT01A, ADY, DLD, unique(adlb_x$PARAM_U))\n\nvar_labels(out) <- names(out)\nout <- out %>%\n  var_relabel(\n    TRT01A = \"Treatment\",\n    CPID = \"Center/Patient ID\",\n    ADY = \"Study\\nDay\",\n    DLD = \"Days Since\\nLast Dose of\\nStudy Drug\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"CPID\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Laboratory Test Results Using Roche Safety Lab Standardization\",\n  main_footer = \"Abnormalities are flagged as high (H) or low (L) if outside the Roche standard reference range; high high (HH) or low low (LL) if outside the Roche marked reference range with a clinically relevant change from baseline. \" # nolint: line_length.\n)\n\nhead(lsting, 20)"}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -2769,7 +2769,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-10-30 18:19:30 UTC"</code></pre>
+<pre><code>[1] "2024-11-02 18:40:22 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -2785,7 +2785,7 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-10-30
+ date     2024-11-02
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -2813,7 +2813,7 @@ Experimental use!
  pkgconfig           2.0.3   2019-09-22 [1] CRAN (R 4.4.1)
  purrr               1.0.2   2023-08-10 [1] CRAN (R 4.4.1)
  R6                  2.5.1   2021-08-19 [1] CRAN (R 4.4.1)
- random.cdisc.data   0.3.16  2024-10-30 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
+ random.cdisc.data   0.3.16  2024-11-02 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
  rlang               1.1.4   2024-06-04 [1] CRAN (R 4.4.1)
  rlistings         * 0.2.9   2024-06-20 [1] CRAN (R 4.4.1)
  rmarkdown           2.28    2024-08-17 [1] CRAN (R 4.4.1)
@@ -2827,7 +2827,7 @@ Experimental use!
  utf8                1.2.4   2023-10-22 [1] CRAN (R 4.4.1)
  vctrs               0.6.5   2023-12-01 [1] CRAN (R 4.4.1)
  withr               3.0.2   2024-10-28 [1] CRAN (R 4.4.1)
- xfun                0.48    2024-10-03 [1] CRAN (R 4.4.1)
+ xfun                0.49    2024-10-31 [1] CRAN (R 4.4.1)
  yaml                2.3.10  2024-07-26 [1] CRAN (R 4.4.1)
 
  [1] /usr/local/lib/R/site-library
