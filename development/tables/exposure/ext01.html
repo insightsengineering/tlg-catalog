@@ -80,8 +80,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/run-python-blocks.js" type="module"></script>
 <link href="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/shinylive.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/shinylive-quarto-css/shinylive-quarto.css" rel="stylesheet">
-<link href="../../site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
-<link href="../../site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/quarto-contrib/fontawesome6-1.2.0/all.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/fontawesome6-1.2.0/latex-fontsize.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": true,
   "collapse-after": 3,
@@ -134,7 +134,7 @@ cookieconsent.run({
   });
 });
 </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/editor/editor.main.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style type="text/css">
 .monaco-editor pre {
   background-color: unset !important;
@@ -254,6 +254,91 @@ body.quarto-dark .qwebr-button:hover {
   color: #696969;
 }
 
+/* Style the code highlight lines */
+body.quarto-light .qwebr-editor-highlight-line {
+  background-color: lightblue;
+}
+
+body.quarto-dark .qwebr-editor-highlight-line {
+  background-color: darkblue;
+}
+
+/* Style the modal pop-up */
+
+/* The Modal (background) */
+.qwebr-modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  padding-top: 60px;
+}
+
+/* Modal Content */
+.qwebr-modal-content {
+  background-color: #fefefe;
+  margin: 5% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+}
+
+.qwebr-modal-content-code {
+  max-height: 50vh;
+  min-height: 5vh;
+  overflow: scroll;
+  border: 1px solid #888;
+}
+
+/* The Close Button */
+.qwebr-modal-close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.qwebr-modal-close:hover,
+.qwebr-modal-close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.qwebr-download-btn {
+  margin-top: 10px;
+  text-decoration: none !important;
+}
+
+/* Styling to download image that is created */
+
+.qwebr-canvas-image {
+  position: relative;
+  display: inline-block;
+  margin: 10px;
+}
+
+.qwebr-canvas-image-download-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: none;
+}
+
+figure:hover .qwebr-canvas-image-download-btn {
+  display: block;
+}
 
 /* Custom styling for RevealJS Presentations*/
 
@@ -265,7 +350,7 @@ body.quarto-dark .qwebr-button:hover {
   max-height: 100%;
   margin: 0;
   padding: 0;
-} 
+}
 
 /* Provide space to entries */
 .reveal div.qwebr-output-code-area pre div {
@@ -310,6 +395,16 @@ body.reveal.quarto-dark div.qwebr-console-area {
   overflow: scroll;
 }
 
+iframe.qwebr-output-code-browse {
+  width: 100%;
+
+  /*
+    TODO: How to make the height automatic according to the widget size,
+    or respect the quarto code block options?
+  */
+  min-height: 500px;
+}
+
 </style>
 <script type="module">
 // Document level settings ----
@@ -330,19 +425,23 @@ globalThis.qwebrShowHeaderMessage = false;
 
 // Describe the webR settings that should be used
 globalThis.qwebrCustomizedWebROptions = {
-  "baseURL": "https://webr.r-wasm.org/v0.3.1/",
+  "baseURL": "https://webr.r-wasm.org/v0.4.0/",
   "serviceWorkerUrl": "",
   "homedir": "/home/web_user", 
   "channelType": "ChannelType.PostMessage"
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\nadex <- adex %>%\n  filter(PARCAT1 == \"OVERALL\") %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %>%\n  mutate(\n    PARAMCD = as.character(PARAMCD),\n    AVALC = \"\"\n  ) %>%\n  droplevels()\n\n# Add new param tdurd for treatment duration.\nset.seed(99)\ntdurd_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),\n    AVALC = case_when(\n      0 <= AVAL & AVAL <= 30 ~ \"0 - 30\",\n      31 <= AVAL & AVAL <= 60 ~ \"31 - 60\",\n      61 <= AVAL & AVAL <= 90 ~ \"61 - 90\",\n      TRUE ~ \">= 91\"\n    )\n  )\ntdurd <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tdurd_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\n# Add new param tndosmis for missed doses.\ntndosmis_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TNDOSMIS\",\n    PARAM = \"Total number of missed doses during study\",\n    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),\n    AVALC = \"\"\n  )\ntndosmis <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tndosmis_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\nadex <- dplyr::bind_rows(adex, tdurd, tndosmis) %>%\n  mutate(PARAM = factor(\n    PARAM,\n    levels = c(\n      \"Overall duration (days)\", \"Total dose administered\", \"Total number of doses administered\",\n      \"Total number of missed doses during study\"\n    )\n  ))\n# When summary table contains only categorical or only numeric parameters\n\nsplit_fun <- drop_split_levels\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARCAT2\", split_label = \"\\nParameter Category (Drug A/Drug B)\", label_pos = \"topleft\") %>%\n  split_rows_by(\"PARAM\", split_fun = split_fun) %>%\n  analyze_vars(vars = \"AVAL\")\n\nresult <- build_table(lyt = lyt, df = adex, alt_counts_df = adsl)\n\nresult","options":{"context":"interactive","results":"markup","dpi":72,"output":"true","classes":"","label":"unnamed-chunk-1","autorun":"true","editor-max-height":"500","message":"true","warning":"true","fig-height":5,"read-only":"false","comment":"","editor-quick-suggestions":"false","fig-width":7,"fig-cap":"","out-width":"700px","editor-font-scale":1,"out-height":""}},{"id":2,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\nadex <- adex %>%\n  filter(PARCAT1 == \"OVERALL\") %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %>%\n  mutate(\n    PARAMCD = as.character(PARAMCD),\n    AVALC = \"\"\n  ) %>%\n  droplevels()\n\n# Add new param tdurd for treatment duration.\nset.seed(99)\ntdurd_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),\n    AVALC = case_when(\n      0 <= AVAL & AVAL <= 30 ~ \"0 - 30\",\n      31 <= AVAL & AVAL <= 60 ~ \"31 - 60\",\n      61 <= AVAL & AVAL <= 90 ~ \"61 - 90\",\n      TRUE ~ \">= 91\"\n    )\n  )\ntdurd <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tdurd_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\n# Add new param tndosmis for missed doses.\ntndosmis_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TNDOSMIS\",\n    PARAM = \"Total number of missed doses during study\",\n    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),\n    AVALC = \"\"\n  )\ntndosmis <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tndosmis_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\nadex <- dplyr::bind_rows(adex, tdurd, tndosmis) %>%\n  mutate(PARAM = factor(\n    PARAM,\n    levels = c(\n      \"Overall duration (days)\", \"Total dose administered\", \"Total number of doses administered\",\n      \"Total number of missed doses during study\"\n    )\n  ))\n# When summary table contains both categorical and numeric parameters,\n# developer needs to do pre-processing to transform dataset to wide format.\nadex_avalc_wide <- adex %>%\n  filter(PARAMCD == \"TDURD\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVALC, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVALC\n  ) %>%\n  mutate(\n    TDURDC = factor(TDURD, levels = c(\"0 - 30\", \"31 - 60\", \"61 - 90\", \">= 91\"))\n  ) %>%\n  select(-TDURD)\n\nanl <- adex %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, AVAL, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, ACTARM, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVAL\n  ) %>%\n  left_join(adex_avalc_wide, by = c(\"STUDYID\", \"USUBJID\", \"PARCAT2\")) %>%\n  var_relabel(\n    TDOSE = \"Total dose administered\",\n    TNDOSE = \"Total number of doses administered\",\n    TDURD = \"Overall duration (days)\",\n    TNDOSMIS = \"Total number of missed doses during study\",\n    TDURDC = \"Overall duration (days)\"\n  )\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARCAT2\", split_label = \"\\nParameter Category (Drug A/Drug B)\", label_pos = \"topleft\") %>%\n  analyze_vars(\n    vars = c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\"),\n    var_labels = var_labels(anl)[c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\")]\n  )\n\nresult <- build_table(lyt = lyt, df = anl, alt_counts_df = adsl)\n\nresult","options":{"context":"interactive","results":"markup","dpi":72,"output":"true","classes":"","label":"unnamed-chunk-2","autorun":"true","editor-max-height":"500","message":"true","warning":"true","fig-height":5,"read-only":"false","comment":"","editor-quick-suggestions":"false","fig-width":7,"fig-cap":"","out-width":"700px","editor-font-scale":1,"out-height":""}},{"id":3,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\nadex <- adex %>%\n  filter(PARCAT1 == \"OVERALL\") %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %>%\n  mutate(\n    PARAMCD = as.character(PARAMCD),\n    AVALC = \"\"\n  ) %>%\n  droplevels()\n\n# Add new param tdurd for treatment duration.\nset.seed(99)\ntdurd_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),\n    AVALC = case_when(\n      0 <= AVAL & AVAL <= 30 ~ \"0 - 30\",\n      31 <= AVAL & AVAL <= 60 ~ \"31 - 60\",\n      61 <= AVAL & AVAL <= 90 ~ \"61 - 90\",\n      TRUE ~ \">= 91\"\n    )\n  )\ntdurd <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tdurd_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\n# Add new param tndosmis for missed doses.\ntndosmis_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TNDOSMIS\",\n    PARAM = \"Total number of missed doses during study\",\n    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),\n    AVALC = \"\"\n  )\ntndosmis <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tndosmis_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\nadex <- dplyr::bind_rows(adex, tdurd, tndosmis) %>%\n  mutate(PARAM = factor(\n    PARAM,\n    levels = c(\n      \"Overall duration (days)\", \"Total dose administered\", \"Total number of doses administered\",\n      \"Total number of missed doses during study\"\n    )\n  ))\n# When summary table contains both categorical and numeric parameters,\n# developer needs to do pre-processing to transform dataset to wide format.\nadex_avalc_wide <- adex %>%\n  filter(PARAMCD == \"TDURD\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVALC, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVALC\n  ) %>%\n  mutate(\n    TDURDC = factor(TDURD, levels = c(\"0 - 30\", \"31 - 60\", \"61 - 90\", \">= 91\"))\n  ) %>%\n  select(-TDURD)\n\nanl <- adex %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, AVAL, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, ACTARM, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVAL\n  ) %>%\n  left_join(adex_avalc_wide, by = c(\"STUDYID\", \"USUBJID\", \"PARCAT2\")) %>%\n  var_relabel(\n    TDOSE = \"Total dose administered\",\n    TNDOSE = \"Total number of doses administered\",\n    TDURD = \"Overall duration (days)\",\n    TNDOSMIS = \"Total number of missed doses during study\",\n    TDURDC = \"Overall duration (days)\"\n  )\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARCAT2\", split_label = \"\\nParameter Category (Drug A/Drug B)\", label_pos = \"topleft\") %>%\n  analyze_vars(\n    vars = c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\"),\n    var_labels = var_labels(anl)[c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\")]\n  ) %>%\n  count_missed_doses(\n    \"TNDOSMIS\",\n    thresholds = c(1, 5, 10, 15),\n    var_labels = \"Missed Doses\"\n  )\n\nresult <- build_table(lyt = lyt, df = anl, alt_counts_df = adsl)\n\nresult","options":{"context":"interactive","results":"markup","dpi":72,"output":"true","classes":"","label":"unnamed-chunk-3","autorun":"true","editor-max-height":"500","message":"true","warning":"true","fig-height":5,"read-only":"false","comment":"","editor-quick-suggestions":"false","fig-width":7,"fig-cap":"","out-width":"700px","editor-font-scale":1,"out-height":""}}];
+globalThis.qwebrCellDetails = [{"id":1,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\nadex <- adex %>%\n  filter(PARCAT1 == \"OVERALL\") %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %>%\n  mutate(\n    PARAMCD = as.character(PARAMCD),\n    AVALC = \"\"\n  ) %>%\n  droplevels()\n\n# Add new param tdurd for treatment duration.\nset.seed(99)\ntdurd_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),\n    AVALC = case_when(\n      0 <= AVAL & AVAL <= 30 ~ \"0 - 30\",\n      31 <= AVAL & AVAL <= 60 ~ \"31 - 60\",\n      61 <= AVAL & AVAL <= 90 ~ \"61 - 90\",\n      TRUE ~ \">= 91\"\n    )\n  )\ntdurd <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tdurd_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\n# Add new param tndosmis for missed doses.\ntndosmis_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TNDOSMIS\",\n    PARAM = \"Total number of missed doses during study\",\n    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),\n    AVALC = \"\"\n  )\ntndosmis <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tndosmis_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\nadex <- dplyr::bind_rows(adex, tdurd, tndosmis) %>%\n  mutate(PARAM = factor(\n    PARAM,\n    levels = c(\n      \"Overall duration (days)\", \"Total dose administered\", \"Total number of doses administered\",\n      \"Total number of missed doses during study\"\n    )\n  ))\n# When summary table contains only categorical or only numeric parameters\n\nsplit_fun <- drop_split_levels\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARCAT2\", split_label = \"\\nParameter Category (Drug A/Drug B)\", label_pos = \"topleft\") %>%\n  split_rows_by(\"PARAM\", split_fun = split_fun) %>%\n  analyze_vars(vars = \"AVAL\")\n\nresult <- build_table(lyt = lyt, df = adex, alt_counts_df = adsl)\n\nresult","options":{"results":"markup","out-width":"700px","out-height":"","editor-quick-suggestions":"false","read-only":"false","context":"interactive","editor-font-scale":"1","fig-cap":"","comment":"","fig-height":5,"dpi":72,"warning":"true","label":"unnamed-chunk-1","output":"true","editor-word-wrap":"true","autorun":"true","message":"true","classes":"","editor-max-height":"500","fig-width":7}},{"id":2,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\nadex <- adex %>%\n  filter(PARCAT1 == \"OVERALL\") %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %>%\n  mutate(\n    PARAMCD = as.character(PARAMCD),\n    AVALC = \"\"\n  ) %>%\n  droplevels()\n\n# Add new param tdurd for treatment duration.\nset.seed(99)\ntdurd_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),\n    AVALC = case_when(\n      0 <= AVAL & AVAL <= 30 ~ \"0 - 30\",\n      31 <= AVAL & AVAL <= 60 ~ \"31 - 60\",\n      61 <= AVAL & AVAL <= 90 ~ \"61 - 90\",\n      TRUE ~ \">= 91\"\n    )\n  )\ntdurd <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tdurd_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\n# Add new param tndosmis for missed doses.\ntndosmis_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TNDOSMIS\",\n    PARAM = \"Total number of missed doses during study\",\n    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),\n    AVALC = \"\"\n  )\ntndosmis <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tndosmis_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\nadex <- dplyr::bind_rows(adex, tdurd, tndosmis) %>%\n  mutate(PARAM = factor(\n    PARAM,\n    levels = c(\n      \"Overall duration (days)\", \"Total dose administered\", \"Total number of doses administered\",\n      \"Total number of missed doses during study\"\n    )\n  ))\n# When summary table contains both categorical and numeric parameters,\n# developer needs to do pre-processing to transform dataset to wide format.\nadex_avalc_wide <- adex %>%\n  filter(PARAMCD == \"TDURD\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVALC, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVALC\n  ) %>%\n  mutate(\n    TDURDC = factor(TDURD, levels = c(\"0 - 30\", \"31 - 60\", \"61 - 90\", \">= 91\"))\n  ) %>%\n  select(-TDURD)\n\nanl <- adex %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, AVAL, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, ACTARM, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVAL\n  ) %>%\n  left_join(adex_avalc_wide, by = c(\"STUDYID\", \"USUBJID\", \"PARCAT2\")) %>%\n  var_relabel(\n    TDOSE = \"Total dose administered\",\n    TNDOSE = \"Total number of doses administered\",\n    TDURD = \"Overall duration (days)\",\n    TNDOSMIS = \"Total number of missed doses during study\",\n    TDURDC = \"Overall duration (days)\"\n  )\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARCAT2\", split_label = \"\\nParameter Category (Drug A/Drug B)\", label_pos = \"topleft\") %>%\n  analyze_vars(\n    vars = c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\"),\n    var_labels = var_labels(anl)[c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\")]\n  )\n\nresult <- build_table(lyt = lyt, df = anl, alt_counts_df = adsl)\n\nresult","options":{"results":"markup","out-width":"700px","out-height":"","editor-quick-suggestions":"false","read-only":"false","context":"interactive","editor-font-scale":"1","fig-cap":"","comment":"","fig-height":5,"dpi":72,"warning":"true","label":"unnamed-chunk-2","output":"true","editor-word-wrap":"true","autorun":"true","message":"true","classes":"","editor-max-height":"500","fig-width":7}},{"id":3,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\nadex <- adex %>%\n  filter(PARCAT1 == \"OVERALL\") %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %>%\n  mutate(\n    PARAMCD = as.character(PARAMCD),\n    AVALC = \"\"\n  ) %>%\n  droplevels()\n\n# Add new param tdurd for treatment duration.\nset.seed(99)\ntdurd_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),\n    AVALC = case_when(\n      0 <= AVAL & AVAL <= 30 ~ \"0 - 30\",\n      31 <= AVAL & AVAL <= 60 ~ \"31 - 60\",\n      61 <= AVAL & AVAL <= 90 ~ \"61 - 90\",\n      TRUE ~ \">= 91\"\n    )\n  )\ntdurd <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tdurd_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\n# Add new param tndosmis for missed doses.\ntndosmis_adsl <- adsl %>%\n  select(STUDYID, USUBJID, ACTARM) %>%\n  mutate(\n    PARAMCD = \"TNDOSMIS\",\n    PARAM = \"Total number of missed doses during study\",\n    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),\n    AVALC = \"\"\n  )\ntndosmis <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  select(STUDYID, USUBJID, PARCAT2) %>%\n  left_join(tndosmis_adsl, by = c(\"STUDYID\", \"USUBJID\"))\n\nadex <- dplyr::bind_rows(adex, tdurd, tndosmis) %>%\n  mutate(PARAM = factor(\n    PARAM,\n    levels = c(\n      \"Overall duration (days)\", \"Total dose administered\", \"Total number of doses administered\",\n      \"Total number of missed doses during study\"\n    )\n  ))\n# When summary table contains both categorical and numeric parameters,\n# developer needs to do pre-processing to transform dataset to wide format.\nadex_avalc_wide <- adex %>%\n  filter(PARAMCD == \"TDURD\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVALC, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVALC\n  ) %>%\n  mutate(\n    TDURDC = factor(TDURD, levels = c(\"0 - 30\", \"31 - 60\", \"61 - 90\", \">= 91\"))\n  ) %>%\n  select(-TDURD)\n\nanl <- adex %>%\n  select(STUDYID, USUBJID, ACTARM, PARAMCD, AVAL, PARCAT2) %>%\n  tidyr::pivot_wider(\n    id_cols = c(STUDYID, USUBJID, ACTARM, PARCAT2),\n    names_from = PARAMCD,\n    values_from = AVAL\n  ) %>%\n  left_join(adex_avalc_wide, by = c(\"STUDYID\", \"USUBJID\", \"PARCAT2\")) %>%\n  var_relabel(\n    TDOSE = \"Total dose administered\",\n    TNDOSE = \"Total number of doses administered\",\n    TDURD = \"Overall duration (days)\",\n    TNDOSMIS = \"Total number of missed doses during study\",\n    TDURDC = \"Overall duration (days)\"\n  )\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARCAT2\", split_label = \"\\nParameter Category (Drug A/Drug B)\", label_pos = \"topleft\") %>%\n  analyze_vars(\n    vars = c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\"),\n    var_labels = var_labels(anl)[c(\"TDURD\", \"TDURDC\", \"TDOSE\", \"TNDOSE\")]\n  ) %>%\n  count_missed_doses(\n    \"TNDOSMIS\",\n    thresholds = c(1, 5, 10, 15),\n    var_labels = \"Missed Doses\"\n  )\n\nresult <- build_table(lyt = lyt, df = anl, alt_counts_df = adsl)\n\nresult","options":{"results":"markup","out-width":"700px","out-height":"","editor-quick-suggestions":"false","read-only":"false","context":"interactive","editor-font-scale":"1","fig-cap":"","comment":"","fig-height":5,"dpi":72,"warning":"true","label":"unnamed-chunk-3","output":"true","editor-word-wrap":"true","autorun":"true","message":"true","classes":"","editor-max-height":"500","fig-width":7}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
 globalThis.qwebrStartupMessage = document.createElement("p");
 
+// Verify if OffScreenCanvas is supported
+globalThis.qwebrOffScreenCanvasSupport = function() {
+  return typeof OffscreenCanvas !== 'undefined'
+}
 
 // Function to set the button text
 globalThis.qwebrSetInteractiveButtonState = function(buttonText, enableCodeButton = true) {
@@ -366,15 +465,122 @@ globalThis.qwebrUpdateStatusHeader = function(message) {
     <span>${message}</span>`;
 }
 
+// Function to return true if element is found, false if not
+globalThis.qwebrCheckHTMLElementExists = function(selector) {
+  const element = document.querySelector(selector);
+  return !!element;
+}
+
+// Function that detects whether reveal.js slides are present
+globalThis.qwebrIsRevealJS = function() {
+  // If the '.reveal .slides' selector exists, RevealJS is likely present
+  return qwebrCheckHTMLElementExists('.reveal .slides');
+}
+
+// Initialize the Quarto sidebar element
+function qwebrSetupQuartoSidebar() {
+  var newSideBarDiv = document.createElement('div');
+  newSideBarDiv.id = 'quarto-margin-sidebar';
+  newSideBarDiv.className = 'sidebar margin-sidebar';
+  newSideBarDiv.style.top = '0px';
+  newSideBarDiv.style.maxHeight = 'calc(0px + 100vh)';
+
+  return newSideBarDiv;
+}
+
+// Position the sidebar in the document
+function qwebrPlaceQuartoSidebar() {
+  // Get the reference to the element with id 'quarto-document-content'
+  var referenceNode = document.getElementById('quarto-document-content');
+
+  // Create the new div element
+  var newSideBarDiv = qwebrSetupQuartoSidebar();
+
+  // Insert the new div before the 'quarto-document-content' element
+  referenceNode.parentNode.insertBefore(newSideBarDiv, referenceNode);
+}
+
+function qwebrPlaceMessageContents(content, html_location = "title-block-header", revealjs_location = "title-slide") {
+
+  // Get references to header elements
+  const headerHTML = document.getElementById(html_location);
+  const headerRevealJS = document.getElementById(revealjs_location);
+
+  // Determine where to insert the quartoTitleMeta element
+  if (headerHTML || headerRevealJS) {
+    // Append to the existing "title-block-header" element or "title-slide" div
+    (headerHTML || headerRevealJS).appendChild(content);
+  } else {
+    // If neither headerHTML nor headerRevealJS is found, insert after "webr-monaco-editor-init" script
+    const monacoScript = document.getElementById("qwebr-monaco-editor-init");
+    const header = document.createElement("header");
+    header.setAttribute("id", "title-block-header");
+    header.appendChild(content);
+    monacoScript.after(header);
+  }
+}
+
+
+
+function qwebrOffScreenCanvasSupportWarningMessage() {
+  
+  // Verify canvas is supported.
+  if(qwebrOffScreenCanvasSupport()) return;
+
+  // Create the main container div
+  var calloutContainer = document.createElement('div');
+  calloutContainer.classList.add('callout', 'callout-style-default', 'callout-warning', 'callout-titled');
+
+  // Create the header div
+  var headerDiv = document.createElement('div');
+  headerDiv.classList.add('callout-header', 'd-flex', 'align-content-center');
+
+  // Create the icon container div
+  var iconContainer = document.createElement('div');
+  iconContainer.classList.add('callout-icon-container');
+
+  // Create the icon element
+  var iconElement = document.createElement('i');
+  iconElement.classList.add('callout-icon');
+
+  // Append the icon element to the icon container
+  iconContainer.appendChild(iconElement);
+
+  // Create the title container div
+  var titleContainer = document.createElement('div');
+  titleContainer.classList.add('callout-title-container', 'flex-fill');
+  titleContainer.innerText = 'Warning: Web Browser Does Not Support Graphing!';
+
+  // Append the icon container and title container to the header div
+  headerDiv.appendChild(iconContainer);
+  headerDiv.appendChild(titleContainer);
+
+  // Create the body container div
+  var bodyContainer = document.createElement('div');
+  bodyContainer.classList.add('callout-body-container', 'callout-body');
+
+  // Create the paragraph element for the body content
+  var paragraphElement = document.createElement('p');
+  paragraphElement.innerHTML = 'This web browser does not have support for displaying graphs through the <code>quarto-webr</code> extension since it lacks an <code>OffScreenCanvas</code>. Please upgrade your web browser to one that supports <code>OffScreenCanvas</code>.';
+
+  // Append the paragraph element to the body container
+  bodyContainer.appendChild(paragraphElement);
+
+  // Append the header div and body container to the main container div
+  calloutContainer.appendChild(headerDiv);
+  calloutContainer.appendChild(bodyContainer);
+
+  // Append the main container div to the document depending on format
+  qwebrPlaceMessageContents(calloutContainer, "title-block-header"); 
+
+}
+
+
 // Function that attaches the document status message and diagnostics
 function displayStartupMessage(showStartupMessage, showHeaderMessage) {
   if (!showStartupMessage) {
     return;
   }
-
-  // Get references to header elements
-  const headerHTML = document.getElementById("title-block-header");
-  const headerRevealJS = document.getElementById("title-slide");
 
   // Create the outermost div element for metadata
   const quartoTitleMeta = document.createElement("div");
@@ -417,21 +623,297 @@ function displayStartupMessage(showStartupMessage, showHeaderMessage) {
   firstInnerDiv.appendChild(secondInnerDivContents);
   quartoTitleMeta.appendChild(firstInnerDiv);
 
-  // Determine where to insert the quartoTitleMeta element
-  if (headerHTML || headerRevealJS) {
-    // Append to the existing "title-block-header" element or "title-slide" div
-    (headerHTML || headerRevealJS).appendChild(quartoTitleMeta);
+  // Place message on webpage
+  qwebrPlaceMessageContents(quartoTitleMeta); 
+}
+
+function qwebrAddCommandHistoryModal() {
+  // Create the modal div
+  var modalDiv = document.createElement('div');
+  modalDiv.id = 'qwebr-history-modal';
+  modalDiv.className = 'qwebr-modal';
+
+  // Create the modal content div
+  var modalContentDiv = document.createElement('div');
+  modalContentDiv.className = 'qwebr-modal-content';
+
+  // Create the span for closing the modal
+  var closeSpan = document.createElement('span');
+  closeSpan.id = 'qwebr-command-history-close-btn';
+  closeSpan.className = 'qwebr-modal-close';
+  closeSpan.innerHTML = '&times;';
+
+  // Create the h1 element for the modal
+  var modalH1 = document.createElement('h1');
+  modalH1.textContent = 'R History Command Contents';
+
+  // Create an anchor element for downloading the Rhistory file 
+  var downloadLink = document.createElement('a');
+  downloadLink.href = '#';
+  downloadLink.id = 'qwebr-download-history-btn';
+  downloadLink.className = 'qwebr-download-btn';
+
+  // Create an 'i' element for the icon
+  var icon = document.createElement('i');
+  icon.className = 'bi bi-file-code';
+
+  // Append the icon to the anchor element
+  downloadLink.appendChild(icon);
+
+  // Add the text 'Download R History' to the anchor element
+  downloadLink.appendChild(document.createTextNode(' Download R History File'));
+
+  // Create the pre for command history contents
+  var commandContentsPre = document.createElement('pre');
+  commandContentsPre.id = 'qwebr-command-history-contents';
+  commandContentsPre.className = 'qwebr-modal-content-code';
+
+  // Append the close span, h1, and history contents pre to the modal content div
+  modalContentDiv.appendChild(closeSpan);
+  modalContentDiv.appendChild(modalH1);
+  modalContentDiv.appendChild(downloadLink);
+  modalContentDiv.appendChild(commandContentsPre);
+
+  // Append the modal content div to the modal div
+  modalDiv.appendChild(modalContentDiv);
+
+  // Append the modal div to the body
+  document.body.appendChild(modalDiv);
+}
+
+function qwebrRegisterRevealJSCommandHistoryModal() {
+  // Select the <ul> element inside the <div> with data-panel="Custom0"
+  let ulElement = document.querySelector('div[data-panel="Custom0"] > ul.slide-menu-items');
+
+  // Find the last <li> element with class slide-tool-item
+  let lastItem = ulElement.querySelector('li.slide-tool-item:last-child');
+
+  // Calculate the next data-item value
+  let nextItemValue = 0;
+  if (lastItem) {
+      nextItemValue = parseInt(lastItem.dataset.item) + 1;
+  }
+
+  // Create a new <li> element
+  let newListItem = document.createElement('li');
+  newListItem.className = 'slide-tool-item';
+  newListItem.dataset.item = nextItemValue.toString(); // Set the next available data-item value
+
+  // Create the <a> element inside the <li>
+  let newLink = document.createElement('a');
+  newLink.href = '#';
+  newLink.id = 'qwebrRHistoryButton'; // Set the ID for the new link
+  
+  // Create the <kbd> element inside the <a>
+  let newKbd = document.createElement('kbd');
+  newKbd.textContent = ' '; // Set to empty as we are not registering a keyboard shortcut
+
+  // Create text node for the link text
+  let newText = document.createTextNode(' View R History');
+
+  // Append <kbd> and text node to <a>
+  newLink.appendChild(newKbd);
+  newLink.appendChild(newText);
+
+  // Append <a> to <li>
+  newListItem.appendChild(newLink);
+
+  // Append <li> to <ul>
+  ulElement.appendChild(newListItem);
+}
+
+// Handle setting up the R history modal
+function qwebrCodeLinks() {
+
+  if (qwebrIsRevealJS()) {
+    qwebrRegisterRevealJSCommandHistoryModal();
+    return;
+  }
+
+  // Create the container div
+  var containerDiv = document.createElement('div');
+  containerDiv.className = 'quarto-code-links';
+
+  // Create the h2 element
+  var h2 = document.createElement('h2');
+  h2.textContent = 'webR Code Links';
+
+  // Create the ul element
+  var ul = document.createElement('ul');
+
+  // Create the li element
+  var li = document.createElement('li');
+
+  // Create the a_history_btn element
+  var a_history_btn = document.createElement('a');
+  a_history_btn.href = 'javascript:void(0)';
+  a_history_btn.setAttribute('id', 'qwebrRHistoryButton');
+
+  // Create the i_history_btn element
+  var i_history_btn = document.createElement('i');
+  i_history_btn.className = 'bi bi-file-code';
+
+  // Create the text node for the link text
+  var text_history_btn = document.createTextNode('View R History');
+
+  // Append the icon element and link text to the a element
+  a_history_btn.appendChild(i_history_btn);
+  a_history_btn.appendChild(text_history_btn);
+
+  // Append the a element to the li element
+  li.appendChild(a_history_btn);
+
+  // Append the li element to the ul element
+  ul.appendChild(li);
+
+  // Append the h2 and ul elements to the container div
+  containerDiv.appendChild(h2);
+  containerDiv.appendChild(ul);
+
+  // Append the container div to the element with the ID 'quarto-margin-sidebar'
+  var sidebar = document.getElementById('quarto-margin-sidebar');
+    
+  // If the sidebar element is not found, create it
+  if(!sidebar) {
+    qwebrPlaceQuartoSidebar();
+  }
+  
+  // Re-select the sidebar element (if it was just created)
+  sidebar = document.getElementById('quarto-margin-sidebar');   
+
+
+  // If the sidebar element exists, append the container div to it
+  if(sidebar) {
+    // Append the container div to the sidebar
+    sidebar.appendChild(containerDiv);
+    // Force the sidebar to be clickable by removing the 'zindex-bottom' class
+    // added in pre-release: https://github.com/quarto-dev/quarto-cli/commit/f0c53a1ffcaa1de4eccbf07803b096898248adcc
+    sidebar.className = 'sidebar margin-sidebar';
   } else {
-    // If neither headerHTML nor headerRevealJS is found, insert after "webr-monaco-editor-init" script
-    const monacoScript = document.getElementById("qwebr-monaco-editor-init");
-    const header = document.createElement("header");
-    header.setAttribute("id", "title-block-header");
-    header.appendChild(quartoTitleMeta);
-    monacoScript.after(header);
+    // Get a debugger ...
+    console.warn('Element with ID "quarto-margin-sidebar" not found.');
   }
 }
 
+// Call the function to append the code links for qwebR into the right sidebar
+qwebrCodeLinks();
+
+// Add the command history modal
+qwebrAddCommandHistoryModal();
+
 displayStartupMessage(qwebrShowStartupMessage, qwebrShowHeaderMessage);
+qwebrOffScreenCanvasSupportWarningMessage();
+</script><script type="module">
+// Define a global storage and retrieval solution ----
+
+// Store commands executed in R
+globalThis.qwebrRCommandHistory = [];
+
+// Function to retrieve the command history
+globalThis.qwebrFormatRHistory = function() {
+   return qwebrRCommandHistory.join("\n\n");
+}
+
+// Retrieve HTML Elements ----
+
+// Get the command modal
+const command_history_modal = document.getElementById("qwebr-history-modal");
+
+// Get the button that opens the command modal
+const command_history_btn = document.getElementById("qwebrRHistoryButton");
+
+// Get the <span> element that closes the command modal
+const command_history_close_span = document.getElementById("qwebr-command-history-close-btn");
+
+// Get the download button for r history information
+const command_history_download_btn = document.getElementById("qwebr-download-history-btn");
+
+// Plug in command history into modal/download button ----
+
+// Function to populate the modal with command history
+function populateCommandHistoryModal() {
+    document.getElementById("qwebr-command-history-contents").innerHTML = qwebrFormatRHistory() || "No commands have been executed yet.";
+}
+
+// Function to format the current date and time to
+// a string with the format YYYY-MM-DD-HH-MM-SS
+function formatDateTime() {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
+}
+
+
+// Function to convert document title with datetime to a safe filename
+function safeFileName() {
+    // Get the current page title
+    let pageTitle = document.title;
+
+    // Combine the current page title with the current date and time
+    let pageNameWithDateTime = `Rhistory-${pageTitle}-${formatDateTime()}`;
+
+    // Replace unsafe characters with safe alternatives
+    let safeFilename = pageNameWithDateTime.replace(/[\\/:\*\?! "<>\|]/g, '-');
+
+    return safeFilename;
+}
+
+
+// Function to download list contents as text file
+function downloadRHistory() {
+    // Get the current page title + datetime and use it as the filename
+    const filename = `${safeFileName()}.R`;
+
+    // Get the text contents of the R History list
+    const text = qwebrFormatRHistory();
+
+    // Create a new Blob object with the text contents
+    const blob = new Blob([text], { type: 'text/plain' });
+  
+    // Create a new anchor element for the download
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+
+    // Append the anchor to the body, click it, and remove it
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// Register event handlers ----
+
+// When the user clicks the View R History button, open the command modal
+command_history_btn.onclick = function() {
+    populateCommandHistoryModal();
+    command_history_modal.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the command modal
+command_history_close_span.onclick = function() {
+    command_history_modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the command modal, close it
+window.onclick = function(event) {
+    if (event.target == command_history_modal) {
+        command_history_modal.style.display = "none";
+    }
+}
+
+// Add an onclick event listener to the download button so that
+// the user can download the R history as a text file
+command_history_download_btn.onclick = function() {
+    downloadRHistory();
+};
 </script><script type="module">
 // Supported Evaluation Types for Context
 globalThis.EvalTypes = Object.freeze({
@@ -768,11 +1250,15 @@ globalThis.qwebrInstance = import(qwebrCustomizedWebROptions.baseURL + "webr.mjs
     // Setup a shelter
     globalThis.mainWebRCodeShelter = await new mainWebR.Shelter();
 
-    // Setup a pager to allow processing help documentation 
-    await mainWebR.evalRVoid('webr::pager_install()'); 
+    // Setup a pager to allow processing help documentation
+    await mainWebR.evalRVoid('webr::pager_install()');
+
+    // Setup a viewer to allow processing htmlwidgets.
+    // This might not be available in old webr version
+    await mainWebR.evalRVoid('try({ webr::viewer_install() })');
 
     // Override the existing install.packages() to use webr::install()
-    await mainWebR.evalRVoid('webr::shim_install()'); 
+    await mainWebR.evalRVoid('webr::shim_install()');
 
     // Specify the repositories to pull from
     // Note: webR does not use the `repos` option, but instead uses `webr_pkg_repos`
@@ -809,7 +1295,7 @@ globalThis.qwebrIsObjectEmpty = function (arr) {
     return Object.keys(arr).length === 0;
 }
 
-// Global version of the Escape HTML function that converts HTML 
+// Global version of the Escape HTML function that converts HTML
 // characters to their HTML entities.
 globalThis.qwebrEscapeHTMLCharacters = function(unsafe) {
     return unsafe
@@ -818,7 +1304,7 @@ globalThis.qwebrEscapeHTMLCharacters = function(unsafe) {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
-  };
+};
 
 // Passthrough results
 globalThis.qwebrIdentity = function(x) {
@@ -830,11 +1316,39 @@ globalThis.qwebrPrefixComment = function(x, comment) {
     return `${comment}${x}`;
 };
 
+// Function to store the code in the history
+globalThis.qwebrLogCodeToHistory = function(codeToRun, options) {
+    qwebrRCommandHistory.push(
+        `# Ran code in ${options.label} at ${new Date().toLocaleString()} ----\n${codeToRun}`
+    );
+};
+
+// Function to attach a download button onto the canvas
+// allowing the user to download the image.
+function qwebrImageCanvasDownloadButton(canvas, canvasContainer) {
+
+    // Create the download button
+    const downloadButton = document.createElement('button');
+    downloadButton.className = 'qwebr-canvas-image-download-btn';
+    downloadButton.textContent = 'Download Image';
+    canvasContainer.appendChild(downloadButton);
+
+    // Trigger a download of the image when the button is clicked
+    downloadButton.addEventListener('click', function() {
+        const image = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = image;
+        link.download = 'qwebr-canvas-image.png';
+        link.click();
+    });
+}
+
+
 // Function to parse the pager results
-globalThis.qwebrParseTypePager = async function (msg) { 
+globalThis.qwebrParseTypePager = async function (msg) {
 
     // Split out the event data
-    const { path, title, deleteFile } = msg.data; 
+    const { path, title, deleteFile } = msg.data;
 
     // Process the pager data by reading the information from disk
     const paged_data = await mainWebR.FS.readFile(path).then((data) => {
@@ -843,7 +1357,7 @@ globalThis.qwebrParseTypePager = async function (msg) {
 
         // Remove excessive backspace characters until none remain
         while(content.match(/.[\b]/)){
-        content = content.replace(/.[\b]/g, '');
+            content = content.replace(/.[\b]/g, '');
         }
 
         // Returned cleaned data
@@ -851,22 +1365,41 @@ globalThis.qwebrParseTypePager = async function (msg) {
     });
 
     // Unlink file if needed
-    if (deleteFile) { 
-        await mainWebR.FS.unlink(path); 
-    } 
+    if (deleteFile) {
+        await mainWebR.FS.unlink(path);
+    }
 
     // Return extracted data with spaces
     return paged_data;
-} 
+};
+
+
+// Function to parse the browse results
+globalThis.qwebrParseTypeBrowse = async function (msg) {
+
+    // msg.type === "browse"
+    const path = msg.data.url;
+
+    // Process the browse data by reading the information from disk
+    const browse_data = await mainWebR.FS.readFile(path).then((data) => {
+        // Obtain the file content
+        let content = new TextDecoder().decode(data);
+
+        return content;
+    });
+
+    // Return extracted data as-is
+    return browse_data;
+};
 
 // Function to run the code using webR and parse the output
 globalThis.qwebrComputeEngine = async function(
-    codeToRun, 
-    elements, 
+    codeToRun,
+    elements,
     options) {
 
     // Call into the R compute engine that persists within the document scope.
-    // To be prepared for all scenarios, the following happens: 
+    // To be prepared for all scenarios, the following happens:
     // 1. We setup a canvas device to write to by making a namespace call into the {webr} package
     // 2. We use values inside of the options array to set the figure size.
     // 3. We capture the output stream information (STDOUT and STERR)
@@ -886,46 +1419,66 @@ globalThis.qwebrComputeEngine = async function(
         processOutput = qwebrIdentity;
     }
 
-    // ---- 
+    // ----
     // Convert from Inches to Pixels by using DPI (dots per inch)
     // for bitmap devices (dpi * inches = pixels)
-    let fig_width = options["fig-width"] * options["dpi"]
-    let fig_height = options["fig-height"] * options["dpi"]
+    let fig_width = options["fig-width"] * options["dpi"];
+    let fig_height = options["fig-height"] * options["dpi"];
 
     // Initialize webR
     await mainWebR.init();
+
+    // Configure capture output
+    let captureOutputOptions = {
+        withAutoprint: true,
+        captureStreams: true,
+        captureConditions: false,
+        // env: webR.objs.emptyEnv, // maintain a global environment for webR v0.2.0
+    };
+
+    // Determine if the browser supports OffScreen
+    if (qwebrOffScreenCanvasSupport()) {
+        // Mirror default options of webr::canvas()
+        // with changes to figure height and width.
+        captureOutputOptions.captureGraphics = {
+            width: fig_width,
+            height: fig_height,
+            bg: "white", // default: transparent
+            pointsize: 12,
+            capture: true
+        };
+    }  else {
+        // Disable generating graphics
+        captureOutputOptions.captureGraphics = false;
+    }
+
+    // Store the code to run in history
+    qwebrLogCodeToHistory(codeToRun, options);
 
     // Setup a webR canvas by making a namespace call into the {webr} package
     // Evaluate the R code
     // Remove the active canvas silently
     const result = await mainWebRCodeShelter.captureR(
-        `webr::canvas(width=${fig_width}, height=${fig_height}, capture = TRUE)
-        .webr_cvs_id <- dev.cur()
-        ${codeToRun}
-        invisible(dev.off(.webr_cvs_id))
-        `, {
-        withAutoprint: true,
-        captureStreams: true,
-        captureConditions: false//,
-        // env: webR.objs.emptyEnv, // maintain a global environment for webR v0.2.0
-    });
+        `${codeToRun}`,
+        captureOutputOptions
+    );
 
     // -----
 
     // Start attempting to parse the result data
     processResultOutput:try {
-        
+
         // Avoid running through output processing
-        if (options.results === "hide" || options.output === "false") { 
-            break processResultOutput; 
+        if (options.results === "hide" || options.output === "false") {
+            break processResultOutput;
         }
 
         // Merge output streams of STDOUT and STDErr (messages and errors are combined.)
-        // Require both `warning` and `message` to be true to display `STDErr`. 
+        // Require both `warning` and `message` to be true to display `STDErr`.
         const out = result.output
         .filter(
-            evt => evt.type === "stdout" || 
-            ( evt.type === "stderr" && (options.warning === "true" && options.message === "true")) 
+            evt => evt.type === "stdout" ||
+            ( evt.type === "stderr" && (options.warning === "true" && options.message === "true"))
         )
         .map((evt, index) => {
             const className = `qwebr-output-code-${evt.type}`;
@@ -937,15 +1490,31 @@ globalThis.qwebrComputeEngine = async function(
 
         // Clean the state
         // We're now able to process pager events.
-        // As a result, we cannot maintain a true 1-to-1 output order 
+        // As a result, we cannot maintain a true 1-to-1 output order
         // without individually feeding each line
         const msgs = await mainWebR.flush();
 
         // Use `map` to process the filtered "pager" events asynchronously
-        const pager = await Promise.all(
-            msgs.filter(msg => msg.type === 'pager').map(
+        const pager = [];
+        const browse = [];
+
+        await Promise.all(
+            msgs.map(
                 async (msg) => {
-                    return await qwebrParseTypePager(msg);
+
+                    const msgType = msg.type || "unknown";
+
+                    switch(msgType) {
+                        case 'pager':
+                            const pager_data = await qwebrParseTypePager(msg);
+                            pager.push(pager_data);
+                            break;
+                        case 'browse':
+                            const browse_data = await qwebrParseTypeBrowse(msg);
+                            browse.push(browse_data);
+                            break;
+                    }
+                    return;
                 }
             )
         );
@@ -977,13 +1546,19 @@ globalThis.qwebrComputeEngine = async function(
 
         // Determine if we have graphs to display
         if (result.images.length > 0) {
+
             // Create figure element
-            const figureElement = document.createElement('figure');
+            const figureElement = document.createElement("figure");
+            figureElement.className = "qwebr-canvas-image";
 
             // Place each rendered graphic onto a canvas element
             result.images.forEach((img) => {
+
                 // Construct canvas for object
                 const canvas = document.createElement("canvas");
+
+                // Add an image download button
+                qwebrImageCanvasDownloadButton(canvas, figureElement);
 
                 // Set canvas size to image
                 canvas.width = img.width;
@@ -1002,9 +1577,10 @@ globalThis.qwebrComputeEngine = async function(
                 // Draw image onto Canvas
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0, img.width, img.height);
-          
+
                 // Append canvas to figure output area
                 figureElement.appendChild(canvas);
+
             });
 
             if (options['fig-cap']) {
@@ -1012,28 +1588,46 @@ globalThis.qwebrComputeEngine = async function(
                 const figcaptionElement = document.createElement('figcaption');
                 figcaptionElement.innerText = options['fig-cap'];
                 // Append figcaption to figure
-                figureElement.appendChild(figcaptionElement);    
+                figureElement.appendChild(figcaptionElement);
             }
 
             elements.outputGraphDiv.appendChild(figureElement);
+
         }
 
         // Display the pager data
-        if (pager) {
-        // Use the `pre` element to preserve whitespace.
-        pager.forEach((paged_data, index) => {
-            let pre_pager = document.createElement("pre");
-            pre_pager.innerText = paged_data;
-            pre_pager.classList.add("qwebr-output-code-pager");
-            pre_pager.setAttribute("id", `qwebr-output-code-pager-editor-${elements.id}-result-${index + 1}`);
-            elements.outputCodeDiv.appendChild(pre_pager);
-        });
+        if (pager.length > 0) {
+            // Use the `pre` element to preserve whitespace.
+            pager.forEach((paged_data, index) => {
+                const pre_pager = document.createElement("pre");
+                pre_pager.innerText = paged_data;
+                pre_pager.classList.add("qwebr-output-code-pager");
+                pre_pager.setAttribute("id", `qwebr-output-code-pager-editor-${elements.id}-result-${index + 1}`);
+                elements.outputCodeDiv.appendChild(pre_pager);
+            });
+        }
+
+        // Display the browse data
+        if (browse.length > 0) {
+            // Use the `pre` element to preserve whitespace.
+            browse.forEach((browse_data, index) => {
+                const iframe_browse = document.createElement('iframe');
+                iframe_browse.classList.add("qwebr-output-code-browse");
+                iframe_browse.setAttribute("id", `qwebr-output-code-browse-editor-${elements.id}-result-${index + 1}`);
+                iframe_browse.style.width = "100%";
+                iframe_browse.style.minHeight = "500px";
+                elements.outputCodeDiv.appendChild(iframe_browse);
+
+                iframe_browse.contentWindow.document.open();
+                iframe_browse.contentWindow.document.write(browse_data);
+                iframe_browse.contentWindow.document.close();
+            });
         }
     } finally {
         // Clean up the remaining code
         mainWebRCodeShelter.purge();
     }
-}
+};
 
 // Function to execute the code (accepts code as an argument)
 globalThis.qwebrExecuteCode = async function (
@@ -1043,12 +1637,12 @@ globalThis.qwebrExecuteCode = async function (
 
     // If options are not passed, we fall back on the bare minimum to handle the computation
     if (qwebrIsObjectEmpty(options)) {
-        options = { 
-            "context": "interactive", 
-            "fig-width": 7, "fig-height": 5, 
-            "out-width": "700px", "out-height": "", 
+        options = {
+            "context": "interactive",
+            "fig-width": 7, "fig-height": 5,
+            "out-width": "700px", "out-height": "",
             "dpi": 72,
-            "results": "markup", 
+            "results": "markup",
             "warning": "true", "message": "true",
         };
     }
@@ -2438,6 +3032,12 @@ updateMonacoEditorsOnBodyClassChange();
 // Global array to store Monaco Editor instances
 globalThis.qwebrEditorInstances = [];
 
+function isValidCodeLineNumbers(stringCodeLineNumbers) {
+  // Regular expression to match valid input strings
+  const regex = /^(\d+(-\d+)?)(,\d+(-\d+)?)*$/;
+  return regex.test(stringCodeLineNumbers);
+}
+
 // Function that builds and registers a Monaco Editor instance    
 globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 
@@ -2467,7 +3067,8 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
       renderLineHighlight: "none",      // Disable current line highlighting
       hideCursorInOverviewRuler: true,  // Remove cursor indictor in right hand side scroll bar
       readOnly: qwebrOptions['read-only'] ?? false,
-      quickSuggestions: qwebrOptions['editor-quick-suggestions'] ?? false
+      quickSuggestions: qwebrOptions['editor-quick-suggestions'] ?? false,
+      wordWrap: (qwebrOptions['editor-word-wrap'] == 'true' ? "on" : "off")
     });
 
     // Store the official counter ID to be used in keyboard shortcuts
@@ -2490,7 +3091,7 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
     const model = editor.getModel();
     // Set EOL for the model
     model.setEOL(monaco.editor.EndOfLineSequence.LF);
-
+    
     // Dynamically modify the height of the editor window if new lines are added.
     let ignoreEvent = false;
     const updateHeight = () => {
@@ -2515,6 +3116,56 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
         ignoreEvent = false;
       }
     };
+
+    // Function to generate decorations to highlight lines
+    // in the editor based on input string.
+    function decoratorHighlightLines(codeLineNumbers) {
+      // Store the lines to be lighlight
+      let linesToHighlight = [];
+      
+      // Parse the codeLineNumbers string to get the line numbers to highlight
+      // First, split the string by commas
+      codeLineNumbers.split(',').forEach(part => {
+        // Check if we have a range of lines
+        if (part.includes('-')) {
+            // Handle range of lines (e.g., "6-8")
+            const [start, end] = part.split('-').map(Number);
+            for (let i = start; i <= end; i++) {
+                linesToHighlight.push(i);
+            }
+        } else {
+            // Handle single line (e.g., "7")
+            linesToHighlight.push(Number(part));
+        }
+      });
+  
+      // Create monaco decorations for the lines to highlight
+      const decorations = linesToHighlight.map(lineNumber => ({
+          range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+          options: {
+              isWholeLine: true,
+              className: 'qwebr-editor-highlight-line'
+          }
+      }));
+  
+      // Return decorations to be applied to the editor
+      return decorations;
+    }
+
+    // Ensure that the editor-code-line-numbers option is set and valid
+    // then apply styling
+    if (qwebrOptions['editor-code-line-numbers']) {
+      // Remove all whitespace from the string
+      const codeLineNumbers = qwebrOptions['editor-code-line-numbers'].replace(/\s/g,'');
+      // Check if the string is valid for line numbers, e.g., "1,3-5,7"
+      if (isValidCodeLineNumbers(codeLineNumbers)) {
+        // Apply the decorations to the editor
+        editor.createDecorationsCollection(decoratorHighlightLines(codeLineNumbers));
+      } else {
+        // Warn the user that the input is invalid
+        console.warn(`Invalid "editor-code-line-numbers" value in code cell ${qwebrOptions['label']}: ${codeLineNumbers}`);
+      }
+    }
 
     // Helper function to check if selected text is empty
     function isEmptyCodeText(selectedCodeText) {
@@ -3154,7 +3805,14 @@ Experimental use!
 <span id="cb8-63"><a href="#cb8-63"></a>)</span>
 <span id="cb8-64"><a href="#cb8-64"></a></span>
 <span id="cb8-65"><a href="#cb8-65"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output-display">
+</details><div class="cell-output cell-output-stderr">
+<pre><code>Warning: The 'plotly_relayout' event tied a source ID of
+'teal-main_ui-filter_panel-active-ADEX-filter-ADEX_AVAL-inputs-histogram_plot'
+is not registered. In order to obtain this event data, please add
+`event_register(p, 'plotly_relayout')` to the plot (`p`) that you wish to
+obtain event data from.</code></pre>
+</div>
+<div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="ext01_files/figure-html/teal-1.png" class="img-fluid figure-img" width="1440"></p>
 </figure>
@@ -3185,81 +3843,84 @@ Experimental use!
 </div>
 </div>
 <div class="column-screen-inset-right">
-<div class="sourceCode" id="cb9" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb9-1"><a href="#cb9-1"></a>#| standalone: true</span>
-<span id="cb9-2"><a href="#cb9-2"></a>#| viewerHeight: 800</span>
-<span id="cb9-3"><a href="#cb9-3"></a>#| editorHeight: 200</span>
-<span id="cb9-4"><a href="#cb9-4"></a>#| components: [viewer, editor]</span>
-<span id="cb9-5"><a href="#cb9-5"></a>#| layout: vertical</span>
-<span id="cb9-6"><a href="#cb9-6"></a></span>
-<span id="cb9-7"><a href="#cb9-7"></a># -- WEBR HELPERS --</span>
-<span id="cb9-8"><a href="#cb9-8"></a>options(webr_pkg_repos = c("r-universe" = "https://pharmaverse.r-universe.dev", getOption("webr_pkg_repos")))</span>
-<span id="cb9-9"><a href="#cb9-9"></a></span>
-<span id="cb9-10"><a href="#cb9-10"></a># -- APP CODE --</span>
-<span id="cb9-11"><a href="#cb9-11"></a>library(teal.modules.clinical)</span>
-<span id="cb9-12"><a href="#cb9-12"></a></span>
-<span id="cb9-13"><a href="#cb9-13"></a>## Data reproducible code</span>
-<span id="cb9-14"><a href="#cb9-14"></a>data &lt;- teal_data()</span>
-<span id="cb9-15"><a href="#cb9-15"></a>data &lt;- within(data, {</span>
-<span id="cb9-16"><a href="#cb9-16"></a>  library(dplyr)</span>
-<span id="cb9-17"><a href="#cb9-17"></a></span>
-<span id="cb9-18"><a href="#cb9-18"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
-<span id="cb9-19"><a href="#cb9-19"></a>  ADEX &lt;- random.cdisc.data::cadex</span>
-<span id="cb9-20"><a href="#cb9-20"></a>  adex_labels &lt;- unname(col_labels(ADEX))</span>
-<span id="cb9-21"><a href="#cb9-21"></a>  ADEX &lt;- ADEX %&gt;%</span>
-<span id="cb9-22"><a href="#cb9-22"></a>    filter(PARCAT1 == "OVERALL") %&gt;%</span>
-<span id="cb9-23"><a href="#cb9-23"></a>    mutate(</span>
-<span id="cb9-24"><a href="#cb9-24"></a>      AVALCAT1 = case_when(</span>
-<span id="cb9-25"><a href="#cb9-25"></a>        PARAMCD == "TDOSE" &amp; AVAL &lt; 5000 ~ "LOW",</span>
-<span id="cb9-26"><a href="#cb9-26"></a>        PARAMCD == "TDOSE" &amp; AVAL &gt;= 5000 ~ "HIGH",</span>
-<span id="cb9-27"><a href="#cb9-27"></a>        PARAMCD == "TNDOSE" &amp; AVAL &lt; 10 ~ "&lt; 10",</span>
-<span id="cb9-28"><a href="#cb9-28"></a>        PARAMCD == "TNDOSE" &amp; AVAL &gt;= 10 ~ "&gt;= 10"</span>
-<span id="cb9-29"><a href="#cb9-29"></a>      )</span>
-<span id="cb9-30"><a href="#cb9-30"></a>    )</span>
-<span id="cb9-31"><a href="#cb9-31"></a>  col_labels(ADEX) &lt;- c(adex_labels, "")</span>
-<span id="cb9-32"><a href="#cb9-32"></a>})</span>
-<span id="cb9-33"><a href="#cb9-33"></a>datanames &lt;- c("ADSL", "ADEX")</span>
-<span id="cb9-34"><a href="#cb9-34"></a>datanames(data) &lt;- datanames</span>
-<span id="cb9-35"><a href="#cb9-35"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
-<span id="cb9-36"><a href="#cb9-36"></a></span>
-<span id="cb9-37"><a href="#cb9-37"></a>## Reusable Configuration For Modules</span>
-<span id="cb9-38"><a href="#cb9-38"></a>ADEX &lt;- data[["ADEX"]]</span>
-<span id="cb9-39"><a href="#cb9-39"></a></span>
-<span id="cb9-40"><a href="#cb9-40"></a>## Setup App</span>
-<span id="cb9-41"><a href="#cb9-41"></a>app &lt;- init(</span>
-<span id="cb9-42"><a href="#cb9-42"></a>  data = data,</span>
-<span id="cb9-43"><a href="#cb9-43"></a>  modules = modules(</span>
-<span id="cb9-44"><a href="#cb9-44"></a>    tm_t_summary_by(</span>
-<span id="cb9-45"><a href="#cb9-45"></a>      label = "Exposure Table",</span>
-<span id="cb9-46"><a href="#cb9-46"></a>      dataname = "ADEX",</span>
-<span id="cb9-47"><a href="#cb9-47"></a>      arm_var = choices_selected(</span>
-<span id="cb9-48"><a href="#cb9-48"></a>        choices = variable_choices(ADEX, c("ARM", "ARMCD")),</span>
-<span id="cb9-49"><a href="#cb9-49"></a>        selected = "ARM"</span>
-<span id="cb9-50"><a href="#cb9-50"></a>      ),</span>
-<span id="cb9-51"><a href="#cb9-51"></a>      by_vars = choices_selected(</span>
-<span id="cb9-52"><a href="#cb9-52"></a>        choices = variable_choices(ADEX, c("PARCAT2", "PARAM")),</span>
-<span id="cb9-53"><a href="#cb9-53"></a>        selected = c("PARCAT2", "PARAM")</span>
-<span id="cb9-54"><a href="#cb9-54"></a>      ),</span>
-<span id="cb9-55"><a href="#cb9-55"></a>      summarize_vars = choices_selected(</span>
-<span id="cb9-56"><a href="#cb9-56"></a>        choices = variable_choices(ADEX, c("AVAL", "AVALCAT1")),</span>
-<span id="cb9-57"><a href="#cb9-57"></a>        selected = c("AVAL", "AVALCAT1")</span>
-<span id="cb9-58"><a href="#cb9-58"></a>      ),</span>
-<span id="cb9-59"><a href="#cb9-59"></a>      paramcd = choices_selected(</span>
-<span id="cb9-60"><a href="#cb9-60"></a>        choices = value_choices(ADEX, "PARAMCD", "PARAM"),</span>
-<span id="cb9-61"><a href="#cb9-61"></a>        selected = c("TDOSE", "TNDOSE")</span>
-<span id="cb9-62"><a href="#cb9-62"></a>      ),</span>
-<span id="cb9-63"><a href="#cb9-63"></a>      denominator = choices_selected(</span>
-<span id="cb9-64"><a href="#cb9-64"></a>        choices = c("n", "N", "omit"),</span>
-<span id="cb9-65"><a href="#cb9-65"></a>        selected = "N"</span>
-<span id="cb9-66"><a href="#cb9-66"></a>      )</span>
-<span id="cb9-67"><a href="#cb9-67"></a>    )</span>
-<span id="cb9-68"><a href="#cb9-68"></a>  ), # Set initial filter state as single study drug to produce smaller table</span>
-<span id="cb9-69"><a href="#cb9-69"></a>  filter = teal_slices(</span>
-<span id="cb9-70"><a href="#cb9-70"></a>    teal_slice("ADEX", "PARCAT2", selected = "Drug A"),</span>
-<span id="cb9-71"><a href="#cb9-71"></a>    teal_slice("ADEX", "AVAL", selected = NULL)</span>
-<span id="cb9-72"><a href="#cb9-72"></a>  )</span>
-<span id="cb9-73"><a href="#cb9-73"></a>)</span>
-<span id="cb9-74"><a href="#cb9-74"></a></span>
-<span id="cb9-75"><a href="#cb9-75"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb10" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb10-1"><a href="#cb10-1"></a>#| '!! shinylive warning !!': |</span>
+<span id="cb10-2"><a href="#cb10-2"></a>#|   shinylive does not work in self-contained HTML documents.</span>
+<span id="cb10-3"><a href="#cb10-3"></a>#|   Please set `embed-resources: false` in your metadata.</span>
+<span id="cb10-4"><a href="#cb10-4"></a>#| standalone: true</span>
+<span id="cb10-5"><a href="#cb10-5"></a>#| viewerHeight: 800</span>
+<span id="cb10-6"><a href="#cb10-6"></a>#| editorHeight: 200</span>
+<span id="cb10-7"><a href="#cb10-7"></a>#| components: [viewer, editor]</span>
+<span id="cb10-8"><a href="#cb10-8"></a>#| layout: vertical</span>
+<span id="cb10-9"><a href="#cb10-9"></a></span>
+<span id="cb10-10"><a href="#cb10-10"></a># -- WEBR HELPERS --</span>
+<span id="cb10-11"><a href="#cb10-11"></a>options(webr_pkg_repos = c("r-universe" = "https://pharmaverse.r-universe.dev", getOption("webr_pkg_repos")))</span>
+<span id="cb10-12"><a href="#cb10-12"></a></span>
+<span id="cb10-13"><a href="#cb10-13"></a># -- APP CODE --</span>
+<span id="cb10-14"><a href="#cb10-14"></a>library(teal.modules.clinical)</span>
+<span id="cb10-15"><a href="#cb10-15"></a></span>
+<span id="cb10-16"><a href="#cb10-16"></a>## Data reproducible code</span>
+<span id="cb10-17"><a href="#cb10-17"></a>data &lt;- teal_data()</span>
+<span id="cb10-18"><a href="#cb10-18"></a>data &lt;- within(data, {</span>
+<span id="cb10-19"><a href="#cb10-19"></a>  library(dplyr)</span>
+<span id="cb10-20"><a href="#cb10-20"></a></span>
+<span id="cb10-21"><a href="#cb10-21"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
+<span id="cb10-22"><a href="#cb10-22"></a>  ADEX &lt;- random.cdisc.data::cadex</span>
+<span id="cb10-23"><a href="#cb10-23"></a>  adex_labels &lt;- unname(col_labels(ADEX))</span>
+<span id="cb10-24"><a href="#cb10-24"></a>  ADEX &lt;- ADEX %&gt;%</span>
+<span id="cb10-25"><a href="#cb10-25"></a>    filter(PARCAT1 == "OVERALL") %&gt;%</span>
+<span id="cb10-26"><a href="#cb10-26"></a>    mutate(</span>
+<span id="cb10-27"><a href="#cb10-27"></a>      AVALCAT1 = case_when(</span>
+<span id="cb10-28"><a href="#cb10-28"></a>        PARAMCD == "TDOSE" &amp; AVAL &lt; 5000 ~ "LOW",</span>
+<span id="cb10-29"><a href="#cb10-29"></a>        PARAMCD == "TDOSE" &amp; AVAL &gt;= 5000 ~ "HIGH",</span>
+<span id="cb10-30"><a href="#cb10-30"></a>        PARAMCD == "TNDOSE" &amp; AVAL &lt; 10 ~ "&lt; 10",</span>
+<span id="cb10-31"><a href="#cb10-31"></a>        PARAMCD == "TNDOSE" &amp; AVAL &gt;= 10 ~ "&gt;= 10"</span>
+<span id="cb10-32"><a href="#cb10-32"></a>      )</span>
+<span id="cb10-33"><a href="#cb10-33"></a>    )</span>
+<span id="cb10-34"><a href="#cb10-34"></a>  col_labels(ADEX) &lt;- c(adex_labels, "")</span>
+<span id="cb10-35"><a href="#cb10-35"></a>})</span>
+<span id="cb10-36"><a href="#cb10-36"></a>datanames &lt;- c("ADSL", "ADEX")</span>
+<span id="cb10-37"><a href="#cb10-37"></a>datanames(data) &lt;- datanames</span>
+<span id="cb10-38"><a href="#cb10-38"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
+<span id="cb10-39"><a href="#cb10-39"></a></span>
+<span id="cb10-40"><a href="#cb10-40"></a>## Reusable Configuration For Modules</span>
+<span id="cb10-41"><a href="#cb10-41"></a>ADEX &lt;- data[["ADEX"]]</span>
+<span id="cb10-42"><a href="#cb10-42"></a></span>
+<span id="cb10-43"><a href="#cb10-43"></a>## Setup App</span>
+<span id="cb10-44"><a href="#cb10-44"></a>app &lt;- init(</span>
+<span id="cb10-45"><a href="#cb10-45"></a>  data = data,</span>
+<span id="cb10-46"><a href="#cb10-46"></a>  modules = modules(</span>
+<span id="cb10-47"><a href="#cb10-47"></a>    tm_t_summary_by(</span>
+<span id="cb10-48"><a href="#cb10-48"></a>      label = "Exposure Table",</span>
+<span id="cb10-49"><a href="#cb10-49"></a>      dataname = "ADEX",</span>
+<span id="cb10-50"><a href="#cb10-50"></a>      arm_var = choices_selected(</span>
+<span id="cb10-51"><a href="#cb10-51"></a>        choices = variable_choices(ADEX, c("ARM", "ARMCD")),</span>
+<span id="cb10-52"><a href="#cb10-52"></a>        selected = "ARM"</span>
+<span id="cb10-53"><a href="#cb10-53"></a>      ),</span>
+<span id="cb10-54"><a href="#cb10-54"></a>      by_vars = choices_selected(</span>
+<span id="cb10-55"><a href="#cb10-55"></a>        choices = variable_choices(ADEX, c("PARCAT2", "PARAM")),</span>
+<span id="cb10-56"><a href="#cb10-56"></a>        selected = c("PARCAT2", "PARAM")</span>
+<span id="cb10-57"><a href="#cb10-57"></a>      ),</span>
+<span id="cb10-58"><a href="#cb10-58"></a>      summarize_vars = choices_selected(</span>
+<span id="cb10-59"><a href="#cb10-59"></a>        choices = variable_choices(ADEX, c("AVAL", "AVALCAT1")),</span>
+<span id="cb10-60"><a href="#cb10-60"></a>        selected = c("AVAL", "AVALCAT1")</span>
+<span id="cb10-61"><a href="#cb10-61"></a>      ),</span>
+<span id="cb10-62"><a href="#cb10-62"></a>      paramcd = choices_selected(</span>
+<span id="cb10-63"><a href="#cb10-63"></a>        choices = value_choices(ADEX, "PARAMCD", "PARAM"),</span>
+<span id="cb10-64"><a href="#cb10-64"></a>        selected = c("TDOSE", "TNDOSE")</span>
+<span id="cb10-65"><a href="#cb10-65"></a>      ),</span>
+<span id="cb10-66"><a href="#cb10-66"></a>      denominator = choices_selected(</span>
+<span id="cb10-67"><a href="#cb10-67"></a>        choices = c("n", "N", "omit"),</span>
+<span id="cb10-68"><a href="#cb10-68"></a>        selected = "N"</span>
+<span id="cb10-69"><a href="#cb10-69"></a>      )</span>
+<span id="cb10-70"><a href="#cb10-70"></a>    )</span>
+<span id="cb10-71"><a href="#cb10-71"></a>  ), # Set initial filter state as single study drug to produce smaller table</span>
+<span id="cb10-72"><a href="#cb10-72"></a>  filter = teal_slices(</span>
+<span id="cb10-73"><a href="#cb10-73"></a>    teal_slice("ADEX", "PARCAT2", selected = "Drug A"),</span>
+<span id="cb10-74"><a href="#cb10-74"></a>    teal_slice("ADEX", "AVAL", selected = NULL)</span>
+<span id="cb10-75"><a href="#cb10-75"></a>  )</span>
+<span id="cb10-76"><a href="#cb10-76"></a>)</span>
+<span id="cb10-77"><a href="#cb10-77"></a></span>
+<span id="cb10-78"><a href="#cb10-78"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -3268,7 +3929,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-11-06 18:15:52 UTC"</code></pre>
+<pre><code>[1] "2024-11-08 12:11:33 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -3284,116 +3945,117 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-11-06
+ date     2024-11-08
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
- package               * version     date (UTC) lib source
- backports               1.5.0       2024-05-23 [1] CRAN (R 4.4.1)
- brio                    1.1.5       2024-04-24 [1] CRAN (R 4.4.1)
- broom                   1.0.7       2024-09-26 [1] CRAN (R 4.4.1)
- bslib                   0.8.0       2024-07-29 [1] CRAN (R 4.4.1)
- cachem                  1.1.0       2024-05-16 [1] CRAN (R 4.4.1)
- callr                   3.7.6       2024-03-25 [1] CRAN (R 4.4.1)
- checkmate               2.3.2       2024-07-29 [1] CRAN (R 4.4.1)
- chromote                0.3.1       2024-08-30 [1] CRAN (R 4.4.1)
- cli                     3.6.3       2024-06-21 [1] CRAN (R 4.4.1)
- coda                    0.19-4.1    2024-01-31 [1] CRAN (R 4.4.1)
- codetools               0.2-20      2024-03-31 [2] CRAN (R 4.4.1)
- colorspace              2.1-1       2024-07-26 [1] CRAN (R 4.4.1)
- data.table              1.16.2      2024-10-10 [1] CRAN (R 4.4.1)
- digest                  0.6.37      2024-08-19 [1] CRAN (R 4.4.1)
- dplyr                 * 1.1.4       2023-11-17 [1] CRAN (R 4.4.1)
- emmeans                 1.10.5      2024-10-14 [1] CRAN (R 4.4.1)
- estimability            1.5.1       2024-05-12 [1] CRAN (R 4.4.1)
- evaluate                1.0.1       2024-10-10 [1] CRAN (R 4.4.1)
- fansi                   1.0.6       2023-12-08 [1] CRAN (R 4.4.1)
- fastmap                 1.2.0       2024-05-15 [1] CRAN (R 4.4.1)
- fontawesome             0.5.2       2023-08-19 [1] CRAN (R 4.4.1)
- forcats                 1.0.0       2023-01-29 [1] CRAN (R 4.4.1)
- formatR                 1.14        2023-01-17 [1] CRAN (R 4.4.1)
- formatters            * 0.5.9.9003  2024-11-06 [1] git2r (https://github.com/insightsengineering/formatters.git@84e8c3e)
- geepack                 1.3.12      2024-09-23 [1] CRAN (R 4.4.1)
- generics                0.1.3       2022-07-05 [1] CRAN (R 4.4.1)
- ggplot2                 3.5.1       2024-04-23 [1] CRAN (R 4.4.1)
- glue                    1.8.0       2024-09-30 [1] CRAN (R 4.4.1)
- gtable                  0.3.5       2024-04-22 [1] CRAN (R 4.4.1)
- htmltools               0.5.8.1     2024-04-04 [1] CRAN (R 4.4.1)
- htmlwidgets             1.6.4       2023-12-06 [1] CRAN (R 4.4.1)
- httpuv                  1.6.15      2024-03-26 [1] CRAN (R 4.4.1)
- httr                    1.4.7       2023-08-15 [1] CRAN (R 4.4.1)
- jquerylib               0.1.4       2021-04-26 [1] CRAN (R 4.4.1)
- jsonlite                1.8.9       2024-09-20 [1] CRAN (R 4.4.1)
- knitr                   1.48        2024-07-07 [1] CRAN (R 4.4.1)
- later                   1.3.2       2023-12-06 [1] CRAN (R 4.4.1)
- lattice                 0.22-6      2024-03-20 [2] CRAN (R 4.4.1)
- lazyeval                0.2.2       2019-03-15 [1] CRAN (R 4.4.1)
- lifecycle               1.0.4       2023-11-07 [1] CRAN (R 4.4.1)
- logger                  0.3.0       2024-03-05 [1] CRAN (R 4.4.1)
- magrittr              * 2.0.3       2022-03-30 [1] CRAN (R 4.4.1)
- MASS                    7.3-61      2024-06-13 [2] CRAN (R 4.4.1)
- Matrix                  1.7-0       2024-04-26 [1] CRAN (R 4.4.1)
- memoise                 2.0.1       2021-11-26 [1] CRAN (R 4.4.1)
- mime                    0.12        2021-09-28 [1] CRAN (R 4.4.1)
- multcomp                1.4-26      2024-07-18 [1] CRAN (R 4.4.1)
- munsell                 0.5.1       2024-04-01 [1] CRAN (R 4.4.1)
- mvtnorm                 1.3-1       2024-09-03 [1] CRAN (R 4.4.1)
- nestcolor               0.1.2.9017  2024-11-06 [1] git2r (https://github.com/insightsengineering/nestcolor.git@3d2ce62)
- nlme                    3.1-166     2024-08-14 [2] CRAN (R 4.4.1)
- pillar                  1.9.0       2023-03-22 [1] CRAN (R 4.4.1)
- pkgconfig               2.0.3       2019-09-22 [1] CRAN (R 4.4.1)
- plotly                  4.10.4      2024-01-13 [1] CRAN (R 4.4.1)
- processx                3.8.4       2024-03-16 [1] CRAN (R 4.4.1)
- promises                1.3.0       2024-04-05 [1] CRAN (R 4.4.1)
- ps                      1.8.0       2024-09-12 [1] CRAN (R 4.4.1)
- purrr                   1.0.2       2023-08-10 [1] CRAN (R 4.4.1)
- R6                      2.5.1       2021-08-19 [1] CRAN (R 4.4.1)
- random.cdisc.data       0.3.16.9001 2024-11-06 [1] git2r (https://github.com/insightsengineering/random.cdisc.data.git@a65bfbe)
- rbibutils               2.3         2024-10-04 [1] CRAN (R 4.4.1)
- Rcpp                    1.0.13      2024-07-17 [1] CRAN (R 4.4.1)
- Rdpack                  2.6.1       2024-08-06 [1] CRAN (R 4.4.1)
- rlang                   1.1.4       2024-06-04 [1] CRAN (R 4.4.1)
- rmarkdown               2.28        2024-08-17 [1] CRAN (R 4.4.1)
- rtables               * 0.6.10.9002 2024-11-06 [1] git2r (https://github.com/insightsengineering/rtables.git@d2cc7a0)
- sandwich                3.1-1       2024-09-15 [1] CRAN (R 4.4.1)
- sass                    0.4.9       2024-03-15 [1] CRAN (R 4.4.1)
- scales                  1.3.0       2023-11-28 [1] CRAN (R 4.4.1)
- sessioninfo             1.2.2       2021-12-06 [1] CRAN (R 4.4.1)
- shiny                 * 1.9.1       2024-08-01 [1] CRAN (R 4.4.1)
- shinycssloaders         1.1.0       2024-07-30 [1] CRAN (R 4.4.1)
- shinyjs                 2.1.0       2021-12-23 [1] CRAN (R 4.4.1)
- shinyvalidate           0.1.3       2023-10-04 [1] CRAN (R 4.4.1)
- shinyWidgets            0.8.7       2024-09-23 [1] CRAN (R 4.4.1)
- stringi                 1.8.4       2024-05-06 [1] CRAN (R 4.4.1)
- stringr                 1.5.1       2023-11-14 [1] CRAN (R 4.4.1)
- survival                3.7-0       2024-06-05 [2] CRAN (R 4.4.1)
- teal                  * 0.15.2.9080 2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.git@9d80f42)
- teal.code             * 0.5.0.9012  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.code.git@622cb09)
- teal.data             * 0.6.0.9015  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.data.git@eca9695)
- teal.logger             0.3.0.9001  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.logger.git@4728b9b)
- teal.modules.clinical * 0.9.1.9030  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.modules.clinical.git@5b91926)
- teal.reporter           0.3.1.9016  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.reporter.git@4fefa7e)
- teal.slice            * 0.5.1.9015  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.slice.git@a3d9a0f)
- teal.transform        * 0.5.0.9015  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.transform.git@0b855e3)
- teal.widgets            0.4.2.9022  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.widgets.git@8a39dd4)
- tern                  * 0.9.6.9013  2024-11-06 [1] git2r (https://github.com/insightsengineering/tern.git@435fd51)
- tern.gee                0.1.5.9004  2024-11-06 [1] git2r (https://github.com/insightsengineering/tern.gee.git@458172d)
- testthat                3.2.1.1     2024-04-14 [1] CRAN (R 4.4.1)
- TH.data                 1.1-2       2023-04-17 [1] CRAN (R 4.4.1)
- tibble                  3.2.1       2023-03-20 [1] CRAN (R 4.4.1)
- tidyr                 * 1.3.1       2024-01-24 [1] CRAN (R 4.4.1)
- tidyselect              1.2.1       2024-03-11 [1] CRAN (R 4.4.1)
- utf8                    1.2.4       2023-10-22 [1] CRAN (R 4.4.1)
- vctrs                   0.6.5       2023-12-01 [1] CRAN (R 4.4.1)
- viridisLite             0.4.2       2023-05-02 [1] CRAN (R 4.4.1)
- webshot                 0.5.5       2023-06-26 [1] CRAN (R 4.4.1)
- webshot2                0.1.1       2023-08-11 [1] CRAN (R 4.4.1)
- websocket               1.4.2       2024-07-22 [1] CRAN (R 4.4.1)
- withr                   3.0.1       2024-07-31 [1] CRAN (R 4.4.1)
- xfun                    0.48        2024-10-03 [1] CRAN (R 4.4.1)
- xtable                  1.8-4       2019-04-21 [1] CRAN (R 4.4.1)
- yaml                    2.3.10      2024-07-26 [1] CRAN (R 4.4.1)
- zoo                     1.8-12      2023-04-13 [1] CRAN (R 4.4.1)
+ package               * version  date (UTC) lib source
+ backports               1.5.0    2024-05-23 [1] RSPM
+ brio                    1.1.5    2024-04-24 [1] RSPM
+ broom                   1.0.7    2024-09-26 [1] RSPM
+ bslib                   0.8.0    2024-07-29 [1] RSPM
+ cachem                  1.1.0    2024-05-16 [1] RSPM
+ callr                   3.7.6    2024-03-25 [1] RSPM
+ checkmate               2.3.2    2024-07-29 [1] RSPM
+ chromote                0.3.1    2024-08-30 [1] RSPM
+ cli                     3.6.3    2024-06-21 [1] RSPM
+ coda                    0.19-4.1 2024-01-31 [1] CRAN (R 4.4.1)
+ codetools               0.2-20   2024-03-31 [2] CRAN (R 4.4.1)
+ colorspace              2.1-1    2024-07-26 [1] RSPM
+ curl                    6.0.0    2024-11-05 [1] RSPM
+ data.table              1.16.2   2024-10-10 [1] RSPM
+ digest                  0.6.37   2024-08-19 [1] RSPM
+ dplyr                 * 1.1.4    2023-11-17 [1] RSPM
+ emmeans                 1.10.5   2024-10-14 [1] RSPM
+ estimability            1.5.1    2024-05-12 [1] RSPM
+ evaluate                1.0.1    2024-10-10 [1] RSPM
+ fansi                   1.0.6    2023-12-08 [1] RSPM
+ fastmap                 1.2.0    2024-05-15 [1] RSPM
+ fontawesome             0.5.2    2023-08-19 [1] RSPM
+ forcats                 1.0.0    2023-01-29 [1] RSPM
+ formatR                 1.14     2023-01-17 [1] CRAN (R 4.4.1)
+ formatters            * 0.5.9    2024-09-12 [1] RSPM
+ geepack                 1.3.12   2024-09-23 [1] RSPM
+ generics                0.1.3    2022-07-05 [1] RSPM
+ ggplot2                 3.5.1    2024-04-23 [1] RSPM
+ glue                    1.8.0    2024-09-30 [1] RSPM
+ gtable                  0.3.6    2024-10-25 [1] RSPM
+ htmltools               0.5.8.1  2024-04-04 [1] RSPM
+ htmlwidgets             1.6.4    2023-12-06 [1] RSPM
+ httpuv                  1.6.15   2024-03-26 [1] RSPM
+ httr                    1.4.7    2023-08-15 [1] RSPM
+ jquerylib               0.1.4    2021-04-26 [1] RSPM
+ jsonlite                1.8.9    2024-09-20 [1] RSPM
+ knitr                   1.48     2024-07-07 [1] RSPM
+ later                   1.3.2    2023-12-06 [1] RSPM
+ lattice                 0.22-6   2024-03-20 [2] CRAN (R 4.4.1)
+ lazyeval                0.2.2    2019-03-15 [1] RSPM
+ lifecycle               1.0.4    2023-11-07 [1] RSPM
+ logger                  0.4.0    2024-10-22 [1] RSPM
+ magrittr              * 2.0.3    2022-03-30 [1] RSPM
+ MASS                    7.3-61   2024-06-13 [2] CRAN (R 4.4.1)
+ Matrix                  1.7-0    2024-04-26 [1] CRAN (R 4.4.1)
+ memoise                 2.0.1    2021-11-26 [1] RSPM
+ mime                    0.12     2021-09-28 [1] RSPM
+ multcomp                1.4-26   2024-07-18 [1] CRAN (R 4.4.1)
+ munsell                 0.5.1    2024-04-01 [1] RSPM
+ mvtnorm                 1.3-2    2024-11-04 [1] RSPM
+ nlme                    3.1-166  2024-08-14 [2] CRAN (R 4.4.1)
+ pillar                  1.9.0    2023-03-22 [1] RSPM
+ pkgcache                2.2.3    2024-09-12 [1] RSPM
+ pkgconfig               2.0.3    2019-09-22 [1] RSPM
+ plotly                  4.10.4   2024-01-13 [1] RSPM
+ processx                3.8.4    2024-03-16 [1] RSPM
+ promises                1.3.0    2024-04-05 [1] RSPM
+ ps                      1.8.1    2024-10-28 [1] RSPM
+ purrr                   1.0.2    2023-08-10 [1] RSPM
+ R6                      2.5.1    2021-08-19 [1] RSPM
+ random.cdisc.data       0.3.16   2024-10-10 [1] RSPM
+ rbibutils               2.3      2024-10-04 [1] RSPM
+ Rcpp                    1.0.13-1 2024-11-02 [1] RSPM
+ Rdpack                  2.6.1    2024-08-06 [1] RSPM
+ rlang                   1.1.4    2024-06-04 [1] RSPM
+ rmarkdown               2.29     2024-11-04 [1] RSPM
+ rtables               * 0.6.10   2024-09-20 [1] RSPM
+ sandwich                3.1-1    2024-09-15 [1] CRAN (R 4.4.1)
+ sass                    0.4.9    2024-03-15 [1] RSPM
+ scales                  1.3.0    2023-11-28 [1] RSPM
+ sessioninfo             1.2.2    2021-12-06 [1] any (@1.2.2)
+ shiny                 * 1.9.1    2024-08-01 [1] RSPM
+ shinycssloaders         1.1.0    2024-07-30 [1] RSPM
+ shinyjs                 2.1.0    2021-12-23 [1] RSPM
+ shinyvalidate           0.1.3    2023-10-04 [1] RSPM
+ shinyWidgets            0.8.7    2024-09-23 [1] RSPM
+ stringi                 1.8.4    2024-05-06 [1] RSPM
+ stringr                 1.5.1    2023-11-14 [1] RSPM
+ survival                3.7-0    2024-06-05 [2] CRAN (R 4.4.1)
+ teal                  * 0.15.2   2024-03-07 [1] RSPM
+ teal.code             * 0.5.0    2024-01-11 [1] RSPM
+ teal.data             * 0.6.0    2024-04-30 [1] RSPM
+ teal.logger             0.3.0    2024-10-24 [1] RSPM
+ teal.modules.clinical * 0.9.1    2024-04-27 [1] RSPM
+ teal.reporter           0.3.1    2024-03-15 [1] RSPM
+ teal.slice            * 0.5.1    2024-04-30 [1] RSPM
+ teal.transform        * 0.5.0    2024-02-17 [1] RSPM
+ teal.widgets            0.4.2    2023-12-14 [1] RSPM
+ tern                  * 0.9.6    2024-09-24 [1] RSPM
+ tern.gee                0.1.5    2024-08-23 [1] RSPM
+ testthat                3.2.1.1  2024-04-14 [1] RSPM
+ TH.data                 1.1-2    2023-04-17 [1] CRAN (R 4.4.1)
+ tibble                  3.2.1    2023-03-20 [1] RSPM
+ tidyr                 * 1.3.1    2024-01-24 [1] RSPM
+ tidyselect              1.2.1    2024-03-11 [1] RSPM
+ utf8                    1.2.4    2023-10-22 [1] RSPM
+ vctrs                   0.6.5    2023-12-01 [1] RSPM
+ viridisLite             0.4.2    2023-05-02 [1] RSPM
+ webshot                 0.5.5    2023-06-26 [1] CRAN (R 4.4.1)
+ webshot2                0.1.1    2023-08-11 [1] RSPM
+ websocket               1.4.2    2024-07-22 [1] RSPM
+ withr                   3.0.2    2024-10-28 [1] RSPM
+ xfun                    0.49     2024-10-31 [1] RSPM
+ xtable                  1.8-4    2019-04-21 [1] RSPM
+ yaml                    2.3.10   2024-07-26 [1] RSPM
+ zoo                     1.8-12   2023-04-13 [1] CRAN (R 4.4.1)
 
  [1] /usr/local/lib/R/site-library
  [2] /usr/local/lib/R/library
@@ -4035,307 +4697,307 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb12" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1"></a><span class="co">---</span></span>
-<span id="cb12-2"><a href="#cb12-2"></a><span class="an">title:</span><span class="co"> EXT01</span></span>
-<span id="cb12-3"><a href="#cb12-3"></a><span class="an">subtitle:</span><span class="co"> Study Drug Exposure Table</span></span>
-<span id="cb12-4"><a href="#cb12-4"></a><span class="co">---</span></span>
-<span id="cb12-5"><a href="#cb12-5"></a></span>
-<span id="cb12-6"><a href="#cb12-6"></a>------------------------------------------------------------------------</span>
-<span id="cb12-7"><a href="#cb12-7"></a></span>
-<span id="cb12-8"><a href="#cb12-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb12-9"><a href="#cb12-9"></a></span>
-<span id="cb12-10"><a href="#cb12-10"></a>:::: {.panel-tabset}</span>
-<span id="cb12-11"><a href="#cb12-11"></a></span>
-<span id="cb12-12"><a href="#cb12-12"></a><span class="in">```{r setup, echo = FALSE}</span></span>
-<span id="cb12-13"><a href="#cb12-13"></a><span class="in">library(tern)</span></span>
-<span id="cb12-14"><a href="#cb12-14"></a><span class="in">library(dplyr)</span></span>
-<span id="cb12-15"><a href="#cb12-15"></a><span class="in">library(tidyr)</span></span>
-<span id="cb12-16"><a href="#cb12-16"></a></span>
-<span id="cb12-17"><a href="#cb12-17"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb12-18"><a href="#cb12-18"></a><span class="in">adex &lt;- random.cdisc.data::cadex</span></span>
-<span id="cb12-19"><a href="#cb12-19"></a></span>
-<span id="cb12-20"><a href="#cb12-20"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb12-21"><a href="#cb12-21"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb12-22"><a href="#cb12-22"></a><span class="in">adex &lt;- df_explicit_na(adex)</span></span>
-<span id="cb12-23"><a href="#cb12-23"></a></span>
-<span id="cb12-24"><a href="#cb12-24"></a><span class="in">adex &lt;- adex %&gt;%</span></span>
-<span id="cb12-25"><a href="#cb12-25"></a><span class="in">  filter(PARCAT1 == "OVERALL") %&gt;%</span></span>
-<span id="cb12-26"><a href="#cb12-26"></a><span class="in">  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %&gt;%</span></span>
-<span id="cb12-27"><a href="#cb12-27"></a><span class="in">  mutate(</span></span>
-<span id="cb12-28"><a href="#cb12-28"></a><span class="in">    PARAMCD = as.character(PARAMCD),</span></span>
-<span id="cb12-29"><a href="#cb12-29"></a><span class="in">    AVALC = ""</span></span>
-<span id="cb12-30"><a href="#cb12-30"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-31"><a href="#cb12-31"></a><span class="in">  droplevels()</span></span>
-<span id="cb12-32"><a href="#cb12-32"></a></span>
-<span id="cb12-33"><a href="#cb12-33"></a><span class="in"># Add new param tdurd for treatment duration.</span></span>
-<span id="cb12-34"><a href="#cb12-34"></a><span class="in">set.seed(99)</span></span>
-<span id="cb12-35"><a href="#cb12-35"></a><span class="in">tdurd_adsl &lt;- adsl %&gt;%</span></span>
-<span id="cb12-36"><a href="#cb12-36"></a><span class="in">  select(STUDYID, USUBJID, ACTARM) %&gt;%</span></span>
-<span id="cb12-37"><a href="#cb12-37"></a><span class="in">  mutate(</span></span>
-<span id="cb12-38"><a href="#cb12-38"></a><span class="in">    PARAMCD = "TDURD",</span></span>
-<span id="cb12-39"><a href="#cb12-39"></a><span class="in">    PARAM = "Overall duration (days)",</span></span>
-<span id="cb12-40"><a href="#cb12-40"></a><span class="in">    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),</span></span>
-<span id="cb12-41"><a href="#cb12-41"></a><span class="in">    AVALC = case_when(</span></span>
-<span id="cb12-42"><a href="#cb12-42"></a><span class="in">      0 &lt;= AVAL &amp; AVAL &lt;= 30 ~ "0 - 30",</span></span>
-<span id="cb12-43"><a href="#cb12-43"></a><span class="in">      31 &lt;= AVAL &amp; AVAL &lt;= 60 ~ "31 - 60",</span></span>
-<span id="cb12-44"><a href="#cb12-44"></a><span class="in">      61 &lt;= AVAL &amp; AVAL &lt;= 90 ~ "61 - 90",</span></span>
-<span id="cb12-45"><a href="#cb12-45"></a><span class="in">      TRUE ~ "&gt;= 91"</span></span>
-<span id="cb12-46"><a href="#cb12-46"></a><span class="in">    )</span></span>
-<span id="cb12-47"><a href="#cb12-47"></a><span class="in">  )</span></span>
-<span id="cb12-48"><a href="#cb12-48"></a><span class="in">tdurd &lt;- adex %&gt;%</span></span>
-<span id="cb12-49"><a href="#cb12-49"></a><span class="in">  filter(PARAMCD == "TNDOSE") %&gt;%</span></span>
-<span id="cb12-50"><a href="#cb12-50"></a><span class="in">  select(STUDYID, USUBJID, PARCAT2) %&gt;%</span></span>
-<span id="cb12-51"><a href="#cb12-51"></a><span class="in">  left_join(tdurd_adsl, by = c("STUDYID", "USUBJID"))</span></span>
-<span id="cb12-52"><a href="#cb12-52"></a></span>
-<span id="cb12-53"><a href="#cb12-53"></a><span class="in"># Add new param tndosmis for missed doses.</span></span>
-<span id="cb12-54"><a href="#cb12-54"></a><span class="in">tndosmis_adsl &lt;- adsl %&gt;%</span></span>
-<span id="cb12-55"><a href="#cb12-55"></a><span class="in">  select(STUDYID, USUBJID, ACTARM) %&gt;%</span></span>
-<span id="cb12-56"><a href="#cb12-56"></a><span class="in">  mutate(</span></span>
-<span id="cb12-57"><a href="#cb12-57"></a><span class="in">    PARAMCD = "TNDOSMIS",</span></span>
-<span id="cb12-58"><a href="#cb12-58"></a><span class="in">    PARAM = "Total number of missed doses during study",</span></span>
-<span id="cb12-59"><a href="#cb12-59"></a><span class="in">    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),</span></span>
-<span id="cb12-60"><a href="#cb12-60"></a><span class="in">    AVALC = ""</span></span>
-<span id="cb12-61"><a href="#cb12-61"></a><span class="in">  )</span></span>
-<span id="cb12-62"><a href="#cb12-62"></a><span class="in">tndosmis &lt;- adex %&gt;%</span></span>
-<span id="cb12-63"><a href="#cb12-63"></a><span class="in">  filter(PARAMCD == "TNDOSE") %&gt;%</span></span>
-<span id="cb12-64"><a href="#cb12-64"></a><span class="in">  select(STUDYID, USUBJID, PARCAT2) %&gt;%</span></span>
-<span id="cb12-65"><a href="#cb12-65"></a><span class="in">  left_join(tndosmis_adsl, by = c("STUDYID", "USUBJID"))</span></span>
-<span id="cb12-66"><a href="#cb12-66"></a></span>
-<span id="cb12-67"><a href="#cb12-67"></a><span class="in">adex &lt;- dplyr::bind_rows(adex, tdurd, tndosmis) %&gt;%</span></span>
-<span id="cb12-68"><a href="#cb12-68"></a><span class="in">  mutate(PARAM = factor(</span></span>
-<span id="cb12-69"><a href="#cb12-69"></a><span class="in">    PARAM,</span></span>
-<span id="cb12-70"><a href="#cb12-70"></a><span class="in">    levels = c(</span></span>
-<span id="cb12-71"><a href="#cb12-71"></a><span class="in">      "Overall duration (days)", "Total dose administered", "Total number of doses administered",</span></span>
-<span id="cb12-72"><a href="#cb12-72"></a><span class="in">      "Total number of missed doses during study"</span></span>
-<span id="cb12-73"><a href="#cb12-73"></a><span class="in">    )</span></span>
-<span id="cb12-74"><a href="#cb12-74"></a><span class="in">  ))</span></span>
-<span id="cb12-75"><a href="#cb12-75"></a><span class="in">```</span></span>
-<span id="cb12-76"><a href="#cb12-76"></a></span>
-<span id="cb12-77"><a href="#cb12-77"></a><span class="fu">## Standard Table</span></span>
-<span id="cb12-78"><a href="#cb12-78"></a></span>
-<span id="cb12-79"><a href="#cb12-79"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb12-80"><a href="#cb12-80"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb12-81"><a href="#cb12-81"></a></span>
-<span id="cb12-82"><a href="#cb12-82"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb12-83"><a href="#cb12-83"></a><span class="in"># When summary table contains only categorical or only numeric parameters</span></span>
-<span id="cb12-84"><a href="#cb12-84"></a></span>
-<span id="cb12-85"><a href="#cb12-85"></a><span class="in">split_fun &lt;- drop_split_levels</span></span>
-<span id="cb12-86"><a href="#cb12-86"></a></span>
-<span id="cb12-87"><a href="#cb12-87"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb12-88"><a href="#cb12-88"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb12-89"><a href="#cb12-89"></a><span class="in">  split_rows_by("PARCAT2", split_label = "\nParameter Category (Drug A/Drug B)", label_pos = "topleft") %&gt;%</span></span>
-<span id="cb12-90"><a href="#cb12-90"></a><span class="in">  split_rows_by("PARAM", split_fun = split_fun) %&gt;%</span></span>
-<span id="cb12-91"><a href="#cb12-91"></a><span class="in">  analyze_vars(vars = "AVAL")</span></span>
-<span id="cb12-92"><a href="#cb12-92"></a></span>
-<span id="cb12-93"><a href="#cb12-93"></a><span class="in">result &lt;- build_table(lyt = lyt, df = adex, alt_counts_df = adsl)</span></span>
-<span id="cb12-94"><a href="#cb12-94"></a></span>
-<span id="cb12-95"><a href="#cb12-95"></a><span class="in">result</span></span>
-<span id="cb12-96"><a href="#cb12-96"></a><span class="in">```</span></span>
-<span id="cb12-97"><a href="#cb12-97"></a></span>
-<span id="cb12-98"><a href="#cb12-98"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
-<span id="cb12-99"><a href="#cb12-99"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb12-100"><a href="#cb12-100"></a>:::</span>
-<span id="cb12-101"><a href="#cb12-101"></a></span>
-<span id="cb12-102"><a href="#cb12-102"></a><span class="fu">## Table with Optional Analyses</span></span>
-<span id="cb12-103"><a href="#cb12-103"></a></span>
-<span id="cb12-104"><a href="#cb12-104"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb12-105"><a href="#cb12-105"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb12-106"><a href="#cb12-106"></a></span>
-<span id="cb12-107"><a href="#cb12-107"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb12-108"><a href="#cb12-108"></a><span class="in"># When summary table contains both categorical and numeric parameters,</span></span>
-<span id="cb12-109"><a href="#cb12-109"></a><span class="in"># developer needs to do pre-processing to transform dataset to wide format.</span></span>
-<span id="cb12-110"><a href="#cb12-110"></a><span class="in">adex_avalc_wide &lt;- adex %&gt;%</span></span>
-<span id="cb12-111"><a href="#cb12-111"></a><span class="in">  filter(PARAMCD == "TDURD") %&gt;%</span></span>
-<span id="cb12-112"><a href="#cb12-112"></a><span class="in">  select(STUDYID, USUBJID, PARAMCD, AVALC, PARCAT2) %&gt;%</span></span>
-<span id="cb12-113"><a href="#cb12-113"></a><span class="in">  tidyr::pivot_wider(</span></span>
-<span id="cb12-114"><a href="#cb12-114"></a><span class="in">    id_cols = c(STUDYID, USUBJID, PARCAT2),</span></span>
-<span id="cb12-115"><a href="#cb12-115"></a><span class="in">    names_from = PARAMCD,</span></span>
-<span id="cb12-116"><a href="#cb12-116"></a><span class="in">    values_from = AVALC</span></span>
-<span id="cb12-117"><a href="#cb12-117"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-118"><a href="#cb12-118"></a><span class="in">  mutate(</span></span>
-<span id="cb12-119"><a href="#cb12-119"></a><span class="in">    TDURDC = factor(TDURD, levels = c("0 - 30", "31 - 60", "61 - 90", "&gt;= 91"))</span></span>
-<span id="cb12-120"><a href="#cb12-120"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-121"><a href="#cb12-121"></a><span class="in">  select(-TDURD)</span></span>
-<span id="cb12-122"><a href="#cb12-122"></a></span>
-<span id="cb12-123"><a href="#cb12-123"></a><span class="in">anl &lt;- adex %&gt;%</span></span>
-<span id="cb12-124"><a href="#cb12-124"></a><span class="in">  select(STUDYID, USUBJID, ACTARM, PARAMCD, AVAL, PARCAT2) %&gt;%</span></span>
-<span id="cb12-125"><a href="#cb12-125"></a><span class="in">  tidyr::pivot_wider(</span></span>
-<span id="cb12-126"><a href="#cb12-126"></a><span class="in">    id_cols = c(STUDYID, USUBJID, ACTARM, PARCAT2),</span></span>
-<span id="cb12-127"><a href="#cb12-127"></a><span class="in">    names_from = PARAMCD,</span></span>
-<span id="cb12-128"><a href="#cb12-128"></a><span class="in">    values_from = AVAL</span></span>
-<span id="cb12-129"><a href="#cb12-129"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-130"><a href="#cb12-130"></a><span class="in">  left_join(adex_avalc_wide, by = c("STUDYID", "USUBJID", "PARCAT2")) %&gt;%</span></span>
-<span id="cb12-131"><a href="#cb12-131"></a><span class="in">  var_relabel(</span></span>
-<span id="cb12-132"><a href="#cb12-132"></a><span class="in">    TDOSE = "Total dose administered",</span></span>
-<span id="cb12-133"><a href="#cb12-133"></a><span class="in">    TNDOSE = "Total number of doses administered",</span></span>
-<span id="cb12-134"><a href="#cb12-134"></a><span class="in">    TDURD = "Overall duration (days)",</span></span>
-<span id="cb12-135"><a href="#cb12-135"></a><span class="in">    TNDOSMIS = "Total number of missed doses during study",</span></span>
-<span id="cb12-136"><a href="#cb12-136"></a><span class="in">    TDURDC = "Overall duration (days)"</span></span>
-<span id="cb12-137"><a href="#cb12-137"></a><span class="in">  )</span></span>
-<span id="cb12-138"><a href="#cb12-138"></a></span>
-<span id="cb12-139"><a href="#cb12-139"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb12-140"><a href="#cb12-140"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb12-141"><a href="#cb12-141"></a><span class="in">  split_rows_by("PARCAT2", split_label = "\nParameter Category (Drug A/Drug B)", label_pos = "topleft") %&gt;%</span></span>
-<span id="cb12-142"><a href="#cb12-142"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb12-143"><a href="#cb12-143"></a><span class="in">    vars = c("TDURD", "TDURDC", "TDOSE", "TNDOSE"),</span></span>
-<span id="cb12-144"><a href="#cb12-144"></a><span class="in">    var_labels = var_labels(anl)[c("TDURD", "TDURDC", "TDOSE", "TNDOSE")]</span></span>
-<span id="cb12-145"><a href="#cb12-145"></a><span class="in">  )</span></span>
-<span id="cb12-146"><a href="#cb12-146"></a></span>
-<span id="cb12-147"><a href="#cb12-147"></a><span class="in">result &lt;- build_table(lyt = lyt, df = anl, alt_counts_df = adsl)</span></span>
-<span id="cb12-148"><a href="#cb12-148"></a></span>
-<span id="cb12-149"><a href="#cb12-149"></a><span class="in">result</span></span>
-<span id="cb12-150"><a href="#cb12-150"></a><span class="in">```</span></span>
-<span id="cb12-151"><a href="#cb12-151"></a></span>
-<span id="cb12-152"><a href="#cb12-152"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
-<span id="cb12-153"><a href="#cb12-153"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb12-154"><a href="#cb12-154"></a>:::</span>
-<span id="cb12-155"><a href="#cb12-155"></a></span>
-<span id="cb12-156"><a href="#cb12-156"></a><span class="fu">## Table with User-Specified &lt;br/&gt; Categories for Missed Doses</span></span>
-<span id="cb12-157"><a href="#cb12-157"></a></span>
-<span id="cb12-158"><a href="#cb12-158"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb12-159"><a href="#cb12-159"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb12-160"><a href="#cb12-160"></a></span>
-<span id="cb12-161"><a href="#cb12-161"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
-<span id="cb12-162"><a href="#cb12-162"></a><span class="in"># When summary table contains both categorical and numeric parameters,</span></span>
-<span id="cb12-163"><a href="#cb12-163"></a><span class="in"># developer needs to do pre-processing to transform dataset to wide format.</span></span>
-<span id="cb12-164"><a href="#cb12-164"></a><span class="in">adex_avalc_wide &lt;- adex %&gt;%</span></span>
-<span id="cb12-165"><a href="#cb12-165"></a><span class="in">  filter(PARAMCD == "TDURD") %&gt;%</span></span>
-<span id="cb12-166"><a href="#cb12-166"></a><span class="in">  select(STUDYID, USUBJID, PARAMCD, AVALC, PARCAT2) %&gt;%</span></span>
-<span id="cb12-167"><a href="#cb12-167"></a><span class="in">  tidyr::pivot_wider(</span></span>
-<span id="cb12-168"><a href="#cb12-168"></a><span class="in">    id_cols = c(STUDYID, USUBJID, PARCAT2),</span></span>
-<span id="cb12-169"><a href="#cb12-169"></a><span class="in">    names_from = PARAMCD,</span></span>
-<span id="cb12-170"><a href="#cb12-170"></a><span class="in">    values_from = AVALC</span></span>
-<span id="cb12-171"><a href="#cb12-171"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-172"><a href="#cb12-172"></a><span class="in">  mutate(</span></span>
-<span id="cb12-173"><a href="#cb12-173"></a><span class="in">    TDURDC = factor(TDURD, levels = c("0 - 30", "31 - 60", "61 - 90", "&gt;= 91"))</span></span>
-<span id="cb12-174"><a href="#cb12-174"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-175"><a href="#cb12-175"></a><span class="in">  select(-TDURD)</span></span>
-<span id="cb12-176"><a href="#cb12-176"></a></span>
-<span id="cb12-177"><a href="#cb12-177"></a><span class="in">anl &lt;- adex %&gt;%</span></span>
-<span id="cb12-178"><a href="#cb12-178"></a><span class="in">  select(STUDYID, USUBJID, ACTARM, PARAMCD, AVAL, PARCAT2) %&gt;%</span></span>
-<span id="cb12-179"><a href="#cb12-179"></a><span class="in">  tidyr::pivot_wider(</span></span>
-<span id="cb12-180"><a href="#cb12-180"></a><span class="in">    id_cols = c(STUDYID, USUBJID, ACTARM, PARCAT2),</span></span>
-<span id="cb12-181"><a href="#cb12-181"></a><span class="in">    names_from = PARAMCD,</span></span>
-<span id="cb12-182"><a href="#cb12-182"></a><span class="in">    values_from = AVAL</span></span>
-<span id="cb12-183"><a href="#cb12-183"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-184"><a href="#cb12-184"></a><span class="in">  left_join(adex_avalc_wide, by = c("STUDYID", "USUBJID", "PARCAT2")) %&gt;%</span></span>
-<span id="cb12-185"><a href="#cb12-185"></a><span class="in">  var_relabel(</span></span>
-<span id="cb12-186"><a href="#cb12-186"></a><span class="in">    TDOSE = "Total dose administered",</span></span>
-<span id="cb12-187"><a href="#cb12-187"></a><span class="in">    TNDOSE = "Total number of doses administered",</span></span>
-<span id="cb12-188"><a href="#cb12-188"></a><span class="in">    TDURD = "Overall duration (days)",</span></span>
-<span id="cb12-189"><a href="#cb12-189"></a><span class="in">    TNDOSMIS = "Total number of missed doses during study",</span></span>
-<span id="cb12-190"><a href="#cb12-190"></a><span class="in">    TDURDC = "Overall duration (days)"</span></span>
-<span id="cb12-191"><a href="#cb12-191"></a><span class="in">  )</span></span>
-<span id="cb12-192"><a href="#cb12-192"></a></span>
-<span id="cb12-193"><a href="#cb12-193"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb12-194"><a href="#cb12-194"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb12-195"><a href="#cb12-195"></a><span class="in">  split_rows_by("PARCAT2", split_label = "\nParameter Category (Drug A/Drug B)", label_pos = "topleft") %&gt;%</span></span>
-<span id="cb12-196"><a href="#cb12-196"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb12-197"><a href="#cb12-197"></a><span class="in">    vars = c("TDURD", "TDURDC", "TDOSE", "TNDOSE"),</span></span>
-<span id="cb12-198"><a href="#cb12-198"></a><span class="in">    var_labels = var_labels(anl)[c("TDURD", "TDURDC", "TDOSE", "TNDOSE")]</span></span>
-<span id="cb12-199"><a href="#cb12-199"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb12-200"><a href="#cb12-200"></a><span class="in">  count_missed_doses(</span></span>
-<span id="cb12-201"><a href="#cb12-201"></a><span class="in">    "TNDOSMIS",</span></span>
-<span id="cb12-202"><a href="#cb12-202"></a><span class="in">    thresholds = c(1, 5, 10, 15),</span></span>
-<span id="cb12-203"><a href="#cb12-203"></a><span class="in">    var_labels = "Missed Doses"</span></span>
-<span id="cb12-204"><a href="#cb12-204"></a><span class="in">  )</span></span>
-<span id="cb12-205"><a href="#cb12-205"></a></span>
-<span id="cb12-206"><a href="#cb12-206"></a><span class="in">result &lt;- build_table(lyt = lyt, df = anl, alt_counts_df = adsl)</span></span>
-<span id="cb12-207"><a href="#cb12-207"></a></span>
-<span id="cb12-208"><a href="#cb12-208"></a><span class="in">result</span></span>
-<span id="cb12-209"><a href="#cb12-209"></a><span class="in">```</span></span>
-<span id="cb12-210"><a href="#cb12-210"></a></span>
-<span id="cb12-211"><a href="#cb12-211"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant3")`</span></span>
-<span id="cb12-212"><a href="#cb12-212"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb12-213"><a href="#cb12-213"></a>:::</span>
-<span id="cb12-214"><a href="#cb12-214"></a></span>
-<span id="cb12-215"><a href="#cb12-215"></a><span class="fu">## Data Setup</span></span>
-<span id="cb12-216"><a href="#cb12-216"></a></span>
-<span id="cb12-217"><a href="#cb12-217"></a><span class="in">```{r setup}</span></span>
-<span id="cb12-218"><a href="#cb12-218"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb12-219"><a href="#cb12-219"></a><span class="in">```</span></span>
-<span id="cb12-220"><a href="#cb12-220"></a></span>
-<span id="cb12-221"><a href="#cb12-221"></a>::::</span>
-<span id="cb12-222"><a href="#cb12-222"></a></span>
-<span id="cb12-223"><a href="#cb12-223"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb12-224"><a href="#cb12-224"></a></span>
-<span id="cb12-225"><a href="#cb12-225"></a><span class="fu">## `teal` App</span></span>
-<span id="cb12-226"><a href="#cb12-226"></a></span>
-<span id="cb12-227"><a href="#cb12-227"></a>::: {.panel-tabset .nav-justified}</span>
-<span id="cb12-228"><a href="#cb12-228"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
-<span id="cb12-229"><a href="#cb12-229"></a></span>
-<span id="cb12-230"><a href="#cb12-230"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb12-231"><a href="#cb12-231"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb12-232"><a href="#cb12-232"></a></span>
-<span id="cb12-233"><a href="#cb12-233"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb12-234"><a href="#cb12-234"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb12-235"><a href="#cb12-235"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb12-236"><a href="#cb12-236"></a><span class="in">  library(dplyr)</span></span>
-<span id="cb12-237"><a href="#cb12-237"></a></span>
-<span id="cb12-238"><a href="#cb12-238"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb12-239"><a href="#cb12-239"></a><span class="in">  ADEX &lt;- random.cdisc.data::cadex</span></span>
-<span id="cb12-240"><a href="#cb12-240"></a><span class="in">  adex_labels &lt;- unname(col_labels(ADEX))</span></span>
-<span id="cb12-241"><a href="#cb12-241"></a><span class="in">  ADEX &lt;- ADEX %&gt;%</span></span>
-<span id="cb12-242"><a href="#cb12-242"></a><span class="in">    filter(PARCAT1 == "OVERALL") %&gt;%</span></span>
-<span id="cb12-243"><a href="#cb12-243"></a><span class="in">    mutate(</span></span>
-<span id="cb12-244"><a href="#cb12-244"></a><span class="in">      AVALCAT1 = case_when(</span></span>
-<span id="cb12-245"><a href="#cb12-245"></a><span class="in">        PARAMCD == "TDOSE" &amp; AVAL &lt; 5000 ~ "LOW",</span></span>
-<span id="cb12-246"><a href="#cb12-246"></a><span class="in">        PARAMCD == "TDOSE" &amp; AVAL &gt;= 5000 ~ "HIGH",</span></span>
-<span id="cb12-247"><a href="#cb12-247"></a><span class="in">        PARAMCD == "TNDOSE" &amp; AVAL &lt; 10 ~ "&lt; 10",</span></span>
-<span id="cb12-248"><a href="#cb12-248"></a><span class="in">        PARAMCD == "TNDOSE" &amp; AVAL &gt;= 10 ~ "&gt;= 10"</span></span>
-<span id="cb12-249"><a href="#cb12-249"></a><span class="in">      )</span></span>
-<span id="cb12-250"><a href="#cb12-250"></a><span class="in">    )</span></span>
-<span id="cb12-251"><a href="#cb12-251"></a><span class="in">  col_labels(ADEX) &lt;- c(adex_labels, "")</span></span>
-<span id="cb12-252"><a href="#cb12-252"></a><span class="in">})</span></span>
-<span id="cb12-253"><a href="#cb12-253"></a><span class="in">datanames &lt;- c("ADSL", "ADEX")</span></span>
-<span id="cb12-254"><a href="#cb12-254"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb12-255"><a href="#cb12-255"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb12-256"><a href="#cb12-256"></a></span>
-<span id="cb12-257"><a href="#cb12-257"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb12-258"><a href="#cb12-258"></a><span class="in">ADEX &lt;- data[["ADEX"]]</span></span>
-<span id="cb12-259"><a href="#cb12-259"></a></span>
-<span id="cb12-260"><a href="#cb12-260"></a><span class="in">## Setup App</span></span>
-<span id="cb12-261"><a href="#cb12-261"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb12-262"><a href="#cb12-262"></a><span class="in">  data = data,</span></span>
-<span id="cb12-263"><a href="#cb12-263"></a><span class="in">  modules = modules(</span></span>
-<span id="cb12-264"><a href="#cb12-264"></a><span class="in">    tm_t_summary_by(</span></span>
-<span id="cb12-265"><a href="#cb12-265"></a><span class="in">      label = "Exposure Table",</span></span>
-<span id="cb12-266"><a href="#cb12-266"></a><span class="in">      dataname = "ADEX",</span></span>
-<span id="cb12-267"><a href="#cb12-267"></a><span class="in">      arm_var = choices_selected(</span></span>
-<span id="cb12-268"><a href="#cb12-268"></a><span class="in">        choices = variable_choices(ADEX, c("ARM", "ARMCD")),</span></span>
-<span id="cb12-269"><a href="#cb12-269"></a><span class="in">        selected = "ARM"</span></span>
-<span id="cb12-270"><a href="#cb12-270"></a><span class="in">      ),</span></span>
-<span id="cb12-271"><a href="#cb12-271"></a><span class="in">      by_vars = choices_selected(</span></span>
-<span id="cb12-272"><a href="#cb12-272"></a><span class="in">        choices = variable_choices(ADEX, c("PARCAT2", "PARAM")),</span></span>
-<span id="cb12-273"><a href="#cb12-273"></a><span class="in">        selected = c("PARCAT2", "PARAM")</span></span>
-<span id="cb12-274"><a href="#cb12-274"></a><span class="in">      ),</span></span>
-<span id="cb12-275"><a href="#cb12-275"></a><span class="in">      summarize_vars = choices_selected(</span></span>
-<span id="cb12-276"><a href="#cb12-276"></a><span class="in">        choices = variable_choices(ADEX, c("AVAL", "AVALCAT1")),</span></span>
-<span id="cb12-277"><a href="#cb12-277"></a><span class="in">        selected = c("AVAL", "AVALCAT1")</span></span>
-<span id="cb12-278"><a href="#cb12-278"></a><span class="in">      ),</span></span>
-<span id="cb12-279"><a href="#cb12-279"></a><span class="in">      paramcd = choices_selected(</span></span>
-<span id="cb12-280"><a href="#cb12-280"></a><span class="in">        choices = value_choices(ADEX, "PARAMCD", "PARAM"),</span></span>
-<span id="cb12-281"><a href="#cb12-281"></a><span class="in">        selected = c("TDOSE", "TNDOSE")</span></span>
-<span id="cb12-282"><a href="#cb12-282"></a><span class="in">      ),</span></span>
-<span id="cb12-283"><a href="#cb12-283"></a><span class="in">      denominator = choices_selected(</span></span>
-<span id="cb12-284"><a href="#cb12-284"></a><span class="in">        choices = c("n", "N", "omit"),</span></span>
-<span id="cb12-285"><a href="#cb12-285"></a><span class="in">        selected = "N"</span></span>
-<span id="cb12-286"><a href="#cb12-286"></a><span class="in">      )</span></span>
-<span id="cb12-287"><a href="#cb12-287"></a><span class="in">    )</span></span>
-<span id="cb12-288"><a href="#cb12-288"></a><span class="in">  ), # Set initial filter state as single study drug to produce smaller table</span></span>
-<span id="cb12-289"><a href="#cb12-289"></a><span class="in">  filter = teal_slices(</span></span>
-<span id="cb12-290"><a href="#cb12-290"></a><span class="in">    teal_slice("ADEX", "PARCAT2", selected = "Drug A"),</span></span>
-<span id="cb12-291"><a href="#cb12-291"></a><span class="in">    teal_slice("ADEX", "AVAL", selected = NULL)</span></span>
-<span id="cb12-292"><a href="#cb12-292"></a><span class="in">  )</span></span>
-<span id="cb12-293"><a href="#cb12-293"></a><span class="in">)</span></span>
-<span id="cb12-294"><a href="#cb12-294"></a></span>
-<span id="cb12-295"><a href="#cb12-295"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb12-296"><a href="#cb12-296"></a><span class="in">```</span></span>
-<span id="cb12-297"><a href="#cb12-297"></a></span>
-<span id="cb12-298"><a href="#cb12-298"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
-<span id="cb12-299"><a href="#cb12-299"></a>:::</span>
-<span id="cb12-300"><a href="#cb12-300"></a></span>
-<span id="cb12-301"><a href="#cb12-301"></a>{{&lt; include ../../repro.qmd &gt;}}</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb13" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb13-1"><a href="#cb13-1"></a><span class="co">---</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="an">title:</span><span class="co"> EXT01</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="an">subtitle:</span><span class="co"> Study Drug Exposure Table</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a><span class="co">---</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a></span>
+<span id="cb13-6"><a href="#cb13-6"></a>------------------------------------------------------------------------</span>
+<span id="cb13-7"><a href="#cb13-7"></a></span>
+<span id="cb13-8"><a href="#cb13-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb13-9"><a href="#cb13-9"></a></span>
+<span id="cb13-10"><a href="#cb13-10"></a>:::: {.panel-tabset}</span>
+<span id="cb13-11"><a href="#cb13-11"></a></span>
+<span id="cb13-12"><a href="#cb13-12"></a><span class="in">```{r setup, echo = FALSE}</span></span>
+<span id="cb13-13"><a href="#cb13-13"></a><span class="in">library(tern)</span></span>
+<span id="cb13-14"><a href="#cb13-14"></a><span class="in">library(dplyr)</span></span>
+<span id="cb13-15"><a href="#cb13-15"></a><span class="in">library(tidyr)</span></span>
+<span id="cb13-16"><a href="#cb13-16"></a></span>
+<span id="cb13-17"><a href="#cb13-17"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb13-18"><a href="#cb13-18"></a><span class="in">adex &lt;- random.cdisc.data::cadex</span></span>
+<span id="cb13-19"><a href="#cb13-19"></a></span>
+<span id="cb13-20"><a href="#cb13-20"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb13-21"><a href="#cb13-21"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb13-22"><a href="#cb13-22"></a><span class="in">adex &lt;- df_explicit_na(adex)</span></span>
+<span id="cb13-23"><a href="#cb13-23"></a></span>
+<span id="cb13-24"><a href="#cb13-24"></a><span class="in">adex &lt;- adex %&gt;%</span></span>
+<span id="cb13-25"><a href="#cb13-25"></a><span class="in">  filter(PARCAT1 == "OVERALL") %&gt;%</span></span>
+<span id="cb13-26"><a href="#cb13-26"></a><span class="in">  select(STUDYID, USUBJID, ACTARM, PARAMCD, PARAM, AVAL, PARCAT2) %&gt;%</span></span>
+<span id="cb13-27"><a href="#cb13-27"></a><span class="in">  mutate(</span></span>
+<span id="cb13-28"><a href="#cb13-28"></a><span class="in">    PARAMCD = as.character(PARAMCD),</span></span>
+<span id="cb13-29"><a href="#cb13-29"></a><span class="in">    AVALC = ""</span></span>
+<span id="cb13-30"><a href="#cb13-30"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb13-31"><a href="#cb13-31"></a><span class="in">  droplevels()</span></span>
+<span id="cb13-32"><a href="#cb13-32"></a></span>
+<span id="cb13-33"><a href="#cb13-33"></a><span class="in"># Add new param tdurd for treatment duration.</span></span>
+<span id="cb13-34"><a href="#cb13-34"></a><span class="in">set.seed(99)</span></span>
+<span id="cb13-35"><a href="#cb13-35"></a><span class="in">tdurd_adsl &lt;- adsl %&gt;%</span></span>
+<span id="cb13-36"><a href="#cb13-36"></a><span class="in">  select(STUDYID, USUBJID, ACTARM) %&gt;%</span></span>
+<span id="cb13-37"><a href="#cb13-37"></a><span class="in">  mutate(</span></span>
+<span id="cb13-38"><a href="#cb13-38"></a><span class="in">    PARAMCD = "TDURD",</span></span>
+<span id="cb13-39"><a href="#cb13-39"></a><span class="in">    PARAM = "Overall duration (days)",</span></span>
+<span id="cb13-40"><a href="#cb13-40"></a><span class="in">    AVAL = sample(1:150, size = nrow(adsl), replace = TRUE),</span></span>
+<span id="cb13-41"><a href="#cb13-41"></a><span class="in">    AVALC = case_when(</span></span>
+<span id="cb13-42"><a href="#cb13-42"></a><span class="in">      0 &lt;= AVAL &amp; AVAL &lt;= 30 ~ "0 - 30",</span></span>
+<span id="cb13-43"><a href="#cb13-43"></a><span class="in">      31 &lt;= AVAL &amp; AVAL &lt;= 60 ~ "31 - 60",</span></span>
+<span id="cb13-44"><a href="#cb13-44"></a><span class="in">      61 &lt;= AVAL &amp; AVAL &lt;= 90 ~ "61 - 90",</span></span>
+<span id="cb13-45"><a href="#cb13-45"></a><span class="in">      TRUE ~ "&gt;= 91"</span></span>
+<span id="cb13-46"><a href="#cb13-46"></a><span class="in">    )</span></span>
+<span id="cb13-47"><a href="#cb13-47"></a><span class="in">  )</span></span>
+<span id="cb13-48"><a href="#cb13-48"></a><span class="in">tdurd &lt;- adex %&gt;%</span></span>
+<span id="cb13-49"><a href="#cb13-49"></a><span class="in">  filter(PARAMCD == "TNDOSE") %&gt;%</span></span>
+<span id="cb13-50"><a href="#cb13-50"></a><span class="in">  select(STUDYID, USUBJID, PARCAT2) %&gt;%</span></span>
+<span id="cb13-51"><a href="#cb13-51"></a><span class="in">  left_join(tdurd_adsl, by = c("STUDYID", "USUBJID"))</span></span>
+<span id="cb13-52"><a href="#cb13-52"></a></span>
+<span id="cb13-53"><a href="#cb13-53"></a><span class="in"># Add new param tndosmis for missed doses.</span></span>
+<span id="cb13-54"><a href="#cb13-54"></a><span class="in">tndosmis_adsl &lt;- adsl %&gt;%</span></span>
+<span id="cb13-55"><a href="#cb13-55"></a><span class="in">  select(STUDYID, USUBJID, ACTARM) %&gt;%</span></span>
+<span id="cb13-56"><a href="#cb13-56"></a><span class="in">  mutate(</span></span>
+<span id="cb13-57"><a href="#cb13-57"></a><span class="in">    PARAMCD = "TNDOSMIS",</span></span>
+<span id="cb13-58"><a href="#cb13-58"></a><span class="in">    PARAM = "Total number of missed doses during study",</span></span>
+<span id="cb13-59"><a href="#cb13-59"></a><span class="in">    AVAL = sample(0:20, size = nrow(adsl), replace = TRUE),</span></span>
+<span id="cb13-60"><a href="#cb13-60"></a><span class="in">    AVALC = ""</span></span>
+<span id="cb13-61"><a href="#cb13-61"></a><span class="in">  )</span></span>
+<span id="cb13-62"><a href="#cb13-62"></a><span class="in">tndosmis &lt;- adex %&gt;%</span></span>
+<span id="cb13-63"><a href="#cb13-63"></a><span class="in">  filter(PARAMCD == "TNDOSE") %&gt;%</span></span>
+<span id="cb13-64"><a href="#cb13-64"></a><span class="in">  select(STUDYID, USUBJID, PARCAT2) %&gt;%</span></span>
+<span id="cb13-65"><a href="#cb13-65"></a><span class="in">  left_join(tndosmis_adsl, by = c("STUDYID", "USUBJID"))</span></span>
+<span id="cb13-66"><a href="#cb13-66"></a></span>
+<span id="cb13-67"><a href="#cb13-67"></a><span class="in">adex &lt;- dplyr::bind_rows(adex, tdurd, tndosmis) %&gt;%</span></span>
+<span id="cb13-68"><a href="#cb13-68"></a><span class="in">  mutate(PARAM = factor(</span></span>
+<span id="cb13-69"><a href="#cb13-69"></a><span class="in">    PARAM,</span></span>
+<span id="cb13-70"><a href="#cb13-70"></a><span class="in">    levels = c(</span></span>
+<span id="cb13-71"><a href="#cb13-71"></a><span class="in">      "Overall duration (days)", "Total dose administered", "Total number of doses administered",</span></span>
+<span id="cb13-72"><a href="#cb13-72"></a><span class="in">      "Total number of missed doses during study"</span></span>
+<span id="cb13-73"><a href="#cb13-73"></a><span class="in">    )</span></span>
+<span id="cb13-74"><a href="#cb13-74"></a><span class="in">  ))</span></span>
+<span id="cb13-75"><a href="#cb13-75"></a><span class="in">```</span></span>
+<span id="cb13-76"><a href="#cb13-76"></a></span>
+<span id="cb13-77"><a href="#cb13-77"></a><span class="fu">## Standard Table</span></span>
+<span id="cb13-78"><a href="#cb13-78"></a></span>
+<span id="cb13-79"><a href="#cb13-79"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb13-80"><a href="#cb13-80"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb13-81"><a href="#cb13-81"></a></span>
+<span id="cb13-82"><a href="#cb13-82"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb13-83"><a href="#cb13-83"></a><span class="in"># When summary table contains only categorical or only numeric parameters</span></span>
+<span id="cb13-84"><a href="#cb13-84"></a></span>
+<span id="cb13-85"><a href="#cb13-85"></a><span class="in">split_fun &lt;- drop_split_levels</span></span>
+<span id="cb13-86"><a href="#cb13-86"></a></span>
+<span id="cb13-87"><a href="#cb13-87"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb13-88"><a href="#cb13-88"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb13-89"><a href="#cb13-89"></a><span class="in">  split_rows_by("PARCAT2", split_label = "\nParameter Category (Drug A/Drug B)", label_pos = "topleft") %&gt;%</span></span>
+<span id="cb13-90"><a href="#cb13-90"></a><span class="in">  split_rows_by("PARAM", split_fun = split_fun) %&gt;%</span></span>
+<span id="cb13-91"><a href="#cb13-91"></a><span class="in">  analyze_vars(vars = "AVAL")</span></span>
+<span id="cb13-92"><a href="#cb13-92"></a></span>
+<span id="cb13-93"><a href="#cb13-93"></a><span class="in">result &lt;- build_table(lyt = lyt, df = adex, alt_counts_df = adsl)</span></span>
+<span id="cb13-94"><a href="#cb13-94"></a></span>
+<span id="cb13-95"><a href="#cb13-95"></a><span class="in">result</span></span>
+<span id="cb13-96"><a href="#cb13-96"></a><span class="in">```</span></span>
+<span id="cb13-97"><a href="#cb13-97"></a></span>
+<span id="cb13-98"><a href="#cb13-98"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
+<span id="cb13-99"><a href="#cb13-99"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb13-100"><a href="#cb13-100"></a>:::</span>
+<span id="cb13-101"><a href="#cb13-101"></a></span>
+<span id="cb13-102"><a href="#cb13-102"></a><span class="fu">## Table with Optional Analyses</span></span>
+<span id="cb13-103"><a href="#cb13-103"></a></span>
+<span id="cb13-104"><a href="#cb13-104"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb13-105"><a href="#cb13-105"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb13-106"><a href="#cb13-106"></a></span>
+<span id="cb13-107"><a href="#cb13-107"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb13-108"><a href="#cb13-108"></a><span class="in"># When summary table contains both categorical and numeric parameters,</span></span>
+<span id="cb13-109"><a href="#cb13-109"></a><span class="in"># developer needs to do pre-processing to transform dataset to wide format.</span></span>
+<span id="cb13-110"><a href="#cb13-110"></a><span class="in">adex_avalc_wide &lt;- adex %&gt;%</span></span>
+<span id="cb13-111"><a href="#cb13-111"></a><span class="in">  filter(PARAMCD == "TDURD") %&gt;%</span></span>
+<span id="cb13-112"><a href="#cb13-112"></a><span class="in">  select(STUDYID, USUBJID, PARAMCD, AVALC, PARCAT2) %&gt;%</span></span>
+<span id="cb13-113"><a href="#cb13-113"></a><span class="in">  tidyr::pivot_wider(</span></span>
+<span id="cb13-114"><a href="#cb13-114"></a><span class="in">    id_cols = c(STUDYID, USUBJID, PARCAT2),</span></span>
+<span id="cb13-115"><a href="#cb13-115"></a><span class="in">    names_from = PARAMCD,</span></span>
+<span id="cb13-116"><a href="#cb13-116"></a><span class="in">    values_from = AVALC</span></span>
+<span id="cb13-117"><a href="#cb13-117"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb13-118"><a href="#cb13-118"></a><span class="in">  mutate(</span></span>
+<span id="cb13-119"><a href="#cb13-119"></a><span class="in">    TDURDC = factor(TDURD, levels = c("0 - 30", "31 - 60", "61 - 90", "&gt;= 91"))</span></span>
+<span id="cb13-120"><a href="#cb13-120"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb13-121"><a href="#cb13-121"></a><span class="in">  select(-TDURD)</span></span>
+<span id="cb13-122"><a href="#cb13-122"></a></span>
+<span id="cb13-123"><a href="#cb13-123"></a><span class="in">anl &lt;- adex %&gt;%</span></span>
+<span id="cb13-124"><a href="#cb13-124"></a><span class="in">  select(STUDYID, USUBJID, ACTARM, PARAMCD, AVAL, PARCAT2) %&gt;%</span></span>
+<span id="cb13-125"><a href="#cb13-125"></a><span class="in">  tidyr::pivot_wider(</span></span>
+<span id="cb13-126"><a href="#cb13-126"></a><span class="in">    id_cols = c(STUDYID, USUBJID, ACTARM, PARCAT2),</span></span>
+<span id="cb13-127"><a href="#cb13-127"></a><span class="in">    names_from = PARAMCD,</span></span>
+<span id="cb13-128"><a href="#cb13-128"></a><span class="in">    values_from = AVAL</span></span>
+<span id="cb13-129"><a href="#cb13-129"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb13-130"><a href="#cb13-130"></a><span class="in">  left_join(adex_avalc_wide, by = c("STUDYID", "USUBJID", "PARCAT2")) %&gt;%</span></span>
+<span id="cb13-131"><a href="#cb13-131"></a><span class="in">  var_relabel(</span></span>
+<span id="cb13-132"><a href="#cb13-132"></a><span class="in">    TDOSE = "Total dose administered",</span></span>
+<span id="cb13-133"><a href="#cb13-133"></a><span class="in">    TNDOSE = "Total number of doses administered",</span></span>
+<span id="cb13-134"><a href="#cb13-134"></a><span class="in">    TDURD = "Overall duration (days)",</span></span>
+<span id="cb13-135"><a href="#cb13-135"></a><span class="in">    TNDOSMIS = "Total number of missed doses during study",</span></span>
+<span id="cb13-136"><a href="#cb13-136"></a><span class="in">    TDURDC = "Overall duration (days)"</span></span>
+<span id="cb13-137"><a href="#cb13-137"></a><span class="in">  )</span></span>
+<span id="cb13-138"><a href="#cb13-138"></a></span>
+<span id="cb13-139"><a href="#cb13-139"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb13-140"><a href="#cb13-140"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb13-141"><a href="#cb13-141"></a><span class="in">  split_rows_by("PARCAT2", split_label = "\nParameter Category (Drug A/Drug B)", label_pos = "topleft") %&gt;%</span></span>
+<span id="cb13-142"><a href="#cb13-142"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb13-143"><a href="#cb13-143"></a><span class="in">    vars = c("TDURD", "TDURDC", "TDOSE", "TNDOSE"),</span></span>
+<span id="cb13-144"><a href="#cb13-144"></a><span class="in">    var_labels = var_labels(anl)[c("TDURD", "TDURDC", "TDOSE", "TNDOSE")]</span></span>
+<span id="cb13-145"><a href="#cb13-145"></a><span class="in">  )</span></span>
+<span id="cb13-146"><a href="#cb13-146"></a></span>
+<span id="cb13-147"><a href="#cb13-147"></a><span class="in">result &lt;- build_table(lyt = lyt, df = anl, alt_counts_df = adsl)</span></span>
+<span id="cb13-148"><a href="#cb13-148"></a></span>
+<span id="cb13-149"><a href="#cb13-149"></a><span class="in">result</span></span>
+<span id="cb13-150"><a href="#cb13-150"></a><span class="in">```</span></span>
+<span id="cb13-151"><a href="#cb13-151"></a></span>
+<span id="cb13-152"><a href="#cb13-152"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
+<span id="cb13-153"><a href="#cb13-153"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb13-154"><a href="#cb13-154"></a>:::</span>
+<span id="cb13-155"><a href="#cb13-155"></a></span>
+<span id="cb13-156"><a href="#cb13-156"></a><span class="fu">## Table with User-Specified &lt;br/&gt; Categories for Missed Doses</span></span>
+<span id="cb13-157"><a href="#cb13-157"></a></span>
+<span id="cb13-158"><a href="#cb13-158"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb13-159"><a href="#cb13-159"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb13-160"><a href="#cb13-160"></a></span>
+<span id="cb13-161"><a href="#cb13-161"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
+<span id="cb13-162"><a href="#cb13-162"></a><span class="in"># When summary table contains both categorical and numeric parameters,</span></span>
+<span id="cb13-163"><a href="#cb13-163"></a><span class="in"># developer needs to do pre-processing to transform dataset to wide format.</span></span>
+<span id="cb13-164"><a href="#cb13-164"></a><span class="in">adex_avalc_wide &lt;- adex %&gt;%</span></span>
+<span id="cb13-165"><a href="#cb13-165"></a><span class="in">  filter(PARAMCD == "TDURD") %&gt;%</span></span>
+<span id="cb13-166"><a href="#cb13-166"></a><span class="in">  select(STUDYID, USUBJID, PARAMCD, AVALC, PARCAT2) %&gt;%</span></span>
+<span id="cb13-167"><a href="#cb13-167"></a><span class="in">  tidyr::pivot_wider(</span></span>
+<span id="cb13-168"><a href="#cb13-168"></a><span class="in">    id_cols = c(STUDYID, USUBJID, PARCAT2),</span></span>
+<span id="cb13-169"><a href="#cb13-169"></a><span class="in">    names_from = PARAMCD,</span></span>
+<span id="cb13-170"><a href="#cb13-170"></a><span class="in">    values_from = AVALC</span></span>
+<span id="cb13-171"><a href="#cb13-171"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb13-172"><a href="#cb13-172"></a><span class="in">  mutate(</span></span>
+<span id="cb13-173"><a href="#cb13-173"></a><span class="in">    TDURDC = factor(TDURD, levels = c("0 - 30", "31 - 60", "61 - 90", "&gt;= 91"))</span></span>
+<span id="cb13-174"><a href="#cb13-174"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb13-175"><a href="#cb13-175"></a><span class="in">  select(-TDURD)</span></span>
+<span id="cb13-176"><a href="#cb13-176"></a></span>
+<span id="cb13-177"><a href="#cb13-177"></a><span class="in">anl &lt;- adex %&gt;%</span></span>
+<span id="cb13-178"><a href="#cb13-178"></a><span class="in">  select(STUDYID, USUBJID, ACTARM, PARAMCD, AVAL, PARCAT2) %&gt;%</span></span>
+<span id="cb13-179"><a href="#cb13-179"></a><span class="in">  tidyr::pivot_wider(</span></span>
+<span id="cb13-180"><a href="#cb13-180"></a><span class="in">    id_cols = c(STUDYID, USUBJID, ACTARM, PARCAT2),</span></span>
+<span id="cb13-181"><a href="#cb13-181"></a><span class="in">    names_from = PARAMCD,</span></span>
+<span id="cb13-182"><a href="#cb13-182"></a><span class="in">    values_from = AVAL</span></span>
+<span id="cb13-183"><a href="#cb13-183"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb13-184"><a href="#cb13-184"></a><span class="in">  left_join(adex_avalc_wide, by = c("STUDYID", "USUBJID", "PARCAT2")) %&gt;%</span></span>
+<span id="cb13-185"><a href="#cb13-185"></a><span class="in">  var_relabel(</span></span>
+<span id="cb13-186"><a href="#cb13-186"></a><span class="in">    TDOSE = "Total dose administered",</span></span>
+<span id="cb13-187"><a href="#cb13-187"></a><span class="in">    TNDOSE = "Total number of doses administered",</span></span>
+<span id="cb13-188"><a href="#cb13-188"></a><span class="in">    TDURD = "Overall duration (days)",</span></span>
+<span id="cb13-189"><a href="#cb13-189"></a><span class="in">    TNDOSMIS = "Total number of missed doses during study",</span></span>
+<span id="cb13-190"><a href="#cb13-190"></a><span class="in">    TDURDC = "Overall duration (days)"</span></span>
+<span id="cb13-191"><a href="#cb13-191"></a><span class="in">  )</span></span>
+<span id="cb13-192"><a href="#cb13-192"></a></span>
+<span id="cb13-193"><a href="#cb13-193"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb13-194"><a href="#cb13-194"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb13-195"><a href="#cb13-195"></a><span class="in">  split_rows_by("PARCAT2", split_label = "\nParameter Category (Drug A/Drug B)", label_pos = "topleft") %&gt;%</span></span>
+<span id="cb13-196"><a href="#cb13-196"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb13-197"><a href="#cb13-197"></a><span class="in">    vars = c("TDURD", "TDURDC", "TDOSE", "TNDOSE"),</span></span>
+<span id="cb13-198"><a href="#cb13-198"></a><span class="in">    var_labels = var_labels(anl)[c("TDURD", "TDURDC", "TDOSE", "TNDOSE")]</span></span>
+<span id="cb13-199"><a href="#cb13-199"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb13-200"><a href="#cb13-200"></a><span class="in">  count_missed_doses(</span></span>
+<span id="cb13-201"><a href="#cb13-201"></a><span class="in">    "TNDOSMIS",</span></span>
+<span id="cb13-202"><a href="#cb13-202"></a><span class="in">    thresholds = c(1, 5, 10, 15),</span></span>
+<span id="cb13-203"><a href="#cb13-203"></a><span class="in">    var_labels = "Missed Doses"</span></span>
+<span id="cb13-204"><a href="#cb13-204"></a><span class="in">  )</span></span>
+<span id="cb13-205"><a href="#cb13-205"></a></span>
+<span id="cb13-206"><a href="#cb13-206"></a><span class="in">result &lt;- build_table(lyt = lyt, df = anl, alt_counts_df = adsl)</span></span>
+<span id="cb13-207"><a href="#cb13-207"></a></span>
+<span id="cb13-208"><a href="#cb13-208"></a><span class="in">result</span></span>
+<span id="cb13-209"><a href="#cb13-209"></a><span class="in">```</span></span>
+<span id="cb13-210"><a href="#cb13-210"></a></span>
+<span id="cb13-211"><a href="#cb13-211"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant3")`</span></span>
+<span id="cb13-212"><a href="#cb13-212"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb13-213"><a href="#cb13-213"></a>:::</span>
+<span id="cb13-214"><a href="#cb13-214"></a></span>
+<span id="cb13-215"><a href="#cb13-215"></a><span class="fu">## Data Setup</span></span>
+<span id="cb13-216"><a href="#cb13-216"></a></span>
+<span id="cb13-217"><a href="#cb13-217"></a><span class="in">```{r setup}</span></span>
+<span id="cb13-218"><a href="#cb13-218"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb13-219"><a href="#cb13-219"></a><span class="in">```</span></span>
+<span id="cb13-220"><a href="#cb13-220"></a></span>
+<span id="cb13-221"><a href="#cb13-221"></a>::::</span>
+<span id="cb13-222"><a href="#cb13-222"></a></span>
+<span id="cb13-223"><a href="#cb13-223"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb13-224"><a href="#cb13-224"></a></span>
+<span id="cb13-225"><a href="#cb13-225"></a><span class="fu">## `teal` App</span></span>
+<span id="cb13-226"><a href="#cb13-226"></a></span>
+<span id="cb13-227"><a href="#cb13-227"></a>::: {.panel-tabset .nav-justified}</span>
+<span id="cb13-228"><a href="#cb13-228"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
+<span id="cb13-229"><a href="#cb13-229"></a></span>
+<span id="cb13-230"><a href="#cb13-230"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb13-231"><a href="#cb13-231"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb13-232"><a href="#cb13-232"></a></span>
+<span id="cb13-233"><a href="#cb13-233"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb13-234"><a href="#cb13-234"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb13-235"><a href="#cb13-235"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb13-236"><a href="#cb13-236"></a><span class="in">  library(dplyr)</span></span>
+<span id="cb13-237"><a href="#cb13-237"></a></span>
+<span id="cb13-238"><a href="#cb13-238"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb13-239"><a href="#cb13-239"></a><span class="in">  ADEX &lt;- random.cdisc.data::cadex</span></span>
+<span id="cb13-240"><a href="#cb13-240"></a><span class="in">  adex_labels &lt;- unname(col_labels(ADEX))</span></span>
+<span id="cb13-241"><a href="#cb13-241"></a><span class="in">  ADEX &lt;- ADEX %&gt;%</span></span>
+<span id="cb13-242"><a href="#cb13-242"></a><span class="in">    filter(PARCAT1 == "OVERALL") %&gt;%</span></span>
+<span id="cb13-243"><a href="#cb13-243"></a><span class="in">    mutate(</span></span>
+<span id="cb13-244"><a href="#cb13-244"></a><span class="in">      AVALCAT1 = case_when(</span></span>
+<span id="cb13-245"><a href="#cb13-245"></a><span class="in">        PARAMCD == "TDOSE" &amp; AVAL &lt; 5000 ~ "LOW",</span></span>
+<span id="cb13-246"><a href="#cb13-246"></a><span class="in">        PARAMCD == "TDOSE" &amp; AVAL &gt;= 5000 ~ "HIGH",</span></span>
+<span id="cb13-247"><a href="#cb13-247"></a><span class="in">        PARAMCD == "TNDOSE" &amp; AVAL &lt; 10 ~ "&lt; 10",</span></span>
+<span id="cb13-248"><a href="#cb13-248"></a><span class="in">        PARAMCD == "TNDOSE" &amp; AVAL &gt;= 10 ~ "&gt;= 10"</span></span>
+<span id="cb13-249"><a href="#cb13-249"></a><span class="in">      )</span></span>
+<span id="cb13-250"><a href="#cb13-250"></a><span class="in">    )</span></span>
+<span id="cb13-251"><a href="#cb13-251"></a><span class="in">  col_labels(ADEX) &lt;- c(adex_labels, "")</span></span>
+<span id="cb13-252"><a href="#cb13-252"></a><span class="in">})</span></span>
+<span id="cb13-253"><a href="#cb13-253"></a><span class="in">datanames &lt;- c("ADSL", "ADEX")</span></span>
+<span id="cb13-254"><a href="#cb13-254"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb13-255"><a href="#cb13-255"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb13-256"><a href="#cb13-256"></a></span>
+<span id="cb13-257"><a href="#cb13-257"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb13-258"><a href="#cb13-258"></a><span class="in">ADEX &lt;- data[["ADEX"]]</span></span>
+<span id="cb13-259"><a href="#cb13-259"></a></span>
+<span id="cb13-260"><a href="#cb13-260"></a><span class="in">## Setup App</span></span>
+<span id="cb13-261"><a href="#cb13-261"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb13-262"><a href="#cb13-262"></a><span class="in">  data = data,</span></span>
+<span id="cb13-263"><a href="#cb13-263"></a><span class="in">  modules = modules(</span></span>
+<span id="cb13-264"><a href="#cb13-264"></a><span class="in">    tm_t_summary_by(</span></span>
+<span id="cb13-265"><a href="#cb13-265"></a><span class="in">      label = "Exposure Table",</span></span>
+<span id="cb13-266"><a href="#cb13-266"></a><span class="in">      dataname = "ADEX",</span></span>
+<span id="cb13-267"><a href="#cb13-267"></a><span class="in">      arm_var = choices_selected(</span></span>
+<span id="cb13-268"><a href="#cb13-268"></a><span class="in">        choices = variable_choices(ADEX, c("ARM", "ARMCD")),</span></span>
+<span id="cb13-269"><a href="#cb13-269"></a><span class="in">        selected = "ARM"</span></span>
+<span id="cb13-270"><a href="#cb13-270"></a><span class="in">      ),</span></span>
+<span id="cb13-271"><a href="#cb13-271"></a><span class="in">      by_vars = choices_selected(</span></span>
+<span id="cb13-272"><a href="#cb13-272"></a><span class="in">        choices = variable_choices(ADEX, c("PARCAT2", "PARAM")),</span></span>
+<span id="cb13-273"><a href="#cb13-273"></a><span class="in">        selected = c("PARCAT2", "PARAM")</span></span>
+<span id="cb13-274"><a href="#cb13-274"></a><span class="in">      ),</span></span>
+<span id="cb13-275"><a href="#cb13-275"></a><span class="in">      summarize_vars = choices_selected(</span></span>
+<span id="cb13-276"><a href="#cb13-276"></a><span class="in">        choices = variable_choices(ADEX, c("AVAL", "AVALCAT1")),</span></span>
+<span id="cb13-277"><a href="#cb13-277"></a><span class="in">        selected = c("AVAL", "AVALCAT1")</span></span>
+<span id="cb13-278"><a href="#cb13-278"></a><span class="in">      ),</span></span>
+<span id="cb13-279"><a href="#cb13-279"></a><span class="in">      paramcd = choices_selected(</span></span>
+<span id="cb13-280"><a href="#cb13-280"></a><span class="in">        choices = value_choices(ADEX, "PARAMCD", "PARAM"),</span></span>
+<span id="cb13-281"><a href="#cb13-281"></a><span class="in">        selected = c("TDOSE", "TNDOSE")</span></span>
+<span id="cb13-282"><a href="#cb13-282"></a><span class="in">      ),</span></span>
+<span id="cb13-283"><a href="#cb13-283"></a><span class="in">      denominator = choices_selected(</span></span>
+<span id="cb13-284"><a href="#cb13-284"></a><span class="in">        choices = c("n", "N", "omit"),</span></span>
+<span id="cb13-285"><a href="#cb13-285"></a><span class="in">        selected = "N"</span></span>
+<span id="cb13-286"><a href="#cb13-286"></a><span class="in">      )</span></span>
+<span id="cb13-287"><a href="#cb13-287"></a><span class="in">    )</span></span>
+<span id="cb13-288"><a href="#cb13-288"></a><span class="in">  ), # Set initial filter state as single study drug to produce smaller table</span></span>
+<span id="cb13-289"><a href="#cb13-289"></a><span class="in">  filter = teal_slices(</span></span>
+<span id="cb13-290"><a href="#cb13-290"></a><span class="in">    teal_slice("ADEX", "PARCAT2", selected = "Drug A"),</span></span>
+<span id="cb13-291"><a href="#cb13-291"></a><span class="in">    teal_slice("ADEX", "AVAL", selected = NULL)</span></span>
+<span id="cb13-292"><a href="#cb13-292"></a><span class="in">  )</span></span>
+<span id="cb13-293"><a href="#cb13-293"></a><span class="in">)</span></span>
+<span id="cb13-294"><a href="#cb13-294"></a></span>
+<span id="cb13-295"><a href="#cb13-295"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb13-296"><a href="#cb13-296"></a><span class="in">```</span></span>
+<span id="cb13-297"><a href="#cb13-297"></a></span>
+<span id="cb13-298"><a href="#cb13-298"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
+<span id="cb13-299"><a href="#cb13-299"></a>:::</span>
+<span id="cb13-300"><a href="#cb13-300"></a></span>
+<span id="cb13-301"><a href="#cb13-301"></a>{{&lt; include ../../repro.qmd &gt;}}</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
@@ -4430,6 +5092,10 @@ qwebrInstance.then(
           break;
         case 'setup':
           const activeDiv = document.getElementById(`qwebr-noninteractive-setup-area-${qwebrCounter}`);
+
+          // Store code in history
+          qwebrLogCodeToHistory(cellCode, entry.options);
+
           // Run the code in a non-interactive state with all output thrown away
           await mainWebR.evalRVoid(`${cellCode}`);
           break;

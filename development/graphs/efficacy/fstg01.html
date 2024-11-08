@@ -80,8 +80,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/run-python-blocks.js" type="module"></script>
 <link href="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/shinylive.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/shinylive-quarto-css/shinylive-quarto.css" rel="stylesheet">
-<link href="../../site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
-<link href="../../site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/quarto-contrib/fontawesome6-1.2.0/all.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/fontawesome6-1.2.0/latex-fontsize.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": true,
   "collapse-after": 3,
@@ -134,7 +134,7 @@ cookieconsent.run({
   });
 });
 </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/editor/editor.main.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style type="text/css">
 .monaco-editor pre {
   background-color: unset !important;
@@ -254,6 +254,91 @@ body.quarto-dark .qwebr-button:hover {
   color: #696969;
 }
 
+/* Style the code highlight lines */
+body.quarto-light .qwebr-editor-highlight-line {
+  background-color: lightblue;
+}
+
+body.quarto-dark .qwebr-editor-highlight-line {
+  background-color: darkblue;
+}
+
+/* Style the modal pop-up */
+
+/* The Modal (background) */
+.qwebr-modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  padding-top: 60px;
+}
+
+/* Modal Content */
+.qwebr-modal-content {
+  background-color: #fefefe;
+  margin: 5% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+}
+
+.qwebr-modal-content-code {
+  max-height: 50vh;
+  min-height: 5vh;
+  overflow: scroll;
+  border: 1px solid #888;
+}
+
+/* The Close Button */
+.qwebr-modal-close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.qwebr-modal-close:hover,
+.qwebr-modal-close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.qwebr-download-btn {
+  margin-top: 10px;
+  text-decoration: none !important;
+}
+
+/* Styling to download image that is created */
+
+.qwebr-canvas-image {
+  position: relative;
+  display: inline-block;
+  margin: 10px;
+}
+
+.qwebr-canvas-image-download-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: none;
+}
+
+figure:hover .qwebr-canvas-image-download-btn {
+  display: block;
+}
 
 /* Custom styling for RevealJS Presentations*/
 
@@ -265,7 +350,7 @@ body.quarto-dark .qwebr-button:hover {
   max-height: 100%;
   margin: 0;
   padding: 0;
-} 
+}
 
 /* Provide space to entries */
 .reveal div.qwebr-output-code-area pre div {
@@ -310,6 +395,16 @@ body.reveal.quarto-dark div.qwebr-console-area {
   overflow: scroll;
 }
 
+iframe.qwebr-output-code-browse {
+  width: 100%;
+
+  /*
+    TODO: How to make the height automatic according to the widget size,
+    or respect the quarto code block options?
+  */
+  min-height: 500px;
+}
+
 </style>
 <script type="module">
 // Document level settings ----
@@ -330,19 +425,23 @@ globalThis.qwebrShowHeaderMessage = false;
 
 // Describe the webR settings that should be used
 globalThis.qwebrCustomizedWebROptions = {
-  "baseURL": "https://webr.r-wasm.org/v0.3.1/",
+  "baseURL": "https://webr.r-wasm.org/v0.4.0/",
   "serviceWorkerUrl": "",
   "homedir": "/home/web_user", 
   "channelType": "ChannelType.PostMessage"
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_arms_ab,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot","options":{"dpi":72,"label":"unnamed-chunk-1","editor-font-scale":1,"read-only":"false","out-width":"700px","message":"true","out-height":"","editor-quick-suggestions":"false","autorun":"true","comment":"","fig-cap":"","warning":"true","output":"true","fig-width":7,"fig-height":5,"results":"markup","context":"interactive","classes":"","editor-max-height":"500"}},{"id":2,"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\nanl_rsp_comb_arms_ac <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\", \"ARM C\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels() %>%\n      combine_levels(levels = c(\"ARM A\", \"ARM C\")),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels() %>%\n      combine_levels(levels = c(\"A: Drug X\", \"C: Combination\")),\n    # reorder levels of SEX\n    SEX = forcats::fct_relevel(SEX, \"M\", \"F\"),\n    # reorder levels of STRATA1 by frequency\n    STRATA1 = forcats::fct_infreq(STRATA1)\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_comb_arms_ac) <- c(anl_labels, is_rsp = \"Is Responder\")\n\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARMCD\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_comb_arms_ac,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot","options":{"dpi":72,"label":"unnamed-chunk-2","editor-font-scale":1,"read-only":"false","out-width":"700px","message":"true","out-height":"","editor-quick-suggestions":"false","autorun":"true","comment":"","fig-cap":"","warning":"true","output":"true","fig-width":7,"fig-height":5,"results":"markup","context":"interactive","classes":"","editor-max-height":"500"}},{"id":3,"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_arms_ab,\n  conf_level = 0.90\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot","options":{"dpi":72,"label":"unnamed-chunk-3","editor-font-scale":1,"read-only":"false","out-width":"700px","message":"true","out-height":"","editor-quick-suggestions":"false","autorun":"true","comment":"","fig-cap":"","warning":"true","output":"true","fig-width":7,"fig-height":5,"results":"markup","context":"interactive","classes":"","editor-max-height":"500"}},{"id":4,"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_arms_ab,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(\n  tbl = result,\n  col_symbol_size = NULL\n)\nplot","options":{"dpi":72,"label":"unnamed-chunk-4","editor-font-scale":1,"read-only":"false","out-width":"700px","message":"true","out-height":"","editor-quick-suggestions":"false","autorun":"true","comment":"","fig-cap":"","warning":"true","output":"true","fig-width":7,"fig-height":5,"results":"markup","context":"interactive","classes":"","editor-max-height":"500"}},{"id":5,"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\nanl_cr_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC == \"CR\") %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_cr_arms_ab) <- c(anl_labels, is_rsp = \"Is CR\")\n\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_cr_arms_ab,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot","options":{"dpi":72,"label":"unnamed-chunk-5","editor-font-scale":1,"read-only":"false","out-width":"700px","message":"true","out-height":"","editor-quick-suggestions":"false","autorun":"true","comment":"","fig-cap":"","warning":"true","output":"true","fig-width":7,"fig-height":5,"results":"markup","context":"interactive","classes":"","editor-max-height":"500"}}];
+globalThis.qwebrCellDetails = [{"options":{"editor-quick-suggestions":"false","fig-height":5,"message":"true","output":"true","autorun":"true","results":"markup","comment":"","warning":"true","context":"interactive","editor-font-scale":"1","fig-cap":"","read-only":"false","classes":"","editor-word-wrap":"true","fig-width":7,"out-height":"","out-width":"700px","editor-max-height":"500","label":"unnamed-chunk-1","dpi":72},"id":1,"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_arms_ab,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot"},{"options":{"editor-quick-suggestions":"false","fig-height":5,"message":"true","output":"true","autorun":"true","results":"markup","comment":"","warning":"true","context":"interactive","editor-font-scale":"1","fig-cap":"","read-only":"false","classes":"","editor-word-wrap":"true","fig-width":7,"out-height":"","out-width":"700px","editor-max-height":"500","label":"unnamed-chunk-2","dpi":72},"id":2,"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\nanl_rsp_comb_arms_ac <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\", \"ARM C\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels() %>%\n      combine_levels(levels = c(\"ARM A\", \"ARM C\")),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels() %>%\n      combine_levels(levels = c(\"A: Drug X\", \"C: Combination\")),\n    # reorder levels of SEX\n    SEX = forcats::fct_relevel(SEX, \"M\", \"F\"),\n    # reorder levels of STRATA1 by frequency\n    STRATA1 = forcats::fct_infreq(STRATA1)\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_comb_arms_ac) <- c(anl_labels, is_rsp = \"Is Responder\")\n\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARMCD\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_comb_arms_ac,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot"},{"options":{"editor-quick-suggestions":"false","fig-height":5,"message":"true","output":"true","autorun":"true","results":"markup","comment":"","warning":"true","context":"interactive","editor-font-scale":"1","fig-cap":"","read-only":"false","classes":"","editor-word-wrap":"true","fig-width":7,"out-height":"","out-width":"700px","editor-max-height":"500","label":"unnamed-chunk-3","dpi":72},"id":3,"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_arms_ab,\n  conf_level = 0.90\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot"},{"options":{"editor-quick-suggestions":"false","fig-height":5,"message":"true","output":"true","autorun":"true","results":"markup","comment":"","warning":"true","context":"interactive","editor-font-scale":"1","fig-cap":"","read-only":"false","classes":"","editor-word-wrap":"true","fig-width":7,"out-height":"","out-width":"700px","editor-max-height":"500","label":"unnamed-chunk-4","dpi":72},"id":4,"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_rsp_arms_ab,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(\n  tbl = result,\n  col_symbol_size = NULL\n)\nplot"},{"options":{"editor-quick-suggestions":"false","fig-height":5,"message":"true","output":"true","autorun":"true","results":"markup","comment":"","warning":"true","context":"interactive","editor-font-scale":"1","fig-cap":"","read-only":"false","classes":"","editor-word-wrap":"true","fig-width":7,"out-height":"","out-width":"700px","editor-max-height":"500","label":"unnamed-chunk-5","dpi":72},"id":5,"code":"library(dplyr)\nlibrary(tern)\nlibrary(nestcolor)\n\nadsl_f <- random.cdisc.data::cadsl %>%\n  select(STUDYID, USUBJID, ARMCD, ARM, SEX, BMRKR2, STRATA1, STRATA2)\n\nadrs_f <- random.cdisc.data::cadrs %>%\n  filter(PARAMCD == \"INVET\") %>%\n  select(STUDYID, USUBJID, PARAMCD, AVISIT, AVALC)\n\nanl <- inner_join(adsl_f, adrs_f, by = c(\"STUDYID\", \"USUBJID\"))\nanl <- df_explicit_na(anl)\nanl_labels <- var_labels(anl)\n\nanl_rsp_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC %in% c(\"CR\", \"PR\")) %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_rsp_arms_ab) <- c(anl_labels, is_rsp = \"Is Responder\")\nanl_cr_arms_ab <- anl %>%\n  mutate(is_rsp = AVALC == \"CR\") %>%\n  filter(ARMCD %in% c(\"ARM B\", \"ARM A\")) %>%\n  mutate(\n    ARMCD = relevel(ARMCD, ref = \"ARM B\") %>%\n      droplevels(),\n    ARM = relevel(ARM, ref = \"B: Placebo\") %>%\n      droplevels()\n  ) %>%\n  droplevels()\nvar_labels(anl_cr_arms_ab) <- c(anl_labels, is_rsp = \"Is CR\")\n\ndf <- extract_rsp_subgroups(\n  variables = list(\n    rsp = \"is_rsp\",\n    arm = \"ARM\",\n    subgroups = c(\"SEX\", \"BMRKR2\"),\n    strata = \"STRATA2\"\n  ),\n  data = anl_cr_arms_ab,\n  conf_level = 0.95\n)\n\nresult <- basic_table() %>%\n  tabulate_rsp_subgroups(df, vars = c(\"n_tot\", \"n\", \"n_rsp\", \"prop\", \"or\", \"ci\"))\n\nplot <- g_forest(tbl = result)\nplot"}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
 globalThis.qwebrStartupMessage = document.createElement("p");
 
+// Verify if OffScreenCanvas is supported
+globalThis.qwebrOffScreenCanvasSupport = function() {
+  return typeof OffscreenCanvas !== 'undefined'
+}
 
 // Function to set the button text
 globalThis.qwebrSetInteractiveButtonState = function(buttonText, enableCodeButton = true) {
@@ -366,15 +465,122 @@ globalThis.qwebrUpdateStatusHeader = function(message) {
     <span>${message}</span>`;
 }
 
+// Function to return true if element is found, false if not
+globalThis.qwebrCheckHTMLElementExists = function(selector) {
+  const element = document.querySelector(selector);
+  return !!element;
+}
+
+// Function that detects whether reveal.js slides are present
+globalThis.qwebrIsRevealJS = function() {
+  // If the '.reveal .slides' selector exists, RevealJS is likely present
+  return qwebrCheckHTMLElementExists('.reveal .slides');
+}
+
+// Initialize the Quarto sidebar element
+function qwebrSetupQuartoSidebar() {
+  var newSideBarDiv = document.createElement('div');
+  newSideBarDiv.id = 'quarto-margin-sidebar';
+  newSideBarDiv.className = 'sidebar margin-sidebar';
+  newSideBarDiv.style.top = '0px';
+  newSideBarDiv.style.maxHeight = 'calc(0px + 100vh)';
+
+  return newSideBarDiv;
+}
+
+// Position the sidebar in the document
+function qwebrPlaceQuartoSidebar() {
+  // Get the reference to the element with id 'quarto-document-content'
+  var referenceNode = document.getElementById('quarto-document-content');
+
+  // Create the new div element
+  var newSideBarDiv = qwebrSetupQuartoSidebar();
+
+  // Insert the new div before the 'quarto-document-content' element
+  referenceNode.parentNode.insertBefore(newSideBarDiv, referenceNode);
+}
+
+function qwebrPlaceMessageContents(content, html_location = "title-block-header", revealjs_location = "title-slide") {
+
+  // Get references to header elements
+  const headerHTML = document.getElementById(html_location);
+  const headerRevealJS = document.getElementById(revealjs_location);
+
+  // Determine where to insert the quartoTitleMeta element
+  if (headerHTML || headerRevealJS) {
+    // Append to the existing "title-block-header" element or "title-slide" div
+    (headerHTML || headerRevealJS).appendChild(content);
+  } else {
+    // If neither headerHTML nor headerRevealJS is found, insert after "webr-monaco-editor-init" script
+    const monacoScript = document.getElementById("qwebr-monaco-editor-init");
+    const header = document.createElement("header");
+    header.setAttribute("id", "title-block-header");
+    header.appendChild(content);
+    monacoScript.after(header);
+  }
+}
+
+
+
+function qwebrOffScreenCanvasSupportWarningMessage() {
+  
+  // Verify canvas is supported.
+  if(qwebrOffScreenCanvasSupport()) return;
+
+  // Create the main container div
+  var calloutContainer = document.createElement('div');
+  calloutContainer.classList.add('callout', 'callout-style-default', 'callout-warning', 'callout-titled');
+
+  // Create the header div
+  var headerDiv = document.createElement('div');
+  headerDiv.classList.add('callout-header', 'd-flex', 'align-content-center');
+
+  // Create the icon container div
+  var iconContainer = document.createElement('div');
+  iconContainer.classList.add('callout-icon-container');
+
+  // Create the icon element
+  var iconElement = document.createElement('i');
+  iconElement.classList.add('callout-icon');
+
+  // Append the icon element to the icon container
+  iconContainer.appendChild(iconElement);
+
+  // Create the title container div
+  var titleContainer = document.createElement('div');
+  titleContainer.classList.add('callout-title-container', 'flex-fill');
+  titleContainer.innerText = 'Warning: Web Browser Does Not Support Graphing!';
+
+  // Append the icon container and title container to the header div
+  headerDiv.appendChild(iconContainer);
+  headerDiv.appendChild(titleContainer);
+
+  // Create the body container div
+  var bodyContainer = document.createElement('div');
+  bodyContainer.classList.add('callout-body-container', 'callout-body');
+
+  // Create the paragraph element for the body content
+  var paragraphElement = document.createElement('p');
+  paragraphElement.innerHTML = 'This web browser does not have support for displaying graphs through the <code>quarto-webr</code> extension since it lacks an <code>OffScreenCanvas</code>. Please upgrade your web browser to one that supports <code>OffScreenCanvas</code>.';
+
+  // Append the paragraph element to the body container
+  bodyContainer.appendChild(paragraphElement);
+
+  // Append the header div and body container to the main container div
+  calloutContainer.appendChild(headerDiv);
+  calloutContainer.appendChild(bodyContainer);
+
+  // Append the main container div to the document depending on format
+  qwebrPlaceMessageContents(calloutContainer, "title-block-header"); 
+
+}
+
+
 // Function that attaches the document status message and diagnostics
 function displayStartupMessage(showStartupMessage, showHeaderMessage) {
   if (!showStartupMessage) {
     return;
   }
-
-  // Get references to header elements
-  const headerHTML = document.getElementById("title-block-header");
-  const headerRevealJS = document.getElementById("title-slide");
 
   // Create the outermost div element for metadata
   const quartoTitleMeta = document.createElement("div");
@@ -417,21 +623,297 @@ function displayStartupMessage(showStartupMessage, showHeaderMessage) {
   firstInnerDiv.appendChild(secondInnerDivContents);
   quartoTitleMeta.appendChild(firstInnerDiv);
 
-  // Determine where to insert the quartoTitleMeta element
-  if (headerHTML || headerRevealJS) {
-    // Append to the existing "title-block-header" element or "title-slide" div
-    (headerHTML || headerRevealJS).appendChild(quartoTitleMeta);
+  // Place message on webpage
+  qwebrPlaceMessageContents(quartoTitleMeta); 
+}
+
+function qwebrAddCommandHistoryModal() {
+  // Create the modal div
+  var modalDiv = document.createElement('div');
+  modalDiv.id = 'qwebr-history-modal';
+  modalDiv.className = 'qwebr-modal';
+
+  // Create the modal content div
+  var modalContentDiv = document.createElement('div');
+  modalContentDiv.className = 'qwebr-modal-content';
+
+  // Create the span for closing the modal
+  var closeSpan = document.createElement('span');
+  closeSpan.id = 'qwebr-command-history-close-btn';
+  closeSpan.className = 'qwebr-modal-close';
+  closeSpan.innerHTML = '&times;';
+
+  // Create the h1 element for the modal
+  var modalH1 = document.createElement('h1');
+  modalH1.textContent = 'R History Command Contents';
+
+  // Create an anchor element for downloading the Rhistory file 
+  var downloadLink = document.createElement('a');
+  downloadLink.href = '#';
+  downloadLink.id = 'qwebr-download-history-btn';
+  downloadLink.className = 'qwebr-download-btn';
+
+  // Create an 'i' element for the icon
+  var icon = document.createElement('i');
+  icon.className = 'bi bi-file-code';
+
+  // Append the icon to the anchor element
+  downloadLink.appendChild(icon);
+
+  // Add the text 'Download R History' to the anchor element
+  downloadLink.appendChild(document.createTextNode(' Download R History File'));
+
+  // Create the pre for command history contents
+  var commandContentsPre = document.createElement('pre');
+  commandContentsPre.id = 'qwebr-command-history-contents';
+  commandContentsPre.className = 'qwebr-modal-content-code';
+
+  // Append the close span, h1, and history contents pre to the modal content div
+  modalContentDiv.appendChild(closeSpan);
+  modalContentDiv.appendChild(modalH1);
+  modalContentDiv.appendChild(downloadLink);
+  modalContentDiv.appendChild(commandContentsPre);
+
+  // Append the modal content div to the modal div
+  modalDiv.appendChild(modalContentDiv);
+
+  // Append the modal div to the body
+  document.body.appendChild(modalDiv);
+}
+
+function qwebrRegisterRevealJSCommandHistoryModal() {
+  // Select the <ul> element inside the <div> with data-panel="Custom0"
+  let ulElement = document.querySelector('div[data-panel="Custom0"] > ul.slide-menu-items');
+
+  // Find the last <li> element with class slide-tool-item
+  let lastItem = ulElement.querySelector('li.slide-tool-item:last-child');
+
+  // Calculate the next data-item value
+  let nextItemValue = 0;
+  if (lastItem) {
+      nextItemValue = parseInt(lastItem.dataset.item) + 1;
+  }
+
+  // Create a new <li> element
+  let newListItem = document.createElement('li');
+  newListItem.className = 'slide-tool-item';
+  newListItem.dataset.item = nextItemValue.toString(); // Set the next available data-item value
+
+  // Create the <a> element inside the <li>
+  let newLink = document.createElement('a');
+  newLink.href = '#';
+  newLink.id = 'qwebrRHistoryButton'; // Set the ID for the new link
+  
+  // Create the <kbd> element inside the <a>
+  let newKbd = document.createElement('kbd');
+  newKbd.textContent = ' '; // Set to empty as we are not registering a keyboard shortcut
+
+  // Create text node for the link text
+  let newText = document.createTextNode(' View R History');
+
+  // Append <kbd> and text node to <a>
+  newLink.appendChild(newKbd);
+  newLink.appendChild(newText);
+
+  // Append <a> to <li>
+  newListItem.appendChild(newLink);
+
+  // Append <li> to <ul>
+  ulElement.appendChild(newListItem);
+}
+
+// Handle setting up the R history modal
+function qwebrCodeLinks() {
+
+  if (qwebrIsRevealJS()) {
+    qwebrRegisterRevealJSCommandHistoryModal();
+    return;
+  }
+
+  // Create the container div
+  var containerDiv = document.createElement('div');
+  containerDiv.className = 'quarto-code-links';
+
+  // Create the h2 element
+  var h2 = document.createElement('h2');
+  h2.textContent = 'webR Code Links';
+
+  // Create the ul element
+  var ul = document.createElement('ul');
+
+  // Create the li element
+  var li = document.createElement('li');
+
+  // Create the a_history_btn element
+  var a_history_btn = document.createElement('a');
+  a_history_btn.href = 'javascript:void(0)';
+  a_history_btn.setAttribute('id', 'qwebrRHistoryButton');
+
+  // Create the i_history_btn element
+  var i_history_btn = document.createElement('i');
+  i_history_btn.className = 'bi bi-file-code';
+
+  // Create the text node for the link text
+  var text_history_btn = document.createTextNode('View R History');
+
+  // Append the icon element and link text to the a element
+  a_history_btn.appendChild(i_history_btn);
+  a_history_btn.appendChild(text_history_btn);
+
+  // Append the a element to the li element
+  li.appendChild(a_history_btn);
+
+  // Append the li element to the ul element
+  ul.appendChild(li);
+
+  // Append the h2 and ul elements to the container div
+  containerDiv.appendChild(h2);
+  containerDiv.appendChild(ul);
+
+  // Append the container div to the element with the ID 'quarto-margin-sidebar'
+  var sidebar = document.getElementById('quarto-margin-sidebar');
+    
+  // If the sidebar element is not found, create it
+  if(!sidebar) {
+    qwebrPlaceQuartoSidebar();
+  }
+  
+  // Re-select the sidebar element (if it was just created)
+  sidebar = document.getElementById('quarto-margin-sidebar');   
+
+
+  // If the sidebar element exists, append the container div to it
+  if(sidebar) {
+    // Append the container div to the sidebar
+    sidebar.appendChild(containerDiv);
+    // Force the sidebar to be clickable by removing the 'zindex-bottom' class
+    // added in pre-release: https://github.com/quarto-dev/quarto-cli/commit/f0c53a1ffcaa1de4eccbf07803b096898248adcc
+    sidebar.className = 'sidebar margin-sidebar';
   } else {
-    // If neither headerHTML nor headerRevealJS is found, insert after "webr-monaco-editor-init" script
-    const monacoScript = document.getElementById("qwebr-monaco-editor-init");
-    const header = document.createElement("header");
-    header.setAttribute("id", "title-block-header");
-    header.appendChild(quartoTitleMeta);
-    monacoScript.after(header);
+    // Get a debugger ...
+    console.warn('Element with ID "quarto-margin-sidebar" not found.');
   }
 }
 
+// Call the function to append the code links for qwebR into the right sidebar
+qwebrCodeLinks();
+
+// Add the command history modal
+qwebrAddCommandHistoryModal();
+
 displayStartupMessage(qwebrShowStartupMessage, qwebrShowHeaderMessage);
+qwebrOffScreenCanvasSupportWarningMessage();
+</script><script type="module">
+// Define a global storage and retrieval solution ----
+
+// Store commands executed in R
+globalThis.qwebrRCommandHistory = [];
+
+// Function to retrieve the command history
+globalThis.qwebrFormatRHistory = function() {
+   return qwebrRCommandHistory.join("\n\n");
+}
+
+// Retrieve HTML Elements ----
+
+// Get the command modal
+const command_history_modal = document.getElementById("qwebr-history-modal");
+
+// Get the button that opens the command modal
+const command_history_btn = document.getElementById("qwebrRHistoryButton");
+
+// Get the <span> element that closes the command modal
+const command_history_close_span = document.getElementById("qwebr-command-history-close-btn");
+
+// Get the download button for r history information
+const command_history_download_btn = document.getElementById("qwebr-download-history-btn");
+
+// Plug in command history into modal/download button ----
+
+// Function to populate the modal with command history
+function populateCommandHistoryModal() {
+    document.getElementById("qwebr-command-history-contents").innerHTML = qwebrFormatRHistory() || "No commands have been executed yet.";
+}
+
+// Function to format the current date and time to
+// a string with the format YYYY-MM-DD-HH-MM-SS
+function formatDateTime() {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
+}
+
+
+// Function to convert document title with datetime to a safe filename
+function safeFileName() {
+    // Get the current page title
+    let pageTitle = document.title;
+
+    // Combine the current page title with the current date and time
+    let pageNameWithDateTime = `Rhistory-${pageTitle}-${formatDateTime()}`;
+
+    // Replace unsafe characters with safe alternatives
+    let safeFilename = pageNameWithDateTime.replace(/[\\/:\*\?! "<>\|]/g, '-');
+
+    return safeFilename;
+}
+
+
+// Function to download list contents as text file
+function downloadRHistory() {
+    // Get the current page title + datetime and use it as the filename
+    const filename = `${safeFileName()}.R`;
+
+    // Get the text contents of the R History list
+    const text = qwebrFormatRHistory();
+
+    // Create a new Blob object with the text contents
+    const blob = new Blob([text], { type: 'text/plain' });
+  
+    // Create a new anchor element for the download
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+
+    // Append the anchor to the body, click it, and remove it
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// Register event handlers ----
+
+// When the user clicks the View R History button, open the command modal
+command_history_btn.onclick = function() {
+    populateCommandHistoryModal();
+    command_history_modal.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the command modal
+command_history_close_span.onclick = function() {
+    command_history_modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the command modal, close it
+window.onclick = function(event) {
+    if (event.target == command_history_modal) {
+        command_history_modal.style.display = "none";
+    }
+}
+
+// Add an onclick event listener to the download button so that
+// the user can download the R history as a text file
+command_history_download_btn.onclick = function() {
+    downloadRHistory();
+};
 </script><script type="module">
 // Supported Evaluation Types for Context
 globalThis.EvalTypes = Object.freeze({
@@ -768,11 +1250,15 @@ globalThis.qwebrInstance = import(qwebrCustomizedWebROptions.baseURL + "webr.mjs
     // Setup a shelter
     globalThis.mainWebRCodeShelter = await new mainWebR.Shelter();
 
-    // Setup a pager to allow processing help documentation 
-    await mainWebR.evalRVoid('webr::pager_install()'); 
+    // Setup a pager to allow processing help documentation
+    await mainWebR.evalRVoid('webr::pager_install()');
+
+    // Setup a viewer to allow processing htmlwidgets.
+    // This might not be available in old webr version
+    await mainWebR.evalRVoid('try({ webr::viewer_install() })');
 
     // Override the existing install.packages() to use webr::install()
-    await mainWebR.evalRVoid('webr::shim_install()'); 
+    await mainWebR.evalRVoid('webr::shim_install()');
 
     // Specify the repositories to pull from
     // Note: webR does not use the `repos` option, but instead uses `webr_pkg_repos`
@@ -809,7 +1295,7 @@ globalThis.qwebrIsObjectEmpty = function (arr) {
     return Object.keys(arr).length === 0;
 }
 
-// Global version of the Escape HTML function that converts HTML 
+// Global version of the Escape HTML function that converts HTML
 // characters to their HTML entities.
 globalThis.qwebrEscapeHTMLCharacters = function(unsafe) {
     return unsafe
@@ -818,7 +1304,7 @@ globalThis.qwebrEscapeHTMLCharacters = function(unsafe) {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
-  };
+};
 
 // Passthrough results
 globalThis.qwebrIdentity = function(x) {
@@ -830,11 +1316,39 @@ globalThis.qwebrPrefixComment = function(x, comment) {
     return `${comment}${x}`;
 };
 
+// Function to store the code in the history
+globalThis.qwebrLogCodeToHistory = function(codeToRun, options) {
+    qwebrRCommandHistory.push(
+        `# Ran code in ${options.label} at ${new Date().toLocaleString()} ----\n${codeToRun}`
+    );
+};
+
+// Function to attach a download button onto the canvas
+// allowing the user to download the image.
+function qwebrImageCanvasDownloadButton(canvas, canvasContainer) {
+
+    // Create the download button
+    const downloadButton = document.createElement('button');
+    downloadButton.className = 'qwebr-canvas-image-download-btn';
+    downloadButton.textContent = 'Download Image';
+    canvasContainer.appendChild(downloadButton);
+
+    // Trigger a download of the image when the button is clicked
+    downloadButton.addEventListener('click', function() {
+        const image = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = image;
+        link.download = 'qwebr-canvas-image.png';
+        link.click();
+    });
+}
+
+
 // Function to parse the pager results
-globalThis.qwebrParseTypePager = async function (msg) { 
+globalThis.qwebrParseTypePager = async function (msg) {
 
     // Split out the event data
-    const { path, title, deleteFile } = msg.data; 
+    const { path, title, deleteFile } = msg.data;
 
     // Process the pager data by reading the information from disk
     const paged_data = await mainWebR.FS.readFile(path).then((data) => {
@@ -843,7 +1357,7 @@ globalThis.qwebrParseTypePager = async function (msg) {
 
         // Remove excessive backspace characters until none remain
         while(content.match(/.[\b]/)){
-        content = content.replace(/.[\b]/g, '');
+            content = content.replace(/.[\b]/g, '');
         }
 
         // Returned cleaned data
@@ -851,22 +1365,41 @@ globalThis.qwebrParseTypePager = async function (msg) {
     });
 
     // Unlink file if needed
-    if (deleteFile) { 
-        await mainWebR.FS.unlink(path); 
-    } 
+    if (deleteFile) {
+        await mainWebR.FS.unlink(path);
+    }
 
     // Return extracted data with spaces
     return paged_data;
-} 
+};
+
+
+// Function to parse the browse results
+globalThis.qwebrParseTypeBrowse = async function (msg) {
+
+    // msg.type === "browse"
+    const path = msg.data.url;
+
+    // Process the browse data by reading the information from disk
+    const browse_data = await mainWebR.FS.readFile(path).then((data) => {
+        // Obtain the file content
+        let content = new TextDecoder().decode(data);
+
+        return content;
+    });
+
+    // Return extracted data as-is
+    return browse_data;
+};
 
 // Function to run the code using webR and parse the output
 globalThis.qwebrComputeEngine = async function(
-    codeToRun, 
-    elements, 
+    codeToRun,
+    elements,
     options) {
 
     // Call into the R compute engine that persists within the document scope.
-    // To be prepared for all scenarios, the following happens: 
+    // To be prepared for all scenarios, the following happens:
     // 1. We setup a canvas device to write to by making a namespace call into the {webr} package
     // 2. We use values inside of the options array to set the figure size.
     // 3. We capture the output stream information (STDOUT and STERR)
@@ -886,46 +1419,66 @@ globalThis.qwebrComputeEngine = async function(
         processOutput = qwebrIdentity;
     }
 
-    // ---- 
+    // ----
     // Convert from Inches to Pixels by using DPI (dots per inch)
     // for bitmap devices (dpi * inches = pixels)
-    let fig_width = options["fig-width"] * options["dpi"]
-    let fig_height = options["fig-height"] * options["dpi"]
+    let fig_width = options["fig-width"] * options["dpi"];
+    let fig_height = options["fig-height"] * options["dpi"];
 
     // Initialize webR
     await mainWebR.init();
+
+    // Configure capture output
+    let captureOutputOptions = {
+        withAutoprint: true,
+        captureStreams: true,
+        captureConditions: false,
+        // env: webR.objs.emptyEnv, // maintain a global environment for webR v0.2.0
+    };
+
+    // Determine if the browser supports OffScreen
+    if (qwebrOffScreenCanvasSupport()) {
+        // Mirror default options of webr::canvas()
+        // with changes to figure height and width.
+        captureOutputOptions.captureGraphics = {
+            width: fig_width,
+            height: fig_height,
+            bg: "white", // default: transparent
+            pointsize: 12,
+            capture: true
+        };
+    }  else {
+        // Disable generating graphics
+        captureOutputOptions.captureGraphics = false;
+    }
+
+    // Store the code to run in history
+    qwebrLogCodeToHistory(codeToRun, options);
 
     // Setup a webR canvas by making a namespace call into the {webr} package
     // Evaluate the R code
     // Remove the active canvas silently
     const result = await mainWebRCodeShelter.captureR(
-        `webr::canvas(width=${fig_width}, height=${fig_height}, capture = TRUE)
-        .webr_cvs_id <- dev.cur()
-        ${codeToRun}
-        invisible(dev.off(.webr_cvs_id))
-        `, {
-        withAutoprint: true,
-        captureStreams: true,
-        captureConditions: false//,
-        // env: webR.objs.emptyEnv, // maintain a global environment for webR v0.2.0
-    });
+        `${codeToRun}`,
+        captureOutputOptions
+    );
 
     // -----
 
     // Start attempting to parse the result data
     processResultOutput:try {
-        
+
         // Avoid running through output processing
-        if (options.results === "hide" || options.output === "false") { 
-            break processResultOutput; 
+        if (options.results === "hide" || options.output === "false") {
+            break processResultOutput;
         }
 
         // Merge output streams of STDOUT and STDErr (messages and errors are combined.)
-        // Require both `warning` and `message` to be true to display `STDErr`. 
+        // Require both `warning` and `message` to be true to display `STDErr`.
         const out = result.output
         .filter(
-            evt => evt.type === "stdout" || 
-            ( evt.type === "stderr" && (options.warning === "true" && options.message === "true")) 
+            evt => evt.type === "stdout" ||
+            ( evt.type === "stderr" && (options.warning === "true" && options.message === "true"))
         )
         .map((evt, index) => {
             const className = `qwebr-output-code-${evt.type}`;
@@ -937,15 +1490,31 @@ globalThis.qwebrComputeEngine = async function(
 
         // Clean the state
         // We're now able to process pager events.
-        // As a result, we cannot maintain a true 1-to-1 output order 
+        // As a result, we cannot maintain a true 1-to-1 output order
         // without individually feeding each line
         const msgs = await mainWebR.flush();
 
         // Use `map` to process the filtered "pager" events asynchronously
-        const pager = await Promise.all(
-            msgs.filter(msg => msg.type === 'pager').map(
+        const pager = [];
+        const browse = [];
+
+        await Promise.all(
+            msgs.map(
                 async (msg) => {
-                    return await qwebrParseTypePager(msg);
+
+                    const msgType = msg.type || "unknown";
+
+                    switch(msgType) {
+                        case 'pager':
+                            const pager_data = await qwebrParseTypePager(msg);
+                            pager.push(pager_data);
+                            break;
+                        case 'browse':
+                            const browse_data = await qwebrParseTypeBrowse(msg);
+                            browse.push(browse_data);
+                            break;
+                    }
+                    return;
                 }
             )
         );
@@ -977,13 +1546,19 @@ globalThis.qwebrComputeEngine = async function(
 
         // Determine if we have graphs to display
         if (result.images.length > 0) {
+
             // Create figure element
-            const figureElement = document.createElement('figure');
+            const figureElement = document.createElement("figure");
+            figureElement.className = "qwebr-canvas-image";
 
             // Place each rendered graphic onto a canvas element
             result.images.forEach((img) => {
+
                 // Construct canvas for object
                 const canvas = document.createElement("canvas");
+
+                // Add an image download button
+                qwebrImageCanvasDownloadButton(canvas, figureElement);
 
                 // Set canvas size to image
                 canvas.width = img.width;
@@ -1002,9 +1577,10 @@ globalThis.qwebrComputeEngine = async function(
                 // Draw image onto Canvas
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0, img.width, img.height);
-          
+
                 // Append canvas to figure output area
                 figureElement.appendChild(canvas);
+
             });
 
             if (options['fig-cap']) {
@@ -1012,28 +1588,46 @@ globalThis.qwebrComputeEngine = async function(
                 const figcaptionElement = document.createElement('figcaption');
                 figcaptionElement.innerText = options['fig-cap'];
                 // Append figcaption to figure
-                figureElement.appendChild(figcaptionElement);    
+                figureElement.appendChild(figcaptionElement);
             }
 
             elements.outputGraphDiv.appendChild(figureElement);
+
         }
 
         // Display the pager data
-        if (pager) {
-        // Use the `pre` element to preserve whitespace.
-        pager.forEach((paged_data, index) => {
-            let pre_pager = document.createElement("pre");
-            pre_pager.innerText = paged_data;
-            pre_pager.classList.add("qwebr-output-code-pager");
-            pre_pager.setAttribute("id", `qwebr-output-code-pager-editor-${elements.id}-result-${index + 1}`);
-            elements.outputCodeDiv.appendChild(pre_pager);
-        });
+        if (pager.length > 0) {
+            // Use the `pre` element to preserve whitespace.
+            pager.forEach((paged_data, index) => {
+                const pre_pager = document.createElement("pre");
+                pre_pager.innerText = paged_data;
+                pre_pager.classList.add("qwebr-output-code-pager");
+                pre_pager.setAttribute("id", `qwebr-output-code-pager-editor-${elements.id}-result-${index + 1}`);
+                elements.outputCodeDiv.appendChild(pre_pager);
+            });
+        }
+
+        // Display the browse data
+        if (browse.length > 0) {
+            // Use the `pre` element to preserve whitespace.
+            browse.forEach((browse_data, index) => {
+                const iframe_browse = document.createElement('iframe');
+                iframe_browse.classList.add("qwebr-output-code-browse");
+                iframe_browse.setAttribute("id", `qwebr-output-code-browse-editor-${elements.id}-result-${index + 1}`);
+                iframe_browse.style.width = "100%";
+                iframe_browse.style.minHeight = "500px";
+                elements.outputCodeDiv.appendChild(iframe_browse);
+
+                iframe_browse.contentWindow.document.open();
+                iframe_browse.contentWindow.document.write(browse_data);
+                iframe_browse.contentWindow.document.close();
+            });
         }
     } finally {
         // Clean up the remaining code
         mainWebRCodeShelter.purge();
     }
-}
+};
 
 // Function to execute the code (accepts code as an argument)
 globalThis.qwebrExecuteCode = async function (
@@ -1043,12 +1637,12 @@ globalThis.qwebrExecuteCode = async function (
 
     // If options are not passed, we fall back on the bare minimum to handle the computation
     if (qwebrIsObjectEmpty(options)) {
-        options = { 
-            "context": "interactive", 
-            "fig-width": 7, "fig-height": 5, 
-            "out-width": "700px", "out-height": "", 
+        options = {
+            "context": "interactive",
+            "fig-width": 7, "fig-height": 5,
+            "out-width": "700px", "out-height": "",
             "dpi": 72,
-            "results": "markup", 
+            "results": "markup",
             "warning": "true", "message": "true",
         };
     }
@@ -2438,6 +3032,12 @@ updateMonacoEditorsOnBodyClassChange();
 // Global array to store Monaco Editor instances
 globalThis.qwebrEditorInstances = [];
 
+function isValidCodeLineNumbers(stringCodeLineNumbers) {
+  // Regular expression to match valid input strings
+  const regex = /^(\d+(-\d+)?)(,\d+(-\d+)?)*$/;
+  return regex.test(stringCodeLineNumbers);
+}
+
 // Function that builds and registers a Monaco Editor instance    
 globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
 
@@ -2467,7 +3067,8 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
       renderLineHighlight: "none",      // Disable current line highlighting
       hideCursorInOverviewRuler: true,  // Remove cursor indictor in right hand side scroll bar
       readOnly: qwebrOptions['read-only'] ?? false,
-      quickSuggestions: qwebrOptions['editor-quick-suggestions'] ?? false
+      quickSuggestions: qwebrOptions['editor-quick-suggestions'] ?? false,
+      wordWrap: (qwebrOptions['editor-word-wrap'] == 'true' ? "on" : "off")
     });
 
     // Store the official counter ID to be used in keyboard shortcuts
@@ -2490,7 +3091,7 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
     const model = editor.getModel();
     // Set EOL for the model
     model.setEOL(monaco.editor.EndOfLineSequence.LF);
-
+    
     // Dynamically modify the height of the editor window if new lines are added.
     let ignoreEvent = false;
     const updateHeight = () => {
@@ -2515,6 +3116,56 @@ globalThis.qwebrCreateMonacoEditorInstance = function (cellData) {
         ignoreEvent = false;
       }
     };
+
+    // Function to generate decorations to highlight lines
+    // in the editor based on input string.
+    function decoratorHighlightLines(codeLineNumbers) {
+      // Store the lines to be lighlight
+      let linesToHighlight = [];
+      
+      // Parse the codeLineNumbers string to get the line numbers to highlight
+      // First, split the string by commas
+      codeLineNumbers.split(',').forEach(part => {
+        // Check if we have a range of lines
+        if (part.includes('-')) {
+            // Handle range of lines (e.g., "6-8")
+            const [start, end] = part.split('-').map(Number);
+            for (let i = start; i <= end; i++) {
+                linesToHighlight.push(i);
+            }
+        } else {
+            // Handle single line (e.g., "7")
+            linesToHighlight.push(Number(part));
+        }
+      });
+  
+      // Create monaco decorations for the lines to highlight
+      const decorations = linesToHighlight.map(lineNumber => ({
+          range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+          options: {
+              isWholeLine: true,
+              className: 'qwebr-editor-highlight-line'
+          }
+      }));
+  
+      // Return decorations to be applied to the editor
+      return decorations;
+    }
+
+    // Ensure that the editor-code-line-numbers option is set and valid
+    // then apply styling
+    if (qwebrOptions['editor-code-line-numbers']) {
+      // Remove all whitespace from the string
+      const codeLineNumbers = qwebrOptions['editor-code-line-numbers'].replace(/\s/g,'');
+      // Check if the string is valid for line numbers, e.g., "1,3-5,7"
+      if (isValidCodeLineNumbers(codeLineNumbers)) {
+        // Apply the decorations to the editor
+        editor.createDecorationsCollection(decoratorHighlightLines(codeLineNumbers));
+      } else {
+        // Warn the user that the input is invalid
+        console.warn(`Invalid "editor-code-line-numbers" value in code cell ${qwebrOptions['label']}: ${codeLineNumbers}`);
+      }
+    }
 
     // Helper function to check if selected text is empty
     function isEmptyCodeText(selectedCodeText) {
@@ -3118,74 +3769,77 @@ Experimental use!
 </div>
 </div>
 <div class="column-screen-inset-right">
-<div class="sourceCode" id="cb8" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb8-1"><a href="#cb8-1"></a>#| standalone: true</span>
-<span id="cb8-2"><a href="#cb8-2"></a>#| viewerHeight: 800</span>
-<span id="cb8-3"><a href="#cb8-3"></a>#| editorHeight: 200</span>
-<span id="cb8-4"><a href="#cb8-4"></a>#| components: [viewer, editor]</span>
-<span id="cb8-5"><a href="#cb8-5"></a>#| layout: vertical</span>
-<span id="cb8-6"><a href="#cb8-6"></a></span>
-<span id="cb8-7"><a href="#cb8-7"></a># -- WEBR HELPERS --</span>
-<span id="cb8-8"><a href="#cb8-8"></a>options(webr_pkg_repos = c("r-universe" = "https://pharmaverse.r-universe.dev", getOption("webr_pkg_repos")))</span>
+<div class="sourceCode" id="cb8" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb8-1"><a href="#cb8-1"></a>#| '!! shinylive warning !!': |</span>
+<span id="cb8-2"><a href="#cb8-2"></a>#|   shinylive does not work in self-contained HTML documents.</span>
+<span id="cb8-3"><a href="#cb8-3"></a>#|   Please set `embed-resources: false` in your metadata.</span>
+<span id="cb8-4"><a href="#cb8-4"></a>#| standalone: true</span>
+<span id="cb8-5"><a href="#cb8-5"></a>#| viewerHeight: 800</span>
+<span id="cb8-6"><a href="#cb8-6"></a>#| editorHeight: 200</span>
+<span id="cb8-7"><a href="#cb8-7"></a>#| components: [viewer, editor]</span>
+<span id="cb8-8"><a href="#cb8-8"></a>#| layout: vertical</span>
 <span id="cb8-9"><a href="#cb8-9"></a></span>
-<span id="cb8-10"><a href="#cb8-10"></a># -- APP CODE --</span>
-<span id="cb8-11"><a href="#cb8-11"></a>library(teal.modules.clinical)</span>
+<span id="cb8-10"><a href="#cb8-10"></a># -- WEBR HELPERS --</span>
+<span id="cb8-11"><a href="#cb8-11"></a>options(webr_pkg_repos = c("r-universe" = "https://pharmaverse.r-universe.dev", getOption("webr_pkg_repos")))</span>
 <span id="cb8-12"><a href="#cb8-12"></a></span>
-<span id="cb8-13"><a href="#cb8-13"></a>## Data reproducible code</span>
-<span id="cb8-14"><a href="#cb8-14"></a>data &lt;- teal_data()</span>
-<span id="cb8-15"><a href="#cb8-15"></a>data &lt;- within(data, {</span>
-<span id="cb8-16"><a href="#cb8-16"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
-<span id="cb8-17"><a href="#cb8-17"></a>  ADRS &lt;- random.cdisc.data::cadrs</span>
-<span id="cb8-18"><a href="#cb8-18"></a>})</span>
-<span id="cb8-19"><a href="#cb8-19"></a>datanames &lt;- c("ADSL", "ADRS")</span>
-<span id="cb8-20"><a href="#cb8-20"></a>datanames(data) &lt;- datanames</span>
-<span id="cb8-21"><a href="#cb8-21"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
-<span id="cb8-22"><a href="#cb8-22"></a></span>
-<span id="cb8-23"><a href="#cb8-23"></a>arm_ref_comp &lt;- list(</span>
-<span id="cb8-24"><a href="#cb8-24"></a>  ARM = list(</span>
-<span id="cb8-25"><a href="#cb8-25"></a>    ref = "B: Placebo",</span>
-<span id="cb8-26"><a href="#cb8-26"></a>    comp = c("A: Drug X", "C: Combination")</span>
-<span id="cb8-27"><a href="#cb8-27"></a>  ),</span>
-<span id="cb8-28"><a href="#cb8-28"></a>  ARMCD = list(</span>
-<span id="cb8-29"><a href="#cb8-29"></a>    ref = "ARM B",</span>
-<span id="cb8-30"><a href="#cb8-30"></a>    comp = c("ARM A", "ARM C")</span>
-<span id="cb8-31"><a href="#cb8-31"></a>  )</span>
-<span id="cb8-32"><a href="#cb8-32"></a>)</span>
-<span id="cb8-33"><a href="#cb8-33"></a></span>
-<span id="cb8-34"><a href="#cb8-34"></a>## Reusable Configuration For Modules</span>
-<span id="cb8-35"><a href="#cb8-35"></a>ADSL &lt;- data[["ADSL"]]</span>
-<span id="cb8-36"><a href="#cb8-36"></a>ADRS &lt;- data[["ADRS"]]</span>
-<span id="cb8-37"><a href="#cb8-37"></a></span>
-<span id="cb8-38"><a href="#cb8-38"></a>## Setup App</span>
-<span id="cb8-39"><a href="#cb8-39"></a>app &lt;- init(</span>
-<span id="cb8-40"><a href="#cb8-40"></a>  data = data,</span>
-<span id="cb8-41"><a href="#cb8-41"></a>  modules = modules(</span>
-<span id="cb8-42"><a href="#cb8-42"></a>    tm_g_forest_rsp(</span>
-<span id="cb8-43"><a href="#cb8-43"></a>      label = "Forest Response",</span>
-<span id="cb8-44"><a href="#cb8-44"></a>      dataname = "ADRS",</span>
-<span id="cb8-45"><a href="#cb8-45"></a>      arm_var = choices_selected(</span>
-<span id="cb8-46"><a href="#cb8-46"></a>        variable_choices(ADSL, c("ARM", "ARMCD")),</span>
-<span id="cb8-47"><a href="#cb8-47"></a>        "ARMCD"</span>
-<span id="cb8-48"><a href="#cb8-48"></a>      ),</span>
-<span id="cb8-49"><a href="#cb8-49"></a>      arm_ref_comp = arm_ref_comp,</span>
-<span id="cb8-50"><a href="#cb8-50"></a>      paramcd = choices_selected(</span>
-<span id="cb8-51"><a href="#cb8-51"></a>        value_choices(ADRS, "PARAMCD", "PARAM"),</span>
-<span id="cb8-52"><a href="#cb8-52"></a>        "BESRSPI"</span>
-<span id="cb8-53"><a href="#cb8-53"></a>      ),</span>
-<span id="cb8-54"><a href="#cb8-54"></a>      subgroup_var = choices_selected(</span>
-<span id="cb8-55"><a href="#cb8-55"></a>        variable_choices(ADSL, names(ADSL)),</span>
-<span id="cb8-56"><a href="#cb8-56"></a>        c("BMRKR2", "SEX")</span>
-<span id="cb8-57"><a href="#cb8-57"></a>      ),</span>
-<span id="cb8-58"><a href="#cb8-58"></a>      strata_var = choices_selected(</span>
-<span id="cb8-59"><a href="#cb8-59"></a>        variable_choices(ADSL, c("STRATA1", "STRATA2")),</span>
-<span id="cb8-60"><a href="#cb8-60"></a>        "STRATA2"</span>
-<span id="cb8-61"><a href="#cb8-61"></a>      ),</span>
-<span id="cb8-62"><a href="#cb8-62"></a>      plot_height = c(600L, 200L, 2000L),</span>
-<span id="cb8-63"><a href="#cb8-63"></a>      plot_width = c(1100L, 200L, 2000L)</span>
-<span id="cb8-64"><a href="#cb8-64"></a>    )</span>
-<span id="cb8-65"><a href="#cb8-65"></a>  )</span>
-<span id="cb8-66"><a href="#cb8-66"></a>)</span>
-<span id="cb8-67"><a href="#cb8-67"></a></span>
-<span id="cb8-68"><a href="#cb8-68"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-13"><a href="#cb8-13"></a># -- APP CODE --</span>
+<span id="cb8-14"><a href="#cb8-14"></a>library(teal.modules.clinical)</span>
+<span id="cb8-15"><a href="#cb8-15"></a></span>
+<span id="cb8-16"><a href="#cb8-16"></a>## Data reproducible code</span>
+<span id="cb8-17"><a href="#cb8-17"></a>data &lt;- teal_data()</span>
+<span id="cb8-18"><a href="#cb8-18"></a>data &lt;- within(data, {</span>
+<span id="cb8-19"><a href="#cb8-19"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
+<span id="cb8-20"><a href="#cb8-20"></a>  ADRS &lt;- random.cdisc.data::cadrs</span>
+<span id="cb8-21"><a href="#cb8-21"></a>})</span>
+<span id="cb8-22"><a href="#cb8-22"></a>datanames &lt;- c("ADSL", "ADRS")</span>
+<span id="cb8-23"><a href="#cb8-23"></a>datanames(data) &lt;- datanames</span>
+<span id="cb8-24"><a href="#cb8-24"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
+<span id="cb8-25"><a href="#cb8-25"></a></span>
+<span id="cb8-26"><a href="#cb8-26"></a>arm_ref_comp &lt;- list(</span>
+<span id="cb8-27"><a href="#cb8-27"></a>  ARM = list(</span>
+<span id="cb8-28"><a href="#cb8-28"></a>    ref = "B: Placebo",</span>
+<span id="cb8-29"><a href="#cb8-29"></a>    comp = c("A: Drug X", "C: Combination")</span>
+<span id="cb8-30"><a href="#cb8-30"></a>  ),</span>
+<span id="cb8-31"><a href="#cb8-31"></a>  ARMCD = list(</span>
+<span id="cb8-32"><a href="#cb8-32"></a>    ref = "ARM B",</span>
+<span id="cb8-33"><a href="#cb8-33"></a>    comp = c("ARM A", "ARM C")</span>
+<span id="cb8-34"><a href="#cb8-34"></a>  )</span>
+<span id="cb8-35"><a href="#cb8-35"></a>)</span>
+<span id="cb8-36"><a href="#cb8-36"></a></span>
+<span id="cb8-37"><a href="#cb8-37"></a>## Reusable Configuration For Modules</span>
+<span id="cb8-38"><a href="#cb8-38"></a>ADSL &lt;- data[["ADSL"]]</span>
+<span id="cb8-39"><a href="#cb8-39"></a>ADRS &lt;- data[["ADRS"]]</span>
+<span id="cb8-40"><a href="#cb8-40"></a></span>
+<span id="cb8-41"><a href="#cb8-41"></a>## Setup App</span>
+<span id="cb8-42"><a href="#cb8-42"></a>app &lt;- init(</span>
+<span id="cb8-43"><a href="#cb8-43"></a>  data = data,</span>
+<span id="cb8-44"><a href="#cb8-44"></a>  modules = modules(</span>
+<span id="cb8-45"><a href="#cb8-45"></a>    tm_g_forest_rsp(</span>
+<span id="cb8-46"><a href="#cb8-46"></a>      label = "Forest Response",</span>
+<span id="cb8-47"><a href="#cb8-47"></a>      dataname = "ADRS",</span>
+<span id="cb8-48"><a href="#cb8-48"></a>      arm_var = choices_selected(</span>
+<span id="cb8-49"><a href="#cb8-49"></a>        variable_choices(ADSL, c("ARM", "ARMCD")),</span>
+<span id="cb8-50"><a href="#cb8-50"></a>        "ARMCD"</span>
+<span id="cb8-51"><a href="#cb8-51"></a>      ),</span>
+<span id="cb8-52"><a href="#cb8-52"></a>      arm_ref_comp = arm_ref_comp,</span>
+<span id="cb8-53"><a href="#cb8-53"></a>      paramcd = choices_selected(</span>
+<span id="cb8-54"><a href="#cb8-54"></a>        value_choices(ADRS, "PARAMCD", "PARAM"),</span>
+<span id="cb8-55"><a href="#cb8-55"></a>        "BESRSPI"</span>
+<span id="cb8-56"><a href="#cb8-56"></a>      ),</span>
+<span id="cb8-57"><a href="#cb8-57"></a>      subgroup_var = choices_selected(</span>
+<span id="cb8-58"><a href="#cb8-58"></a>        variable_choices(ADSL, names(ADSL)),</span>
+<span id="cb8-59"><a href="#cb8-59"></a>        c("BMRKR2", "SEX")</span>
+<span id="cb8-60"><a href="#cb8-60"></a>      ),</span>
+<span id="cb8-61"><a href="#cb8-61"></a>      strata_var = choices_selected(</span>
+<span id="cb8-62"><a href="#cb8-62"></a>        variable_choices(ADSL, c("STRATA1", "STRATA2")),</span>
+<span id="cb8-63"><a href="#cb8-63"></a>        "STRATA2"</span>
+<span id="cb8-64"><a href="#cb8-64"></a>      ),</span>
+<span id="cb8-65"><a href="#cb8-65"></a>      plot_height = c(600L, 200L, 2000L),</span>
+<span id="cb8-66"><a href="#cb8-66"></a>      plot_width = c(1100L, 200L, 2000L)</span>
+<span id="cb8-67"><a href="#cb8-67"></a>    )</span>
+<span id="cb8-68"><a href="#cb8-68"></a>  )</span>
+<span id="cb8-69"><a href="#cb8-69"></a>)</span>
+<span id="cb8-70"><a href="#cb8-70"></a></span>
+<span id="cb8-71"><a href="#cb8-71"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -3194,7 +3848,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-11-06 17:34:54 UTC"</code></pre>
+<pre><code>[1] "2024-11-08 11:25:40 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -3210,117 +3864,119 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-11-06
+ date     2024-11-08
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
- package               * version     date (UTC) lib source
- backports               1.5.0       2024-05-23 [1] CRAN (R 4.4.1)
- brio                    1.1.5       2024-04-24 [1] CRAN (R 4.4.1)
- broom                   1.0.7       2024-09-26 [1] CRAN (R 4.4.1)
- bslib                   0.8.0       2024-07-29 [1] CRAN (R 4.4.1)
- cachem                  1.1.0       2024-05-16 [1] CRAN (R 4.4.1)
- callr                   3.7.6       2024-03-25 [1] CRAN (R 4.4.1)
- checkmate               2.3.2       2024-07-29 [1] CRAN (R 4.4.1)
- chromote                0.3.1       2024-08-30 [1] CRAN (R 4.4.1)
- cli                     3.6.3       2024-06-21 [1] CRAN (R 4.4.1)
- coda                    0.19-4.1    2024-01-31 [1] CRAN (R 4.4.1)
- codetools               0.2-20      2024-03-31 [2] CRAN (R 4.4.1)
- colorspace              2.1-1       2024-07-26 [1] CRAN (R 4.4.1)
- cowplot                 1.1.3       2024-01-22 [1] CRAN (R 4.4.1)
- digest                  0.6.37      2024-08-19 [1] CRAN (R 4.4.1)
- dplyr                 * 1.1.4       2023-11-17 [1] CRAN (R 4.4.1)
- emmeans                 1.10.5      2024-10-14 [1] CRAN (R 4.4.1)
- estimability            1.5.1       2024-05-12 [1] CRAN (R 4.4.1)
- evaluate                1.0.1       2024-10-10 [1] CRAN (R 4.4.1)
- fansi                   1.0.6       2023-12-08 [1] CRAN (R 4.4.1)
- farver                  2.1.2       2024-05-13 [1] CRAN (R 4.4.1)
- fastmap                 1.2.0       2024-05-15 [1] CRAN (R 4.4.1)
- fontawesome             0.5.2       2023-08-19 [1] CRAN (R 4.4.1)
- forcats                 1.0.0       2023-01-29 [1] CRAN (R 4.4.1)
- formatR                 1.14        2023-01-17 [1] CRAN (R 4.4.1)
- formatters            * 0.5.9.9003  2024-11-06 [1] git2r (https://github.com/insightsengineering/formatters.git@84e8c3e)
- geepack                 1.3.12      2024-09-23 [1] CRAN (R 4.4.1)
- generics                0.1.3       2022-07-05 [1] CRAN (R 4.4.1)
- ggplot2                 3.5.1       2024-04-23 [1] CRAN (R 4.4.1)
- glue                    1.8.0       2024-09-30 [1] CRAN (R 4.4.1)
- gtable                  0.3.5       2024-04-22 [1] CRAN (R 4.4.1)
- htmltools               0.5.8.1     2024-04-04 [1] CRAN (R 4.4.1)
- htmlwidgets             1.6.4       2023-12-06 [1] CRAN (R 4.4.1)
- httpuv                  1.6.15      2024-03-26 [1] CRAN (R 4.4.1)
- jquerylib               0.1.4       2021-04-26 [1] CRAN (R 4.4.1)
- jsonlite                1.8.9       2024-09-20 [1] CRAN (R 4.4.1)
- knitr                   1.48        2024-07-07 [1] CRAN (R 4.4.1)
- labeling                0.4.3       2023-08-29 [1] CRAN (R 4.4.1)
- later                   1.3.2       2023-12-06 [1] CRAN (R 4.4.1)
- lattice                 0.22-6      2024-03-20 [2] CRAN (R 4.4.1)
- lifecycle               1.0.4       2023-11-07 [1] CRAN (R 4.4.1)
- logger                  0.3.0       2024-03-05 [1] CRAN (R 4.4.1)
- magrittr              * 2.0.3       2022-03-30 [1] CRAN (R 4.4.1)
- MASS                    7.3-61      2024-06-13 [2] CRAN (R 4.4.1)
- Matrix                  1.7-0       2024-04-26 [1] CRAN (R 4.4.1)
- memoise                 2.0.1       2021-11-26 [1] CRAN (R 4.4.1)
- mime                    0.12        2021-09-28 [1] CRAN (R 4.4.1)
- multcomp                1.4-26      2024-07-18 [1] CRAN (R 4.4.1)
- munsell                 0.5.1       2024-04-01 [1] CRAN (R 4.4.1)
- mvtnorm                 1.3-1       2024-09-03 [1] CRAN (R 4.4.1)
- nestcolor             * 0.1.2.9017  2024-11-06 [1] git2r (https://github.com/insightsengineering/nestcolor.git@3d2ce62)
- nlme                    3.1-166     2024-08-14 [2] CRAN (R 4.4.1)
- pillar                  1.9.0       2023-03-22 [1] CRAN (R 4.4.1)
- pkgconfig               2.0.3       2019-09-22 [1] CRAN (R 4.4.1)
- processx                3.8.4       2024-03-16 [1] CRAN (R 4.4.1)
- promises                1.3.0       2024-04-05 [1] CRAN (R 4.4.1)
- ps                      1.8.0       2024-09-12 [1] CRAN (R 4.4.1)
- purrr                   1.0.2       2023-08-10 [1] CRAN (R 4.4.1)
- R6                      2.5.1       2021-08-19 [1] CRAN (R 4.4.1)
- ragg                    1.3.3       2024-09-11 [1] CRAN (R 4.4.1)
- random.cdisc.data       0.3.16.9001 2024-11-06 [1] git2r (https://github.com/insightsengineering/random.cdisc.data.git@a65bfbe)
- rbibutils               2.3         2024-10-04 [1] CRAN (R 4.4.1)
- Rcpp                    1.0.13      2024-07-17 [1] CRAN (R 4.4.1)
- Rdpack                  2.6.1       2024-08-06 [1] CRAN (R 4.4.1)
- rlang                   1.1.4       2024-06-04 [1] CRAN (R 4.4.1)
- rmarkdown               2.28        2024-08-17 [1] CRAN (R 4.4.1)
- rtables               * 0.6.10.9002 2024-11-06 [1] git2r (https://github.com/insightsengineering/rtables.git@d2cc7a0)
- sandwich                3.1-1       2024-09-15 [1] CRAN (R 4.4.1)
- sass                    0.4.9       2024-03-15 [1] CRAN (R 4.4.1)
- scales                  1.3.0       2023-11-28 [1] CRAN (R 4.4.1)
- sessioninfo             1.2.2       2021-12-06 [1] CRAN (R 4.4.1)
- shiny                 * 1.9.1       2024-08-01 [1] CRAN (R 4.4.1)
- shinycssloaders         1.1.0       2024-07-30 [1] CRAN (R 4.4.1)
- shinyjs                 2.1.0       2021-12-23 [1] CRAN (R 4.4.1)
- shinyvalidate           0.1.3       2023-10-04 [1] CRAN (R 4.4.1)
- shinyWidgets            0.8.7       2024-09-23 [1] CRAN (R 4.4.1)
- stringi                 1.8.4       2024-05-06 [1] CRAN (R 4.4.1)
- stringr                 1.5.1       2023-11-14 [1] CRAN (R 4.4.1)
- survival                3.7-0       2024-06-05 [2] CRAN (R 4.4.1)
- systemfonts             1.1.0       2024-05-15 [1] CRAN (R 4.4.1)
- teal                  * 0.15.2.9080 2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.git@9d80f42)
- teal.code             * 0.5.0.9012  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.code.git@622cb09)
- teal.data             * 0.6.0.9015  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.data.git@eca9695)
- teal.logger             0.3.0.9001  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.logger.git@4728b9b)
- teal.modules.clinical * 0.9.1.9030  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.modules.clinical.git@5b91926)
- teal.reporter           0.3.1.9016  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.reporter.git@4fefa7e)
- teal.slice            * 0.5.1.9015  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.slice.git@a3d9a0f)
- teal.transform        * 0.5.0.9015  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.transform.git@0b855e3)
- teal.widgets            0.4.2.9022  2024-11-06 [1] git2r (https://github.com/insightsengineering/teal.widgets.git@8a39dd4)
- tern                  * 0.9.6.9013  2024-11-06 [1] git2r (https://github.com/insightsengineering/tern.git@435fd51)
- tern.gee                0.1.5.9004  2024-11-06 [1] git2r (https://github.com/insightsengineering/tern.gee.git@458172d)
- testthat                3.2.1.1     2024-04-14 [1] CRAN (R 4.4.1)
- textshaping             0.4.0       2024-05-24 [1] CRAN (R 4.4.1)
- TH.data                 1.1-2       2023-04-17 [1] CRAN (R 4.4.1)
- tibble                  3.2.1       2023-03-20 [1] CRAN (R 4.4.1)
- tidyr                   1.3.1       2024-01-24 [1] CRAN (R 4.4.1)
- tidyselect              1.2.1       2024-03-11 [1] CRAN (R 4.4.1)
- utf8                    1.2.4       2023-10-22 [1] CRAN (R 4.4.1)
- vctrs                   0.6.5       2023-12-01 [1] CRAN (R 4.4.1)
- webshot                 0.5.5       2023-06-26 [1] CRAN (R 4.4.1)
- webshot2                0.1.1       2023-08-11 [1] CRAN (R 4.4.1)
- websocket               1.4.2       2024-07-22 [1] CRAN (R 4.4.1)
- withr                   3.0.1       2024-07-31 [1] CRAN (R 4.4.1)
- xfun                    0.48        2024-10-03 [1] CRAN (R 4.4.1)
- xtable                  1.8-4       2019-04-21 [1] CRAN (R 4.4.1)
- yaml                    2.3.10      2024-07-26 [1] CRAN (R 4.4.1)
- zoo                     1.8-12      2023-04-13 [1] CRAN (R 4.4.1)
+ package               * version  date (UTC) lib source
+ backports               1.5.0    2024-05-23 [1] RSPM
+ brio                    1.1.5    2024-04-24 [1] RSPM
+ broom                   1.0.7    2024-09-26 [1] RSPM
+ bslib                   0.8.0    2024-07-29 [1] RSPM
+ cachem                  1.1.0    2024-05-16 [1] RSPM
+ callr                   3.7.6    2024-03-25 [1] RSPM
+ checkmate               2.3.2    2024-07-29 [1] RSPM
+ chromote                0.3.1    2024-08-30 [1] RSPM
+ cli                     3.6.3    2024-06-21 [1] RSPM
+ coda                    0.19-4.1 2024-01-31 [1] CRAN (R 4.4.1)
+ codetools               0.2-20   2024-03-31 [2] CRAN (R 4.4.1)
+ colorspace              2.1-1    2024-07-26 [1] RSPM
+ cowplot                 1.1.3    2024-01-22 [1] RSPM
+ curl                    6.0.0    2024-11-05 [1] RSPM
+ digest                  0.6.37   2024-08-19 [1] RSPM
+ dplyr                 * 1.1.4    2023-11-17 [1] RSPM
+ emmeans                 1.10.5   2024-10-14 [1] RSPM
+ estimability            1.5.1    2024-05-12 [1] RSPM
+ evaluate                1.0.1    2024-10-10 [1] RSPM
+ fansi                   1.0.6    2023-12-08 [1] RSPM
+ farver                  2.1.2    2024-05-13 [1] RSPM
+ fastmap                 1.2.0    2024-05-15 [1] RSPM
+ fontawesome             0.5.2    2023-08-19 [1] RSPM
+ forcats                 1.0.0    2023-01-29 [1] RSPM
+ formatR                 1.14     2023-01-17 [1] CRAN (R 4.4.1)
+ formatters            * 0.5.9    2024-09-12 [1] RSPM
+ geepack                 1.3.12   2024-09-23 [1] RSPM
+ generics                0.1.3    2022-07-05 [1] RSPM
+ ggplot2                 3.5.1    2024-04-23 [1] RSPM
+ glue                    1.8.0    2024-09-30 [1] RSPM
+ gtable                  0.3.6    2024-10-25 [1] RSPM
+ htmltools               0.5.8.1  2024-04-04 [1] RSPM
+ htmlwidgets             1.6.4    2023-12-06 [1] RSPM
+ httpuv                  1.6.15   2024-03-26 [1] RSPM
+ jquerylib               0.1.4    2021-04-26 [1] RSPM
+ jsonlite                1.8.9    2024-09-20 [1] RSPM
+ knitr                   1.48     2024-07-07 [1] RSPM
+ labeling                0.4.3    2023-08-29 [1] RSPM
+ later                   1.3.2    2023-12-06 [1] RSPM
+ lattice                 0.22-6   2024-03-20 [2] CRAN (R 4.4.1)
+ lifecycle               1.0.4    2023-11-07 [1] RSPM
+ logger                  0.4.0    2024-10-22 [1] RSPM
+ magrittr              * 2.0.3    2022-03-30 [1] RSPM
+ MASS                    7.3-61   2024-06-13 [2] CRAN (R 4.4.1)
+ Matrix                  1.7-0    2024-04-26 [1] CRAN (R 4.4.1)
+ memoise                 2.0.1    2021-11-26 [1] RSPM
+ mime                    0.12     2021-09-28 [1] RSPM
+ multcomp                1.4-26   2024-07-18 [1] CRAN (R 4.4.1)
+ munsell                 0.5.1    2024-04-01 [1] RSPM
+ mvtnorm                 1.3-2    2024-11-04 [1] RSPM
+ nestcolor             * 0.1.2    2023-06-09 [1] RSPM
+ nlme                    3.1-166  2024-08-14 [2] CRAN (R 4.4.1)
+ pillar                  1.9.0    2023-03-22 [1] RSPM
+ pkgcache                2.2.3    2024-09-12 [1] RSPM
+ pkgconfig               2.0.3    2019-09-22 [1] RSPM
+ processx                3.8.4    2024-03-16 [1] RSPM
+ promises                1.3.0    2024-04-05 [1] RSPM
+ ps                      1.8.1    2024-10-28 [1] RSPM
+ purrr                   1.0.2    2023-08-10 [1] RSPM
+ R6                      2.5.1    2021-08-19 [1] RSPM
+ ragg                    1.3.3    2024-09-11 [1] RSPM
+ random.cdisc.data       0.3.16   2024-10-10 [1] RSPM
+ rbibutils               2.3      2024-10-04 [1] RSPM
+ Rcpp                    1.0.13-1 2024-11-02 [1] RSPM
+ Rdpack                  2.6.1    2024-08-06 [1] RSPM
+ rlang                   1.1.4    2024-06-04 [1] RSPM
+ rmarkdown               2.29     2024-11-04 [1] RSPM
+ rtables               * 0.6.10   2024-09-20 [1] RSPM
+ sandwich                3.1-1    2024-09-15 [1] CRAN (R 4.4.1)
+ sass                    0.4.9    2024-03-15 [1] RSPM
+ scales                  1.3.0    2023-11-28 [1] RSPM
+ sessioninfo             1.2.2    2021-12-06 [1] any (@1.2.2)
+ shiny                 * 1.9.1    2024-08-01 [1] RSPM
+ shinycssloaders         1.1.0    2024-07-30 [1] RSPM
+ shinyjs                 2.1.0    2021-12-23 [1] RSPM
+ shinyvalidate           0.1.3    2023-10-04 [1] RSPM
+ shinyWidgets            0.8.7    2024-09-23 [1] RSPM
+ stringi                 1.8.4    2024-05-06 [1] RSPM
+ stringr                 1.5.1    2023-11-14 [1] RSPM
+ survival                3.7-0    2024-06-05 [2] CRAN (R 4.4.1)
+ systemfonts             1.1.0    2024-05-15 [1] RSPM
+ teal                  * 0.15.2   2024-03-07 [1] RSPM
+ teal.code             * 0.5.0    2024-01-11 [1] RSPM
+ teal.data             * 0.6.0    2024-04-30 [1] RSPM
+ teal.logger             0.3.0    2024-10-24 [1] RSPM
+ teal.modules.clinical * 0.9.1    2024-04-27 [1] RSPM
+ teal.reporter           0.3.1    2024-03-15 [1] RSPM
+ teal.slice            * 0.5.1    2024-04-30 [1] RSPM
+ teal.transform        * 0.5.0    2024-02-17 [1] RSPM
+ teal.widgets            0.4.2    2023-12-14 [1] RSPM
+ tern                  * 0.9.6    2024-09-24 [1] RSPM
+ tern.gee                0.1.5    2024-08-23 [1] RSPM
+ testthat                3.2.1.1  2024-04-14 [1] RSPM
+ textshaping             0.4.0    2024-05-24 [1] RSPM
+ TH.data                 1.1-2    2023-04-17 [1] CRAN (R 4.4.1)
+ tibble                  3.2.1    2023-03-20 [1] RSPM
+ tidyr                   1.3.1    2024-01-24 [1] RSPM
+ tidyselect              1.2.1    2024-03-11 [1] RSPM
+ utf8                    1.2.4    2023-10-22 [1] RSPM
+ vctrs                   0.6.5    2023-12-01 [1] RSPM
+ webshot                 0.5.5    2023-06-26 [1] CRAN (R 4.4.1)
+ webshot2                0.1.1    2023-08-11 [1] RSPM
+ websocket               1.4.2    2024-07-22 [1] RSPM
+ withr                   3.0.2    2024-10-28 [1] RSPM
+ xfun                    0.49     2024-10-31 [1] RSPM
+ xtable                  1.8-4    2019-04-21 [1] RSPM
+ yaml                    2.3.10   2024-07-26 [1] RSPM
+ zoo                     1.8-12   2023-04-13 [1] CRAN (R 4.4.1)
 
  [1] /usr/local/lib/R/site-library
  [2] /usr/local/lib/R/library
@@ -4364,6 +5020,10 @@ qwebrInstance.then(
           break;
         case 'setup':
           const activeDiv = document.getElementById(`qwebr-noninteractive-setup-area-${qwebrCounter}`);
+
+          // Store code in history
+          qwebrLogCodeToHistory(cellCode, entry.options);
+
           // Run the code in a non-interactive state with all output thrown away
           await mainWebR.evalRVoid(`${cellCode}`);
           break;
