@@ -1,61 +1,79 @@
-----
---- Setup variables for default initialization
+-----
+---- Setup variables for default initialization
 
--- Define a variable to check if webR is present.
+--- Define a variable to check if webR is present.
+---@type boolean
 local missingWebRCell = true
 
--- Define a variable to check if webR was initialized for the page
+--- Define a variable to check if webR was initialized for the page
+---@type boolean
 local hasDoneWebRSetup = false
 
---- Setup default initialization values
--- Default values taken from:
--- https://docs.r-wasm.org/webr/latest/api/js/interfaces/WebR.WebROptions.html
+---- Setup default initialization values
+--- Default values taken from:
+--- https://docs.r-wasm.org/webr/latest/api/js/interfaces/WebR.WebROptions.html
 
--- Define a base compatibile version
-local baseVersionWebR = "0.3.1"
+--- Define a base compatibile version
+---@type string
+local baseVersionWebR = "0.4.0"
 
--- Define where WebR can be found
-local baseUrl = "https://webr.r-wasm.org/v".. baseVersionWebR .."/"
+--- Define where webR can be found
+---@type string
+local baseUrl = "https://webr.r-wasm.org/"
+
+--- Define where webR service workers are located
+---@type string
 local serviceWorkerUrl = ""
 
--- Define the webR communication protocol
+--- Define the webR communication protocol
+---@type string
 local channelType = "ChannelType.Automatic"
 
--- Define a variable to suppress exporting service workers if not required.
--- (e.g. skipped for PostMessage or SharedArrayBuffer)
-local hasServiceWorkerFiles = true
+--- Define a variable to suppress exporting service workers if not required.
+--- (e.g. skipped for PostMessage or SharedArrayBuffer)
+---@type boolean
+local hasServiceWorkerFiles = false
 
--- Define user directory
+--- Define user directory
+---@type string
 local homeDir = "/home/web_user"
 
--- Define whether a startup message should be displayed
+--- Define whether a startup message should be displayed
+---@type string
 local showStartUpMessage = "true"
 
--- Define whether header type messages should be displayed
+--- Define whether header type messages should be displayed
+---@type string
 local showHeaderMessage = "false"
 
--- Define a default repository URL
+--- Define a default repository URL
+---@type string
 local defaultRepoURL = "'https://repo.r-wasm.org/'"
 
--- Define possible repo URLs
+--- Define possible repo URLs
+---@type string
 local rPackageRepoURLS = defaultRepoURL
 
--- Define an empty string if no packages need to be installed.
+--- Define an empty string if no packages need to be installed.
+---@type string
 local installRPackagesList = "''"
 
--- Define whether R packages should automatically be loaded
+--- Define whether R packages should automatically be loaded
+---@type string
 local autoloadRPackages = "true"
-----
 
---- Setup variables for tracking number of code cells
+-----
 
--- Define a counter variable
+---- Setup variables for tracking number of code cells
+
+--- Define a counter variable
+---@type integer
 local qwebrCounter = 0
 
--- Initialize a table to store the CodeBlock elements
+--- Initialize a table to store the CodeBlock elements
 local qwebrCapturedCodeBlocks = {}
 
--- Initialize a table that contains the default cell-level options
+--- Initialize a table that contains the default cell-level options
 local qwebRDefaultCellOptions = {
   ["context"] = "interactive",
   ["warning"] = "true",
@@ -73,26 +91,33 @@ local qwebRDefaultCellOptions = {
   ["fig-height"] = 5,
   ["out-width"] = "700px",
   ["out-height"] = "",
-  ["editor-font-scale"] = 1,
+  ["editor-font-scale"] = quarto.doc.is_format("revealjs") and "0.5" or "1",
   ["editor-max-height"] = "",
-  ["editor-quick-suggestions"] = "false"
+  ["editor-quick-suggestions"] = "false",
+  ["editor-word-wrap"] = "true"
 }
 
-----
---- Process initialization
+-----
+---- Process initialization
 
--- Check if variable missing or an empty string
+--- Check if variable missing or an empty string
+---@param s string | nil
+---@return boolean
 local function isVariableEmpty(s)
   return s == nil or s == ''
 end
 
--- Check if variable is present
+--- Check if variable is present
+---@param s string | nil
+---@return boolean
 local function isVariablePopulated(s)
   return not isVariableEmpty(s)
 end
 
--- Copy the top level value and its direct children
--- Details: http://lua-users.org/wiki/CopyTable
+--- Copy the top level value and its direct children
+--- Details: http://lua-users.org/wiki/CopyTable
+---@param original any
+---@return any
 local function shallowcopy(original)
   -- Determine if its a table
   if type(original) == 'table' then
@@ -109,11 +134,16 @@ local function shallowcopy(original)
   end
 end
 
--- Custom method for cloning a table with a shallow copy.
+--- Custom method for cloning a table with a shallow copy.
+---@param original table
+---@return table
 function table.clone(original)
   return shallowcopy(original)
 end
 
+--- Merge local cell options with global cell options 
+---@param localOptions any
+---@return table
 local function mergeCellOptions(localOptions)
   -- Copy default options to the mergedOptions table
   local mergedOptions = table.clone(qwebRDefaultCellOptions)
@@ -130,7 +160,9 @@ local function mergeCellOptions(localOptions)
   return mergedOptions
 end
 
--- Convert the communication channel meta option into a WebROptions.channelType option
+--- Convert the communication channel meta option into a WebROptions.channelType option
+---@param input string | integer | nil
+---@return string
 local function convertMetaChannelTypeToWebROption(input)
   -- Create a table of conditions
   local conditions = {
@@ -148,18 +180,61 @@ local function convertMetaChannelTypeToWebROption(input)
   return conditions[input] or "ChannelType.Automatic"
 end
 
+--- Write a file to disk
+---@param contents string | nil
+---@param file_name string
+function writeFile(contents, file_name)
+  -- Force resolve file name
+  file_name = quarto.utils.resolve_path(file_name) 
 
--- Parse the different webr options set in the YAML frontmatter, e.g.
---
--- ```yaml
--- ----
--- webr:
---   base-url: https://webr.r-wasm.org/[version]
---   service-worker-url: path/to/workers/{webr-serviceworker.js, webr-worker.js}
--- ----
--- ```
---
--- 
+  -- Open the file in write mode
+  local file = io.open(file_name, "w")
+  
+  -- Check if the file was opened successfully
+  if not file then
+    quarto.log.error("Unable to open file for writing at '" .. file_name .. "'")
+  end
+
+  -- Write contents to the file
+  file:write(contents .. "\n")
+    
+  -- Close the file
+  file:close()
+end
+
+--- Write a serviceworker file for webR to disk
+local function writeWebRServiceWorker()
+  local contents = "importScripts('" .. baseUrl .. "webr-serviceworker.js');"
+  writeFile(contents, "webr-serviceworker.js")
+end
+
+--- Write a worker file for webR to disk
+local function writeWebRWorker()
+  local contents = "importScripts('" .. baseUrl .. "webr-worker.js');"
+  writeFile(contents, "webr-worker.js")
+end
+
+local function specifyBaseUrl()
+  if baseVersionWebR == "latest" then
+    baseUrl = baseUrl .. "latest/"
+  else 
+    baseUrl = baseUrl .. "v" .. baseVersionWebR .. "/"
+  end
+end
+
+--- Parse the different webr options set in the YAML frontmatter, e.g.
+---
+--- ```yaml
+--- ----
+--- webr:
+---   base-url: https://webr.r-wasm.org/[version]
+---   service-worker-url: path/to/workers/{webr-serviceworker.js, webr-worker.js}
+--- ----
+--- ```
+---
+---
+---@param meta any
+---@return any 
 function setWebRInitializationOptions(meta)
 
   -- Let's explore the meta variable data! 
@@ -170,6 +245,7 @@ function setWebRInitializationOptions(meta)
 
   -- Does this exist? If not, just return meta as we'll just use the defaults.
   if isVariableEmpty(webr) then
+    specifyBaseUrl()
     return meta
   end
 
@@ -180,6 +256,16 @@ function setWebRInitializationOptions(meta)
     end
   end
 
+  
+  -- The version number used to access the webr.mjs on the baseURL 
+  -- https://webr.r-wasm.org/v[version]/webr.mjs
+  -- Documentation:
+  -- https://docs.r-wasm.org/webr/latest/api/js/interfaces/WebR.WebROptions.html#baseurl
+  if isVariablePopulated(webr["version"]) then
+    baseVersionWebR = pandoc.utils.stringify(webr["version"])
+  end
+
+  specifyBaseUrl()
 
   -- The base URL used for downloading R WebAssembly binaries 
   -- https://webr.r-wasm.org/[version]/webr.mjs
@@ -187,6 +273,9 @@ function setWebRInitializationOptions(meta)
   -- https://docs.r-wasm.org/webr/latest/api/js/interfaces/WebR.WebROptions.html#baseurl
   if isVariablePopulated(webr["base-url"]) then
     baseUrl = pandoc.utils.stringify(webr["base-url"])
+    if isVariablePopulated(webr["version"]) then
+      quarto.log.warning("Please do not specify both `base-url` and `version`. Using the `base-url` value to obtain webR.")
+    end 
   end
 
   -- The communication channel mode webR uses to connect R with the web browser 
@@ -267,7 +356,9 @@ function setWebRInitializationOptions(meta)
 end
 
 
--- Obtain a template file
+--- Obtain the contents in a template file
+---@param template string
+---@return string | nil
 local function readTemplateFile(template)
   -- Establish a hardcoded path to where the .html partial resides
   -- Note, this should be at the same level as the lua filter.
@@ -301,10 +392,13 @@ local function readTemplateFile(template)
   return content
 end
 
-----
+-----
 
--- Define a function to replace keywords given by {{ WORD }}
--- Is there a better lua-approach?
+--- Define a function to replace keywords given by {{ WORD }}
+--- Is there a better lua-approach?
+---@param contents string
+---@param substitutions string
+---@return string
 local function substitute_in_file(contents, substitutions)
 
   -- Substitute values in the contents of the file
@@ -314,20 +408,10 @@ local function substitute_in_file(contents, substitutions)
   return contents
 end
 
--- Define a function that escape control sequence
-local function escapeControlSequences(str)
-  -- Perform a global replacement on the control sequence character
-  return str:gsub("[\\%c]", function(c)
-    if c == "\\" then
-      -- Escape backslash
-      return "\\\\"
-    end
-  end)
-end
+-----
 
-----
-
--- Pass document-level data into the header to initialize the document.
+--- Pass document-level data into the header to initialize the document.
+---@return string
 local function initializationWebRDocumentSettings()
 
   -- Setup different WebR specific initialization variables
@@ -354,6 +438,10 @@ local function initializationWebRDocumentSettings()
   return initializedWebRConfiguration
 end
 
+---Obtain an opening and closing HTML tag for JS or CSS content
+---@param tag any
+---@return string | nil
+---@return string | nil
 local function generateHTMLElement(tag)
   -- Store a map containing opening and closing tabs
   local tagMappings = {
@@ -372,9 +460,14 @@ local function generateHTMLElement(tag)
   end
 end
 
--- Custom functions to include values into Quarto
--- https://quarto.org/docs/extensions/lua-api.html#includes
+---- Custom functions to include values into Quarto
+---- https://quarto.org/docs/extensions/lua-api.html#includes
 
+---Place text content into an appropriate HTML element
+---for the content.
+---@param location any
+---@param text any
+---@param tag any
 local function includeTextInHTMLTag(location, text, tag)
 
   -- Obtain the HTML element opening and closing tag
@@ -385,6 +478,11 @@ local function includeTextInHTMLTag(location, text, tag)
 
 end
 
+---Read information from a template file and place it into the appropriate HTML element
+---for the content.
+---@param location string
+---@param file string
+---@param tag string
 local function includeFileInHTMLTag(location, file, tag)
 
   -- Obtain the HTML element opening and closing tag
@@ -398,7 +496,7 @@ local function includeFileInHTMLTag(location, file, tag)
 
 end
 
--- Setup WebR's pre-requisites once per document.
+--- Setup WebR's pre-requisites once per document.
 local function ensureWebRSetup()
   
   -- If we've included the initialization, then bail.
@@ -413,7 +511,7 @@ local function ensureWebRSetup()
   -- Note: We're not able to use embed-resources due to the web assembly binary and the potential for additional service worker files.
   quarto.doc.include_text("in-header", [[
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/editor/editor.main.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   ]])
 
   -- Insert the extension styling for defined elements
@@ -424,6 +522,9 @@ local function ensureWebRSetup()
 
   -- Insert JS routine to add document status header
   includeFileInHTMLTag("in-header", "qwebr-document-status.js", "js")
+
+  -- Insert the document history script
+  includeFileInHTMLTag("in-header", "qwebr-document-history.js", "js")
 
   -- Insert the extension element creation scripts
   includeFileInHTMLTag("in-header", "qwebr-cell-elements.js", "js")
@@ -450,52 +551,53 @@ local function ensureWebRSetup()
   if hasServiceWorkerFiles then 
     -- Copy the two web workers into the directory
     -- https://quarto.org/docs/extensions/lua-api.html#dependencies
+    
+    -- Dynamically create the webr worker and serviceworker when needed.
+    writeWebRWorker() 
+    writeWebRServiceWorker()
+    
     quarto.doc.add_html_dependency({
       name = "webr-worker",
       version = baseVersionWebR,
-      seviceworkers = {"webr-worker.js"}, -- Kept to avoid error text.
       serviceworkers = {"webr-worker.js"}
     })
 
     quarto.doc.add_html_dependency({
       name = "webr-serviceworker",
       version = baseVersionWebR,
-      seviceworkers = {"webr-serviceworker.js"}, -- Kept to avoid error text.
       serviceworkers = {"webr-serviceworker.js"}
     })
   end
 
 end
 
+---Design an HTML Element location in the document using the current cell ID. 
+---@param counter integer
+---@return string
 local function qwebrJSCellInsertionCode(counter)
   local insertionLocation = '<div id="qwebr-insertion-location-' .. counter ..'"></div>\n'
   local noscriptWarning = '<noscript>Please enable JavaScript to experience the dynamic code cell content on this page.</noscript>'
   return insertionLocation .. noscriptWarning
 end 
 
--- Remove lines with only whitespace until the first non-whitespace character is detected.
-local function removeEmptyLinesUntilContent(codeText)
-  -- Iterate through each line in the codeText table
-  for _, value in ipairs(codeText) do
-      -- Detect leading whitespace (newline, return character, or empty space)
-      local detectedWhitespace = string.match(value, "^%s*$")
+--- Remove lines with only whitespace until the first non-whitespace character is detected.
+---@param codeLines table
+---@return table
+local function removeEmptyLinesUntilContent(codeLines)
 
-      -- Check if the detectedWhitespace is either an empty string or nil
-      -- This indicates whitespace was detected
-      if isVariableEmpty(detectedWhitespace) then
-          -- Delete empty space
-          table.remove(codeText, 1)
-      else
-          -- Stop the loop as we've now have content
-          break
-      end
+  -- Remove empty lines at the beginning of the code block
+  while codeLines[1] and string.match(codeLines[1], "^%s*$") do
+    table.remove(codeLines, 1)
   end
 
   -- Return the modified table
-  return codeText
+  return codeLines
 end
 
--- Extract Quarto code cell options from the block's text
+--- Extract Quarto code cell options from the block's text
+---@param block pandoc.CodeBlock
+---@return table
+---@return table
 local function extractCodeBlockOptions(block)
   
   -- Access the text aspect of the code block
@@ -525,14 +627,16 @@ local function extractCodeBlockOptions(block)
   -- Merge cell options with default options
   cellOptions = mergeCellOptions(cellOptions)
 
-  -- Set the codeblock text to exclude the special comments.
-  cellCode = table.concat(newCodeLines, '\n')
+  -- Remove empty lines at the beginning of the code block
+  local restructuredCodeCell = removeEmptyLinesUntilContent(newCodeLines)
 
   -- Return the code alongside options
-  return cellCode, cellOptions
+  return restructuredCodeCell, cellOptions
 end
 
--- Replace the code cell with a webR editor
+--- Replace the code cell with a webR-powered cell
+---@param el pandoc.CodeBlock
+---@return pandoc.CodeBlock | pandoc.RawInline
 local function enableWebRCodeCell(el)
       
   -- Let's see what's going on here:
@@ -574,7 +678,7 @@ local function enableWebRCodeCell(el)
 
   -- Local code cell storage
   local cellOptions = {}
-  local cellCode = ''
+  local cellCode = {}
 
   -- Convert webr-specific option commands into attributes
   cellCode, cellOptions = extractCodeBlockOptions(el)
@@ -592,13 +696,13 @@ local function enableWebRCodeCell(el)
     end
   end
 
-  -- Remove space left between options and code contents
-  cellCode = removeEmptyLinesUntilContent(cellCode)
+    -- Set the codeblock text to exclude the special comments.
+  local cellCodeMerged = table.concat(cellCode, '\n')
 
   -- Create a new table for the CodeBlock
   local codeBlockData = {
     id = qwebrCounter,
-    code = cellCode,
+    code = cellCodeMerged,
     options = cellOptions
   }
 
@@ -609,6 +713,9 @@ local function enableWebRCodeCell(el)
   return pandoc.RawInline('html', qwebrJSCellInsertionCode(qwebrCounter))
 end
 
+---Add webR setup into the Quarto document if cell is detected
+---@param doc pandoc.Doc
+---@return pandoc.Doc
 local function stitchDocument(doc)
 
   -- Do not attach webR as the page lacks any active webR cells
