@@ -427,7 +427,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"code":"library(dplyr)\nlibrary(rlistings)\n\nadrs <- random.cdisc.data::cadrs\nadtte <- random.cdisc.data::cadtte\nadex <- random.cdisc.data::cadex\n\nout_ex <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  mutate(ID = paste(SITEID, SUBJID, sep = \"/\")) %>%\n  select(ID, AVAL)\n\nout_rs <- adrs %>%\n  filter(PARAM %in% c(\"Investigator End Of Induction Response\", \"Best Confirmed Overall Response by Investigator\")) %>%\n  mutate(ID = paste(SITEID, SUBJID, sep = \"/\")) %>%\n  select(ID, AVALC, PARAM) %>%\n  tidyr::pivot_wider(\n    id_cols = ID,\n    names_from = PARAM,\n    values_from = AVALC\n  ) %>%\n  right_join(out_ex, ., by = \"ID\", multiple = \"all\")\n\nadtte_flt <- adtte %>%\n  filter(PARAMCD %in% c(\"OS\", \"PFS\", \"CRSD\")) %>%\n  mutate(\n    PARAM = paste(PARAM, paste0(\"(\", AVALU, \")\"), sep = \" \"), ID = paste(SITEID, SUBJID, sep = \"/\"),\n    trigeventpfs = ifelse(CNSR == 0, EVNTDESC, NA)\n  )\n\n# Select triggering event variable\nout_trg <- adtte_flt %>%\n  select(ID, trigeventpfs)\n\nout_tte <- adtte_flt %>%\n  select(ID, TRT01A, PARAM, AVAL, trigeventpfs) %>%\n  tidyr::pivot_wider(\n    id_cols = c(ID, TRT01A),\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate_at(\n    c(\"Overall Survival (DAYS)\", \"Progression Free Survival (DAYS)\", \"Duration of Confirmed Response (DAYS)\"),\n    function(x) format(round(x, 1), nsmall = 1)\n  ) %>%\n  select(\n    ID,\n    TRT01A,\n    `Overall Survival (DAYS)`,\n    `Progression Free Survival (DAYS)`,\n    `Duration of Confirmed Response (DAYS)`\n  ) %>%\n  right_join(out_trg, ., by = \"ID\", multiple = \"all\")\n\nout <- out_tte %>%\n  right_join(out_rs, ., by = \"ID\", multiple = \"all\") %>%\n  select(\n    \"ID\", \"TRT01A\", \"AVAL\", \"Best Confirmed Overall Response by Investigator\",\n    \"Investigator End Of Induction Response\", \"Overall Survival (DAYS)\", \"Progression Free Survival (DAYS)\",\n    \"trigeventpfs\", \"Duration of Confirmed Response (DAYS)\"\n  )\n\nvar_labels(out) <- names(out)\nout <- out %>%\n  var_relabel(\n    ID = \"Center/Patient ID\",\n    TRT01A = \"Treatment\",\n    AVAL = \"Number of Doses\\nReceived\",\n    `Best Confirmed Overall Response by Investigator` = \"Best Confirmed\\nOverall Response\\nby Investigator\",\n    `Investigator End Of Induction Response` = \"Investigator\\nEnd Of Induction\\nResponse\",\n    trigeventpfs = \"Triggering Event\\n for PFS\",\n    `Overall Survival (DAYS)` = \"Overall Survival\\n(days)\",\n    `Progression Free Survival (DAYS)` = \"PFS\\n(days)\",\n    `Duration of Confirmed Response (DAYS)` = \"Duration of\\nConfirmed Response\\n(days)\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"ID\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Individual Efficacy Data\",\n  main_footer = \"PFS = Progression Free Survival\"\n)\n\nhead(lsting, 20)","options":{"dpi":72,"results":"markup","out-width":"700px","editor-word-wrap":"true","editor-max-height":"500","message":"true","fig-width":7,"read-only":"false","fig-cap":"","output":"true","warning":"true","editor-quick-suggestions":"false","out-height":"","classes":"","context":"interactive","comment":"","autorun":"true","fig-height":5,"editor-font-scale":"1","label":"unnamed-chunk-1"},"id":1}];
+globalThis.qwebrCellDetails = [{"code":"library(dplyr)\nlibrary(rlistings)\n\nadrs <- random.cdisc.data::cadrs\nadtte <- random.cdisc.data::cadtte\nadex <- random.cdisc.data::cadex\n\nout_ex <- adex %>%\n  filter(PARAMCD == \"TNDOSE\") %>%\n  mutate(ID = paste(SITEID, SUBJID, sep = \"/\")) %>%\n  select(ID, AVAL)\n\nout_rs <- adrs %>%\n  filter(PARAM %in% c(\"Investigator End Of Induction Response\", \"Best Confirmed Overall Response by Investigator\")) %>%\n  mutate(ID = paste(SITEID, SUBJID, sep = \"/\")) %>%\n  select(ID, AVALC, PARAM) %>%\n  tidyr::pivot_wider(\n    id_cols = ID,\n    names_from = PARAM,\n    values_from = AVALC\n  ) %>%\n  right_join(out_ex, ., by = \"ID\", multiple = \"all\")\n\nadtte_flt <- adtte %>%\n  filter(PARAMCD %in% c(\"OS\", \"PFS\", \"CRSD\")) %>%\n  mutate(\n    PARAM = paste(PARAM, paste0(\"(\", AVALU, \")\"), sep = \" \"), ID = paste(SITEID, SUBJID, sep = \"/\"),\n    trigeventpfs = ifelse(CNSR == 0, EVNTDESC, NA)\n  )\n\n# Select triggering event variable\nout_trg <- adtte_flt %>%\n  select(ID, trigeventpfs)\n\nout_tte <- adtte_flt %>%\n  select(ID, TRT01A, PARAM, AVAL, trigeventpfs) %>%\n  tidyr::pivot_wider(\n    id_cols = c(ID, TRT01A),\n    names_from = PARAM,\n    values_from = AVAL\n  ) %>%\n  mutate_at(\n    c(\"Overall Survival (DAYS)\", \"Progression Free Survival (DAYS)\", \"Duration of Confirmed Response (DAYS)\"),\n    function(x) format(round(x, 1), nsmall = 1)\n  ) %>%\n  select(\n    ID,\n    TRT01A,\n    `Overall Survival (DAYS)`,\n    `Progression Free Survival (DAYS)`,\n    `Duration of Confirmed Response (DAYS)`\n  ) %>%\n  right_join(out_trg, ., by = \"ID\", multiple = \"all\")\n\nout <- out_tte %>%\n  right_join(out_rs, ., by = \"ID\", multiple = \"all\") %>%\n  select(\n    \"ID\", \"TRT01A\", \"AVAL\", \"Best Confirmed Overall Response by Investigator\",\n    \"Investigator End Of Induction Response\", \"Overall Survival (DAYS)\", \"Progression Free Survival (DAYS)\",\n    \"trigeventpfs\", \"Duration of Confirmed Response (DAYS)\"\n  )\n\nvar_labels(out) <- names(out)\nout <- out %>%\n  var_relabel(\n    ID = \"Center/Patient ID\",\n    TRT01A = \"Treatment\",\n    AVAL = \"Number of Doses\\nReceived\",\n    `Best Confirmed Overall Response by Investigator` = \"Best Confirmed\\nOverall Response\\nby Investigator\",\n    `Investigator End Of Induction Response` = \"Investigator\\nEnd Of Induction\\nResponse\",\n    trigeventpfs = \"Triggering Event\\n for PFS\",\n    `Overall Survival (DAYS)` = \"Overall Survival\\n(days)\",\n    `Progression Free Survival (DAYS)` = \"PFS\\n(days)\",\n    `Duration of Confirmed Response (DAYS)` = \"Duration of\\nConfirmed Response\\n(days)\"\n  )\nlsting <- as_listing(\n  out,\n  key_cols = c(\"TRT01A\", \"ID\"),\n  disp_cols = names(out),\n  main_title = \"Listing of Individual Efficacy Data\",\n  main_footer = \"PFS = Progression Free Survival\"\n)\n\nhead(lsting, 20)","options":{"fig-height":5,"warning":"true","editor-font-scale":"1","editor-word-wrap":"true","context":"interactive","editor-quick-suggestions":"false","label":"unnamed-chunk-1","out-width":"700px","results":"markup","fig-width":7,"comment":"","out-height":"","read-only":"false","message":"true","output":"true","dpi":72,"classes":"","fig-cap":"","autorun":"true","editor-max-height":"500"},"id":1}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -3442,7 +3442,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-11-06 18:22:24 UTC"</code></pre>
+<pre><code>[1] "2024-11-09 18:23:59 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -3458,50 +3458,54 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-11-06
+ date     2024-11-09
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
  package           * version date (UTC) lib source
- backports           1.5.0   2024-05-23 [1] CRAN (R 4.4.1)
- brio                1.1.5   2024-04-24 [1] CRAN (R 4.4.1)
- checkmate           2.3.2   2024-07-29 [1] CRAN (R 4.4.1)
- cli                 3.6.3   2024-06-21 [1] CRAN (R 4.4.1)
+ backports           1.5.0   2024-05-23 [1] RSPM
+ brio                1.1.5   2024-04-24 [1] RSPM
+ checkmate           2.3.2   2024-07-29 [1] RSPM
+ cli                 3.6.3   2024-06-21 [1] RSPM
  codetools           0.2-20  2024-03-31 [2] CRAN (R 4.4.1)
- digest              0.6.37  2024-08-19 [1] CRAN (R 4.4.1)
- dplyr             * 1.1.4   2023-11-17 [1] CRAN (R 4.4.1)
- evaluate            1.0.1   2024-10-10 [1] CRAN (R 4.4.1)
- fansi               1.0.6   2023-12-08 [1] CRAN (R 4.4.1)
- fastmap             1.2.0   2024-05-15 [1] CRAN (R 4.4.1)
- formatters        * 0.5.9   2024-09-12 [1] CRAN (R 4.4.1)
- generics            0.1.3   2022-07-05 [1] CRAN (R 4.4.1)
- glue                1.8.0   2024-09-30 [1] CRAN (R 4.4.1)
- htmltools           0.5.8.1 2024-04-04 [1] CRAN (R 4.4.1)
- htmlwidgets         1.6.4   2023-12-06 [1] CRAN (R 4.4.1)
- jsonlite            1.8.9   2024-09-20 [1] CRAN (R 4.4.1)
- knitr               1.48    2024-07-07 [1] CRAN (R 4.4.1)
- lifecycle           1.0.4   2023-11-07 [1] CRAN (R 4.4.1)
- magrittr            2.0.3   2022-03-30 [1] CRAN (R 4.4.1)
- pillar              1.9.0   2023-03-22 [1] CRAN (R 4.4.1)
- pkgconfig           2.0.3   2019-09-22 [1] CRAN (R 4.4.1)
- purrr               1.0.2   2023-08-10 [1] CRAN (R 4.4.1)
- R6                  2.5.1   2021-08-19 [1] CRAN (R 4.4.1)
- random.cdisc.data   0.3.16  2024-11-06 [1] https://insightsengineering.r-universe.dev (R 4.4.1)
- rlang               1.1.4   2024-06-04 [1] CRAN (R 4.4.1)
- rlistings         * 0.2.9   2024-06-20 [1] CRAN (R 4.4.1)
- rmarkdown           2.29    2024-11-04 [1] CRAN (R 4.4.1)
- sessioninfo         1.2.2   2021-12-06 [1] CRAN (R 4.4.1)
- stringi             1.8.4   2024-05-06 [1] CRAN (R 4.4.1)
- stringr             1.5.1   2023-11-14 [1] CRAN (R 4.4.1)
- testthat            3.2.1.1 2024-04-14 [1] CRAN (R 4.4.1)
- tibble            * 3.2.1   2023-03-20 [1] CRAN (R 4.4.1)
- tidyr               1.3.1   2024-01-24 [1] CRAN (R 4.4.1)
- tidyselect          1.2.1   2024-03-11 [1] CRAN (R 4.4.1)
- utf8                1.2.4   2023-10-22 [1] CRAN (R 4.4.1)
- vctrs               0.6.5   2023-12-01 [1] CRAN (R 4.4.1)
- withr               3.0.2   2024-10-28 [1] CRAN (R 4.4.1)
- xfun                0.49    2024-10-31 [1] CRAN (R 4.4.1)
- yaml                2.3.10  2024-07-26 [1] CRAN (R 4.4.1)
+ curl                6.0.0   2024-11-05 [1] RSPM
+ digest              0.6.37  2024-08-19 [1] RSPM
+ dplyr             * 1.1.4   2023-11-17 [1] RSPM
+ evaluate            1.0.1   2024-10-10 [1] RSPM
+ fansi               1.0.6   2023-12-08 [1] RSPM
+ fastmap             1.2.0   2024-05-15 [1] RSPM
+ formatters        * 0.5.9   2024-09-12 [1] RSPM
+ generics            0.1.3   2022-07-05 [1] RSPM
+ glue                1.8.0   2024-09-30 [1] RSPM
+ htmltools           0.5.8.1 2024-04-04 [1] RSPM
+ htmlwidgets         1.6.4   2023-12-06 [1] RSPM
+ jsonlite            1.8.9   2024-09-20 [1] RSPM
+ knitr               1.49    2024-11-08 [1] RSPM
+ lifecycle           1.0.4   2023-11-07 [1] RSPM
+ magrittr            2.0.3   2022-03-30 [1] RSPM
+ pillar              1.9.0   2023-03-22 [1] RSPM
+ pkgcache            2.2.3   2024-09-12 [1] RSPM
+ pkgconfig           2.0.3   2019-09-22 [1] RSPM
+ processx            3.8.4   2024-03-16 [1] RSPM
+ ps                  1.8.1   2024-10-28 [1] RSPM
+ purrr               1.0.2   2023-08-10 [1] RSPM
+ R6                  2.5.1   2021-08-19 [1] RSPM
+ random.cdisc.data   0.3.16  2024-10-10 [1] RSPM
+ rlang               1.1.4   2024-06-04 [1] RSPM
+ rlistings         * 0.2.9   2024-06-20 [1] RSPM
+ rmarkdown           2.29    2024-11-04 [1] RSPM
+ sessioninfo         1.2.2   2021-12-06 [1] any (@1.2.2)
+ stringi             1.8.4   2024-05-06 [1] RSPM
+ stringr             1.5.1   2023-11-14 [1] RSPM
+ testthat            3.2.1.1 2024-04-14 [1] RSPM
+ tibble            * 3.2.1   2023-03-20 [1] RSPM
+ tidyr               1.3.1   2024-01-24 [1] RSPM
+ tidyselect          1.2.1   2024-03-11 [1] RSPM
+ utf8                1.2.4   2023-10-22 [1] RSPM
+ vctrs               0.6.5   2023-12-01 [1] RSPM
+ withr               3.0.2   2024-10-28 [1] RSPM
+ xfun                0.49    2024-10-31 [1] RSPM
+ yaml                2.3.10  2024-07-26 [1] RSPM
 
  [1] /usr/local/lib/R/site-library
  [2] /usr/local/lib/R/library
