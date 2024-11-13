@@ -76,9 +76,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="../../site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <meta name="shinylive:serviceworker_dir" content="../..">
-<script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/load-shinylive-sw.js" type="module"></script>
-<script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/run-python-blocks.js" type="module"></script>
-<link href="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/shinylive.css" rel="stylesheet">
+<script src="../../site_libs/quarto-contrib/shinylive-0.9.1/shinylive/load-shinylive-sw.js" type="module"></script>
+<script src="../../site_libs/quarto-contrib/shinylive-0.9.1/shinylive/run-python-blocks.js" type="module"></script>
+<link href="../../site_libs/quarto-contrib/shinylive-0.9.1/shinylive/shinylive.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/shinylive-quarto-css/shinylive-quarto.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-1.2.0/all.min.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-1.2.0/latex-fontsize.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
@@ -432,7 +432,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"options":{"editor-max-height":"500","out-width":"700px","classes":"","autorun":"true","context":"interactive","editor-word-wrap":"true","editor-quick-suggestions":"false","label":"unnamed-chunk-1","read-only":"false","dpi":72,"warning":"true","fig-height":5,"out-height":"","fig-width":7,"message":"true","comment":"","results":"markup","fig-cap":"","editor-font-scale":"1","output":"true"},"id":1,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadtte_f <- adtte %>%\n  dplyr::filter(PARAMCD == \"OS\") %>%\n  dplyr::mutate(\n    AVAL = day2month(AVAL),\n    is_event = CNSR == 0,\n    is_not_event = CNSR == 1,\n    EVNT1 = factor(\n      case_when(\n        is_event == TRUE ~ \"Patients with event (%)\",\n        is_event == FALSE ~ \"Patients without event (%)\"\n      ),\n      levels = c(\"Patients with event (%)\", \"Patients without event (%)\")\n    ),\n    EVNTDESC = factor(EVNTDESC)\n  )\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    var = \"ARM\", ref_group = \"A: Drug X\"\n  ) %>%\n  analyze_vars(\n    vars = \"is_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients with event (%)\")\n  ) %>%\n  split_rows_by(\n    \"EVNT1\",\n    split_label = \"Earliest contributing event\",\n    split_fun = keep_split_levels(\"Patients with event (%)\"),\n    label_pos = \"visible\",\n    child_labels = \"hidden\",\n    indent_mod = 1L,\n  ) %>%\n  analyze(\"EVNTDESC\") %>%\n  analyze_vars(\n    vars = \"is_not_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients without event (%)\"),\n    nested = FALSE,\n    show_labels = \"hidden\"\n  ) %>%\n  surv_time(\n    vars = \"AVAL\",\n    var_labels = \"Time to Event (Months)\",\n    is_event = \"is_event\",\n    table_names = \"time_to_event\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = c(\"Unstratified Analysis\"),\n    control = control_coxph(pval_method = \"log-rank\"),\n    table_names = \"coxph_unstratified\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    var_labels = \"Months\",\n    time_point = c(6, 12),\n    is_event = \"is_event\",\n    method = \"both\",\n    control = control_surv_timepoint()\n  )\n\nresult <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%\n  prune_table()\n\nresult"},{"options":{"editor-max-height":"500","out-width":"700px","classes":"","autorun":"true","context":"interactive","editor-word-wrap":"true","editor-quick-suggestions":"false","label":"unnamed-chunk-2","read-only":"false","dpi":72,"warning":"true","fig-height":5,"out-height":"","fig-width":7,"message":"true","comment":"","results":"markup","fig-cap":"","editor-font-scale":"1","output":"true"},"id":2,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadtte_f <- adtte %>%\n  dplyr::filter(PARAMCD == \"OS\") %>%\n  dplyr::mutate(\n    AVAL = day2month(AVAL),\n    is_event = CNSR == 0,\n    is_not_event = CNSR == 1,\n    EVNT1 = factor(\n      case_when(\n        is_event == TRUE ~ \"Patients with event (%)\",\n        is_event == FALSE ~ \"Patients without event (%)\"\n      ),\n      levels = c(\"Patients with event (%)\", \"Patients without event (%)\")\n    ),\n    EVNTDESC = factor(EVNTDESC)\n  )\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\", ref_group = \"A: Drug X\") %>%\n  analyze_vars(\n    vars = \"is_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients with event (%)\")\n  ) %>%\n  analyze_vars(\n    \"is_not_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients without event (%)\"),\n    nested = FALSE,\n    show_labels = \"hidden\"\n  ) %>%\n  surv_time(\n    vars = \"AVAL\",\n    var_labels = \"Time to Event (Months)\",\n    is_event = \"is_event\",\n    table_names = \"time_to_event\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = c(\"Unstratified Analysis\"),\n    control = control_coxph(pval_method = \"log-rank\"),\n    table_names = \"coxph_unstratified\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    var_labels = \"Months\",\n    is_event = \"is_event\",\n    method = \"surv\",\n    time_point = c(6, 12)\n  )\n\nresult <- build_table(lyt, df = adtte_f, alt_counts_df = adsl)\nresult"},{"options":{"editor-max-height":"500","out-width":"700px","classes":"","autorun":"true","context":"interactive","editor-word-wrap":"true","editor-quick-suggestions":"false","label":"unnamed-chunk-3","read-only":"false","dpi":72,"warning":"true","fig-height":5,"out-height":"","fig-width":7,"message":"true","comment":"","results":"markup","fig-cap":"","editor-font-scale":"1","output":"true"},"id":3,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadtte_f <- adtte %>%\n  dplyr::filter(PARAMCD == \"OS\") %>%\n  dplyr::mutate(\n    AVAL = day2month(AVAL),\n    is_event = CNSR == 0,\n    is_not_event = CNSR == 1,\n    EVNT1 = factor(\n      case_when(\n        is_event == TRUE ~ \"Patients with event (%)\",\n        is_event == FALSE ~ \"Patients without event (%)\"\n      ),\n      levels = c(\"Patients with event (%)\", \"Patients without event (%)\")\n    ),\n    EVNTDESC = factor(EVNTDESC)\n  )\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\", ref_group = \"A: Drug X\") %>%\n  analyze_vars(\n    vars = \"is_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients with event (%)\")\n  ) %>%\n  split_rows_by(\n    \"EVNT1\",\n    split_label = \"Earliest contributing event\",\n    split_fun = keep_split_levels(\"Patients with event (%)\"),\n    label_pos = \"visible\",\n    child_labels = \"hidden\",\n    indent_mod = 1L,\n  ) %>%\n  analyze(\"EVNTDESC\") %>%\n  analyze_vars(\n    vars = \"is_not_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients without event (%)\"),\n    nested = FALSE,\n    show_labels = \"hidden\"\n  ) %>%\n  surv_time(\n    vars = \"AVAL\",\n    var_labels = \"Time to Event (Months)\",\n    is_event = \"is_event\",\n    control = control_surv_time(conf_level = 0.9, conf_type = \"log-log\"),\n    table_names = \"time_to_event\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = c(\"Unstratified Analysis\"),\n    control = control_coxph(\n      pval_method = \"log-rank\",\n      conf_level = 0.95,\n      ties = \"efron\"\n    ),\n    table_names = \"coxph_unstratified\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    var_labels = \"Months\",\n    is_event = \"is_event\",\n    time_point = 12,\n    control = control_surv_timepoint(conf_level = 0.9, conf_type = \"log-log\"),\n    table_names_suffix = \"_log_log\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    show_labels = \"hidden\",\n    is_event = \"is_event\",\n    time_point = 12,\n    method = \"surv_diff\",\n    control = control_surv_timepoint(conf_level = 0.975),\n    table_names_suffix = \"_975_pct\"\n  )\n\nresult <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%\n  prune_table()\n\nresult"},{"options":{"editor-max-height":"500","out-width":"700px","classes":"","autorun":"true","context":"interactive","editor-word-wrap":"true","editor-quick-suggestions":"false","label":"unnamed-chunk-4","read-only":"false","dpi":72,"warning":"true","fig-height":5,"out-height":"","fig-width":7,"message":"true","comment":"","results":"markup","fig-cap":"","editor-font-scale":"1","output":"true"},"id":4,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadtte_f <- adtte %>%\n  dplyr::filter(PARAMCD == \"OS\") %>%\n  dplyr::mutate(\n    AVAL = day2month(AVAL),\n    is_event = CNSR == 0,\n    is_not_event = CNSR == 1,\n    EVNT1 = factor(\n      case_when(\n        is_event == TRUE ~ \"Patients with event (%)\",\n        is_event == FALSE ~ \"Patients without event (%)\"\n      ),\n      levels = c(\"Patients with event (%)\", \"Patients without event (%)\")\n    ),\n    EVNTDESC = factor(EVNTDESC)\n  )\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\", ref_group = \"A: Drug X\") %>%\n  analyze_vars(\n    vars = \"is_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients with event (%)\")\n  ) %>%\n  split_rows_by(\n    \"EVNT1\",\n    split_label = \"Earliest contributing event\",\n    split_fun = keep_split_levels(\"Patients with event (%)\"),\n    label_pos = \"visible\",\n    child_labels = \"hidden\",\n    indent_mod = 1L,\n  ) %>%\n  analyze(\"EVNTDESC\") %>%\n  analyze_vars(\n    vars = \"is_not_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients without event (%)\"),\n    nested = FALSE,\n    show_labels = \"hidden\"\n  ) %>%\n  surv_time(\n    vars = \"AVAL\",\n    var_labels = \"Time to Event (Months)\",\n    is_event = \"is_event\",\n    table_names = \"time_to_event\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = \"Unstratified Analysis\",\n    table_names = \"coxph_unstratified\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = \"Stratified Analysis\",\n    strata = \"SEX\",\n    table_names = \"coxph_stratified\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    var_labels = \"Months\",\n    is_event = \"is_event\",\n    method = \"both\",\n    time_point = 12\n  )\n\nresult <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%\n  prune_table()\n\nresult"},{"options":{"editor-max-height":"500","out-width":"700px","classes":"","autorun":"true","context":"interactive","editor-word-wrap":"true","editor-quick-suggestions":"false","label":"unnamed-chunk-5","read-only":"false","dpi":72,"warning":"true","fig-height":5,"out-height":"","fig-width":7,"message":"true","comment":"","results":"markup","fig-cap":"","editor-font-scale":"1","output":"true"},"id":5,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadtte_f <- adtte %>%\n  dplyr::filter(PARAMCD == \"OS\") %>%\n  dplyr::mutate(\n    AVAL = day2month(AVAL),\n    is_event = CNSR == 0,\n    is_not_event = CNSR == 1,\n    EVNT1 = factor(\n      case_when(\n        is_event == TRUE ~ \"Patients with event (%)\",\n        is_event == FALSE ~ \"Patients without event (%)\"\n      ),\n      levels = c(\"Patients with event (%)\", \"Patients without event (%)\")\n    ),\n    EVNTDESC = factor(EVNTDESC)\n  )\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\", ref_group = \"A: Drug X\") %>%\n  analyze_vars(\n    vars = \"is_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients with event (%)\")\n  ) %>%\n  split_rows_by(\n    \"EVNT1\",\n    split_label = \"Earliest contributing event\",\n    split_fun = keep_split_levels(\"Patients with event (%)\"),\n    label_pos = \"visible\",\n    child_labels = \"hidden\",\n    indent_mod = 1L,\n  ) %>%\n  analyze(\"EVNTDESC\") %>%\n  analyze_vars(\n    vars = \"is_not_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients without event (%)\"),\n    nested = FALSE,\n    show_labels = \"hidden\"\n  ) %>%\n  surv_time(\n    vars = \"AVAL\",\n    var_labels = \"Time to Event (Months)\",\n    is_event = \"is_event\",\n    table_names = \"time_to_event\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = c(\"Unstratified Analysis\"),\n    control = control_coxph(pval_method = \"log-rank\"),\n    table_names = \"coxph_unstratified\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    var_labels = \"Months\",\n    is_event = \"is_event\",\n    time_point = 6,\n    method = \"both\"\n  )\n\nresult <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%\n  prune_table()\n\nresult"},{"options":{"editor-max-height":"500","out-width":"700px","classes":"","autorun":"true","context":"interactive","editor-word-wrap":"true","editor-quick-suggestions":"false","label":"unnamed-chunk-6","read-only":"false","dpi":72,"warning":"true","fig-height":5,"out-height":"","fig-width":7,"message":"true","comment":"","results":"markup","fig-cap":"","editor-font-scale":"1","output":"true"},"id":6,"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadtte_f <- adtte %>%\n  dplyr::filter(PARAMCD == \"OS\") %>%\n  dplyr::mutate(\n    AVAL = day2month(AVAL),\n    is_event = CNSR == 0,\n    is_not_event = CNSR == 1,\n    EVNT1 = factor(\n      case_when(\n        is_event == TRUE ~ \"Patients with event (%)\",\n        is_event == FALSE ~ \"Patients without event (%)\"\n      ),\n      levels = c(\"Patients with event (%)\", \"Patients without event (%)\")\n    ),\n    EVNTDESC = factor(EVNTDESC)\n  )\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\", ref_group = \"A: Drug X\") %>%\n  analyze_vars(\n    vars = \"is_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients with event (%)\")\n  ) %>%\n  split_rows_by(\n    \"EVNT1\",\n    split_label = \"Earliest contributing event\",\n    split_fun = keep_split_levels(\"Patients with event (%)\"),\n    label_pos = \"visible\",\n    child_labels = \"hidden\",\n    indent_mod = 1L,\n  ) %>%\n  analyze(\"EVNTDESC\") %>%\n  analyze_vars(\n    vars = \"is_not_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients without event (%)\"),\n    nested = FALSE,\n    show_labels = \"hidden\"\n  ) %>%\n  surv_time(\n    vars = \"AVAL\",\n    var_labels = \"Time to Event (Months)\",\n    is_event = \"is_event\",\n    table_names = \"time_to_event\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = c(\"Unstratified Analysis\"),\n    control = control_coxph(pval_method = \"log-rank\"),\n    .stats = \"pvalue\",\n    table_names = \"coxph_unstratified\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    show_labels = \"hidden\",\n    control = control_coxph(pval_method = \"wald\"),\n    .stats = \"pvalue\",\n    .indent_mods = c(pvalue = 1L),\n    table_names = \"coxph_wald_pvalue\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    show_labels = \"hidden\",\n    control = control_coxph(pval_method = \"likelihood\"),\n    .indent_mods = c(pvalue = 1L, hr = 2L, hr_ci = 3L),\n    table_names = \"coxph_likelihood_pvalue\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    var_labels = \"Months\",\n    is_event = \"is_event\",\n    time_point = 12,\n    method = \"both\"\n  )\n\nresult <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%\n  prune_table()\n\nresult"}];
+globalThis.qwebrCellDetails = [{"options":{"results":"markup","message":"true","dpi":72,"comment":"","fig-height":5,"editor-max-height":"500","out-height":"","editor-font-scale":"1","autorun":"true","editor-quick-suggestions":"false","classes":"","fig-cap":"","warning":"true","label":"unnamed-chunk-1","read-only":"false","output":"true","fig-width":7,"out-width":"700px","context":"interactive","editor-word-wrap":"true"},"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadtte_f <- adtte %>%\n  dplyr::filter(PARAMCD == \"OS\") %>%\n  dplyr::mutate(\n    AVAL = day2month(AVAL),\n    is_event = CNSR == 0,\n    is_not_event = CNSR == 1,\n    EVNT1 = factor(\n      case_when(\n        is_event == TRUE ~ \"Patients with event (%)\",\n        is_event == FALSE ~ \"Patients without event (%)\"\n      ),\n      levels = c(\"Patients with event (%)\", \"Patients without event (%)\")\n    ),\n    EVNTDESC = factor(EVNTDESC)\n  )\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\n    var = \"ARM\", ref_group = \"A: Drug X\"\n  ) %>%\n  analyze_vars(\n    vars = \"is_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients with event (%)\")\n  ) %>%\n  split_rows_by(\n    \"EVNT1\",\n    split_label = \"Earliest contributing event\",\n    split_fun = keep_split_levels(\"Patients with event (%)\"),\n    label_pos = \"visible\",\n    child_labels = \"hidden\",\n    indent_mod = 1L,\n  ) %>%\n  analyze(\"EVNTDESC\") %>%\n  analyze_vars(\n    vars = \"is_not_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients without event (%)\"),\n    nested = FALSE,\n    show_labels = \"hidden\"\n  ) %>%\n  surv_time(\n    vars = \"AVAL\",\n    var_labels = \"Time to Event (Months)\",\n    is_event = \"is_event\",\n    table_names = \"time_to_event\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = c(\"Unstratified Analysis\"),\n    control = control_coxph(pval_method = \"log-rank\"),\n    table_names = \"coxph_unstratified\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    var_labels = \"Months\",\n    time_point = c(6, 12),\n    is_event = \"is_event\",\n    method = \"both\",\n    control = control_surv_timepoint()\n  )\n\nresult <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%\n  prune_table()\n\nresult","id":1},{"options":{"results":"markup","message":"true","dpi":72,"comment":"","fig-height":5,"editor-max-height":"500","out-height":"","editor-font-scale":"1","autorun":"true","editor-quick-suggestions":"false","classes":"","fig-cap":"","warning":"true","label":"unnamed-chunk-2","read-only":"false","output":"true","fig-width":7,"out-width":"700px","context":"interactive","editor-word-wrap":"true"},"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadtte_f <- adtte %>%\n  dplyr::filter(PARAMCD == \"OS\") %>%\n  dplyr::mutate(\n    AVAL = day2month(AVAL),\n    is_event = CNSR == 0,\n    is_not_event = CNSR == 1,\n    EVNT1 = factor(\n      case_when(\n        is_event == TRUE ~ \"Patients with event (%)\",\n        is_event == FALSE ~ \"Patients without event (%)\"\n      ),\n      levels = c(\"Patients with event (%)\", \"Patients without event (%)\")\n    ),\n    EVNTDESC = factor(EVNTDESC)\n  )\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\", ref_group = \"A: Drug X\") %>%\n  analyze_vars(\n    vars = \"is_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients with event (%)\")\n  ) %>%\n  analyze_vars(\n    \"is_not_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients without event (%)\"),\n    nested = FALSE,\n    show_labels = \"hidden\"\n  ) %>%\n  surv_time(\n    vars = \"AVAL\",\n    var_labels = \"Time to Event (Months)\",\n    is_event = \"is_event\",\n    table_names = \"time_to_event\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = c(\"Unstratified Analysis\"),\n    control = control_coxph(pval_method = \"log-rank\"),\n    table_names = \"coxph_unstratified\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    var_labels = \"Months\",\n    is_event = \"is_event\",\n    method = \"surv\",\n    time_point = c(6, 12)\n  )\n\nresult <- build_table(lyt, df = adtte_f, alt_counts_df = adsl)\nresult","id":2},{"options":{"results":"markup","message":"true","dpi":72,"comment":"","fig-height":5,"editor-max-height":"500","out-height":"","editor-font-scale":"1","autorun":"true","editor-quick-suggestions":"false","classes":"","fig-cap":"","warning":"true","label":"unnamed-chunk-3","read-only":"false","output":"true","fig-width":7,"out-width":"700px","context":"interactive","editor-word-wrap":"true"},"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadtte_f <- adtte %>%\n  dplyr::filter(PARAMCD == \"OS\") %>%\n  dplyr::mutate(\n    AVAL = day2month(AVAL),\n    is_event = CNSR == 0,\n    is_not_event = CNSR == 1,\n    EVNT1 = factor(\n      case_when(\n        is_event == TRUE ~ \"Patients with event (%)\",\n        is_event == FALSE ~ \"Patients without event (%)\"\n      ),\n      levels = c(\"Patients with event (%)\", \"Patients without event (%)\")\n    ),\n    EVNTDESC = factor(EVNTDESC)\n  )\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\", ref_group = \"A: Drug X\") %>%\n  analyze_vars(\n    vars = \"is_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients with event (%)\")\n  ) %>%\n  split_rows_by(\n    \"EVNT1\",\n    split_label = \"Earliest contributing event\",\n    split_fun = keep_split_levels(\"Patients with event (%)\"),\n    label_pos = \"visible\",\n    child_labels = \"hidden\",\n    indent_mod = 1L,\n  ) %>%\n  analyze(\"EVNTDESC\") %>%\n  analyze_vars(\n    vars = \"is_not_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients without event (%)\"),\n    nested = FALSE,\n    show_labels = \"hidden\"\n  ) %>%\n  surv_time(\n    vars = \"AVAL\",\n    var_labels = \"Time to Event (Months)\",\n    is_event = \"is_event\",\n    control = control_surv_time(conf_level = 0.9, conf_type = \"log-log\"),\n    table_names = \"time_to_event\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = c(\"Unstratified Analysis\"),\n    control = control_coxph(\n      pval_method = \"log-rank\",\n      conf_level = 0.95,\n      ties = \"efron\"\n    ),\n    table_names = \"coxph_unstratified\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    var_labels = \"Months\",\n    is_event = \"is_event\",\n    time_point = 12,\n    control = control_surv_timepoint(conf_level = 0.9, conf_type = \"log-log\"),\n    table_names_suffix = \"_log_log\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    show_labels = \"hidden\",\n    is_event = \"is_event\",\n    time_point = 12,\n    method = \"surv_diff\",\n    control = control_surv_timepoint(conf_level = 0.975),\n    table_names_suffix = \"_975_pct\"\n  )\n\nresult <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%\n  prune_table()\n\nresult","id":3},{"options":{"results":"markup","message":"true","dpi":72,"comment":"","fig-height":5,"editor-max-height":"500","out-height":"","editor-font-scale":"1","autorun":"true","editor-quick-suggestions":"false","classes":"","fig-cap":"","warning":"true","label":"unnamed-chunk-4","read-only":"false","output":"true","fig-width":7,"out-width":"700px","context":"interactive","editor-word-wrap":"true"},"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadtte_f <- adtte %>%\n  dplyr::filter(PARAMCD == \"OS\") %>%\n  dplyr::mutate(\n    AVAL = day2month(AVAL),\n    is_event = CNSR == 0,\n    is_not_event = CNSR == 1,\n    EVNT1 = factor(\n      case_when(\n        is_event == TRUE ~ \"Patients with event (%)\",\n        is_event == FALSE ~ \"Patients without event (%)\"\n      ),\n      levels = c(\"Patients with event (%)\", \"Patients without event (%)\")\n    ),\n    EVNTDESC = factor(EVNTDESC)\n  )\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\", ref_group = \"A: Drug X\") %>%\n  analyze_vars(\n    vars = \"is_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients with event (%)\")\n  ) %>%\n  split_rows_by(\n    \"EVNT1\",\n    split_label = \"Earliest contributing event\",\n    split_fun = keep_split_levels(\"Patients with event (%)\"),\n    label_pos = \"visible\",\n    child_labels = \"hidden\",\n    indent_mod = 1L,\n  ) %>%\n  analyze(\"EVNTDESC\") %>%\n  analyze_vars(\n    vars = \"is_not_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients without event (%)\"),\n    nested = FALSE,\n    show_labels = \"hidden\"\n  ) %>%\n  surv_time(\n    vars = \"AVAL\",\n    var_labels = \"Time to Event (Months)\",\n    is_event = \"is_event\",\n    table_names = \"time_to_event\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = \"Unstratified Analysis\",\n    table_names = \"coxph_unstratified\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = \"Stratified Analysis\",\n    strata = \"SEX\",\n    table_names = \"coxph_stratified\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    var_labels = \"Months\",\n    is_event = \"is_event\",\n    method = \"both\",\n    time_point = 12\n  )\n\nresult <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%\n  prune_table()\n\nresult","id":4},{"options":{"results":"markup","message":"true","dpi":72,"comment":"","fig-height":5,"editor-max-height":"500","out-height":"","editor-font-scale":"1","autorun":"true","editor-quick-suggestions":"false","classes":"","fig-cap":"","warning":"true","label":"unnamed-chunk-5","read-only":"false","output":"true","fig-width":7,"out-width":"700px","context":"interactive","editor-word-wrap":"true"},"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadtte_f <- adtte %>%\n  dplyr::filter(PARAMCD == \"OS\") %>%\n  dplyr::mutate(\n    AVAL = day2month(AVAL),\n    is_event = CNSR == 0,\n    is_not_event = CNSR == 1,\n    EVNT1 = factor(\n      case_when(\n        is_event == TRUE ~ \"Patients with event (%)\",\n        is_event == FALSE ~ \"Patients without event (%)\"\n      ),\n      levels = c(\"Patients with event (%)\", \"Patients without event (%)\")\n    ),\n    EVNTDESC = factor(EVNTDESC)\n  )\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\", ref_group = \"A: Drug X\") %>%\n  analyze_vars(\n    vars = \"is_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients with event (%)\")\n  ) %>%\n  split_rows_by(\n    \"EVNT1\",\n    split_label = \"Earliest contributing event\",\n    split_fun = keep_split_levels(\"Patients with event (%)\"),\n    label_pos = \"visible\",\n    child_labels = \"hidden\",\n    indent_mod = 1L,\n  ) %>%\n  analyze(\"EVNTDESC\") %>%\n  analyze_vars(\n    vars = \"is_not_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients without event (%)\"),\n    nested = FALSE,\n    show_labels = \"hidden\"\n  ) %>%\n  surv_time(\n    vars = \"AVAL\",\n    var_labels = \"Time to Event (Months)\",\n    is_event = \"is_event\",\n    table_names = \"time_to_event\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = c(\"Unstratified Analysis\"),\n    control = control_coxph(pval_method = \"log-rank\"),\n    table_names = \"coxph_unstratified\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    var_labels = \"Months\",\n    is_event = \"is_event\",\n    time_point = 6,\n    method = \"both\"\n  )\n\nresult <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%\n  prune_table()\n\nresult","id":5},{"options":{"results":"markup","message":"true","dpi":72,"comment":"","fig-height":5,"editor-max-height":"500","out-height":"","editor-font-scale":"1","autorun":"true","editor-quick-suggestions":"false","classes":"","fig-cap":"","warning":"true","label":"unnamed-chunk-6","read-only":"false","output":"true","fig-width":7,"out-width":"700px","context":"interactive","editor-word-wrap":"true"},"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadtte <- random.cdisc.data::cadtte\n\n# Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadtte <- df_explicit_na(adtte)\n\nadtte_f <- adtte %>%\n  dplyr::filter(PARAMCD == \"OS\") %>%\n  dplyr::mutate(\n    AVAL = day2month(AVAL),\n    is_event = CNSR == 0,\n    is_not_event = CNSR == 1,\n    EVNT1 = factor(\n      case_when(\n        is_event == TRUE ~ \"Patients with event (%)\",\n        is_event == FALSE ~ \"Patients without event (%)\"\n      ),\n      levels = c(\"Patients with event (%)\", \"Patients without event (%)\")\n    ),\n    EVNTDESC = factor(EVNTDESC)\n  )\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ARM\", ref_group = \"A: Drug X\") %>%\n  analyze_vars(\n    vars = \"is_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients with event (%)\")\n  ) %>%\n  split_rows_by(\n    \"EVNT1\",\n    split_label = \"Earliest contributing event\",\n    split_fun = keep_split_levels(\"Patients with event (%)\"),\n    label_pos = \"visible\",\n    child_labels = \"hidden\",\n    indent_mod = 1L,\n  ) %>%\n  analyze(\"EVNTDESC\") %>%\n  analyze_vars(\n    vars = \"is_not_event\",\n    .stats = \"count_fraction\",\n    .labels = c(count_fraction = \"Patients without event (%)\"),\n    nested = FALSE,\n    show_labels = \"hidden\"\n  ) %>%\n  surv_time(\n    vars = \"AVAL\",\n    var_labels = \"Time to Event (Months)\",\n    is_event = \"is_event\",\n    table_names = \"time_to_event\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    var_labels = c(\"Unstratified Analysis\"),\n    control = control_coxph(pval_method = \"log-rank\"),\n    .stats = \"pvalue\",\n    table_names = \"coxph_unstratified\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    show_labels = \"hidden\",\n    control = control_coxph(pval_method = \"wald\"),\n    .stats = \"pvalue\",\n    .indent_mods = c(pvalue = 1L),\n    table_names = \"coxph_wald_pvalue\"\n  ) %>%\n  coxph_pairwise(\n    vars = \"AVAL\",\n    is_event = \"is_event\",\n    show_labels = \"hidden\",\n    control = control_coxph(pval_method = \"likelihood\"),\n    .indent_mods = c(pvalue = 1L, hr = 2L, hr_ci = 3L),\n    table_names = \"coxph_likelihood_pvalue\"\n  ) %>%\n  surv_timepoint(\n    vars = \"AVAL\",\n    var_labels = \"Months\",\n    is_event = \"is_event\",\n    time_point = 12,\n    method = \"both\"\n  )\n\nresult <- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %>%\n  prune_table()\n\nresult","id":6}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -4085,54 +4085,59 @@ Experimental use!
 <span id="cb14-11"><a href="#cb14-11"></a>  ADTTE <span class="ot">&lt;-</span> <span class="fu">df_explicit_na</span>(ADTTE)</span>
 <span id="cb14-12"><a href="#cb14-12"></a>})</span>
 <span id="cb14-13"><a href="#cb14-13"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADTTE"</span>)</span>
-<span id="cb14-14"><a href="#cb14-14"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
-<span id="cb14-15"><a href="#cb14-15"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
-<span id="cb14-16"><a href="#cb14-16"></a></span>
-<span id="cb14-17"><a href="#cb14-17"></a><span class="do">## Reusable Configuration For Modules</span></span>
-<span id="cb14-18"><a href="#cb14-18"></a>ADSL <span class="ot">&lt;-</span> data[[<span class="st">"ADSL"</span>]]</span>
-<span id="cb14-19"><a href="#cb14-19"></a>ADTTE <span class="ot">&lt;-</span> data[[<span class="st">"ADTTE"</span>]]</span>
-<span id="cb14-20"><a href="#cb14-20"></a>arm_ref_comp <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb14-21"><a href="#cb14-21"></a>  <span class="at">ACTARMCD =</span> <span class="fu">list</span>(</span>
-<span id="cb14-22"><a href="#cb14-22"></a>    <span class="at">ref =</span> <span class="st">"ARM B"</span>,</span>
-<span id="cb14-23"><a href="#cb14-23"></a>    <span class="at">comp =</span> <span class="fu">c</span>(<span class="st">"ARM A"</span>, <span class="st">"ARM C"</span>)</span>
-<span id="cb14-24"><a href="#cb14-24"></a>  ),</span>
-<span id="cb14-25"><a href="#cb14-25"></a>  <span class="at">ARM =</span> <span class="fu">list</span>(</span>
-<span id="cb14-26"><a href="#cb14-26"></a>    <span class="at">ref =</span> <span class="st">"B: Placebo"</span>,</span>
-<span id="cb14-27"><a href="#cb14-27"></a>    <span class="at">comp =</span> <span class="fu">c</span>(<span class="st">"A: Drug X"</span>, <span class="st">"C: Combination"</span>)</span>
-<span id="cb14-28"><a href="#cb14-28"></a>  )</span>
-<span id="cb14-29"><a href="#cb14-29"></a>)</span>
-<span id="cb14-30"><a href="#cb14-30"></a></span>
-<span id="cb14-31"><a href="#cb14-31"></a><span class="do">## Setup App</span></span>
-<span id="cb14-32"><a href="#cb14-32"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb14-33"><a href="#cb14-33"></a>  <span class="at">data =</span> data,</span>
-<span id="cb14-34"><a href="#cb14-34"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb14-35"><a href="#cb14-35"></a>    <span class="fu">tm_t_tte</span>(</span>
-<span id="cb14-36"><a href="#cb14-36"></a>      <span class="at">label =</span> <span class="st">"Time To Event Table"</span>,</span>
-<span id="cb14-37"><a href="#cb14-37"></a>      <span class="at">dataname =</span> <span class="st">"ADTTE"</span>,</span>
-<span id="cb14-38"><a href="#cb14-38"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb14-39"><a href="#cb14-39"></a>        <span class="fu">variable_choices</span>(ADSL, <span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>, <span class="st">"ACTARMCD"</span>)),</span>
-<span id="cb14-40"><a href="#cb14-40"></a>        <span class="st">"ARM"</span></span>
-<span id="cb14-41"><a href="#cb14-41"></a>      ),</span>
-<span id="cb14-42"><a href="#cb14-42"></a>      <span class="at">arm_ref_comp =</span> arm_ref_comp,</span>
-<span id="cb14-43"><a href="#cb14-43"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb14-44"><a href="#cb14-44"></a>        <span class="fu">value_choices</span>(ADTTE, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>),</span>
-<span id="cb14-45"><a href="#cb14-45"></a>        <span class="st">"OS"</span></span>
-<span id="cb14-46"><a href="#cb14-46"></a>      ),</span>
-<span id="cb14-47"><a href="#cb14-47"></a>      <span class="at">strata_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb14-48"><a href="#cb14-48"></a>        <span class="fu">variable_choices</span>(ADSL, <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>)),</span>
-<span id="cb14-49"><a href="#cb14-49"></a>        <span class="st">"SEX"</span></span>
-<span id="cb14-50"><a href="#cb14-50"></a>      ),</span>
-<span id="cb14-51"><a href="#cb14-51"></a>      <span class="at">time_points =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">8</span>), <span class="dv">6</span>),</span>
-<span id="cb14-52"><a href="#cb14-52"></a>      <span class="at">event_desc_var =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb14-53"><a href="#cb14-53"></a>        <span class="fu">variable_choices</span>(ADTTE, <span class="st">"EVNTDESC"</span>),</span>
-<span id="cb14-54"><a href="#cb14-54"></a>        <span class="st">"EVNTDESC"</span>,</span>
-<span id="cb14-55"><a href="#cb14-55"></a>        <span class="at">fixed =</span> <span class="cn">TRUE</span></span>
-<span id="cb14-56"><a href="#cb14-56"></a>      )</span>
-<span id="cb14-57"><a href="#cb14-57"></a>    )</span>
-<span id="cb14-58"><a href="#cb14-58"></a>  )</span>
-<span id="cb14-59"><a href="#cb14-59"></a>)</span>
-<span id="cb14-60"><a href="#cb14-60"></a></span>
-<span id="cb14-61"><a href="#cb14-61"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-14"><a href="#cb14-14"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stderr">
+<pre><code>Warning: `datanames&lt;-()` was deprecated in teal.data 0.6.1.
+ℹ invalid to use `datanames()&lt;-` or `names()&lt;-` on an object of class
+  `teal_data`. See ?names.teal_data</code></pre>
+</div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
+<span id="cb16-2"><a href="#cb16-2"></a></span>
+<span id="cb16-3"><a href="#cb16-3"></a><span class="do">## Reusable Configuration For Modules</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a>ADSL <span class="ot">&lt;-</span> data[[<span class="st">"ADSL"</span>]]</span>
+<span id="cb16-5"><a href="#cb16-5"></a>ADTTE <span class="ot">&lt;-</span> data[[<span class="st">"ADTTE"</span>]]</span>
+<span id="cb16-6"><a href="#cb16-6"></a>arm_ref_comp <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb16-7"><a href="#cb16-7"></a>  <span class="at">ACTARMCD =</span> <span class="fu">list</span>(</span>
+<span id="cb16-8"><a href="#cb16-8"></a>    <span class="at">ref =</span> <span class="st">"ARM B"</span>,</span>
+<span id="cb16-9"><a href="#cb16-9"></a>    <span class="at">comp =</span> <span class="fu">c</span>(<span class="st">"ARM A"</span>, <span class="st">"ARM C"</span>)</span>
+<span id="cb16-10"><a href="#cb16-10"></a>  ),</span>
+<span id="cb16-11"><a href="#cb16-11"></a>  <span class="at">ARM =</span> <span class="fu">list</span>(</span>
+<span id="cb16-12"><a href="#cb16-12"></a>    <span class="at">ref =</span> <span class="st">"B: Placebo"</span>,</span>
+<span id="cb16-13"><a href="#cb16-13"></a>    <span class="at">comp =</span> <span class="fu">c</span>(<span class="st">"A: Drug X"</span>, <span class="st">"C: Combination"</span>)</span>
+<span id="cb16-14"><a href="#cb16-14"></a>  )</span>
+<span id="cb16-15"><a href="#cb16-15"></a>)</span>
+<span id="cb16-16"><a href="#cb16-16"></a></span>
+<span id="cb16-17"><a href="#cb16-17"></a><span class="do">## Setup App</span></span>
+<span id="cb16-18"><a href="#cb16-18"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb16-19"><a href="#cb16-19"></a>  <span class="at">data =</span> data,</span>
+<span id="cb16-20"><a href="#cb16-20"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb16-21"><a href="#cb16-21"></a>    <span class="fu">tm_t_tte</span>(</span>
+<span id="cb16-22"><a href="#cb16-22"></a>      <span class="at">label =</span> <span class="st">"Time To Event Table"</span>,</span>
+<span id="cb16-23"><a href="#cb16-23"></a>      <span class="at">dataname =</span> <span class="st">"ADTTE"</span>,</span>
+<span id="cb16-24"><a href="#cb16-24"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb16-25"><a href="#cb16-25"></a>        <span class="fu">variable_choices</span>(ADSL, <span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>, <span class="st">"ACTARMCD"</span>)),</span>
+<span id="cb16-26"><a href="#cb16-26"></a>        <span class="st">"ARM"</span></span>
+<span id="cb16-27"><a href="#cb16-27"></a>      ),</span>
+<span id="cb16-28"><a href="#cb16-28"></a>      <span class="at">arm_ref_comp =</span> arm_ref_comp,</span>
+<span id="cb16-29"><a href="#cb16-29"></a>      <span class="at">paramcd =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb16-30"><a href="#cb16-30"></a>        <span class="fu">value_choices</span>(ADTTE, <span class="st">"PARAMCD"</span>, <span class="st">"PARAM"</span>),</span>
+<span id="cb16-31"><a href="#cb16-31"></a>        <span class="st">"OS"</span></span>
+<span id="cb16-32"><a href="#cb16-32"></a>      ),</span>
+<span id="cb16-33"><a href="#cb16-33"></a>      <span class="at">strata_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb16-34"><a href="#cb16-34"></a>        <span class="fu">variable_choices</span>(ADSL, <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"BMRKR2"</span>)),</span>
+<span id="cb16-35"><a href="#cb16-35"></a>        <span class="st">"SEX"</span></span>
+<span id="cb16-36"><a href="#cb16-36"></a>      ),</span>
+<span id="cb16-37"><a href="#cb16-37"></a>      <span class="at">time_points =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">8</span>), <span class="dv">6</span>),</span>
+<span id="cb16-38"><a href="#cb16-38"></a>      <span class="at">event_desc_var =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb16-39"><a href="#cb16-39"></a>        <span class="fu">variable_choices</span>(ADTTE, <span class="st">"EVNTDESC"</span>),</span>
+<span id="cb16-40"><a href="#cb16-40"></a>        <span class="st">"EVNTDESC"</span>,</span>
+<span id="cb16-41"><a href="#cb16-41"></a>        <span class="at">fixed =</span> <span class="cn">TRUE</span></span>
+<span id="cb16-42"><a href="#cb16-42"></a>      )</span>
+<span id="cb16-43"><a href="#cb16-43"></a>    )</span>
+<span id="cb16-44"><a href="#cb16-44"></a>  )</span>
+<span id="cb16-45"><a href="#cb16-45"></a>)</span>
+<span id="cb16-46"><a href="#cb16-46"></a></span>
+<span id="cb16-47"><a href="#cb16-47"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="ttet01_files/figure-html/teal-1.png" class="img-fluid figure-img" width="1440"></p>
@@ -4164,80 +4169,80 @@ Experimental use!
 </div>
 </div>
 <div class="column-screen-inset-right">
-<div class="sourceCode" id="cb15" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb15-1"><a href="#cb15-1"></a>#| '!! shinylive warning !!': |</span>
-<span id="cb15-2"><a href="#cb15-2"></a>#|   shinylive does not work in self-contained HTML documents.</span>
-<span id="cb15-3"><a href="#cb15-3"></a>#|   Please set `embed-resources: false` in your metadata.</span>
-<span id="cb15-4"><a href="#cb15-4"></a>#| standalone: true</span>
-<span id="cb15-5"><a href="#cb15-5"></a>#| viewerHeight: 800</span>
-<span id="cb15-6"><a href="#cb15-6"></a>#| editorHeight: 200</span>
-<span id="cb15-7"><a href="#cb15-7"></a>#| components: [viewer, editor]</span>
-<span id="cb15-8"><a href="#cb15-8"></a>#| layout: vertical</span>
-<span id="cb15-9"><a href="#cb15-9"></a></span>
-<span id="cb15-10"><a href="#cb15-10"></a># -- WEBR HELPERS --</span>
-<span id="cb15-11"><a href="#cb15-11"></a>options(webr_pkg_repos = c("r-universe" = "https://pharmaverse.r-universe.dev", getOption("webr_pkg_repos")))</span>
-<span id="cb15-12"><a href="#cb15-12"></a></span>
-<span id="cb15-13"><a href="#cb15-13"></a># -- APP CODE --</span>
-<span id="cb15-14"><a href="#cb15-14"></a>library(teal.modules.clinical)</span>
-<span id="cb15-15"><a href="#cb15-15"></a></span>
-<span id="cb15-16"><a href="#cb15-16"></a>## Data reproducible code</span>
-<span id="cb15-17"><a href="#cb15-17"></a>data &lt;- teal_data()</span>
-<span id="cb15-18"><a href="#cb15-18"></a>data &lt;- within(data, {</span>
-<span id="cb15-19"><a href="#cb15-19"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
-<span id="cb15-20"><a href="#cb15-20"></a>  ADTTE &lt;- random.cdisc.data::cadtte</span>
-<span id="cb15-21"><a href="#cb15-21"></a></span>
-<span id="cb15-22"><a href="#cb15-22"></a>  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span>
-<span id="cb15-23"><a href="#cb15-23"></a>  ADSL &lt;- df_explicit_na(ADSL)</span>
-<span id="cb15-24"><a href="#cb15-24"></a>  ADTTE &lt;- df_explicit_na(ADTTE)</span>
-<span id="cb15-25"><a href="#cb15-25"></a>})</span>
-<span id="cb15-26"><a href="#cb15-26"></a>datanames &lt;- c("ADSL", "ADTTE")</span>
-<span id="cb15-27"><a href="#cb15-27"></a>datanames(data) &lt;- datanames</span>
-<span id="cb15-28"><a href="#cb15-28"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
-<span id="cb15-29"><a href="#cb15-29"></a></span>
-<span id="cb15-30"><a href="#cb15-30"></a>## Reusable Configuration For Modules</span>
-<span id="cb15-31"><a href="#cb15-31"></a>ADSL &lt;- data[["ADSL"]]</span>
-<span id="cb15-32"><a href="#cb15-32"></a>ADTTE &lt;- data[["ADTTE"]]</span>
-<span id="cb15-33"><a href="#cb15-33"></a>arm_ref_comp &lt;- list(</span>
-<span id="cb15-34"><a href="#cb15-34"></a>  ACTARMCD = list(</span>
-<span id="cb15-35"><a href="#cb15-35"></a>    ref = "ARM B",</span>
-<span id="cb15-36"><a href="#cb15-36"></a>    comp = c("ARM A", "ARM C")</span>
-<span id="cb15-37"><a href="#cb15-37"></a>  ),</span>
-<span id="cb15-38"><a href="#cb15-38"></a>  ARM = list(</span>
-<span id="cb15-39"><a href="#cb15-39"></a>    ref = "B: Placebo",</span>
-<span id="cb15-40"><a href="#cb15-40"></a>    comp = c("A: Drug X", "C: Combination")</span>
-<span id="cb15-41"><a href="#cb15-41"></a>  )</span>
-<span id="cb15-42"><a href="#cb15-42"></a>)</span>
-<span id="cb15-43"><a href="#cb15-43"></a></span>
-<span id="cb15-44"><a href="#cb15-44"></a>## Setup App</span>
-<span id="cb15-45"><a href="#cb15-45"></a>app &lt;- init(</span>
-<span id="cb15-46"><a href="#cb15-46"></a>  data = data,</span>
-<span id="cb15-47"><a href="#cb15-47"></a>  modules = modules(</span>
-<span id="cb15-48"><a href="#cb15-48"></a>    tm_t_tte(</span>
-<span id="cb15-49"><a href="#cb15-49"></a>      label = "Time To Event Table",</span>
-<span id="cb15-50"><a href="#cb15-50"></a>      dataname = "ADTTE",</span>
-<span id="cb15-51"><a href="#cb15-51"></a>      arm_var = choices_selected(</span>
-<span id="cb15-52"><a href="#cb15-52"></a>        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),</span>
-<span id="cb15-53"><a href="#cb15-53"></a>        "ARM"</span>
-<span id="cb15-54"><a href="#cb15-54"></a>      ),</span>
-<span id="cb15-55"><a href="#cb15-55"></a>      arm_ref_comp = arm_ref_comp,</span>
-<span id="cb15-56"><a href="#cb15-56"></a>      paramcd = choices_selected(</span>
-<span id="cb15-57"><a href="#cb15-57"></a>        value_choices(ADTTE, "PARAMCD", "PARAM"),</span>
-<span id="cb15-58"><a href="#cb15-58"></a>        "OS"</span>
-<span id="cb15-59"><a href="#cb15-59"></a>      ),</span>
-<span id="cb15-60"><a href="#cb15-60"></a>      strata_var = choices_selected(</span>
-<span id="cb15-61"><a href="#cb15-61"></a>        variable_choices(ADSL, c("SEX", "BMRKR2")),</span>
-<span id="cb15-62"><a href="#cb15-62"></a>        "SEX"</span>
-<span id="cb15-63"><a href="#cb15-63"></a>      ),</span>
-<span id="cb15-64"><a href="#cb15-64"></a>      time_points = choices_selected(c(6, 8), 6),</span>
-<span id="cb15-65"><a href="#cb15-65"></a>      event_desc_var = choices_selected(</span>
-<span id="cb15-66"><a href="#cb15-66"></a>        variable_choices(ADTTE, "EVNTDESC"),</span>
-<span id="cb15-67"><a href="#cb15-67"></a>        "EVNTDESC",</span>
-<span id="cb15-68"><a href="#cb15-68"></a>        fixed = TRUE</span>
-<span id="cb15-69"><a href="#cb15-69"></a>      )</span>
-<span id="cb15-70"><a href="#cb15-70"></a>    )</span>
-<span id="cb15-71"><a href="#cb15-71"></a>  )</span>
-<span id="cb15-72"><a href="#cb15-72"></a>)</span>
-<span id="cb15-73"><a href="#cb15-73"></a></span>
-<span id="cb15-74"><a href="#cb15-74"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb17" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb17-1"><a href="#cb17-1"></a>#| '!! shinylive warning !!': |</span>
+<span id="cb17-2"><a href="#cb17-2"></a>#|   shinylive does not work in self-contained HTML documents.</span>
+<span id="cb17-3"><a href="#cb17-3"></a>#|   Please set `embed-resources: false` in your metadata.</span>
+<span id="cb17-4"><a href="#cb17-4"></a>#| standalone: true</span>
+<span id="cb17-5"><a href="#cb17-5"></a>#| viewerHeight: 800</span>
+<span id="cb17-6"><a href="#cb17-6"></a>#| editorHeight: 200</span>
+<span id="cb17-7"><a href="#cb17-7"></a>#| components: [viewer, editor]</span>
+<span id="cb17-8"><a href="#cb17-8"></a>#| layout: vertical</span>
+<span id="cb17-9"><a href="#cb17-9"></a></span>
+<span id="cb17-10"><a href="#cb17-10"></a># -- WEBR HELPERS --</span>
+<span id="cb17-11"><a href="#cb17-11"></a>options(webr_pkg_repos = c("r-universe" = "https://pharmaverse.r-universe.dev", getOption("webr_pkg_repos")))</span>
+<span id="cb17-12"><a href="#cb17-12"></a></span>
+<span id="cb17-13"><a href="#cb17-13"></a># -- APP CODE --</span>
+<span id="cb17-14"><a href="#cb17-14"></a>library(teal.modules.clinical)</span>
+<span id="cb17-15"><a href="#cb17-15"></a></span>
+<span id="cb17-16"><a href="#cb17-16"></a>## Data reproducible code</span>
+<span id="cb17-17"><a href="#cb17-17"></a>data &lt;- teal_data()</span>
+<span id="cb17-18"><a href="#cb17-18"></a>data &lt;- within(data, {</span>
+<span id="cb17-19"><a href="#cb17-19"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
+<span id="cb17-20"><a href="#cb17-20"></a>  ADTTE &lt;- random.cdisc.data::cadtte</span>
+<span id="cb17-21"><a href="#cb17-21"></a></span>
+<span id="cb17-22"><a href="#cb17-22"></a>  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span>
+<span id="cb17-23"><a href="#cb17-23"></a>  ADSL &lt;- df_explicit_na(ADSL)</span>
+<span id="cb17-24"><a href="#cb17-24"></a>  ADTTE &lt;- df_explicit_na(ADTTE)</span>
+<span id="cb17-25"><a href="#cb17-25"></a>})</span>
+<span id="cb17-26"><a href="#cb17-26"></a>datanames &lt;- c("ADSL", "ADTTE")</span>
+<span id="cb17-27"><a href="#cb17-27"></a>datanames(data) &lt;- datanames</span>
+<span id="cb17-28"><a href="#cb17-28"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
+<span id="cb17-29"><a href="#cb17-29"></a></span>
+<span id="cb17-30"><a href="#cb17-30"></a>## Reusable Configuration For Modules</span>
+<span id="cb17-31"><a href="#cb17-31"></a>ADSL &lt;- data[["ADSL"]]</span>
+<span id="cb17-32"><a href="#cb17-32"></a>ADTTE &lt;- data[["ADTTE"]]</span>
+<span id="cb17-33"><a href="#cb17-33"></a>arm_ref_comp &lt;- list(</span>
+<span id="cb17-34"><a href="#cb17-34"></a>  ACTARMCD = list(</span>
+<span id="cb17-35"><a href="#cb17-35"></a>    ref = "ARM B",</span>
+<span id="cb17-36"><a href="#cb17-36"></a>    comp = c("ARM A", "ARM C")</span>
+<span id="cb17-37"><a href="#cb17-37"></a>  ),</span>
+<span id="cb17-38"><a href="#cb17-38"></a>  ARM = list(</span>
+<span id="cb17-39"><a href="#cb17-39"></a>    ref = "B: Placebo",</span>
+<span id="cb17-40"><a href="#cb17-40"></a>    comp = c("A: Drug X", "C: Combination")</span>
+<span id="cb17-41"><a href="#cb17-41"></a>  )</span>
+<span id="cb17-42"><a href="#cb17-42"></a>)</span>
+<span id="cb17-43"><a href="#cb17-43"></a></span>
+<span id="cb17-44"><a href="#cb17-44"></a>## Setup App</span>
+<span id="cb17-45"><a href="#cb17-45"></a>app &lt;- init(</span>
+<span id="cb17-46"><a href="#cb17-46"></a>  data = data,</span>
+<span id="cb17-47"><a href="#cb17-47"></a>  modules = modules(</span>
+<span id="cb17-48"><a href="#cb17-48"></a>    tm_t_tte(</span>
+<span id="cb17-49"><a href="#cb17-49"></a>      label = "Time To Event Table",</span>
+<span id="cb17-50"><a href="#cb17-50"></a>      dataname = "ADTTE",</span>
+<span id="cb17-51"><a href="#cb17-51"></a>      arm_var = choices_selected(</span>
+<span id="cb17-52"><a href="#cb17-52"></a>        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),</span>
+<span id="cb17-53"><a href="#cb17-53"></a>        "ARM"</span>
+<span id="cb17-54"><a href="#cb17-54"></a>      ),</span>
+<span id="cb17-55"><a href="#cb17-55"></a>      arm_ref_comp = arm_ref_comp,</span>
+<span id="cb17-56"><a href="#cb17-56"></a>      paramcd = choices_selected(</span>
+<span id="cb17-57"><a href="#cb17-57"></a>        value_choices(ADTTE, "PARAMCD", "PARAM"),</span>
+<span id="cb17-58"><a href="#cb17-58"></a>        "OS"</span>
+<span id="cb17-59"><a href="#cb17-59"></a>      ),</span>
+<span id="cb17-60"><a href="#cb17-60"></a>      strata_var = choices_selected(</span>
+<span id="cb17-61"><a href="#cb17-61"></a>        variable_choices(ADSL, c("SEX", "BMRKR2")),</span>
+<span id="cb17-62"><a href="#cb17-62"></a>        "SEX"</span>
+<span id="cb17-63"><a href="#cb17-63"></a>      ),</span>
+<span id="cb17-64"><a href="#cb17-64"></a>      time_points = choices_selected(c(6, 8), 6),</span>
+<span id="cb17-65"><a href="#cb17-65"></a>      event_desc_var = choices_selected(</span>
+<span id="cb17-66"><a href="#cb17-66"></a>        variable_choices(ADTTE, "EVNTDESC"),</span>
+<span id="cb17-67"><a href="#cb17-67"></a>        "EVNTDESC",</span>
+<span id="cb17-68"><a href="#cb17-68"></a>        fixed = TRUE</span>
+<span id="cb17-69"><a href="#cb17-69"></a>      )</span>
+<span id="cb17-70"><a href="#cb17-70"></a>    )</span>
+<span id="cb17-71"><a href="#cb17-71"></a>  )</span>
+<span id="cb17-72"><a href="#cb17-72"></a>)</span>
+<span id="cb17-73"><a href="#cb17-73"></a></span>
+<span id="cb17-74"><a href="#cb17-74"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -4246,7 +4251,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-11-09 17:45:18 UTC"</code></pre>
+<pre><code>[1] "2024-11-13 17:49:14 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -4262,112 +4267,113 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-11-09
+ date     2024-11-13
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
- package               * version  date (UTC) lib source
- backports               1.5.0    2024-05-23 [1] RSPM
- brio                    1.1.5    2024-04-24 [1] RSPM
- broom                   1.0.7    2024-09-26 [1] RSPM
- bslib                   0.8.0    2024-07-29 [1] RSPM
- cachem                  1.1.0    2024-05-16 [1] RSPM
- callr                   3.7.6    2024-03-25 [1] RSPM
- checkmate               2.3.2    2024-07-29 [1] RSPM
- chromote                0.3.1    2024-08-30 [1] RSPM
- cli                     3.6.3    2024-06-21 [1] RSPM
- coda                    0.19-4.1 2024-01-31 [1] CRAN (R 4.4.1)
- codetools               0.2-20   2024-03-31 [2] CRAN (R 4.4.1)
- colorspace              2.1-1    2024-07-26 [1] RSPM
- curl                    6.0.0    2024-11-05 [1] RSPM
- digest                  0.6.37   2024-08-19 [1] RSPM
- dplyr                 * 1.1.4    2023-11-17 [1] RSPM
- emmeans                 1.10.5   2024-10-14 [1] RSPM
- estimability            1.5.1    2024-05-12 [1] RSPM
- evaluate                1.0.1    2024-10-10 [1] RSPM
- fansi                   1.0.6    2023-12-08 [1] RSPM
- fastmap                 1.2.0    2024-05-15 [1] RSPM
- fontawesome             0.5.2    2023-08-19 [1] RSPM
- forcats                 1.0.0    2023-01-29 [1] RSPM
- formatR                 1.14     2023-01-17 [1] CRAN (R 4.4.1)
- formatters            * 0.5.9    2024-09-12 [1] RSPM
- geepack                 1.3.12   2024-09-23 [1] RSPM
- generics                0.1.3    2022-07-05 [1] RSPM
- ggplot2                 3.5.1    2024-04-23 [1] RSPM
- glue                    1.8.0    2024-09-30 [1] RSPM
- gtable                  0.3.6    2024-10-25 [1] RSPM
- htmltools               0.5.8.1  2024-04-04 [1] RSPM
- htmlwidgets             1.6.4    2023-12-06 [1] RSPM
- httpuv                  1.6.15   2024-03-26 [1] RSPM
- jquerylib               0.1.4    2021-04-26 [1] RSPM
- jsonlite                1.8.9    2024-09-20 [1] RSPM
- knitr                   1.49     2024-11-08 [1] RSPM
- later                   1.3.2    2023-12-06 [1] RSPM
- lattice                 0.22-6   2024-03-20 [2] CRAN (R 4.4.1)
- lifecycle               1.0.4    2023-11-07 [1] RSPM
- logger                  0.4.0    2024-10-22 [1] RSPM
- magrittr              * 2.0.3    2022-03-30 [1] RSPM
- MASS                    7.3-61   2024-06-13 [2] CRAN (R 4.4.1)
- Matrix                  1.7-0    2024-04-26 [1] CRAN (R 4.4.1)
- memoise                 2.0.1    2021-11-26 [1] RSPM
- mime                    0.12     2021-09-28 [1] RSPM
- multcomp                1.4-26   2024-07-18 [1] CRAN (R 4.4.1)
- munsell                 0.5.1    2024-04-01 [1] RSPM
- mvtnorm                 1.3-2    2024-11-04 [1] RSPM
- nlme                    3.1-166  2024-08-14 [2] CRAN (R 4.4.1)
- pillar                  1.9.0    2023-03-22 [1] RSPM
- pkgcache                2.2.3    2024-09-12 [1] RSPM
- pkgconfig               2.0.3    2019-09-22 [1] RSPM
- processx                3.8.4    2024-03-16 [1] RSPM
- promises                1.3.0    2024-04-05 [1] RSPM
- ps                      1.8.1    2024-10-28 [1] RSPM
- purrr                   1.0.2    2023-08-10 [1] RSPM
- R6                      2.5.1    2021-08-19 [1] RSPM
- random.cdisc.data       0.3.16   2024-10-10 [1] RSPM
- rbibutils               2.3      2024-10-04 [1] RSPM
- Rcpp                    1.0.13-1 2024-11-02 [1] RSPM
- Rdpack                  2.6.1    2024-08-06 [1] RSPM
- rlang                   1.1.4    2024-06-04 [1] RSPM
- rmarkdown               2.29     2024-11-04 [1] RSPM
- rtables               * 0.6.10   2024-09-20 [1] RSPM
- sandwich                3.1-1    2024-09-15 [1] CRAN (R 4.4.1)
- sass                    0.4.9    2024-03-15 [1] RSPM
- scales                  1.3.0    2023-11-28 [1] RSPM
- sessioninfo             1.2.2    2021-12-06 [1] any (@1.2.2)
- shiny                 * 1.9.1    2024-08-01 [1] RSPM
- shinycssloaders         1.1.0    2024-07-30 [1] RSPM
- shinyjs                 2.1.0    2021-12-23 [1] RSPM
- shinyvalidate           0.1.3    2023-10-04 [1] RSPM
- shinyWidgets            0.8.7    2024-09-23 [1] RSPM
- stringi                 1.8.4    2024-05-06 [1] RSPM
- stringr                 1.5.1    2023-11-14 [1] RSPM
- survival                3.7-0    2024-06-05 [2] CRAN (R 4.4.1)
- teal                  * 0.15.2   2024-03-07 [1] RSPM
- teal.code             * 0.5.0    2024-01-11 [1] RSPM
- teal.data             * 0.6.0    2024-04-30 [1] RSPM
- teal.logger             0.3.0    2024-10-24 [1] RSPM
- teal.modules.clinical * 0.9.1    2024-04-27 [1] RSPM
- teal.reporter           0.3.1    2024-03-15 [1] RSPM
- teal.slice            * 0.5.1    2024-04-30 [1] RSPM
- teal.transform        * 0.5.0    2024-02-17 [1] RSPM
- teal.widgets            0.4.2    2023-12-14 [1] RSPM
- tern                  * 0.9.6    2024-09-24 [1] RSPM
- tern.gee                0.1.5    2024-08-23 [1] RSPM
- testthat                3.2.1.1  2024-04-14 [1] RSPM
- TH.data                 1.1-2    2023-04-17 [1] CRAN (R 4.4.1)
- tibble                  3.2.1    2023-03-20 [1] RSPM
- tidyr                   1.3.1    2024-01-24 [1] RSPM
- tidyselect              1.2.1    2024-03-11 [1] RSPM
- utf8                    1.2.4    2023-10-22 [1] RSPM
- vctrs                   0.6.5    2023-12-01 [1] RSPM
- webshot                 0.5.5    2023-06-26 [1] CRAN (R 4.4.1)
- webshot2                0.1.1    2023-08-11 [1] RSPM
- websocket               1.4.2    2024-07-22 [1] RSPM
- withr                   3.0.2    2024-10-28 [1] RSPM
- xfun                    0.49     2024-10-31 [1] RSPM
- xtable                  1.8-4    2019-04-21 [1] RSPM
- yaml                    2.3.10   2024-07-26 [1] RSPM
- zoo                     1.8-12   2023-04-13 [1] CRAN (R 4.4.1)
+ package               * version     date (UTC) lib source
+ backports               1.5.0       2024-05-23 [1] RSPM
+ brio                    1.1.5       2024-04-24 [1] RSPM
+ broom                   1.0.7       2024-09-26 [1] RSPM
+ bslib                   0.8.0       2024-07-29 [1] RSPM
+ cachem                  1.1.0       2024-05-16 [1] RSPM
+ callr                   3.7.6       2024-03-25 [1] RSPM
+ checkmate               2.3.2       2024-07-29 [1] RSPM
+ chromote                0.3.1       2024-08-30 [1] RSPM
+ cli                     3.6.3       2024-06-21 [1] RSPM
+ coda                    0.19-4.1    2024-01-31 [1] CRAN (R 4.4.1)
+ codetools               0.2-20      2024-03-31 [2] CRAN (R 4.4.1)
+ colorspace              2.1-1       2024-07-26 [1] RSPM
+ curl                    6.0.0       2024-11-05 [1] RSPM
+ digest                  0.6.37      2024-08-19 [1] RSPM
+ dplyr                 * 1.1.4       2023-11-17 [1] RSPM
+ emmeans                 1.10.5      2024-10-14 [1] RSPM
+ estimability            1.5.1       2024-05-12 [1] RSPM
+ evaluate                1.0.1       2024-10-10 [1] RSPM
+ fansi                   1.0.6       2023-12-08 [1] RSPM
+ fastmap                 1.2.0       2024-05-15 [1] RSPM
+ fontawesome             0.5.2       2023-08-19 [1] RSPM
+ forcats                 1.0.0       2023-01-29 [1] RSPM
+ formatR                 1.14        2023-01-17 [1] CRAN (R 4.4.1)
+ formatters            * 0.5.9.9003  2024-11-13 [1] https://p~
+ geepack                 1.3.12      2024-09-23 [1] RSPM
+ generics                0.1.3       2022-07-05 [1] RSPM
+ ggplot2                 3.5.1       2024-04-23 [1] RSPM
+ glue                    1.8.0       2024-09-30 [1] RSPM
+ gtable                  0.3.6       2024-10-25 [1] RSPM
+ htmltools               0.5.8.1     2024-04-04 [1] RSPM
+ htmlwidgets             1.6.4       2023-12-06 [1] RSPM
+ httpuv                  1.6.15      2024-03-26 [1] RSPM
+ jquerylib               0.1.4       2021-04-26 [1] RSPM
+ jsonlite                1.8.9       2024-09-20 [1] RSPM
+ knitr                   1.49        2024-11-08 [1] RSPM
+ later                   1.3.2       2023-12-06 [1] RSPM
+ lattice                 0.22-6      2024-03-20 [2] CRAN (R 4.4.1)
+ lifecycle               1.0.4       2023-11-07 [1] RSPM
+ logger                  0.4.0       2024-10-22 [1] RSPM
+ magrittr              * 2.0.3       2022-03-30 [1] RSPM
+ MASS                    7.3-61      2024-06-13 [2] CRAN (R 4.4.1)
+ Matrix                  1.7-1       2024-10-18 [1] RSPM
+ memoise                 2.0.1       2021-11-26 [1] RSPM
+ mime                    0.12        2021-09-28 [1] RSPM
+ multcomp                1.4-26      2024-07-18 [1] CRAN (R 4.4.1)
+ munsell                 0.5.1       2024-04-01 [1] RSPM
+ mvtnorm                 1.3-2       2024-11-04 [1] RSPM
+ nestcolor               0.1.2.9017  2024-11-13 [1] https://p~
+ nlme                    3.1-166     2024-08-14 [2] CRAN (R 4.4.1)
+ pillar                  1.9.0       2023-03-22 [1] RSPM
+ pkgcache                2.2.3       2024-09-12 [1] RSPM
+ pkgconfig               2.0.3       2019-09-22 [1] RSPM
+ processx                3.8.4       2024-03-16 [1] RSPM
+ promises                1.3.0       2024-04-05 [1] RSPM
+ ps                      1.8.1       2024-10-28 [1] RSPM
+ purrr                   1.0.2       2023-08-10 [1] RSPM
+ R6                      2.5.1       2021-08-19 [1] RSPM
+ random.cdisc.data       0.3.16.9001 2024-11-13 [1] https://p~
+ rbibutils               2.3         2024-10-04 [1] RSPM
+ Rcpp                    1.0.13-1    2024-11-02 [1] RSPM
+ Rdpack                  2.6.1       2024-08-06 [1] RSPM
+ rlang                   1.1.4       2024-06-04 [1] RSPM
+ rmarkdown               2.29        2024-11-04 [1] RSPM
+ rtables               * 0.6.10.9002 2024-11-13 [1] https://p~
+ sandwich                3.1-1       2024-09-15 [1] CRAN (R 4.4.1)
+ sass                    0.4.9       2024-03-15 [1] RSPM
+ scales                  1.3.0       2023-11-28 [1] RSPM
+ sessioninfo             1.2.2       2021-12-06 [1] any (@1.2.2)
+ shiny                 * 1.9.1       2024-08-01 [1] RSPM
+ shinycssloaders         1.1.0       2024-07-30 [1] RSPM
+ shinyjs                 2.1.0       2021-12-23 [1] RSPM
+ shinyvalidate           0.1.3       2023-10-04 [1] RSPM
+ shinyWidgets            0.8.7       2024-09-23 [1] RSPM
+ stringi                 1.8.4       2024-05-06 [1] RSPM
+ stringr                 1.5.1       2023-11-14 [1] RSPM
+ survival                3.7-0       2024-06-05 [2] CRAN (R 4.4.1)
+ teal                  * 0.15.2.9085 2024-11-13 [1] https://p~
+ teal.code             * 0.5.0.9016  2024-11-13 [1] https://p~
+ teal.data             * 0.6.0.9020  2024-11-13 [1] https://p~
+ teal.logger             0.3.0.9002  2024-11-13 [1] https://p~
+ teal.modules.clinical * 0.9.1.9031  2024-11-13 [1] https://p~
+ teal.reporter           0.3.1.9016  2024-11-13 [1] https://p~
+ teal.slice            * 0.5.1.9015  2024-11-13 [1] https://p~
+ teal.transform        * 0.5.0.9016  2024-11-13 [1] https://p~
+ teal.widgets            0.4.2.9022  2024-11-13 [1] https://p~
+ tern                  * 0.9.6.9015  2024-11-13 [1] https://p~
+ tern.gee                0.1.5.9004  2024-11-13 [1] https://p~
+ testthat                3.2.1.1     2024-04-14 [1] RSPM
+ TH.data                 1.1-2       2023-04-17 [1] CRAN (R 4.4.1)
+ tibble                  3.2.1       2023-03-20 [1] RSPM
+ tidyr                   1.3.1       2024-01-24 [1] RSPM
+ tidyselect              1.2.1       2024-03-11 [1] RSPM
+ utf8                    1.2.4       2023-10-22 [1] RSPM
+ vctrs                   0.6.5       2023-12-01 [1] RSPM
+ webshot                 0.5.5       2023-06-26 [1] CRAN (R 4.4.1)
+ webshot2                0.1.1       2023-08-11 [1] RSPM
+ websocket               1.4.2       2024-07-22 [1] RSPM
+ withr                   3.0.2       2024-10-28 [1] RSPM
+ xfun                    0.49        2024-10-31 [1] RSPM
+ xtable                  1.8-4       2019-04-21 [1] RSPM
+ yaml                    2.3.10      2024-07-26 [1] RSPM
+ zoo                     1.8-12      2023-04-13 [1] CRAN (R 4.4.1)
 
  [1] /usr/local/lib/R/site-library
  [2] /usr/local/lib/R/library
@@ -5009,519 +5015,519 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb18" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb18-1"><a href="#cb18-1"></a><span class="co">---</span></span>
-<span id="cb18-2"><a href="#cb18-2"></a><span class="an">title:</span><span class="co"> TTET01</span></span>
-<span id="cb18-3"><a href="#cb18-3"></a><span class="an">subtitle:</span><span class="co"> Time-To-Event Summary</span></span>
-<span id="cb18-4"><a href="#cb18-4"></a><span class="co">---</span></span>
-<span id="cb18-5"><a href="#cb18-5"></a></span>
-<span id="cb18-6"><a href="#cb18-6"></a>------------------------------------------------------------------------</span>
-<span id="cb18-7"><a href="#cb18-7"></a></span>
-<span id="cb18-8"><a href="#cb18-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb18-9"><a href="#cb18-9"></a></span>
-<span id="cb18-10"><a href="#cb18-10"></a>:::: {.panel-tabset}</span>
-<span id="cb18-11"><a href="#cb18-11"></a></span>
-<span id="cb18-12"><a href="#cb18-12"></a><span class="in">```{r setup, echo = FALSE}</span></span>
-<span id="cb18-13"><a href="#cb18-13"></a><span class="in">library(tern)</span></span>
-<span id="cb18-14"><a href="#cb18-14"></a><span class="in">library(dplyr)</span></span>
-<span id="cb18-15"><a href="#cb18-15"></a></span>
-<span id="cb18-16"><a href="#cb18-16"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb18-17"><a href="#cb18-17"></a><span class="in">adtte &lt;- random.cdisc.data::cadtte</span></span>
-<span id="cb18-18"><a href="#cb18-18"></a></span>
-<span id="cb18-19"><a href="#cb18-19"></a><span class="in"># Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb18-20"><a href="#cb18-20"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb18-21"><a href="#cb18-21"></a><span class="in">adtte &lt;- df_explicit_na(adtte)</span></span>
-<span id="cb18-22"><a href="#cb18-22"></a></span>
-<span id="cb18-23"><a href="#cb18-23"></a><span class="in">adtte_f &lt;- adtte %&gt;%</span></span>
-<span id="cb18-24"><a href="#cb18-24"></a><span class="in">  dplyr::filter(PARAMCD == "OS") %&gt;%</span></span>
-<span id="cb18-25"><a href="#cb18-25"></a><span class="in">  dplyr::mutate(</span></span>
-<span id="cb18-26"><a href="#cb18-26"></a><span class="in">    AVAL = day2month(AVAL),</span></span>
-<span id="cb18-27"><a href="#cb18-27"></a><span class="in">    is_event = CNSR == 0,</span></span>
-<span id="cb18-28"><a href="#cb18-28"></a><span class="in">    is_not_event = CNSR == 1,</span></span>
-<span id="cb18-29"><a href="#cb18-29"></a><span class="in">    EVNT1 = factor(</span></span>
-<span id="cb18-30"><a href="#cb18-30"></a><span class="in">      case_when(</span></span>
-<span id="cb18-31"><a href="#cb18-31"></a><span class="in">        is_event == TRUE ~ "Patients with event (%)",</span></span>
-<span id="cb18-32"><a href="#cb18-32"></a><span class="in">        is_event == FALSE ~ "Patients without event (%)"</span></span>
-<span id="cb18-33"><a href="#cb18-33"></a><span class="in">      ),</span></span>
-<span id="cb18-34"><a href="#cb18-34"></a><span class="in">      levels = c("Patients with event (%)", "Patients without event (%)")</span></span>
-<span id="cb18-35"><a href="#cb18-35"></a><span class="in">    ),</span></span>
-<span id="cb18-36"><a href="#cb18-36"></a><span class="in">    EVNTDESC = factor(EVNTDESC)</span></span>
-<span id="cb18-37"><a href="#cb18-37"></a><span class="in">  )</span></span>
-<span id="cb18-38"><a href="#cb18-38"></a><span class="in">```</span></span>
-<span id="cb18-39"><a href="#cb18-39"></a></span>
-<span id="cb18-40"><a href="#cb18-40"></a><span class="fu">## Standard Table</span></span>
-<span id="cb18-41"><a href="#cb18-41"></a></span>
-<span id="cb18-42"><a href="#cb18-42"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb18-43"><a href="#cb18-43"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb18-44"><a href="#cb18-44"></a></span>
-<span id="cb18-45"><a href="#cb18-45"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb18-46"><a href="#cb18-46"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb18-47"><a href="#cb18-47"></a><span class="in">  split_cols_by(</span></span>
-<span id="cb18-48"><a href="#cb18-48"></a><span class="in">    var = "ARM", ref_group = "A: Drug X"</span></span>
-<span id="cb18-49"><a href="#cb18-49"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-50"><a href="#cb18-50"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb18-51"><a href="#cb18-51"></a><span class="in">    vars = "is_event",</span></span>
-<span id="cb18-52"><a href="#cb18-52"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb18-53"><a href="#cb18-53"></a><span class="in">    .labels = c(count_fraction = "Patients with event (%)")</span></span>
-<span id="cb18-54"><a href="#cb18-54"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-55"><a href="#cb18-55"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb18-56"><a href="#cb18-56"></a><span class="in">    "EVNT1",</span></span>
-<span id="cb18-57"><a href="#cb18-57"></a><span class="in">    split_label = "Earliest contributing event",</span></span>
-<span id="cb18-58"><a href="#cb18-58"></a><span class="in">    split_fun = keep_split_levels("Patients with event (%)"),</span></span>
-<span id="cb18-59"><a href="#cb18-59"></a><span class="in">    label_pos = "visible",</span></span>
-<span id="cb18-60"><a href="#cb18-60"></a><span class="in">    child_labels = "hidden",</span></span>
-<span id="cb18-61"><a href="#cb18-61"></a><span class="in">    indent_mod = 1L,</span></span>
-<span id="cb18-62"><a href="#cb18-62"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-63"><a href="#cb18-63"></a><span class="in">  analyze("EVNTDESC") %&gt;%</span></span>
-<span id="cb18-64"><a href="#cb18-64"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb18-65"><a href="#cb18-65"></a><span class="in">    vars = "is_not_event",</span></span>
-<span id="cb18-66"><a href="#cb18-66"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb18-67"><a href="#cb18-67"></a><span class="in">    .labels = c(count_fraction = "Patients without event (%)"),</span></span>
-<span id="cb18-68"><a href="#cb18-68"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb18-69"><a href="#cb18-69"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb18-70"><a href="#cb18-70"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-71"><a href="#cb18-71"></a><span class="in">  surv_time(</span></span>
-<span id="cb18-72"><a href="#cb18-72"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-73"><a href="#cb18-73"></a><span class="in">    var_labels = "Time to Event (Months)",</span></span>
-<span id="cb18-74"><a href="#cb18-74"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-75"><a href="#cb18-75"></a><span class="in">    table_names = "time_to_event"</span></span>
-<span id="cb18-76"><a href="#cb18-76"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-77"><a href="#cb18-77"></a><span class="in">  coxph_pairwise(</span></span>
-<span id="cb18-78"><a href="#cb18-78"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-79"><a href="#cb18-79"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-80"><a href="#cb18-80"></a><span class="in">    var_labels = c("Unstratified Analysis"),</span></span>
-<span id="cb18-81"><a href="#cb18-81"></a><span class="in">    control = control_coxph(pval_method = "log-rank"),</span></span>
-<span id="cb18-82"><a href="#cb18-82"></a><span class="in">    table_names = "coxph_unstratified"</span></span>
-<span id="cb18-83"><a href="#cb18-83"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-84"><a href="#cb18-84"></a><span class="in">  surv_timepoint(</span></span>
-<span id="cb18-85"><a href="#cb18-85"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-86"><a href="#cb18-86"></a><span class="in">    var_labels = "Months",</span></span>
-<span id="cb18-87"><a href="#cb18-87"></a><span class="in">    time_point = c(6, 12),</span></span>
-<span id="cb18-88"><a href="#cb18-88"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-89"><a href="#cb18-89"></a><span class="in">    method = "both",</span></span>
-<span id="cb18-90"><a href="#cb18-90"></a><span class="in">    control = control_surv_timepoint()</span></span>
-<span id="cb18-91"><a href="#cb18-91"></a><span class="in">  )</span></span>
-<span id="cb18-92"><a href="#cb18-92"></a></span>
-<span id="cb18-93"><a href="#cb18-93"></a><span class="in">result &lt;- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb18-94"><a href="#cb18-94"></a><span class="in">  prune_table()</span></span>
-<span id="cb18-95"><a href="#cb18-95"></a></span>
-<span id="cb18-96"><a href="#cb18-96"></a><span class="in">result</span></span>
-<span id="cb18-97"><a href="#cb18-97"></a><span class="in">```</span></span>
-<span id="cb18-98"><a href="#cb18-98"></a></span>
-<span id="cb18-99"><a href="#cb18-99"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
-<span id="cb18-100"><a href="#cb18-100"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb18-101"><a href="#cb18-101"></a>:::</span>
-<span id="cb18-102"><a href="#cb18-102"></a></span>
-<span id="cb18-103"><a href="#cb18-103"></a><span class="fu">## Table Selecting &lt;br/&gt; Sections to Display</span></span>
-<span id="cb18-104"><a href="#cb18-104"></a></span>
-<span id="cb18-105"><a href="#cb18-105"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb18-106"><a href="#cb18-106"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb18-107"><a href="#cb18-107"></a></span>
-<span id="cb18-108"><a href="#cb18-108"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb18-109"><a href="#cb18-109"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb18-110"><a href="#cb18-110"></a><span class="in">  split_cols_by("ARM", ref_group = "A: Drug X") %&gt;%</span></span>
-<span id="cb18-111"><a href="#cb18-111"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb18-112"><a href="#cb18-112"></a><span class="in">    vars = "is_event",</span></span>
-<span id="cb18-113"><a href="#cb18-113"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb18-114"><a href="#cb18-114"></a><span class="in">    .labels = c(count_fraction = "Patients with event (%)")</span></span>
-<span id="cb18-115"><a href="#cb18-115"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-116"><a href="#cb18-116"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb18-117"><a href="#cb18-117"></a><span class="in">    "is_not_event",</span></span>
-<span id="cb18-118"><a href="#cb18-118"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb18-119"><a href="#cb18-119"></a><span class="in">    .labels = c(count_fraction = "Patients without event (%)"),</span></span>
-<span id="cb18-120"><a href="#cb18-120"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb18-121"><a href="#cb18-121"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb18-122"><a href="#cb18-122"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-123"><a href="#cb18-123"></a><span class="in">  surv_time(</span></span>
-<span id="cb18-124"><a href="#cb18-124"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-125"><a href="#cb18-125"></a><span class="in">    var_labels = "Time to Event (Months)",</span></span>
-<span id="cb18-126"><a href="#cb18-126"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-127"><a href="#cb18-127"></a><span class="in">    table_names = "time_to_event"</span></span>
-<span id="cb18-128"><a href="#cb18-128"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-129"><a href="#cb18-129"></a><span class="in">  coxph_pairwise(</span></span>
-<span id="cb18-130"><a href="#cb18-130"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-131"><a href="#cb18-131"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-132"><a href="#cb18-132"></a><span class="in">    var_labels = c("Unstratified Analysis"),</span></span>
-<span id="cb18-133"><a href="#cb18-133"></a><span class="in">    control = control_coxph(pval_method = "log-rank"),</span></span>
-<span id="cb18-134"><a href="#cb18-134"></a><span class="in">    table_names = "coxph_unstratified"</span></span>
-<span id="cb18-135"><a href="#cb18-135"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-136"><a href="#cb18-136"></a><span class="in">  surv_timepoint(</span></span>
-<span id="cb18-137"><a href="#cb18-137"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-138"><a href="#cb18-138"></a><span class="in">    var_labels = "Months",</span></span>
-<span id="cb18-139"><a href="#cb18-139"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-140"><a href="#cb18-140"></a><span class="in">    method = "surv",</span></span>
-<span id="cb18-141"><a href="#cb18-141"></a><span class="in">    time_point = c(6, 12)</span></span>
-<span id="cb18-142"><a href="#cb18-142"></a><span class="in">  )</span></span>
-<span id="cb18-143"><a href="#cb18-143"></a></span>
-<span id="cb18-144"><a href="#cb18-144"></a><span class="in">result &lt;- build_table(lyt, df = adtte_f, alt_counts_df = adsl)</span></span>
-<span id="cb18-145"><a href="#cb18-145"></a><span class="in">result</span></span>
-<span id="cb18-146"><a href="#cb18-146"></a><span class="in">```</span></span>
-<span id="cb18-147"><a href="#cb18-147"></a></span>
-<span id="cb18-148"><a href="#cb18-148"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
-<span id="cb18-149"><a href="#cb18-149"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb18-150"><a href="#cb18-150"></a>:::</span>
-<span id="cb18-151"><a href="#cb18-151"></a></span>
-<span id="cb18-152"><a href="#cb18-152"></a><span class="fu">## Table Modifying Analysis Details &lt;br/&gt; like Conf. Type, Ties, Alpha Level</span></span>
-<span id="cb18-153"><a href="#cb18-153"></a></span>
-<span id="cb18-154"><a href="#cb18-154"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb18-155"><a href="#cb18-155"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb18-156"><a href="#cb18-156"></a></span>
-<span id="cb18-157"><a href="#cb18-157"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
-<span id="cb18-158"><a href="#cb18-158"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb18-159"><a href="#cb18-159"></a><span class="in">  split_cols_by("ARM", ref_group = "A: Drug X") %&gt;%</span></span>
-<span id="cb18-160"><a href="#cb18-160"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb18-161"><a href="#cb18-161"></a><span class="in">    vars = "is_event",</span></span>
-<span id="cb18-162"><a href="#cb18-162"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb18-163"><a href="#cb18-163"></a><span class="in">    .labels = c(count_fraction = "Patients with event (%)")</span></span>
-<span id="cb18-164"><a href="#cb18-164"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-165"><a href="#cb18-165"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb18-166"><a href="#cb18-166"></a><span class="in">    "EVNT1",</span></span>
-<span id="cb18-167"><a href="#cb18-167"></a><span class="in">    split_label = "Earliest contributing event",</span></span>
-<span id="cb18-168"><a href="#cb18-168"></a><span class="in">    split_fun = keep_split_levels("Patients with event (%)"),</span></span>
-<span id="cb18-169"><a href="#cb18-169"></a><span class="in">    label_pos = "visible",</span></span>
-<span id="cb18-170"><a href="#cb18-170"></a><span class="in">    child_labels = "hidden",</span></span>
-<span id="cb18-171"><a href="#cb18-171"></a><span class="in">    indent_mod = 1L,</span></span>
-<span id="cb18-172"><a href="#cb18-172"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-173"><a href="#cb18-173"></a><span class="in">  analyze("EVNTDESC") %&gt;%</span></span>
-<span id="cb18-174"><a href="#cb18-174"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb18-175"><a href="#cb18-175"></a><span class="in">    vars = "is_not_event",</span></span>
-<span id="cb18-176"><a href="#cb18-176"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb18-177"><a href="#cb18-177"></a><span class="in">    .labels = c(count_fraction = "Patients without event (%)"),</span></span>
-<span id="cb18-178"><a href="#cb18-178"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb18-179"><a href="#cb18-179"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb18-180"><a href="#cb18-180"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-181"><a href="#cb18-181"></a><span class="in">  surv_time(</span></span>
-<span id="cb18-182"><a href="#cb18-182"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-183"><a href="#cb18-183"></a><span class="in">    var_labels = "Time to Event (Months)",</span></span>
-<span id="cb18-184"><a href="#cb18-184"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-185"><a href="#cb18-185"></a><span class="in">    control = control_surv_time(conf_level = 0.9, conf_type = "log-log"),</span></span>
-<span id="cb18-186"><a href="#cb18-186"></a><span class="in">    table_names = "time_to_event"</span></span>
-<span id="cb18-187"><a href="#cb18-187"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-188"><a href="#cb18-188"></a><span class="in">  coxph_pairwise(</span></span>
-<span id="cb18-189"><a href="#cb18-189"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-190"><a href="#cb18-190"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-191"><a href="#cb18-191"></a><span class="in">    var_labels = c("Unstratified Analysis"),</span></span>
-<span id="cb18-192"><a href="#cb18-192"></a><span class="in">    control = control_coxph(</span></span>
-<span id="cb18-193"><a href="#cb18-193"></a><span class="in">      pval_method = "log-rank",</span></span>
-<span id="cb18-194"><a href="#cb18-194"></a><span class="in">      conf_level = 0.95,</span></span>
-<span id="cb18-195"><a href="#cb18-195"></a><span class="in">      ties = "efron"</span></span>
-<span id="cb18-196"><a href="#cb18-196"></a><span class="in">    ),</span></span>
-<span id="cb18-197"><a href="#cb18-197"></a><span class="in">    table_names = "coxph_unstratified"</span></span>
-<span id="cb18-198"><a href="#cb18-198"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-199"><a href="#cb18-199"></a><span class="in">  surv_timepoint(</span></span>
-<span id="cb18-200"><a href="#cb18-200"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-201"><a href="#cb18-201"></a><span class="in">    var_labels = "Months",</span></span>
-<span id="cb18-202"><a href="#cb18-202"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-203"><a href="#cb18-203"></a><span class="in">    time_point = 12,</span></span>
-<span id="cb18-204"><a href="#cb18-204"></a><span class="in">    control = control_surv_timepoint(conf_level = 0.9, conf_type = "log-log"),</span></span>
-<span id="cb18-205"><a href="#cb18-205"></a><span class="in">    table_names_suffix = "_log_log"</span></span>
-<span id="cb18-206"><a href="#cb18-206"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-207"><a href="#cb18-207"></a><span class="in">  surv_timepoint(</span></span>
-<span id="cb18-208"><a href="#cb18-208"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-209"><a href="#cb18-209"></a><span class="in">    show_labels = "hidden",</span></span>
-<span id="cb18-210"><a href="#cb18-210"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-211"><a href="#cb18-211"></a><span class="in">    time_point = 12,</span></span>
-<span id="cb18-212"><a href="#cb18-212"></a><span class="in">    method = "surv_diff",</span></span>
-<span id="cb18-213"><a href="#cb18-213"></a><span class="in">    control = control_surv_timepoint(conf_level = 0.975),</span></span>
-<span id="cb18-214"><a href="#cb18-214"></a><span class="in">    table_names_suffix = "_975_pct"</span></span>
-<span id="cb18-215"><a href="#cb18-215"></a><span class="in">  )</span></span>
-<span id="cb18-216"><a href="#cb18-216"></a></span>
-<span id="cb18-217"><a href="#cb18-217"></a><span class="in">result &lt;- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb18-218"><a href="#cb18-218"></a><span class="in">  prune_table()</span></span>
-<span id="cb18-219"><a href="#cb18-219"></a></span>
-<span id="cb18-220"><a href="#cb18-220"></a><span class="in">result</span></span>
-<span id="cb18-221"><a href="#cb18-221"></a><span class="in">```</span></span>
-<span id="cb18-222"><a href="#cb18-222"></a></span>
-<span id="cb18-223"><a href="#cb18-223"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant3")`</span></span>
-<span id="cb18-224"><a href="#cb18-224"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb18-225"><a href="#cb18-225"></a>:::</span>
-<span id="cb18-226"><a href="#cb18-226"></a></span>
-<span id="cb18-227"><a href="#cb18-227"></a><span class="fu">## Table with &lt;br/&gt; Stratified Analysis</span></span>
-<span id="cb18-228"><a href="#cb18-228"></a></span>
-<span id="cb18-229"><a href="#cb18-229"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb18-230"><a href="#cb18-230"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb18-231"><a href="#cb18-231"></a></span>
-<span id="cb18-232"><a href="#cb18-232"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
-<span id="cb18-233"><a href="#cb18-233"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb18-234"><a href="#cb18-234"></a><span class="in">  split_cols_by("ARM", ref_group = "A: Drug X") %&gt;%</span></span>
-<span id="cb18-235"><a href="#cb18-235"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb18-236"><a href="#cb18-236"></a><span class="in">    vars = "is_event",</span></span>
-<span id="cb18-237"><a href="#cb18-237"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb18-238"><a href="#cb18-238"></a><span class="in">    .labels = c(count_fraction = "Patients with event (%)")</span></span>
-<span id="cb18-239"><a href="#cb18-239"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-240"><a href="#cb18-240"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb18-241"><a href="#cb18-241"></a><span class="in">    "EVNT1",</span></span>
-<span id="cb18-242"><a href="#cb18-242"></a><span class="in">    split_label = "Earliest contributing event",</span></span>
-<span id="cb18-243"><a href="#cb18-243"></a><span class="in">    split_fun = keep_split_levels("Patients with event (%)"),</span></span>
-<span id="cb18-244"><a href="#cb18-244"></a><span class="in">    label_pos = "visible",</span></span>
-<span id="cb18-245"><a href="#cb18-245"></a><span class="in">    child_labels = "hidden",</span></span>
-<span id="cb18-246"><a href="#cb18-246"></a><span class="in">    indent_mod = 1L,</span></span>
-<span id="cb18-247"><a href="#cb18-247"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-248"><a href="#cb18-248"></a><span class="in">  analyze("EVNTDESC") %&gt;%</span></span>
-<span id="cb18-249"><a href="#cb18-249"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb18-250"><a href="#cb18-250"></a><span class="in">    vars = "is_not_event",</span></span>
-<span id="cb18-251"><a href="#cb18-251"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb18-252"><a href="#cb18-252"></a><span class="in">    .labels = c(count_fraction = "Patients without event (%)"),</span></span>
-<span id="cb18-253"><a href="#cb18-253"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb18-254"><a href="#cb18-254"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb18-255"><a href="#cb18-255"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-256"><a href="#cb18-256"></a><span class="in">  surv_time(</span></span>
-<span id="cb18-257"><a href="#cb18-257"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-258"><a href="#cb18-258"></a><span class="in">    var_labels = "Time to Event (Months)",</span></span>
-<span id="cb18-259"><a href="#cb18-259"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-260"><a href="#cb18-260"></a><span class="in">    table_names = "time_to_event"</span></span>
-<span id="cb18-261"><a href="#cb18-261"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-262"><a href="#cb18-262"></a><span class="in">  coxph_pairwise(</span></span>
-<span id="cb18-263"><a href="#cb18-263"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-264"><a href="#cb18-264"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-265"><a href="#cb18-265"></a><span class="in">    var_labels = "Unstratified Analysis",</span></span>
-<span id="cb18-266"><a href="#cb18-266"></a><span class="in">    table_names = "coxph_unstratified"</span></span>
-<span id="cb18-267"><a href="#cb18-267"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-268"><a href="#cb18-268"></a><span class="in">  coxph_pairwise(</span></span>
-<span id="cb18-269"><a href="#cb18-269"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-270"><a href="#cb18-270"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-271"><a href="#cb18-271"></a><span class="in">    var_labels = "Stratified Analysis",</span></span>
-<span id="cb18-272"><a href="#cb18-272"></a><span class="in">    strata = "SEX",</span></span>
-<span id="cb18-273"><a href="#cb18-273"></a><span class="in">    table_names = "coxph_stratified"</span></span>
-<span id="cb18-274"><a href="#cb18-274"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-275"><a href="#cb18-275"></a><span class="in">  surv_timepoint(</span></span>
-<span id="cb18-276"><a href="#cb18-276"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-277"><a href="#cb18-277"></a><span class="in">    var_labels = "Months",</span></span>
-<span id="cb18-278"><a href="#cb18-278"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-279"><a href="#cb18-279"></a><span class="in">    method = "both",</span></span>
-<span id="cb18-280"><a href="#cb18-280"></a><span class="in">    time_point = 12</span></span>
-<span id="cb18-281"><a href="#cb18-281"></a><span class="in">  )</span></span>
-<span id="cb18-282"><a href="#cb18-282"></a></span>
-<span id="cb18-283"><a href="#cb18-283"></a><span class="in">result &lt;- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb18-284"><a href="#cb18-284"></a><span class="in">  prune_table()</span></span>
-<span id="cb18-285"><a href="#cb18-285"></a></span>
-<span id="cb18-286"><a href="#cb18-286"></a><span class="in">result</span></span>
-<span id="cb18-287"><a href="#cb18-287"></a><span class="in">```</span></span>
-<span id="cb18-288"><a href="#cb18-288"></a></span>
-<span id="cb18-289"><a href="#cb18-289"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant4")`</span></span>
-<span id="cb18-290"><a href="#cb18-290"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb18-291"><a href="#cb18-291"></a>:::</span>
-<span id="cb18-292"><a href="#cb18-292"></a></span>
-<span id="cb18-293"><a href="#cb18-293"></a><span class="fu">## Table Modifying Time Point for &lt;br/&gt; the "XX Months" Analysis</span></span>
-<span id="cb18-294"><a href="#cb18-294"></a></span>
-<span id="cb18-295"><a href="#cb18-295"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb18-296"><a href="#cb18-296"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb18-297"><a href="#cb18-297"></a></span>
-<span id="cb18-298"><a href="#cb18-298"></a><span class="in">```{r variant5, test = list(result_v5 = "result")}</span></span>
-<span id="cb18-299"><a href="#cb18-299"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb18-300"><a href="#cb18-300"></a><span class="in">  split_cols_by("ARM", ref_group = "A: Drug X") %&gt;%</span></span>
-<span id="cb18-301"><a href="#cb18-301"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb18-302"><a href="#cb18-302"></a><span class="in">    vars = "is_event",</span></span>
-<span id="cb18-303"><a href="#cb18-303"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb18-304"><a href="#cb18-304"></a><span class="in">    .labels = c(count_fraction = "Patients with event (%)")</span></span>
-<span id="cb18-305"><a href="#cb18-305"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-306"><a href="#cb18-306"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb18-307"><a href="#cb18-307"></a><span class="in">    "EVNT1",</span></span>
-<span id="cb18-308"><a href="#cb18-308"></a><span class="in">    split_label = "Earliest contributing event",</span></span>
-<span id="cb18-309"><a href="#cb18-309"></a><span class="in">    split_fun = keep_split_levels("Patients with event (%)"),</span></span>
-<span id="cb18-310"><a href="#cb18-310"></a><span class="in">    label_pos = "visible",</span></span>
-<span id="cb18-311"><a href="#cb18-311"></a><span class="in">    child_labels = "hidden",</span></span>
-<span id="cb18-312"><a href="#cb18-312"></a><span class="in">    indent_mod = 1L,</span></span>
-<span id="cb18-313"><a href="#cb18-313"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-314"><a href="#cb18-314"></a><span class="in">  analyze("EVNTDESC") %&gt;%</span></span>
-<span id="cb18-315"><a href="#cb18-315"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb18-316"><a href="#cb18-316"></a><span class="in">    vars = "is_not_event",</span></span>
-<span id="cb18-317"><a href="#cb18-317"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb18-318"><a href="#cb18-318"></a><span class="in">    .labels = c(count_fraction = "Patients without event (%)"),</span></span>
-<span id="cb18-319"><a href="#cb18-319"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb18-320"><a href="#cb18-320"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb18-321"><a href="#cb18-321"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-322"><a href="#cb18-322"></a><span class="in">  surv_time(</span></span>
-<span id="cb18-323"><a href="#cb18-323"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-324"><a href="#cb18-324"></a><span class="in">    var_labels = "Time to Event (Months)",</span></span>
-<span id="cb18-325"><a href="#cb18-325"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-326"><a href="#cb18-326"></a><span class="in">    table_names = "time_to_event"</span></span>
-<span id="cb18-327"><a href="#cb18-327"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-328"><a href="#cb18-328"></a><span class="in">  coxph_pairwise(</span></span>
-<span id="cb18-329"><a href="#cb18-329"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-330"><a href="#cb18-330"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-331"><a href="#cb18-331"></a><span class="in">    var_labels = c("Unstratified Analysis"),</span></span>
-<span id="cb18-332"><a href="#cb18-332"></a><span class="in">    control = control_coxph(pval_method = "log-rank"),</span></span>
-<span id="cb18-333"><a href="#cb18-333"></a><span class="in">    table_names = "coxph_unstratified"</span></span>
-<span id="cb18-334"><a href="#cb18-334"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-335"><a href="#cb18-335"></a><span class="in">  surv_timepoint(</span></span>
-<span id="cb18-336"><a href="#cb18-336"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-337"><a href="#cb18-337"></a><span class="in">    var_labels = "Months",</span></span>
-<span id="cb18-338"><a href="#cb18-338"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-339"><a href="#cb18-339"></a><span class="in">    time_point = 6,</span></span>
-<span id="cb18-340"><a href="#cb18-340"></a><span class="in">    method = "both"</span></span>
-<span id="cb18-341"><a href="#cb18-341"></a><span class="in">  )</span></span>
-<span id="cb18-342"><a href="#cb18-342"></a></span>
-<span id="cb18-343"><a href="#cb18-343"></a><span class="in">result &lt;- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb18-344"><a href="#cb18-344"></a><span class="in">  prune_table()</span></span>
-<span id="cb18-345"><a href="#cb18-345"></a></span>
-<span id="cb18-346"><a href="#cb18-346"></a><span class="in">result</span></span>
-<span id="cb18-347"><a href="#cb18-347"></a><span class="in">```</span></span>
-<span id="cb18-348"><a href="#cb18-348"></a></span>
-<span id="cb18-349"><a href="#cb18-349"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant5")`</span></span>
-<span id="cb18-350"><a href="#cb18-350"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb18-351"><a href="#cb18-351"></a>:::</span>
-<span id="cb18-352"><a href="#cb18-352"></a></span>
-<span id="cb18-353"><a href="#cb18-353"></a><span class="fu">## Table Requesting &lt;br/&gt; \&gt; 1 p-value</span></span>
-<span id="cb18-354"><a href="#cb18-354"></a></span>
-<span id="cb18-355"><a href="#cb18-355"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb18-356"><a href="#cb18-356"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb18-357"><a href="#cb18-357"></a></span>
-<span id="cb18-358"><a href="#cb18-358"></a><span class="in">```{r variant6, test = list(result_v6 = "result")}</span></span>
-<span id="cb18-359"><a href="#cb18-359"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb18-360"><a href="#cb18-360"></a><span class="in">  split_cols_by("ARM", ref_group = "A: Drug X") %&gt;%</span></span>
-<span id="cb18-361"><a href="#cb18-361"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb18-362"><a href="#cb18-362"></a><span class="in">    vars = "is_event",</span></span>
-<span id="cb18-363"><a href="#cb18-363"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb18-364"><a href="#cb18-364"></a><span class="in">    .labels = c(count_fraction = "Patients with event (%)")</span></span>
-<span id="cb18-365"><a href="#cb18-365"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-366"><a href="#cb18-366"></a><span class="in">  split_rows_by(</span></span>
-<span id="cb18-367"><a href="#cb18-367"></a><span class="in">    "EVNT1",</span></span>
-<span id="cb18-368"><a href="#cb18-368"></a><span class="in">    split_label = "Earliest contributing event",</span></span>
-<span id="cb18-369"><a href="#cb18-369"></a><span class="in">    split_fun = keep_split_levels("Patients with event (%)"),</span></span>
-<span id="cb18-370"><a href="#cb18-370"></a><span class="in">    label_pos = "visible",</span></span>
-<span id="cb18-371"><a href="#cb18-371"></a><span class="in">    child_labels = "hidden",</span></span>
-<span id="cb18-372"><a href="#cb18-372"></a><span class="in">    indent_mod = 1L,</span></span>
-<span id="cb18-373"><a href="#cb18-373"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-374"><a href="#cb18-374"></a><span class="in">  analyze("EVNTDESC") %&gt;%</span></span>
-<span id="cb18-375"><a href="#cb18-375"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb18-376"><a href="#cb18-376"></a><span class="in">    vars = "is_not_event",</span></span>
-<span id="cb18-377"><a href="#cb18-377"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb18-378"><a href="#cb18-378"></a><span class="in">    .labels = c(count_fraction = "Patients without event (%)"),</span></span>
-<span id="cb18-379"><a href="#cb18-379"></a><span class="in">    nested = FALSE,</span></span>
-<span id="cb18-380"><a href="#cb18-380"></a><span class="in">    show_labels = "hidden"</span></span>
-<span id="cb18-381"><a href="#cb18-381"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-382"><a href="#cb18-382"></a><span class="in">  surv_time(</span></span>
-<span id="cb18-383"><a href="#cb18-383"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-384"><a href="#cb18-384"></a><span class="in">    var_labels = "Time to Event (Months)",</span></span>
-<span id="cb18-385"><a href="#cb18-385"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-386"><a href="#cb18-386"></a><span class="in">    table_names = "time_to_event"</span></span>
-<span id="cb18-387"><a href="#cb18-387"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-388"><a href="#cb18-388"></a><span class="in">  coxph_pairwise(</span></span>
-<span id="cb18-389"><a href="#cb18-389"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-390"><a href="#cb18-390"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-391"><a href="#cb18-391"></a><span class="in">    var_labels = c("Unstratified Analysis"),</span></span>
-<span id="cb18-392"><a href="#cb18-392"></a><span class="in">    control = control_coxph(pval_method = "log-rank"),</span></span>
-<span id="cb18-393"><a href="#cb18-393"></a><span class="in">    .stats = "pvalue",</span></span>
-<span id="cb18-394"><a href="#cb18-394"></a><span class="in">    table_names = "coxph_unstratified"</span></span>
-<span id="cb18-395"><a href="#cb18-395"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-396"><a href="#cb18-396"></a><span class="in">  coxph_pairwise(</span></span>
-<span id="cb18-397"><a href="#cb18-397"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-398"><a href="#cb18-398"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-399"><a href="#cb18-399"></a><span class="in">    show_labels = "hidden",</span></span>
-<span id="cb18-400"><a href="#cb18-400"></a><span class="in">    control = control_coxph(pval_method = "wald"),</span></span>
-<span id="cb18-401"><a href="#cb18-401"></a><span class="in">    .stats = "pvalue",</span></span>
-<span id="cb18-402"><a href="#cb18-402"></a><span class="in">    .indent_mods = c(pvalue = 1L),</span></span>
-<span id="cb18-403"><a href="#cb18-403"></a><span class="in">    table_names = "coxph_wald_pvalue"</span></span>
-<span id="cb18-404"><a href="#cb18-404"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-405"><a href="#cb18-405"></a><span class="in">  coxph_pairwise(</span></span>
-<span id="cb18-406"><a href="#cb18-406"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-407"><a href="#cb18-407"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-408"><a href="#cb18-408"></a><span class="in">    show_labels = "hidden",</span></span>
-<span id="cb18-409"><a href="#cb18-409"></a><span class="in">    control = control_coxph(pval_method = "likelihood"),</span></span>
-<span id="cb18-410"><a href="#cb18-410"></a><span class="in">    .indent_mods = c(pvalue = 1L, hr = 2L, hr_ci = 3L),</span></span>
-<span id="cb18-411"><a href="#cb18-411"></a><span class="in">    table_names = "coxph_likelihood_pvalue"</span></span>
-<span id="cb18-412"><a href="#cb18-412"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb18-413"><a href="#cb18-413"></a><span class="in">  surv_timepoint(</span></span>
-<span id="cb18-414"><a href="#cb18-414"></a><span class="in">    vars = "AVAL",</span></span>
-<span id="cb18-415"><a href="#cb18-415"></a><span class="in">    var_labels = "Months",</span></span>
-<span id="cb18-416"><a href="#cb18-416"></a><span class="in">    is_event = "is_event",</span></span>
-<span id="cb18-417"><a href="#cb18-417"></a><span class="in">    time_point = 12,</span></span>
-<span id="cb18-418"><a href="#cb18-418"></a><span class="in">    method = "both"</span></span>
-<span id="cb18-419"><a href="#cb18-419"></a><span class="in">  )</span></span>
-<span id="cb18-420"><a href="#cb18-420"></a></span>
-<span id="cb18-421"><a href="#cb18-421"></a><span class="in">result &lt;- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %&gt;%</span></span>
-<span id="cb18-422"><a href="#cb18-422"></a><span class="in">  prune_table()</span></span>
-<span id="cb18-423"><a href="#cb18-423"></a></span>
-<span id="cb18-424"><a href="#cb18-424"></a><span class="in">result</span></span>
-<span id="cb18-425"><a href="#cb18-425"></a><span class="in">```</span></span>
-<span id="cb18-426"><a href="#cb18-426"></a></span>
-<span id="cb18-427"><a href="#cb18-427"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant6")`</span></span>
-<span id="cb18-428"><a href="#cb18-428"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb18-429"><a href="#cb18-429"></a>:::</span>
-<span id="cb18-430"><a href="#cb18-430"></a></span>
-<span id="cb18-431"><a href="#cb18-431"></a><span class="fu">## Data Setup</span></span>
-<span id="cb18-432"><a href="#cb18-432"></a></span>
-<span id="cb18-433"><a href="#cb18-433"></a><span class="in">```{r setup}</span></span>
-<span id="cb18-434"><a href="#cb18-434"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb18-435"><a href="#cb18-435"></a><span class="in">```</span></span>
-<span id="cb18-436"><a href="#cb18-436"></a></span>
-<span id="cb18-437"><a href="#cb18-437"></a>::::</span>
-<span id="cb18-438"><a href="#cb18-438"></a></span>
-<span id="cb18-439"><a href="#cb18-439"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb18-440"><a href="#cb18-440"></a></span>
-<span id="cb18-441"><a href="#cb18-441"></a><span class="fu">## `teal` App</span></span>
-<span id="cb18-442"><a href="#cb18-442"></a></span>
-<span id="cb18-443"><a href="#cb18-443"></a>::: {.panel-tabset .nav-justified}</span>
-<span id="cb18-444"><a href="#cb18-444"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
-<span id="cb18-445"><a href="#cb18-445"></a></span>
-<span id="cb18-446"><a href="#cb18-446"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb18-447"><a href="#cb18-447"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb18-448"><a href="#cb18-448"></a></span>
-<span id="cb18-449"><a href="#cb18-449"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb18-450"><a href="#cb18-450"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb18-451"><a href="#cb18-451"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb18-452"><a href="#cb18-452"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb18-453"><a href="#cb18-453"></a><span class="in">  ADTTE &lt;- random.cdisc.data::cadtte</span></span>
-<span id="cb18-454"><a href="#cb18-454"></a></span>
-<span id="cb18-455"><a href="#cb18-455"></a><span class="in">  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb18-456"><a href="#cb18-456"></a><span class="in">  ADSL &lt;- df_explicit_na(ADSL)</span></span>
-<span id="cb18-457"><a href="#cb18-457"></a><span class="in">  ADTTE &lt;- df_explicit_na(ADTTE)</span></span>
-<span id="cb18-458"><a href="#cb18-458"></a><span class="in">})</span></span>
-<span id="cb18-459"><a href="#cb18-459"></a><span class="in">datanames &lt;- c("ADSL", "ADTTE")</span></span>
-<span id="cb18-460"><a href="#cb18-460"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb18-461"><a href="#cb18-461"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb18-462"><a href="#cb18-462"></a></span>
-<span id="cb18-463"><a href="#cb18-463"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb18-464"><a href="#cb18-464"></a><span class="in">ADSL &lt;- data[["ADSL"]]</span></span>
-<span id="cb18-465"><a href="#cb18-465"></a><span class="in">ADTTE &lt;- data[["ADTTE"]]</span></span>
-<span id="cb18-466"><a href="#cb18-466"></a><span class="in">arm_ref_comp &lt;- list(</span></span>
-<span id="cb18-467"><a href="#cb18-467"></a><span class="in">  ACTARMCD = list(</span></span>
-<span id="cb18-468"><a href="#cb18-468"></a><span class="in">    ref = "ARM B",</span></span>
-<span id="cb18-469"><a href="#cb18-469"></a><span class="in">    comp = c("ARM A", "ARM C")</span></span>
-<span id="cb18-470"><a href="#cb18-470"></a><span class="in">  ),</span></span>
-<span id="cb18-471"><a href="#cb18-471"></a><span class="in">  ARM = list(</span></span>
-<span id="cb18-472"><a href="#cb18-472"></a><span class="in">    ref = "B: Placebo",</span></span>
-<span id="cb18-473"><a href="#cb18-473"></a><span class="in">    comp = c("A: Drug X", "C: Combination")</span></span>
-<span id="cb18-474"><a href="#cb18-474"></a><span class="in">  )</span></span>
-<span id="cb18-475"><a href="#cb18-475"></a><span class="in">)</span></span>
-<span id="cb18-476"><a href="#cb18-476"></a></span>
-<span id="cb18-477"><a href="#cb18-477"></a><span class="in">## Setup App</span></span>
-<span id="cb18-478"><a href="#cb18-478"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb18-479"><a href="#cb18-479"></a><span class="in">  data = data,</span></span>
-<span id="cb18-480"><a href="#cb18-480"></a><span class="in">  modules = modules(</span></span>
-<span id="cb18-481"><a href="#cb18-481"></a><span class="in">    tm_t_tte(</span></span>
-<span id="cb18-482"><a href="#cb18-482"></a><span class="in">      label = "Time To Event Table",</span></span>
-<span id="cb18-483"><a href="#cb18-483"></a><span class="in">      dataname = "ADTTE",</span></span>
-<span id="cb18-484"><a href="#cb18-484"></a><span class="in">      arm_var = choices_selected(</span></span>
-<span id="cb18-485"><a href="#cb18-485"></a><span class="in">        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),</span></span>
-<span id="cb18-486"><a href="#cb18-486"></a><span class="in">        "ARM"</span></span>
-<span id="cb18-487"><a href="#cb18-487"></a><span class="in">      ),</span></span>
-<span id="cb18-488"><a href="#cb18-488"></a><span class="in">      arm_ref_comp = arm_ref_comp,</span></span>
-<span id="cb18-489"><a href="#cb18-489"></a><span class="in">      paramcd = choices_selected(</span></span>
-<span id="cb18-490"><a href="#cb18-490"></a><span class="in">        value_choices(ADTTE, "PARAMCD", "PARAM"),</span></span>
-<span id="cb18-491"><a href="#cb18-491"></a><span class="in">        "OS"</span></span>
-<span id="cb18-492"><a href="#cb18-492"></a><span class="in">      ),</span></span>
-<span id="cb18-493"><a href="#cb18-493"></a><span class="in">      strata_var = choices_selected(</span></span>
-<span id="cb18-494"><a href="#cb18-494"></a><span class="in">        variable_choices(ADSL, c("SEX", "BMRKR2")),</span></span>
-<span id="cb18-495"><a href="#cb18-495"></a><span class="in">        "SEX"</span></span>
-<span id="cb18-496"><a href="#cb18-496"></a><span class="in">      ),</span></span>
-<span id="cb18-497"><a href="#cb18-497"></a><span class="in">      time_points = choices_selected(c(6, 8), 6),</span></span>
-<span id="cb18-498"><a href="#cb18-498"></a><span class="in">      event_desc_var = choices_selected(</span></span>
-<span id="cb18-499"><a href="#cb18-499"></a><span class="in">        variable_choices(ADTTE, "EVNTDESC"),</span></span>
-<span id="cb18-500"><a href="#cb18-500"></a><span class="in">        "EVNTDESC",</span></span>
-<span id="cb18-501"><a href="#cb18-501"></a><span class="in">        fixed = TRUE</span></span>
-<span id="cb18-502"><a href="#cb18-502"></a><span class="in">      )</span></span>
-<span id="cb18-503"><a href="#cb18-503"></a><span class="in">    )</span></span>
-<span id="cb18-504"><a href="#cb18-504"></a><span class="in">  )</span></span>
-<span id="cb18-505"><a href="#cb18-505"></a><span class="in">)</span></span>
-<span id="cb18-506"><a href="#cb18-506"></a></span>
-<span id="cb18-507"><a href="#cb18-507"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb18-508"><a href="#cb18-508"></a><span class="in">```</span></span>
-<span id="cb18-509"><a href="#cb18-509"></a></span>
-<span id="cb18-510"><a href="#cb18-510"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
-<span id="cb18-511"><a href="#cb18-511"></a>:::</span>
-<span id="cb18-512"><a href="#cb18-512"></a></span>
-<span id="cb18-513"><a href="#cb18-513"></a>{{&lt; include ../../repro.qmd &gt;}}</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb20" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb20-1"><a href="#cb20-1"></a><span class="co">---</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a><span class="an">title:</span><span class="co"> TTET01</span></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="an">subtitle:</span><span class="co"> Time-To-Event Summary</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="co">---</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a></span>
+<span id="cb20-6"><a href="#cb20-6"></a>------------------------------------------------------------------------</span>
+<span id="cb20-7"><a href="#cb20-7"></a></span>
+<span id="cb20-8"><a href="#cb20-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb20-9"><a href="#cb20-9"></a></span>
+<span id="cb20-10"><a href="#cb20-10"></a>:::: {.panel-tabset}</span>
+<span id="cb20-11"><a href="#cb20-11"></a></span>
+<span id="cb20-12"><a href="#cb20-12"></a><span class="in">```{r setup, echo = FALSE}</span></span>
+<span id="cb20-13"><a href="#cb20-13"></a><span class="in">library(tern)</span></span>
+<span id="cb20-14"><a href="#cb20-14"></a><span class="in">library(dplyr)</span></span>
+<span id="cb20-15"><a href="#cb20-15"></a></span>
+<span id="cb20-16"><a href="#cb20-16"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb20-17"><a href="#cb20-17"></a><span class="in">adtte &lt;- random.cdisc.data::cadtte</span></span>
+<span id="cb20-18"><a href="#cb20-18"></a></span>
+<span id="cb20-19"><a href="#cb20-19"></a><span class="in"># Ensure that character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb20-20"><a href="#cb20-20"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb20-21"><a href="#cb20-21"></a><span class="in">adtte &lt;- df_explicit_na(adtte)</span></span>
+<span id="cb20-22"><a href="#cb20-22"></a></span>
+<span id="cb20-23"><a href="#cb20-23"></a><span class="in">adtte_f &lt;- adtte %&gt;%</span></span>
+<span id="cb20-24"><a href="#cb20-24"></a><span class="in">  dplyr::filter(PARAMCD == "OS") %&gt;%</span></span>
+<span id="cb20-25"><a href="#cb20-25"></a><span class="in">  dplyr::mutate(</span></span>
+<span id="cb20-26"><a href="#cb20-26"></a><span class="in">    AVAL = day2month(AVAL),</span></span>
+<span id="cb20-27"><a href="#cb20-27"></a><span class="in">    is_event = CNSR == 0,</span></span>
+<span id="cb20-28"><a href="#cb20-28"></a><span class="in">    is_not_event = CNSR == 1,</span></span>
+<span id="cb20-29"><a href="#cb20-29"></a><span class="in">    EVNT1 = factor(</span></span>
+<span id="cb20-30"><a href="#cb20-30"></a><span class="in">      case_when(</span></span>
+<span id="cb20-31"><a href="#cb20-31"></a><span class="in">        is_event == TRUE ~ "Patients with event (%)",</span></span>
+<span id="cb20-32"><a href="#cb20-32"></a><span class="in">        is_event == FALSE ~ "Patients without event (%)"</span></span>
+<span id="cb20-33"><a href="#cb20-33"></a><span class="in">      ),</span></span>
+<span id="cb20-34"><a href="#cb20-34"></a><span class="in">      levels = c("Patients with event (%)", "Patients without event (%)")</span></span>
+<span id="cb20-35"><a href="#cb20-35"></a><span class="in">    ),</span></span>
+<span id="cb20-36"><a href="#cb20-36"></a><span class="in">    EVNTDESC = factor(EVNTDESC)</span></span>
+<span id="cb20-37"><a href="#cb20-37"></a><span class="in">  )</span></span>
+<span id="cb20-38"><a href="#cb20-38"></a><span class="in">```</span></span>
+<span id="cb20-39"><a href="#cb20-39"></a></span>
+<span id="cb20-40"><a href="#cb20-40"></a><span class="fu">## Standard Table</span></span>
+<span id="cb20-41"><a href="#cb20-41"></a></span>
+<span id="cb20-42"><a href="#cb20-42"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb20-43"><a href="#cb20-43"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb20-44"><a href="#cb20-44"></a></span>
+<span id="cb20-45"><a href="#cb20-45"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb20-46"><a href="#cb20-46"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-47"><a href="#cb20-47"></a><span class="in">  split_cols_by(</span></span>
+<span id="cb20-48"><a href="#cb20-48"></a><span class="in">    var = "ARM", ref_group = "A: Drug X"</span></span>
+<span id="cb20-49"><a href="#cb20-49"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-50"><a href="#cb20-50"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb20-51"><a href="#cb20-51"></a><span class="in">    vars = "is_event",</span></span>
+<span id="cb20-52"><a href="#cb20-52"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb20-53"><a href="#cb20-53"></a><span class="in">    .labels = c(count_fraction = "Patients with event (%)")</span></span>
+<span id="cb20-54"><a href="#cb20-54"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-55"><a href="#cb20-55"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb20-56"><a href="#cb20-56"></a><span class="in">    "EVNT1",</span></span>
+<span id="cb20-57"><a href="#cb20-57"></a><span class="in">    split_label = "Earliest contributing event",</span></span>
+<span id="cb20-58"><a href="#cb20-58"></a><span class="in">    split_fun = keep_split_levels("Patients with event (%)"),</span></span>
+<span id="cb20-59"><a href="#cb20-59"></a><span class="in">    label_pos = "visible",</span></span>
+<span id="cb20-60"><a href="#cb20-60"></a><span class="in">    child_labels = "hidden",</span></span>
+<span id="cb20-61"><a href="#cb20-61"></a><span class="in">    indent_mod = 1L,</span></span>
+<span id="cb20-62"><a href="#cb20-62"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-63"><a href="#cb20-63"></a><span class="in">  analyze("EVNTDESC") %&gt;%</span></span>
+<span id="cb20-64"><a href="#cb20-64"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb20-65"><a href="#cb20-65"></a><span class="in">    vars = "is_not_event",</span></span>
+<span id="cb20-66"><a href="#cb20-66"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb20-67"><a href="#cb20-67"></a><span class="in">    .labels = c(count_fraction = "Patients without event (%)"),</span></span>
+<span id="cb20-68"><a href="#cb20-68"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb20-69"><a href="#cb20-69"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb20-70"><a href="#cb20-70"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-71"><a href="#cb20-71"></a><span class="in">  surv_time(</span></span>
+<span id="cb20-72"><a href="#cb20-72"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-73"><a href="#cb20-73"></a><span class="in">    var_labels = "Time to Event (Months)",</span></span>
+<span id="cb20-74"><a href="#cb20-74"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-75"><a href="#cb20-75"></a><span class="in">    table_names = "time_to_event"</span></span>
+<span id="cb20-76"><a href="#cb20-76"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-77"><a href="#cb20-77"></a><span class="in">  coxph_pairwise(</span></span>
+<span id="cb20-78"><a href="#cb20-78"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-79"><a href="#cb20-79"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-80"><a href="#cb20-80"></a><span class="in">    var_labels = c("Unstratified Analysis"),</span></span>
+<span id="cb20-81"><a href="#cb20-81"></a><span class="in">    control = control_coxph(pval_method = "log-rank"),</span></span>
+<span id="cb20-82"><a href="#cb20-82"></a><span class="in">    table_names = "coxph_unstratified"</span></span>
+<span id="cb20-83"><a href="#cb20-83"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-84"><a href="#cb20-84"></a><span class="in">  surv_timepoint(</span></span>
+<span id="cb20-85"><a href="#cb20-85"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-86"><a href="#cb20-86"></a><span class="in">    var_labels = "Months",</span></span>
+<span id="cb20-87"><a href="#cb20-87"></a><span class="in">    time_point = c(6, 12),</span></span>
+<span id="cb20-88"><a href="#cb20-88"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-89"><a href="#cb20-89"></a><span class="in">    method = "both",</span></span>
+<span id="cb20-90"><a href="#cb20-90"></a><span class="in">    control = control_surv_timepoint()</span></span>
+<span id="cb20-91"><a href="#cb20-91"></a><span class="in">  )</span></span>
+<span id="cb20-92"><a href="#cb20-92"></a></span>
+<span id="cb20-93"><a href="#cb20-93"></a><span class="in">result &lt;- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb20-94"><a href="#cb20-94"></a><span class="in">  prune_table()</span></span>
+<span id="cb20-95"><a href="#cb20-95"></a></span>
+<span id="cb20-96"><a href="#cb20-96"></a><span class="in">result</span></span>
+<span id="cb20-97"><a href="#cb20-97"></a><span class="in">```</span></span>
+<span id="cb20-98"><a href="#cb20-98"></a></span>
+<span id="cb20-99"><a href="#cb20-99"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
+<span id="cb20-100"><a href="#cb20-100"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb20-101"><a href="#cb20-101"></a>:::</span>
+<span id="cb20-102"><a href="#cb20-102"></a></span>
+<span id="cb20-103"><a href="#cb20-103"></a><span class="fu">## Table Selecting &lt;br/&gt; Sections to Display</span></span>
+<span id="cb20-104"><a href="#cb20-104"></a></span>
+<span id="cb20-105"><a href="#cb20-105"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb20-106"><a href="#cb20-106"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb20-107"><a href="#cb20-107"></a></span>
+<span id="cb20-108"><a href="#cb20-108"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb20-109"><a href="#cb20-109"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-110"><a href="#cb20-110"></a><span class="in">  split_cols_by("ARM", ref_group = "A: Drug X") %&gt;%</span></span>
+<span id="cb20-111"><a href="#cb20-111"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb20-112"><a href="#cb20-112"></a><span class="in">    vars = "is_event",</span></span>
+<span id="cb20-113"><a href="#cb20-113"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb20-114"><a href="#cb20-114"></a><span class="in">    .labels = c(count_fraction = "Patients with event (%)")</span></span>
+<span id="cb20-115"><a href="#cb20-115"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-116"><a href="#cb20-116"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb20-117"><a href="#cb20-117"></a><span class="in">    "is_not_event",</span></span>
+<span id="cb20-118"><a href="#cb20-118"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb20-119"><a href="#cb20-119"></a><span class="in">    .labels = c(count_fraction = "Patients without event (%)"),</span></span>
+<span id="cb20-120"><a href="#cb20-120"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb20-121"><a href="#cb20-121"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb20-122"><a href="#cb20-122"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-123"><a href="#cb20-123"></a><span class="in">  surv_time(</span></span>
+<span id="cb20-124"><a href="#cb20-124"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-125"><a href="#cb20-125"></a><span class="in">    var_labels = "Time to Event (Months)",</span></span>
+<span id="cb20-126"><a href="#cb20-126"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-127"><a href="#cb20-127"></a><span class="in">    table_names = "time_to_event"</span></span>
+<span id="cb20-128"><a href="#cb20-128"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-129"><a href="#cb20-129"></a><span class="in">  coxph_pairwise(</span></span>
+<span id="cb20-130"><a href="#cb20-130"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-131"><a href="#cb20-131"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-132"><a href="#cb20-132"></a><span class="in">    var_labels = c("Unstratified Analysis"),</span></span>
+<span id="cb20-133"><a href="#cb20-133"></a><span class="in">    control = control_coxph(pval_method = "log-rank"),</span></span>
+<span id="cb20-134"><a href="#cb20-134"></a><span class="in">    table_names = "coxph_unstratified"</span></span>
+<span id="cb20-135"><a href="#cb20-135"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-136"><a href="#cb20-136"></a><span class="in">  surv_timepoint(</span></span>
+<span id="cb20-137"><a href="#cb20-137"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-138"><a href="#cb20-138"></a><span class="in">    var_labels = "Months",</span></span>
+<span id="cb20-139"><a href="#cb20-139"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-140"><a href="#cb20-140"></a><span class="in">    method = "surv",</span></span>
+<span id="cb20-141"><a href="#cb20-141"></a><span class="in">    time_point = c(6, 12)</span></span>
+<span id="cb20-142"><a href="#cb20-142"></a><span class="in">  )</span></span>
+<span id="cb20-143"><a href="#cb20-143"></a></span>
+<span id="cb20-144"><a href="#cb20-144"></a><span class="in">result &lt;- build_table(lyt, df = adtte_f, alt_counts_df = adsl)</span></span>
+<span id="cb20-145"><a href="#cb20-145"></a><span class="in">result</span></span>
+<span id="cb20-146"><a href="#cb20-146"></a><span class="in">```</span></span>
+<span id="cb20-147"><a href="#cb20-147"></a></span>
+<span id="cb20-148"><a href="#cb20-148"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
+<span id="cb20-149"><a href="#cb20-149"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb20-150"><a href="#cb20-150"></a>:::</span>
+<span id="cb20-151"><a href="#cb20-151"></a></span>
+<span id="cb20-152"><a href="#cb20-152"></a><span class="fu">## Table Modifying Analysis Details &lt;br/&gt; like Conf. Type, Ties, Alpha Level</span></span>
+<span id="cb20-153"><a href="#cb20-153"></a></span>
+<span id="cb20-154"><a href="#cb20-154"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb20-155"><a href="#cb20-155"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb20-156"><a href="#cb20-156"></a></span>
+<span id="cb20-157"><a href="#cb20-157"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
+<span id="cb20-158"><a href="#cb20-158"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-159"><a href="#cb20-159"></a><span class="in">  split_cols_by("ARM", ref_group = "A: Drug X") %&gt;%</span></span>
+<span id="cb20-160"><a href="#cb20-160"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb20-161"><a href="#cb20-161"></a><span class="in">    vars = "is_event",</span></span>
+<span id="cb20-162"><a href="#cb20-162"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb20-163"><a href="#cb20-163"></a><span class="in">    .labels = c(count_fraction = "Patients with event (%)")</span></span>
+<span id="cb20-164"><a href="#cb20-164"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-165"><a href="#cb20-165"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb20-166"><a href="#cb20-166"></a><span class="in">    "EVNT1",</span></span>
+<span id="cb20-167"><a href="#cb20-167"></a><span class="in">    split_label = "Earliest contributing event",</span></span>
+<span id="cb20-168"><a href="#cb20-168"></a><span class="in">    split_fun = keep_split_levels("Patients with event (%)"),</span></span>
+<span id="cb20-169"><a href="#cb20-169"></a><span class="in">    label_pos = "visible",</span></span>
+<span id="cb20-170"><a href="#cb20-170"></a><span class="in">    child_labels = "hidden",</span></span>
+<span id="cb20-171"><a href="#cb20-171"></a><span class="in">    indent_mod = 1L,</span></span>
+<span id="cb20-172"><a href="#cb20-172"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-173"><a href="#cb20-173"></a><span class="in">  analyze("EVNTDESC") %&gt;%</span></span>
+<span id="cb20-174"><a href="#cb20-174"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb20-175"><a href="#cb20-175"></a><span class="in">    vars = "is_not_event",</span></span>
+<span id="cb20-176"><a href="#cb20-176"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb20-177"><a href="#cb20-177"></a><span class="in">    .labels = c(count_fraction = "Patients without event (%)"),</span></span>
+<span id="cb20-178"><a href="#cb20-178"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb20-179"><a href="#cb20-179"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb20-180"><a href="#cb20-180"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-181"><a href="#cb20-181"></a><span class="in">  surv_time(</span></span>
+<span id="cb20-182"><a href="#cb20-182"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-183"><a href="#cb20-183"></a><span class="in">    var_labels = "Time to Event (Months)",</span></span>
+<span id="cb20-184"><a href="#cb20-184"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-185"><a href="#cb20-185"></a><span class="in">    control = control_surv_time(conf_level = 0.9, conf_type = "log-log"),</span></span>
+<span id="cb20-186"><a href="#cb20-186"></a><span class="in">    table_names = "time_to_event"</span></span>
+<span id="cb20-187"><a href="#cb20-187"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-188"><a href="#cb20-188"></a><span class="in">  coxph_pairwise(</span></span>
+<span id="cb20-189"><a href="#cb20-189"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-190"><a href="#cb20-190"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-191"><a href="#cb20-191"></a><span class="in">    var_labels = c("Unstratified Analysis"),</span></span>
+<span id="cb20-192"><a href="#cb20-192"></a><span class="in">    control = control_coxph(</span></span>
+<span id="cb20-193"><a href="#cb20-193"></a><span class="in">      pval_method = "log-rank",</span></span>
+<span id="cb20-194"><a href="#cb20-194"></a><span class="in">      conf_level = 0.95,</span></span>
+<span id="cb20-195"><a href="#cb20-195"></a><span class="in">      ties = "efron"</span></span>
+<span id="cb20-196"><a href="#cb20-196"></a><span class="in">    ),</span></span>
+<span id="cb20-197"><a href="#cb20-197"></a><span class="in">    table_names = "coxph_unstratified"</span></span>
+<span id="cb20-198"><a href="#cb20-198"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-199"><a href="#cb20-199"></a><span class="in">  surv_timepoint(</span></span>
+<span id="cb20-200"><a href="#cb20-200"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-201"><a href="#cb20-201"></a><span class="in">    var_labels = "Months",</span></span>
+<span id="cb20-202"><a href="#cb20-202"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-203"><a href="#cb20-203"></a><span class="in">    time_point = 12,</span></span>
+<span id="cb20-204"><a href="#cb20-204"></a><span class="in">    control = control_surv_timepoint(conf_level = 0.9, conf_type = "log-log"),</span></span>
+<span id="cb20-205"><a href="#cb20-205"></a><span class="in">    table_names_suffix = "_log_log"</span></span>
+<span id="cb20-206"><a href="#cb20-206"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-207"><a href="#cb20-207"></a><span class="in">  surv_timepoint(</span></span>
+<span id="cb20-208"><a href="#cb20-208"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-209"><a href="#cb20-209"></a><span class="in">    show_labels = "hidden",</span></span>
+<span id="cb20-210"><a href="#cb20-210"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-211"><a href="#cb20-211"></a><span class="in">    time_point = 12,</span></span>
+<span id="cb20-212"><a href="#cb20-212"></a><span class="in">    method = "surv_diff",</span></span>
+<span id="cb20-213"><a href="#cb20-213"></a><span class="in">    control = control_surv_timepoint(conf_level = 0.975),</span></span>
+<span id="cb20-214"><a href="#cb20-214"></a><span class="in">    table_names_suffix = "_975_pct"</span></span>
+<span id="cb20-215"><a href="#cb20-215"></a><span class="in">  )</span></span>
+<span id="cb20-216"><a href="#cb20-216"></a></span>
+<span id="cb20-217"><a href="#cb20-217"></a><span class="in">result &lt;- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb20-218"><a href="#cb20-218"></a><span class="in">  prune_table()</span></span>
+<span id="cb20-219"><a href="#cb20-219"></a></span>
+<span id="cb20-220"><a href="#cb20-220"></a><span class="in">result</span></span>
+<span id="cb20-221"><a href="#cb20-221"></a><span class="in">```</span></span>
+<span id="cb20-222"><a href="#cb20-222"></a></span>
+<span id="cb20-223"><a href="#cb20-223"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant3")`</span></span>
+<span id="cb20-224"><a href="#cb20-224"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb20-225"><a href="#cb20-225"></a>:::</span>
+<span id="cb20-226"><a href="#cb20-226"></a></span>
+<span id="cb20-227"><a href="#cb20-227"></a><span class="fu">## Table with &lt;br/&gt; Stratified Analysis</span></span>
+<span id="cb20-228"><a href="#cb20-228"></a></span>
+<span id="cb20-229"><a href="#cb20-229"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb20-230"><a href="#cb20-230"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb20-231"><a href="#cb20-231"></a></span>
+<span id="cb20-232"><a href="#cb20-232"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
+<span id="cb20-233"><a href="#cb20-233"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-234"><a href="#cb20-234"></a><span class="in">  split_cols_by("ARM", ref_group = "A: Drug X") %&gt;%</span></span>
+<span id="cb20-235"><a href="#cb20-235"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb20-236"><a href="#cb20-236"></a><span class="in">    vars = "is_event",</span></span>
+<span id="cb20-237"><a href="#cb20-237"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb20-238"><a href="#cb20-238"></a><span class="in">    .labels = c(count_fraction = "Patients with event (%)")</span></span>
+<span id="cb20-239"><a href="#cb20-239"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-240"><a href="#cb20-240"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb20-241"><a href="#cb20-241"></a><span class="in">    "EVNT1",</span></span>
+<span id="cb20-242"><a href="#cb20-242"></a><span class="in">    split_label = "Earliest contributing event",</span></span>
+<span id="cb20-243"><a href="#cb20-243"></a><span class="in">    split_fun = keep_split_levels("Patients with event (%)"),</span></span>
+<span id="cb20-244"><a href="#cb20-244"></a><span class="in">    label_pos = "visible",</span></span>
+<span id="cb20-245"><a href="#cb20-245"></a><span class="in">    child_labels = "hidden",</span></span>
+<span id="cb20-246"><a href="#cb20-246"></a><span class="in">    indent_mod = 1L,</span></span>
+<span id="cb20-247"><a href="#cb20-247"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-248"><a href="#cb20-248"></a><span class="in">  analyze("EVNTDESC") %&gt;%</span></span>
+<span id="cb20-249"><a href="#cb20-249"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb20-250"><a href="#cb20-250"></a><span class="in">    vars = "is_not_event",</span></span>
+<span id="cb20-251"><a href="#cb20-251"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb20-252"><a href="#cb20-252"></a><span class="in">    .labels = c(count_fraction = "Patients without event (%)"),</span></span>
+<span id="cb20-253"><a href="#cb20-253"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb20-254"><a href="#cb20-254"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb20-255"><a href="#cb20-255"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-256"><a href="#cb20-256"></a><span class="in">  surv_time(</span></span>
+<span id="cb20-257"><a href="#cb20-257"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-258"><a href="#cb20-258"></a><span class="in">    var_labels = "Time to Event (Months)",</span></span>
+<span id="cb20-259"><a href="#cb20-259"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-260"><a href="#cb20-260"></a><span class="in">    table_names = "time_to_event"</span></span>
+<span id="cb20-261"><a href="#cb20-261"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-262"><a href="#cb20-262"></a><span class="in">  coxph_pairwise(</span></span>
+<span id="cb20-263"><a href="#cb20-263"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-264"><a href="#cb20-264"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-265"><a href="#cb20-265"></a><span class="in">    var_labels = "Unstratified Analysis",</span></span>
+<span id="cb20-266"><a href="#cb20-266"></a><span class="in">    table_names = "coxph_unstratified"</span></span>
+<span id="cb20-267"><a href="#cb20-267"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-268"><a href="#cb20-268"></a><span class="in">  coxph_pairwise(</span></span>
+<span id="cb20-269"><a href="#cb20-269"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-270"><a href="#cb20-270"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-271"><a href="#cb20-271"></a><span class="in">    var_labels = "Stratified Analysis",</span></span>
+<span id="cb20-272"><a href="#cb20-272"></a><span class="in">    strata = "SEX",</span></span>
+<span id="cb20-273"><a href="#cb20-273"></a><span class="in">    table_names = "coxph_stratified"</span></span>
+<span id="cb20-274"><a href="#cb20-274"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-275"><a href="#cb20-275"></a><span class="in">  surv_timepoint(</span></span>
+<span id="cb20-276"><a href="#cb20-276"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-277"><a href="#cb20-277"></a><span class="in">    var_labels = "Months",</span></span>
+<span id="cb20-278"><a href="#cb20-278"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-279"><a href="#cb20-279"></a><span class="in">    method = "both",</span></span>
+<span id="cb20-280"><a href="#cb20-280"></a><span class="in">    time_point = 12</span></span>
+<span id="cb20-281"><a href="#cb20-281"></a><span class="in">  )</span></span>
+<span id="cb20-282"><a href="#cb20-282"></a></span>
+<span id="cb20-283"><a href="#cb20-283"></a><span class="in">result &lt;- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb20-284"><a href="#cb20-284"></a><span class="in">  prune_table()</span></span>
+<span id="cb20-285"><a href="#cb20-285"></a></span>
+<span id="cb20-286"><a href="#cb20-286"></a><span class="in">result</span></span>
+<span id="cb20-287"><a href="#cb20-287"></a><span class="in">```</span></span>
+<span id="cb20-288"><a href="#cb20-288"></a></span>
+<span id="cb20-289"><a href="#cb20-289"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant4")`</span></span>
+<span id="cb20-290"><a href="#cb20-290"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb20-291"><a href="#cb20-291"></a>:::</span>
+<span id="cb20-292"><a href="#cb20-292"></a></span>
+<span id="cb20-293"><a href="#cb20-293"></a><span class="fu">## Table Modifying Time Point for &lt;br/&gt; the "XX Months" Analysis</span></span>
+<span id="cb20-294"><a href="#cb20-294"></a></span>
+<span id="cb20-295"><a href="#cb20-295"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb20-296"><a href="#cb20-296"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb20-297"><a href="#cb20-297"></a></span>
+<span id="cb20-298"><a href="#cb20-298"></a><span class="in">```{r variant5, test = list(result_v5 = "result")}</span></span>
+<span id="cb20-299"><a href="#cb20-299"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-300"><a href="#cb20-300"></a><span class="in">  split_cols_by("ARM", ref_group = "A: Drug X") %&gt;%</span></span>
+<span id="cb20-301"><a href="#cb20-301"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb20-302"><a href="#cb20-302"></a><span class="in">    vars = "is_event",</span></span>
+<span id="cb20-303"><a href="#cb20-303"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb20-304"><a href="#cb20-304"></a><span class="in">    .labels = c(count_fraction = "Patients with event (%)")</span></span>
+<span id="cb20-305"><a href="#cb20-305"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-306"><a href="#cb20-306"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb20-307"><a href="#cb20-307"></a><span class="in">    "EVNT1",</span></span>
+<span id="cb20-308"><a href="#cb20-308"></a><span class="in">    split_label = "Earliest contributing event",</span></span>
+<span id="cb20-309"><a href="#cb20-309"></a><span class="in">    split_fun = keep_split_levels("Patients with event (%)"),</span></span>
+<span id="cb20-310"><a href="#cb20-310"></a><span class="in">    label_pos = "visible",</span></span>
+<span id="cb20-311"><a href="#cb20-311"></a><span class="in">    child_labels = "hidden",</span></span>
+<span id="cb20-312"><a href="#cb20-312"></a><span class="in">    indent_mod = 1L,</span></span>
+<span id="cb20-313"><a href="#cb20-313"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-314"><a href="#cb20-314"></a><span class="in">  analyze("EVNTDESC") %&gt;%</span></span>
+<span id="cb20-315"><a href="#cb20-315"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb20-316"><a href="#cb20-316"></a><span class="in">    vars = "is_not_event",</span></span>
+<span id="cb20-317"><a href="#cb20-317"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb20-318"><a href="#cb20-318"></a><span class="in">    .labels = c(count_fraction = "Patients without event (%)"),</span></span>
+<span id="cb20-319"><a href="#cb20-319"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb20-320"><a href="#cb20-320"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb20-321"><a href="#cb20-321"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-322"><a href="#cb20-322"></a><span class="in">  surv_time(</span></span>
+<span id="cb20-323"><a href="#cb20-323"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-324"><a href="#cb20-324"></a><span class="in">    var_labels = "Time to Event (Months)",</span></span>
+<span id="cb20-325"><a href="#cb20-325"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-326"><a href="#cb20-326"></a><span class="in">    table_names = "time_to_event"</span></span>
+<span id="cb20-327"><a href="#cb20-327"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-328"><a href="#cb20-328"></a><span class="in">  coxph_pairwise(</span></span>
+<span id="cb20-329"><a href="#cb20-329"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-330"><a href="#cb20-330"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-331"><a href="#cb20-331"></a><span class="in">    var_labels = c("Unstratified Analysis"),</span></span>
+<span id="cb20-332"><a href="#cb20-332"></a><span class="in">    control = control_coxph(pval_method = "log-rank"),</span></span>
+<span id="cb20-333"><a href="#cb20-333"></a><span class="in">    table_names = "coxph_unstratified"</span></span>
+<span id="cb20-334"><a href="#cb20-334"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-335"><a href="#cb20-335"></a><span class="in">  surv_timepoint(</span></span>
+<span id="cb20-336"><a href="#cb20-336"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-337"><a href="#cb20-337"></a><span class="in">    var_labels = "Months",</span></span>
+<span id="cb20-338"><a href="#cb20-338"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-339"><a href="#cb20-339"></a><span class="in">    time_point = 6,</span></span>
+<span id="cb20-340"><a href="#cb20-340"></a><span class="in">    method = "both"</span></span>
+<span id="cb20-341"><a href="#cb20-341"></a><span class="in">  )</span></span>
+<span id="cb20-342"><a href="#cb20-342"></a></span>
+<span id="cb20-343"><a href="#cb20-343"></a><span class="in">result &lt;- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb20-344"><a href="#cb20-344"></a><span class="in">  prune_table()</span></span>
+<span id="cb20-345"><a href="#cb20-345"></a></span>
+<span id="cb20-346"><a href="#cb20-346"></a><span class="in">result</span></span>
+<span id="cb20-347"><a href="#cb20-347"></a><span class="in">```</span></span>
+<span id="cb20-348"><a href="#cb20-348"></a></span>
+<span id="cb20-349"><a href="#cb20-349"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant5")`</span></span>
+<span id="cb20-350"><a href="#cb20-350"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb20-351"><a href="#cb20-351"></a>:::</span>
+<span id="cb20-352"><a href="#cb20-352"></a></span>
+<span id="cb20-353"><a href="#cb20-353"></a><span class="fu">## Table Requesting &lt;br/&gt; \&gt; 1 p-value</span></span>
+<span id="cb20-354"><a href="#cb20-354"></a></span>
+<span id="cb20-355"><a href="#cb20-355"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb20-356"><a href="#cb20-356"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb20-357"><a href="#cb20-357"></a></span>
+<span id="cb20-358"><a href="#cb20-358"></a><span class="in">```{r variant6, test = list(result_v6 = "result")}</span></span>
+<span id="cb20-359"><a href="#cb20-359"></a><span class="in">lyt &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb20-360"><a href="#cb20-360"></a><span class="in">  split_cols_by("ARM", ref_group = "A: Drug X") %&gt;%</span></span>
+<span id="cb20-361"><a href="#cb20-361"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb20-362"><a href="#cb20-362"></a><span class="in">    vars = "is_event",</span></span>
+<span id="cb20-363"><a href="#cb20-363"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb20-364"><a href="#cb20-364"></a><span class="in">    .labels = c(count_fraction = "Patients with event (%)")</span></span>
+<span id="cb20-365"><a href="#cb20-365"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-366"><a href="#cb20-366"></a><span class="in">  split_rows_by(</span></span>
+<span id="cb20-367"><a href="#cb20-367"></a><span class="in">    "EVNT1",</span></span>
+<span id="cb20-368"><a href="#cb20-368"></a><span class="in">    split_label = "Earliest contributing event",</span></span>
+<span id="cb20-369"><a href="#cb20-369"></a><span class="in">    split_fun = keep_split_levels("Patients with event (%)"),</span></span>
+<span id="cb20-370"><a href="#cb20-370"></a><span class="in">    label_pos = "visible",</span></span>
+<span id="cb20-371"><a href="#cb20-371"></a><span class="in">    child_labels = "hidden",</span></span>
+<span id="cb20-372"><a href="#cb20-372"></a><span class="in">    indent_mod = 1L,</span></span>
+<span id="cb20-373"><a href="#cb20-373"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-374"><a href="#cb20-374"></a><span class="in">  analyze("EVNTDESC") %&gt;%</span></span>
+<span id="cb20-375"><a href="#cb20-375"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb20-376"><a href="#cb20-376"></a><span class="in">    vars = "is_not_event",</span></span>
+<span id="cb20-377"><a href="#cb20-377"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb20-378"><a href="#cb20-378"></a><span class="in">    .labels = c(count_fraction = "Patients without event (%)"),</span></span>
+<span id="cb20-379"><a href="#cb20-379"></a><span class="in">    nested = FALSE,</span></span>
+<span id="cb20-380"><a href="#cb20-380"></a><span class="in">    show_labels = "hidden"</span></span>
+<span id="cb20-381"><a href="#cb20-381"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-382"><a href="#cb20-382"></a><span class="in">  surv_time(</span></span>
+<span id="cb20-383"><a href="#cb20-383"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-384"><a href="#cb20-384"></a><span class="in">    var_labels = "Time to Event (Months)",</span></span>
+<span id="cb20-385"><a href="#cb20-385"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-386"><a href="#cb20-386"></a><span class="in">    table_names = "time_to_event"</span></span>
+<span id="cb20-387"><a href="#cb20-387"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-388"><a href="#cb20-388"></a><span class="in">  coxph_pairwise(</span></span>
+<span id="cb20-389"><a href="#cb20-389"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-390"><a href="#cb20-390"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-391"><a href="#cb20-391"></a><span class="in">    var_labels = c("Unstratified Analysis"),</span></span>
+<span id="cb20-392"><a href="#cb20-392"></a><span class="in">    control = control_coxph(pval_method = "log-rank"),</span></span>
+<span id="cb20-393"><a href="#cb20-393"></a><span class="in">    .stats = "pvalue",</span></span>
+<span id="cb20-394"><a href="#cb20-394"></a><span class="in">    table_names = "coxph_unstratified"</span></span>
+<span id="cb20-395"><a href="#cb20-395"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-396"><a href="#cb20-396"></a><span class="in">  coxph_pairwise(</span></span>
+<span id="cb20-397"><a href="#cb20-397"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-398"><a href="#cb20-398"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-399"><a href="#cb20-399"></a><span class="in">    show_labels = "hidden",</span></span>
+<span id="cb20-400"><a href="#cb20-400"></a><span class="in">    control = control_coxph(pval_method = "wald"),</span></span>
+<span id="cb20-401"><a href="#cb20-401"></a><span class="in">    .stats = "pvalue",</span></span>
+<span id="cb20-402"><a href="#cb20-402"></a><span class="in">    .indent_mods = c(pvalue = 1L),</span></span>
+<span id="cb20-403"><a href="#cb20-403"></a><span class="in">    table_names = "coxph_wald_pvalue"</span></span>
+<span id="cb20-404"><a href="#cb20-404"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-405"><a href="#cb20-405"></a><span class="in">  coxph_pairwise(</span></span>
+<span id="cb20-406"><a href="#cb20-406"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-407"><a href="#cb20-407"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-408"><a href="#cb20-408"></a><span class="in">    show_labels = "hidden",</span></span>
+<span id="cb20-409"><a href="#cb20-409"></a><span class="in">    control = control_coxph(pval_method = "likelihood"),</span></span>
+<span id="cb20-410"><a href="#cb20-410"></a><span class="in">    .indent_mods = c(pvalue = 1L, hr = 2L, hr_ci = 3L),</span></span>
+<span id="cb20-411"><a href="#cb20-411"></a><span class="in">    table_names = "coxph_likelihood_pvalue"</span></span>
+<span id="cb20-412"><a href="#cb20-412"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb20-413"><a href="#cb20-413"></a><span class="in">  surv_timepoint(</span></span>
+<span id="cb20-414"><a href="#cb20-414"></a><span class="in">    vars = "AVAL",</span></span>
+<span id="cb20-415"><a href="#cb20-415"></a><span class="in">    var_labels = "Months",</span></span>
+<span id="cb20-416"><a href="#cb20-416"></a><span class="in">    is_event = "is_event",</span></span>
+<span id="cb20-417"><a href="#cb20-417"></a><span class="in">    time_point = 12,</span></span>
+<span id="cb20-418"><a href="#cb20-418"></a><span class="in">    method = "both"</span></span>
+<span id="cb20-419"><a href="#cb20-419"></a><span class="in">  )</span></span>
+<span id="cb20-420"><a href="#cb20-420"></a></span>
+<span id="cb20-421"><a href="#cb20-421"></a><span class="in">result &lt;- build_table(lyt, df = adtte_f, alt_counts_df = adsl) %&gt;%</span></span>
+<span id="cb20-422"><a href="#cb20-422"></a><span class="in">  prune_table()</span></span>
+<span id="cb20-423"><a href="#cb20-423"></a></span>
+<span id="cb20-424"><a href="#cb20-424"></a><span class="in">result</span></span>
+<span id="cb20-425"><a href="#cb20-425"></a><span class="in">```</span></span>
+<span id="cb20-426"><a href="#cb20-426"></a></span>
+<span id="cb20-427"><a href="#cb20-427"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant6")`</span></span>
+<span id="cb20-428"><a href="#cb20-428"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb20-429"><a href="#cb20-429"></a>:::</span>
+<span id="cb20-430"><a href="#cb20-430"></a></span>
+<span id="cb20-431"><a href="#cb20-431"></a><span class="fu">## Data Setup</span></span>
+<span id="cb20-432"><a href="#cb20-432"></a></span>
+<span id="cb20-433"><a href="#cb20-433"></a><span class="in">```{r setup}</span></span>
+<span id="cb20-434"><a href="#cb20-434"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb20-435"><a href="#cb20-435"></a><span class="in">```</span></span>
+<span id="cb20-436"><a href="#cb20-436"></a></span>
+<span id="cb20-437"><a href="#cb20-437"></a>::::</span>
+<span id="cb20-438"><a href="#cb20-438"></a></span>
+<span id="cb20-439"><a href="#cb20-439"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb20-440"><a href="#cb20-440"></a></span>
+<span id="cb20-441"><a href="#cb20-441"></a><span class="fu">## `teal` App</span></span>
+<span id="cb20-442"><a href="#cb20-442"></a></span>
+<span id="cb20-443"><a href="#cb20-443"></a>::: {.panel-tabset .nav-justified}</span>
+<span id="cb20-444"><a href="#cb20-444"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
+<span id="cb20-445"><a href="#cb20-445"></a></span>
+<span id="cb20-446"><a href="#cb20-446"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb20-447"><a href="#cb20-447"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb20-448"><a href="#cb20-448"></a></span>
+<span id="cb20-449"><a href="#cb20-449"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb20-450"><a href="#cb20-450"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb20-451"><a href="#cb20-451"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb20-452"><a href="#cb20-452"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb20-453"><a href="#cb20-453"></a><span class="in">  ADTTE &lt;- random.cdisc.data::cadtte</span></span>
+<span id="cb20-454"><a href="#cb20-454"></a></span>
+<span id="cb20-455"><a href="#cb20-455"></a><span class="in">  # Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb20-456"><a href="#cb20-456"></a><span class="in">  ADSL &lt;- df_explicit_na(ADSL)</span></span>
+<span id="cb20-457"><a href="#cb20-457"></a><span class="in">  ADTTE &lt;- df_explicit_na(ADTTE)</span></span>
+<span id="cb20-458"><a href="#cb20-458"></a><span class="in">})</span></span>
+<span id="cb20-459"><a href="#cb20-459"></a><span class="in">datanames &lt;- c("ADSL", "ADTTE")</span></span>
+<span id="cb20-460"><a href="#cb20-460"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb20-461"><a href="#cb20-461"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb20-462"><a href="#cb20-462"></a></span>
+<span id="cb20-463"><a href="#cb20-463"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb20-464"><a href="#cb20-464"></a><span class="in">ADSL &lt;- data[["ADSL"]]</span></span>
+<span id="cb20-465"><a href="#cb20-465"></a><span class="in">ADTTE &lt;- data[["ADTTE"]]</span></span>
+<span id="cb20-466"><a href="#cb20-466"></a><span class="in">arm_ref_comp &lt;- list(</span></span>
+<span id="cb20-467"><a href="#cb20-467"></a><span class="in">  ACTARMCD = list(</span></span>
+<span id="cb20-468"><a href="#cb20-468"></a><span class="in">    ref = "ARM B",</span></span>
+<span id="cb20-469"><a href="#cb20-469"></a><span class="in">    comp = c("ARM A", "ARM C")</span></span>
+<span id="cb20-470"><a href="#cb20-470"></a><span class="in">  ),</span></span>
+<span id="cb20-471"><a href="#cb20-471"></a><span class="in">  ARM = list(</span></span>
+<span id="cb20-472"><a href="#cb20-472"></a><span class="in">    ref = "B: Placebo",</span></span>
+<span id="cb20-473"><a href="#cb20-473"></a><span class="in">    comp = c("A: Drug X", "C: Combination")</span></span>
+<span id="cb20-474"><a href="#cb20-474"></a><span class="in">  )</span></span>
+<span id="cb20-475"><a href="#cb20-475"></a><span class="in">)</span></span>
+<span id="cb20-476"><a href="#cb20-476"></a></span>
+<span id="cb20-477"><a href="#cb20-477"></a><span class="in">## Setup App</span></span>
+<span id="cb20-478"><a href="#cb20-478"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb20-479"><a href="#cb20-479"></a><span class="in">  data = data,</span></span>
+<span id="cb20-480"><a href="#cb20-480"></a><span class="in">  modules = modules(</span></span>
+<span id="cb20-481"><a href="#cb20-481"></a><span class="in">    tm_t_tte(</span></span>
+<span id="cb20-482"><a href="#cb20-482"></a><span class="in">      label = "Time To Event Table",</span></span>
+<span id="cb20-483"><a href="#cb20-483"></a><span class="in">      dataname = "ADTTE",</span></span>
+<span id="cb20-484"><a href="#cb20-484"></a><span class="in">      arm_var = choices_selected(</span></span>
+<span id="cb20-485"><a href="#cb20-485"></a><span class="in">        variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),</span></span>
+<span id="cb20-486"><a href="#cb20-486"></a><span class="in">        "ARM"</span></span>
+<span id="cb20-487"><a href="#cb20-487"></a><span class="in">      ),</span></span>
+<span id="cb20-488"><a href="#cb20-488"></a><span class="in">      arm_ref_comp = arm_ref_comp,</span></span>
+<span id="cb20-489"><a href="#cb20-489"></a><span class="in">      paramcd = choices_selected(</span></span>
+<span id="cb20-490"><a href="#cb20-490"></a><span class="in">        value_choices(ADTTE, "PARAMCD", "PARAM"),</span></span>
+<span id="cb20-491"><a href="#cb20-491"></a><span class="in">        "OS"</span></span>
+<span id="cb20-492"><a href="#cb20-492"></a><span class="in">      ),</span></span>
+<span id="cb20-493"><a href="#cb20-493"></a><span class="in">      strata_var = choices_selected(</span></span>
+<span id="cb20-494"><a href="#cb20-494"></a><span class="in">        variable_choices(ADSL, c("SEX", "BMRKR2")),</span></span>
+<span id="cb20-495"><a href="#cb20-495"></a><span class="in">        "SEX"</span></span>
+<span id="cb20-496"><a href="#cb20-496"></a><span class="in">      ),</span></span>
+<span id="cb20-497"><a href="#cb20-497"></a><span class="in">      time_points = choices_selected(c(6, 8), 6),</span></span>
+<span id="cb20-498"><a href="#cb20-498"></a><span class="in">      event_desc_var = choices_selected(</span></span>
+<span id="cb20-499"><a href="#cb20-499"></a><span class="in">        variable_choices(ADTTE, "EVNTDESC"),</span></span>
+<span id="cb20-500"><a href="#cb20-500"></a><span class="in">        "EVNTDESC",</span></span>
+<span id="cb20-501"><a href="#cb20-501"></a><span class="in">        fixed = TRUE</span></span>
+<span id="cb20-502"><a href="#cb20-502"></a><span class="in">      )</span></span>
+<span id="cb20-503"><a href="#cb20-503"></a><span class="in">    )</span></span>
+<span id="cb20-504"><a href="#cb20-504"></a><span class="in">  )</span></span>
+<span id="cb20-505"><a href="#cb20-505"></a><span class="in">)</span></span>
+<span id="cb20-506"><a href="#cb20-506"></a></span>
+<span id="cb20-507"><a href="#cb20-507"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb20-508"><a href="#cb20-508"></a><span class="in">```</span></span>
+<span id="cb20-509"><a href="#cb20-509"></a></span>
+<span id="cb20-510"><a href="#cb20-510"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
+<span id="cb20-511"><a href="#cb20-511"></a>:::</span>
+<span id="cb20-512"><a href="#cb20-512"></a></span>
+<span id="cb20-513"><a href="#cb20-513"></a>{{&lt; include ../../repro.qmd &gt;}}</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

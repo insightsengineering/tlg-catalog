@@ -76,9 +76,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="../../site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <meta name="shinylive:serviceworker_dir" content="../..">
-<script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/load-shinylive-sw.js" type="module"></script>
-<script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/run-python-blocks.js" type="module"></script>
-<link href="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/shinylive.css" rel="stylesheet">
+<script src="../../site_libs/quarto-contrib/shinylive-0.9.1/shinylive/load-shinylive-sw.js" type="module"></script>
+<script src="../../site_libs/quarto-contrib/shinylive-0.9.1/shinylive/run-python-blocks.js" type="module"></script>
+<link href="../../site_libs/quarto-contrib/shinylive-0.9.1/shinylive/shinylive.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/shinylive-quarto-css/shinylive-quarto.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-1.2.0/all.min.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-1.2.0/latex-fontsize.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
@@ -432,7 +432,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\nfull_table <- full_table_aet04_pi(adsl, adae_max) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  )\n\nat_least_10percent_any <- has_fraction_in_any_col(atleast = 0.1, col_indices = c(1, 4, 7))\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_10percent_any))\n\nresult","options":{"dpi":72,"read-only":"false","fig-width":7,"comment":"","editor-max-height":"500","warning":"true","autorun":"true","results":"markup","message":"true","editor-quick-suggestions":"false","fig-height":5,"out-height":"","context":"interactive","fig-cap":"","out-width":"700px","output":"true","editor-font-scale":"1","label":"unnamed-chunk-1","classes":"","editor-word-wrap":"true"}},{"id":2,"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\nfull_table <- full_table_aet04_pi(adsl, adae_max) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  )\n\nat_least_37percent_any_drugx <- has_fraction_in_cols(atleast = 0.37, col_indices = 1)\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_37percent_any_drugx))\n\nresult","options":{"dpi":72,"read-only":"false","fig-width":7,"comment":"","editor-max-height":"500","warning":"true","autorun":"true","results":"markup","message":"true","editor-quick-suggestions":"false","fig-height":5,"out-height":"","context":"interactive","fig-cap":"","out-width":"700px","output":"true","editor-font-scale":"1","label":"unnamed-chunk-2","classes":"","editor-word-wrap":"true"}},{"id":3,"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\nfull_table <- full_table_aet04_pi(adsl, adae_max) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  )\n\nat_least_40percent_any <- has_fraction_in_any_col(atleast = 0.40, col_indices = c(1, 4, 7))\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_40percent_any))\n\nresult","options":{"dpi":72,"read-only":"false","fig-width":7,"comment":"","editor-max-height":"500","warning":"true","autorun":"true","results":"markup","message":"true","editor-quick-suggestions":"false","fig-height":5,"out-height":"","context":"interactive","fig-cap":"","out-width":"700px","output":"true","editor-font-scale":"1","label":"unnamed-chunk-3","classes":"","editor-word-wrap":"true"}},{"id":4,"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\nfull_table <- full_table_aet04_pi(adsl, adae_max) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  )\n\nat_least_30percent_any <- has_fraction_in_any_col(atleast = 0.3, col_indices = c(1, 4, 7))\n\nat_least_15percent_diff <- has_fractions_difference(atleast = 0.15, col_indices = c(1, 4, 7))\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_30percent_any & at_least_15percent_diff))\n\nresult","options":{"dpi":72,"read-only":"false","fig-width":7,"comment":"","editor-max-height":"500","warning":"true","autorun":"true","results":"markup","message":"true","editor-quick-suggestions":"false","fig-height":5,"out-height":"","context":"interactive","fig-cap":"","out-width":"700px","output":"true","editor-font-scale":"1","label":"unnamed-chunk-4","classes":"","editor-word-wrap":"true"}},{"id":5,"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\nfull_table <- full_table_aet04_pi(adsl, adae_max) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  )\n\nat_least_40percent_any <- has_fraction_in_any_col(atleast = 0.4, col_indices = c(1, 4, 7))\n\nat_least_20percent_g34 <- has_fraction_in_any_col(atleast = 0.20, col_indices = c(2, 5, 8))\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_40percent_any | at_least_20percent_g34))\n\nresult","options":{"dpi":72,"read-only":"false","fig-width":7,"comment":"","editor-max-height":"500","warning":"true","autorun":"true","results":"markup","message":"true","editor-quick-suggestions":"false","fig-height":5,"out-height":"","context":"interactive","fig-cap":"","out-width":"700px","output":"true","editor-font-scale":"1","label":"unnamed-chunk-5","classes":"","editor-word-wrap":"true"}},{"id":6,"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\ngrade_groups <- list(\n  \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n  \"Grade 1-2 (%)\" = c(\"1\", \"2\"),\n  \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n  \"Grade 5 (%)\" = \"5\"\n)\n\ncol_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n\nfull_table <- basic_table() %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n  split_rows_by(\"AEBODSYS\",\n    child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n    split_fun = trim_levels_in_group(\"AEDECOD\")\n  ) %>%\n  append_topleft(\"MedDRA System Organ Class\") %>%\n  summarize_num_patients(\n    var = \"USUBJID\",\n    .stats = \"unique\",\n    .labels = \"Total number of patients with at least one adverse event\"\n  ) %>%\n  analyze_vars(\n    \"AEDECOD\",\n    na.rm = FALSE,\n    denom = \"N_col\",\n    .stats = \"count_fraction\",\n    .formats = c(count_fraction = format_fraction_threshold(0.01))\n  ) %>%\n  append_topleft(\"  MedDRA Preferred Term\") %>%\n  build_table(adae_max, col_counts = col_counts) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 5, 9)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 5, 9)),\n    decreasing = TRUE\n  )\n\nat_least_40percent_any <- has_fraction_in_any_col(atleast = 0.4, col_indices = c(1, 5, 9))\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_40percent_any))\n\nresult","options":{"dpi":72,"read-only":"false","fig-width":7,"comment":"","editor-max-height":"500","warning":"true","autorun":"true","results":"markup","message":"true","editor-quick-suggestions":"false","fig-height":5,"out-height":"","context":"interactive","fig-cap":"","out-width":"700px","output":"true","editor-font-scale":"1","label":"unnamed-chunk-6","classes":"","editor-word-wrap":"true"}},{"id":7,"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\ngrade_groups <- list(\n  \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n  \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n  \"Grade 3-5 (%)\" = c(\"3\", \"4\", \"5\"),\n  \"Grade 5 (%)\" = \"5\"\n)\n\ncol_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\nfull_table <- basic_table() %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n  split_rows_by(\"AEBODSYS\",\n    child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n    split_fun = trim_levels_in_group(\"AEDECOD\")\n  ) %>%\n  append_topleft(\"MedDRA System Organ Class\") %>%\n  summarize_num_patients(\n    var = \"USUBJID\",\n    .stats = \"unique\",\n    .labels = \"Total number of patients with at least one adverse event\"\n  ) %>%\n  analyze_vars(\n    \"AEDECOD\",\n    na.rm = FALSE,\n    denom = \"N_col\",\n    .stats = \"count_fraction\",\n    .formats = c(count_fraction = format_fraction_threshold(0.01))\n  ) %>%\n  append_topleft(\"  MedDRA Preferred Term\") %>%\n  build_table(adae_max, col_counts = col_counts) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 5, 9)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 5, 9)),\n    decreasing = TRUE\n  )\n\nat_least_40percent_any <- has_fraction_in_any_col(atleast = 0.4, col_indices = c(1, 5, 9))\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_40percent_any))\n\nresult","options":{"dpi":72,"read-only":"false","fig-width":7,"comment":"","editor-max-height":"500","warning":"true","autorun":"true","results":"markup","message":"true","editor-quick-suggestions":"false","fig-height":5,"out-height":"","context":"interactive","fig-cap":"","out-width":"700px","output":"true","editor-font-scale":"1","label":"unnamed-chunk-7","classes":"","editor-word-wrap":"true"}},{"id":8,"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\ngrade_groups <- list(\n  \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n  \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n  \"Grade 5 (%)\" = \"5\"\n)\n\ncol_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n\nfull_table <- basic_table() %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n  analyze_vars(\n    \"AEDECOD\",\n    na.rm = FALSE,\n    denom = \"N_col\",\n    .stats = \"count_fraction\",\n    .formats = c(count_fraction = format_fraction_threshold(0.01))\n  ) %>%\n  append_topleft(\"MedDRA Preferred Term\") %>%\n  build_table(adae_max, col_counts = col_counts)\n\nat_least_20percent_any <- has_fraction_in_any_col(atleast = 0.2, col_indices = c(1, 4, 7))\n\nresult <- full_table %>%\n  prune_table(keep_rows(at_least_20percent_any)) %>%\n  sort_at_path(\n    path = c(\"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  )\n\nresult","options":{"dpi":72,"read-only":"false","fig-width":7,"comment":"","editor-max-height":"500","warning":"true","autorun":"true","results":"markup","message":"true","editor-quick-suggestions":"false","fig-height":5,"out-height":"","context":"interactive","fig-cap":"","out-width":"700px","output":"true","editor-font-scale":"1","label":"unnamed-chunk-8","classes":"","editor-word-wrap":"true"}}];
+globalThis.qwebrCellDetails = [{"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\nfull_table <- full_table_aet04_pi(adsl, adae_max) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  )\n\nat_least_10percent_any <- has_fraction_in_any_col(atleast = 0.1, col_indices = c(1, 4, 7))\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_10percent_any))\n\nresult","options":{"fig-cap":"","editor-quick-suggestions":"false","autorun":"true","out-height":"","results":"markup","editor-max-height":"500","fig-height":5,"message":"true","comment":"","editor-word-wrap":"true","context":"interactive","dpi":72,"fig-width":7,"out-width":"700px","warning":"true","output":"true","label":"unnamed-chunk-1","editor-font-scale":"1","classes":"","read-only":"false"},"id":1},{"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\nfull_table <- full_table_aet04_pi(adsl, adae_max) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  )\n\nat_least_37percent_any_drugx <- has_fraction_in_cols(atleast = 0.37, col_indices = 1)\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_37percent_any_drugx))\n\nresult","options":{"fig-cap":"","editor-quick-suggestions":"false","autorun":"true","out-height":"","results":"markup","editor-max-height":"500","fig-height":5,"message":"true","comment":"","editor-word-wrap":"true","context":"interactive","dpi":72,"fig-width":7,"out-width":"700px","warning":"true","output":"true","label":"unnamed-chunk-2","editor-font-scale":"1","classes":"","read-only":"false"},"id":2},{"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\nfull_table <- full_table_aet04_pi(adsl, adae_max) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  )\n\nat_least_40percent_any <- has_fraction_in_any_col(atleast = 0.40, col_indices = c(1, 4, 7))\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_40percent_any))\n\nresult","options":{"fig-cap":"","editor-quick-suggestions":"false","autorun":"true","out-height":"","results":"markup","editor-max-height":"500","fig-height":5,"message":"true","comment":"","editor-word-wrap":"true","context":"interactive","dpi":72,"fig-width":7,"out-width":"700px","warning":"true","output":"true","label":"unnamed-chunk-3","editor-font-scale":"1","classes":"","read-only":"false"},"id":3},{"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\nfull_table <- full_table_aet04_pi(adsl, adae_max) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  )\n\nat_least_30percent_any <- has_fraction_in_any_col(atleast = 0.3, col_indices = c(1, 4, 7))\n\nat_least_15percent_diff <- has_fractions_difference(atleast = 0.15, col_indices = c(1, 4, 7))\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_30percent_any & at_least_15percent_diff))\n\nresult","options":{"fig-cap":"","editor-quick-suggestions":"false","autorun":"true","out-height":"","results":"markup","editor-max-height":"500","fig-height":5,"message":"true","comment":"","editor-word-wrap":"true","context":"interactive","dpi":72,"fig-width":7,"out-width":"700px","warning":"true","output":"true","label":"unnamed-chunk-4","editor-font-scale":"1","classes":"","read-only":"false"},"id":4},{"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\nfull_table <- full_table_aet04_pi(adsl, adae_max) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  )\n\nat_least_40percent_any <- has_fraction_in_any_col(atleast = 0.4, col_indices = c(1, 4, 7))\n\nat_least_20percent_g34 <- has_fraction_in_any_col(atleast = 0.20, col_indices = c(2, 5, 8))\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_40percent_any | at_least_20percent_g34))\n\nresult","options":{"fig-cap":"","editor-quick-suggestions":"false","autorun":"true","out-height":"","results":"markup","editor-max-height":"500","fig-height":5,"message":"true","comment":"","editor-word-wrap":"true","context":"interactive","dpi":72,"fig-width":7,"out-width":"700px","warning":"true","output":"true","label":"unnamed-chunk-5","editor-font-scale":"1","classes":"","read-only":"false"},"id":5},{"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\ngrade_groups <- list(\n  \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n  \"Grade 1-2 (%)\" = c(\"1\", \"2\"),\n  \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n  \"Grade 5 (%)\" = \"5\"\n)\n\ncol_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n\nfull_table <- basic_table() %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n  split_rows_by(\"AEBODSYS\",\n    child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n    split_fun = trim_levels_in_group(\"AEDECOD\")\n  ) %>%\n  append_topleft(\"MedDRA System Organ Class\") %>%\n  summarize_num_patients(\n    var = \"USUBJID\",\n    .stats = \"unique\",\n    .labels = \"Total number of patients with at least one adverse event\"\n  ) %>%\n  analyze_vars(\n    \"AEDECOD\",\n    na.rm = FALSE,\n    denom = \"N_col\",\n    .stats = \"count_fraction\",\n    .formats = c(count_fraction = format_fraction_threshold(0.01))\n  ) %>%\n  append_topleft(\"  MedDRA Preferred Term\") %>%\n  build_table(adae_max, col_counts = col_counts) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 5, 9)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 5, 9)),\n    decreasing = TRUE\n  )\n\nat_least_40percent_any <- has_fraction_in_any_col(atleast = 0.4, col_indices = c(1, 5, 9))\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_40percent_any))\n\nresult","options":{"fig-cap":"","editor-quick-suggestions":"false","autorun":"true","out-height":"","results":"markup","editor-max-height":"500","fig-height":5,"message":"true","comment":"","editor-word-wrap":"true","context":"interactive","dpi":72,"fig-width":7,"out-width":"700px","warning":"true","output":"true","label":"unnamed-chunk-6","editor-font-scale":"1","classes":"","read-only":"false"},"id":6},{"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\ngrade_groups <- list(\n  \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n  \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n  \"Grade 3-5 (%)\" = c(\"3\", \"4\", \"5\"),\n  \"Grade 5 (%)\" = \"5\"\n)\n\ncol_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\nfull_table <- basic_table() %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n  split_rows_by(\"AEBODSYS\",\n    child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n    split_fun = trim_levels_in_group(\"AEDECOD\")\n  ) %>%\n  append_topleft(\"MedDRA System Organ Class\") %>%\n  summarize_num_patients(\n    var = \"USUBJID\",\n    .stats = \"unique\",\n    .labels = \"Total number of patients with at least one adverse event\"\n  ) %>%\n  analyze_vars(\n    \"AEDECOD\",\n    na.rm = FALSE,\n    denom = \"N_col\",\n    .stats = \"count_fraction\",\n    .formats = c(count_fraction = format_fraction_threshold(0.01))\n  ) %>%\n  append_topleft(\"  MedDRA Preferred Term\") %>%\n  build_table(adae_max, col_counts = col_counts) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\"),\n    scorefun = score_occurrences_cont_cols(col_indices = c(1, 5, 9)),\n    decreasing = TRUE\n  ) %>%\n  sort_at_path(\n    path = c(\"AEBODSYS\", \"*\", \"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 5, 9)),\n    decreasing = TRUE\n  )\n\nat_least_40percent_any <- has_fraction_in_any_col(atleast = 0.4, col_indices = c(1, 5, 9))\n\nresult <- full_table %>%\n  trim_rows(criteria = criteria_fun) %>%\n  prune_table(keep_rows(at_least_40percent_any))\n\nresult","options":{"fig-cap":"","editor-quick-suggestions":"false","autorun":"true","out-height":"","results":"markup","editor-max-height":"500","fig-height":5,"message":"true","comment":"","editor-word-wrap":"true","context":"interactive","dpi":72,"fig-width":7,"out-width":"700px","warning":"true","output":"true","label":"unnamed-chunk-7","editor-font-scale":"1","classes":"","read-only":"false"},"id":7},{"code":"library(dplyr)\nlibrary(tern)\n\npreprocess_adae <- function(adae) {\n  adae %>%\n    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %>%\n    dplyr::summarize(\n      MAXAETOXGR = max(as.numeric(AETOXGR)),\n      .groups = \"drop\"\n    ) %>%\n    dplyr::ungroup() %>%\n    dplyr::mutate(\n      MAXAETOXGR = factor(MAXAETOXGR),\n      AEDECOD = droplevels(as.factor(AEDECOD))\n    )\n}\n\nfull_table_aet04_pi <- function(adsl, adae_max) {\n  grade_groups <- list(\n    \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n    \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n    \"Grade 5 (%)\" = \"5\"\n  )\n\n  col_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n  basic_table() %>%\n    split_cols_by(\"ACTARM\") %>%\n    split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n    split_rows_by(\"AEBODSYS\",\n      child_labels = \"visible\", nested = FALSE, indent_mod = -1L,\n      split_fun = trim_levels_in_group(\"AEDECOD\")\n    ) %>%\n    append_topleft(\"MedDRA System Organ Class\") %>%\n    summarize_num_patients(\n      var = \"USUBJID\",\n      .stats = \"unique\",\n      .labels = \"Total number of patients with at least one adverse event\"\n    ) %>%\n    analyze_vars(\n      \"AEDECOD\",\n      na.rm = FALSE,\n      denom = \"N_col\",\n      .stats = \"count_fraction\",\n      .formats = c(count_fraction = format_fraction_threshold(0.01))\n    ) %>%\n    append_topleft(\"  MedDRA Preferred Term\") %>%\n    build_table(adae_max, col_counts = col_counts)\n}\n\ncriteria_fun <- function(tr) {\n  is(tr, \"ContentRow\")\n}\n\nadsl <- random.cdisc.data::cadsl\nadae_max <- random.cdisc.data::cadae %>%\n  preprocess_adae() %>%\n  df_explicit_na()\ngrade_groups <- list(\n  \"Any Grade (%)\" = c(\"1\", \"2\", \"3\", \"4\", \"5\"),\n  \"Grade 3-4 (%)\" = c(\"3\", \"4\"),\n  \"Grade 5 (%)\" = \"5\"\n)\n\ncol_counts <- rep(table(adsl$ACTARM), each = length(grade_groups))\n\nfull_table <- basic_table() %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_cols_by_groups(\"MAXAETOXGR\", groups_list = grade_groups) %>%\n  analyze_vars(\n    \"AEDECOD\",\n    na.rm = FALSE,\n    denom = \"N_col\",\n    .stats = \"count_fraction\",\n    .formats = c(count_fraction = format_fraction_threshold(0.01))\n  ) %>%\n  append_topleft(\"MedDRA Preferred Term\") %>%\n  build_table(adae_max, col_counts = col_counts)\n\nat_least_20percent_any <- has_fraction_in_any_col(atleast = 0.2, col_indices = c(1, 4, 7))\n\nresult <- full_table %>%\n  prune_table(keep_rows(at_least_20percent_any)) %>%\n  sort_at_path(\n    path = c(\"AEDECOD\"),\n    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),\n    decreasing = TRUE\n  )\n\nresult","options":{"fig-cap":"","editor-quick-suggestions":"false","autorun":"true","out-height":"","results":"markup","editor-max-height":"500","fig-height":5,"message":"true","comment":"","editor-word-wrap":"true","context":"interactive","dpi":72,"fig-width":7,"out-width":"700px","warning":"true","output":"true","label":"unnamed-chunk-8","editor-font-scale":"1","classes":"","read-only":"false"},"id":8}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -4068,44 +4068,49 @@ Experimental use!
 <span id="cb18-7"><a href="#cb18-7"></a>  ADAE <span class="ot">&lt;-</span> random.cdisc.data<span class="sc">::</span>cadae</span>
 <span id="cb18-8"><a href="#cb18-8"></a>})</span>
 <span id="cb18-9"><a href="#cb18-9"></a>datanames <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ADSL"</span>, <span class="st">"ADAE"</span>)</span>
-<span id="cb18-10"><a href="#cb18-10"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
-<span id="cb18-11"><a href="#cb18-11"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
-<span id="cb18-12"><a href="#cb18-12"></a></span>
-<span id="cb18-13"><a href="#cb18-13"></a><span class="do">## Reusable Configuration For Modules</span></span>
-<span id="cb18-14"><a href="#cb18-14"></a>ADAE <span class="ot">&lt;-</span> data[[<span class="st">"ADAE"</span>]]</span>
-<span id="cb18-15"><a href="#cb18-15"></a></span>
-<span id="cb18-16"><a href="#cb18-16"></a><span class="do">## Setup App</span></span>
-<span id="cb18-17"><a href="#cb18-17"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb18-18"><a href="#cb18-18"></a>  <span class="at">data =</span> data,</span>
-<span id="cb18-19"><a href="#cb18-19"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb18-20"><a href="#cb18-20"></a>    <span class="fu">tm_t_events_by_grade</span>(</span>
-<span id="cb18-21"><a href="#cb18-21"></a>      <span class="at">label =</span> <span class="st">"Adverse Events by Grade Table"</span>,</span>
-<span id="cb18-22"><a href="#cb18-22"></a>      <span class="at">dataname =</span> <span class="st">"ADAE"</span>,</span>
-<span id="cb18-23"><a href="#cb18-23"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>), <span class="st">"ARM"</span>),</span>
-<span id="cb18-24"><a href="#cb18-24"></a>      <span class="at">col_by_grade =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb18-25"><a href="#cb18-25"></a>      <span class="at">llt =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb18-26"><a href="#cb18-26"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="fu">c</span>(<span class="st">"AETERM"</span>, <span class="st">"AEDECOD"</span>)),</span>
-<span id="cb18-27"><a href="#cb18-27"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">"AEDECOD"</span>)</span>
-<span id="cb18-28"><a href="#cb18-28"></a>      ),</span>
-<span id="cb18-29"><a href="#cb18-29"></a>      <span class="at">hlt =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb18-30"><a href="#cb18-30"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="fu">c</span>(<span class="st">"AEBODSYS"</span>, <span class="st">"AESOC"</span>)),</span>
-<span id="cb18-31"><a href="#cb18-31"></a>        <span class="at">selected =</span> <span class="st">"AEBODSYS"</span></span>
-<span id="cb18-32"><a href="#cb18-32"></a>      ),</span>
-<span id="cb18-33"><a href="#cb18-33"></a>      <span class="at">grade =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb18-34"><a href="#cb18-34"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="fu">c</span>(<span class="st">"AETOXGR"</span>, <span class="st">"AESEV"</span>)),</span>
-<span id="cb18-35"><a href="#cb18-35"></a>        <span class="at">selected =</span> <span class="st">"AETOXGR"</span></span>
-<span id="cb18-36"><a href="#cb18-36"></a>      ),</span>
-<span id="cb18-37"><a href="#cb18-37"></a>      <span class="co"># List of column groups for grades used when `col_by_grade` = TRUE.</span></span>
-<span id="cb18-38"><a href="#cb18-38"></a>      <span class="at">grading_groups =</span> <span class="fu">list</span>(</span>
-<span id="cb18-39"><a href="#cb18-39"></a>        <span class="st">`</span><span class="at">Any Grade (%)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span>),</span>
-<span id="cb18-40"><a href="#cb18-40"></a>        <span class="st">`</span><span class="at">Grade 3-4 (%)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"3"</span>, <span class="st">"4"</span>),</span>
-<span id="cb18-41"><a href="#cb18-41"></a>        <span class="st">`</span><span class="at">Grade 5 (%)</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"5"</span></span>
-<span id="cb18-42"><a href="#cb18-42"></a>      )</span>
-<span id="cb18-43"><a href="#cb18-43"></a>    )</span>
-<span id="cb18-44"><a href="#cb18-44"></a>  )</span>
-<span id="cb18-45"><a href="#cb18-45"></a>)</span>
-<span id="cb18-46"><a href="#cb18-46"></a></span>
-<span id="cb18-47"><a href="#cb18-47"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb18-10"><a href="#cb18-10"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stderr">
+<pre><code>Warning: `datanames&lt;-()` was deprecated in teal.data 0.6.1.
+ℹ invalid to use `datanames()&lt;-` or `names()&lt;-` on an object of class
+  `teal_data`. See ?names.teal_data</code></pre>
+</div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="do">## Reusable Configuration For Modules</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a>ADAE <span class="ot">&lt;-</span> data[[<span class="st">"ADAE"</span>]]</span>
+<span id="cb20-5"><a href="#cb20-5"></a></span>
+<span id="cb20-6"><a href="#cb20-6"></a><span class="do">## Setup App</span></span>
+<span id="cb20-7"><a href="#cb20-7"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb20-8"><a href="#cb20-8"></a>  <span class="at">data =</span> data,</span>
+<span id="cb20-9"><a href="#cb20-9"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb20-10"><a href="#cb20-10"></a>    <span class="fu">tm_t_events_by_grade</span>(</span>
+<span id="cb20-11"><a href="#cb20-11"></a>      <span class="at">label =</span> <span class="st">"Adverse Events by Grade Table"</span>,</span>
+<span id="cb20-12"><a href="#cb20-12"></a>      <span class="at">dataname =</span> <span class="st">"ADAE"</span>,</span>
+<span id="cb20-13"><a href="#cb20-13"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>), <span class="st">"ARM"</span>),</span>
+<span id="cb20-14"><a href="#cb20-14"></a>      <span class="at">col_by_grade =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb20-15"><a href="#cb20-15"></a>      <span class="at">llt =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb20-16"><a href="#cb20-16"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="fu">c</span>(<span class="st">"AETERM"</span>, <span class="st">"AEDECOD"</span>)),</span>
+<span id="cb20-17"><a href="#cb20-17"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">"AEDECOD"</span>)</span>
+<span id="cb20-18"><a href="#cb20-18"></a>      ),</span>
+<span id="cb20-19"><a href="#cb20-19"></a>      <span class="at">hlt =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb20-20"><a href="#cb20-20"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="fu">c</span>(<span class="st">"AEBODSYS"</span>, <span class="st">"AESOC"</span>)),</span>
+<span id="cb20-21"><a href="#cb20-21"></a>        <span class="at">selected =</span> <span class="st">"AEBODSYS"</span></span>
+<span id="cb20-22"><a href="#cb20-22"></a>      ),</span>
+<span id="cb20-23"><a href="#cb20-23"></a>      <span class="at">grade =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb20-24"><a href="#cb20-24"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(ADAE, <span class="fu">c</span>(<span class="st">"AETOXGR"</span>, <span class="st">"AESEV"</span>)),</span>
+<span id="cb20-25"><a href="#cb20-25"></a>        <span class="at">selected =</span> <span class="st">"AETOXGR"</span></span>
+<span id="cb20-26"><a href="#cb20-26"></a>      ),</span>
+<span id="cb20-27"><a href="#cb20-27"></a>      <span class="co"># List of column groups for grades used when `col_by_grade` = TRUE.</span></span>
+<span id="cb20-28"><a href="#cb20-28"></a>      <span class="at">grading_groups =</span> <span class="fu">list</span>(</span>
+<span id="cb20-29"><a href="#cb20-29"></a>        <span class="st">`</span><span class="at">Any Grade (%)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span>),</span>
+<span id="cb20-30"><a href="#cb20-30"></a>        <span class="st">`</span><span class="at">Grade 3-4 (%)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"3"</span>, <span class="st">"4"</span>),</span>
+<span id="cb20-31"><a href="#cb20-31"></a>        <span class="st">`</span><span class="at">Grade 5 (%)</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"5"</span></span>
+<span id="cb20-32"><a href="#cb20-32"></a>      )</span>
+<span id="cb20-33"><a href="#cb20-33"></a>    )</span>
+<span id="cb20-34"><a href="#cb20-34"></a>  )</span>
+<span id="cb20-35"><a href="#cb20-35"></a>)</span>
+<span id="cb20-36"><a href="#cb20-36"></a></span>
+<span id="cb20-37"><a href="#cb20-37"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="aet04_pi_files/figure-html/teal-1.png" class="img-fluid figure-img" width="1440"></p>
@@ -4137,66 +4142,66 @@ Experimental use!
 </div>
 </div>
 <div class="column-screen-inset-right">
-<div class="sourceCode" id="cb19" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb19-1"><a href="#cb19-1"></a>#| '!! shinylive warning !!': |</span>
-<span id="cb19-2"><a href="#cb19-2"></a>#|   shinylive does not work in self-contained HTML documents.</span>
-<span id="cb19-3"><a href="#cb19-3"></a>#|   Please set `embed-resources: false` in your metadata.</span>
-<span id="cb19-4"><a href="#cb19-4"></a>#| standalone: true</span>
-<span id="cb19-5"><a href="#cb19-5"></a>#| viewerHeight: 800</span>
-<span id="cb19-6"><a href="#cb19-6"></a>#| editorHeight: 200</span>
-<span id="cb19-7"><a href="#cb19-7"></a>#| components: [viewer, editor]</span>
-<span id="cb19-8"><a href="#cb19-8"></a>#| layout: vertical</span>
-<span id="cb19-9"><a href="#cb19-9"></a></span>
-<span id="cb19-10"><a href="#cb19-10"></a># -- WEBR HELPERS --</span>
-<span id="cb19-11"><a href="#cb19-11"></a>options(webr_pkg_repos = c("r-universe" = "https://pharmaverse.r-universe.dev", getOption("webr_pkg_repos")))</span>
-<span id="cb19-12"><a href="#cb19-12"></a></span>
-<span id="cb19-13"><a href="#cb19-13"></a># -- APP CODE --</span>
-<span id="cb19-14"><a href="#cb19-14"></a>library(teal.modules.clinical)</span>
-<span id="cb19-15"><a href="#cb19-15"></a></span>
-<span id="cb19-16"><a href="#cb19-16"></a>## Data reproducible code</span>
-<span id="cb19-17"><a href="#cb19-17"></a>data &lt;- teal_data()</span>
-<span id="cb19-18"><a href="#cb19-18"></a>data &lt;- within(data, {</span>
-<span id="cb19-19"><a href="#cb19-19"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
-<span id="cb19-20"><a href="#cb19-20"></a>  ADAE &lt;- random.cdisc.data::cadae</span>
-<span id="cb19-21"><a href="#cb19-21"></a>})</span>
-<span id="cb19-22"><a href="#cb19-22"></a>datanames &lt;- c("ADSL", "ADAE")</span>
-<span id="cb19-23"><a href="#cb19-23"></a>datanames(data) &lt;- datanames</span>
-<span id="cb19-24"><a href="#cb19-24"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
-<span id="cb19-25"><a href="#cb19-25"></a></span>
-<span id="cb19-26"><a href="#cb19-26"></a>## Reusable Configuration For Modules</span>
-<span id="cb19-27"><a href="#cb19-27"></a>ADAE &lt;- data[["ADAE"]]</span>
-<span id="cb19-28"><a href="#cb19-28"></a></span>
-<span id="cb19-29"><a href="#cb19-29"></a>## Setup App</span>
-<span id="cb19-30"><a href="#cb19-30"></a>app &lt;- init(</span>
-<span id="cb19-31"><a href="#cb19-31"></a>  data = data,</span>
-<span id="cb19-32"><a href="#cb19-32"></a>  modules = modules(</span>
-<span id="cb19-33"><a href="#cb19-33"></a>    tm_t_events_by_grade(</span>
-<span id="cb19-34"><a href="#cb19-34"></a>      label = "Adverse Events by Grade Table",</span>
-<span id="cb19-35"><a href="#cb19-35"></a>      dataname = "ADAE",</span>
-<span id="cb19-36"><a href="#cb19-36"></a>      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span>
-<span id="cb19-37"><a href="#cb19-37"></a>      col_by_grade = TRUE,</span>
-<span id="cb19-38"><a href="#cb19-38"></a>      llt = choices_selected(</span>
-<span id="cb19-39"><a href="#cb19-39"></a>        choices = variable_choices(ADAE, c("AETERM", "AEDECOD")),</span>
-<span id="cb19-40"><a href="#cb19-40"></a>        selected = c("AEDECOD")</span>
-<span id="cb19-41"><a href="#cb19-41"></a>      ),</span>
-<span id="cb19-42"><a href="#cb19-42"></a>      hlt = choices_selected(</span>
-<span id="cb19-43"><a href="#cb19-43"></a>        choices = variable_choices(ADAE, c("AEBODSYS", "AESOC")),</span>
-<span id="cb19-44"><a href="#cb19-44"></a>        selected = "AEBODSYS"</span>
-<span id="cb19-45"><a href="#cb19-45"></a>      ),</span>
-<span id="cb19-46"><a href="#cb19-46"></a>      grade = choices_selected(</span>
-<span id="cb19-47"><a href="#cb19-47"></a>        choices = variable_choices(ADAE, c("AETOXGR", "AESEV")),</span>
-<span id="cb19-48"><a href="#cb19-48"></a>        selected = "AETOXGR"</span>
-<span id="cb19-49"><a href="#cb19-49"></a>      ),</span>
-<span id="cb19-50"><a href="#cb19-50"></a>      # List of column groups for grades used when `col_by_grade` = TRUE.</span>
-<span id="cb19-51"><a href="#cb19-51"></a>      grading_groups = list(</span>
-<span id="cb19-52"><a href="#cb19-52"></a>        `Any Grade (%)` = c("1", "2", "3", "4", "5"),</span>
-<span id="cb19-53"><a href="#cb19-53"></a>        `Grade 3-4 (%)` = c("3", "4"),</span>
-<span id="cb19-54"><a href="#cb19-54"></a>        `Grade 5 (%)` = "5"</span>
-<span id="cb19-55"><a href="#cb19-55"></a>      )</span>
-<span id="cb19-56"><a href="#cb19-56"></a>    )</span>
-<span id="cb19-57"><a href="#cb19-57"></a>  )</span>
-<span id="cb19-58"><a href="#cb19-58"></a>)</span>
-<span id="cb19-59"><a href="#cb19-59"></a></span>
-<span id="cb19-60"><a href="#cb19-60"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb21" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb21-1"><a href="#cb21-1"></a>#| '!! shinylive warning !!': |</span>
+<span id="cb21-2"><a href="#cb21-2"></a>#|   shinylive does not work in self-contained HTML documents.</span>
+<span id="cb21-3"><a href="#cb21-3"></a>#|   Please set `embed-resources: false` in your metadata.</span>
+<span id="cb21-4"><a href="#cb21-4"></a>#| standalone: true</span>
+<span id="cb21-5"><a href="#cb21-5"></a>#| viewerHeight: 800</span>
+<span id="cb21-6"><a href="#cb21-6"></a>#| editorHeight: 200</span>
+<span id="cb21-7"><a href="#cb21-7"></a>#| components: [viewer, editor]</span>
+<span id="cb21-8"><a href="#cb21-8"></a>#| layout: vertical</span>
+<span id="cb21-9"><a href="#cb21-9"></a></span>
+<span id="cb21-10"><a href="#cb21-10"></a># -- WEBR HELPERS --</span>
+<span id="cb21-11"><a href="#cb21-11"></a>options(webr_pkg_repos = c("r-universe" = "https://pharmaverse.r-universe.dev", getOption("webr_pkg_repos")))</span>
+<span id="cb21-12"><a href="#cb21-12"></a></span>
+<span id="cb21-13"><a href="#cb21-13"></a># -- APP CODE --</span>
+<span id="cb21-14"><a href="#cb21-14"></a>library(teal.modules.clinical)</span>
+<span id="cb21-15"><a href="#cb21-15"></a></span>
+<span id="cb21-16"><a href="#cb21-16"></a>## Data reproducible code</span>
+<span id="cb21-17"><a href="#cb21-17"></a>data &lt;- teal_data()</span>
+<span id="cb21-18"><a href="#cb21-18"></a>data &lt;- within(data, {</span>
+<span id="cb21-19"><a href="#cb21-19"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
+<span id="cb21-20"><a href="#cb21-20"></a>  ADAE &lt;- random.cdisc.data::cadae</span>
+<span id="cb21-21"><a href="#cb21-21"></a>})</span>
+<span id="cb21-22"><a href="#cb21-22"></a>datanames &lt;- c("ADSL", "ADAE")</span>
+<span id="cb21-23"><a href="#cb21-23"></a>datanames(data) &lt;- datanames</span>
+<span id="cb21-24"><a href="#cb21-24"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
+<span id="cb21-25"><a href="#cb21-25"></a></span>
+<span id="cb21-26"><a href="#cb21-26"></a>## Reusable Configuration For Modules</span>
+<span id="cb21-27"><a href="#cb21-27"></a>ADAE &lt;- data[["ADAE"]]</span>
+<span id="cb21-28"><a href="#cb21-28"></a></span>
+<span id="cb21-29"><a href="#cb21-29"></a>## Setup App</span>
+<span id="cb21-30"><a href="#cb21-30"></a>app &lt;- init(</span>
+<span id="cb21-31"><a href="#cb21-31"></a>  data = data,</span>
+<span id="cb21-32"><a href="#cb21-32"></a>  modules = modules(</span>
+<span id="cb21-33"><a href="#cb21-33"></a>    tm_t_events_by_grade(</span>
+<span id="cb21-34"><a href="#cb21-34"></a>      label = "Adverse Events by Grade Table",</span>
+<span id="cb21-35"><a href="#cb21-35"></a>      dataname = "ADAE",</span>
+<span id="cb21-36"><a href="#cb21-36"></a>      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span>
+<span id="cb21-37"><a href="#cb21-37"></a>      col_by_grade = TRUE,</span>
+<span id="cb21-38"><a href="#cb21-38"></a>      llt = choices_selected(</span>
+<span id="cb21-39"><a href="#cb21-39"></a>        choices = variable_choices(ADAE, c("AETERM", "AEDECOD")),</span>
+<span id="cb21-40"><a href="#cb21-40"></a>        selected = c("AEDECOD")</span>
+<span id="cb21-41"><a href="#cb21-41"></a>      ),</span>
+<span id="cb21-42"><a href="#cb21-42"></a>      hlt = choices_selected(</span>
+<span id="cb21-43"><a href="#cb21-43"></a>        choices = variable_choices(ADAE, c("AEBODSYS", "AESOC")),</span>
+<span id="cb21-44"><a href="#cb21-44"></a>        selected = "AEBODSYS"</span>
+<span id="cb21-45"><a href="#cb21-45"></a>      ),</span>
+<span id="cb21-46"><a href="#cb21-46"></a>      grade = choices_selected(</span>
+<span id="cb21-47"><a href="#cb21-47"></a>        choices = variable_choices(ADAE, c("AETOXGR", "AESEV")),</span>
+<span id="cb21-48"><a href="#cb21-48"></a>        selected = "AETOXGR"</span>
+<span id="cb21-49"><a href="#cb21-49"></a>      ),</span>
+<span id="cb21-50"><a href="#cb21-50"></a>      # List of column groups for grades used when `col_by_grade` = TRUE.</span>
+<span id="cb21-51"><a href="#cb21-51"></a>      grading_groups = list(</span>
+<span id="cb21-52"><a href="#cb21-52"></a>        `Any Grade (%)` = c("1", "2", "3", "4", "5"),</span>
+<span id="cb21-53"><a href="#cb21-53"></a>        `Grade 3-4 (%)` = c("3", "4"),</span>
+<span id="cb21-54"><a href="#cb21-54"></a>        `Grade 5 (%)` = "5"</span>
+<span id="cb21-55"><a href="#cb21-55"></a>      )</span>
+<span id="cb21-56"><a href="#cb21-56"></a>    )</span>
+<span id="cb21-57"><a href="#cb21-57"></a>  )</span>
+<span id="cb21-58"><a href="#cb21-58"></a>)</span>
+<span id="cb21-59"><a href="#cb21-59"></a></span>
+<span id="cb21-60"><a href="#cb21-60"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -4205,7 +4210,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-11-09 18:11:03 UTC"</code></pre>
+<pre><code>[1] "2024-11-13 18:06:54 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -4221,112 +4226,113 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-11-09
+ date     2024-11-13
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
- package               * version  date (UTC) lib source
- backports               1.5.0    2024-05-23 [1] RSPM
- brio                    1.1.5    2024-04-24 [1] RSPM
- broom                   1.0.7    2024-09-26 [1] RSPM
- bslib                   0.8.0    2024-07-29 [1] RSPM
- cachem                  1.1.0    2024-05-16 [1] RSPM
- callr                   3.7.6    2024-03-25 [1] RSPM
- checkmate               2.3.2    2024-07-29 [1] RSPM
- chromote                0.3.1    2024-08-30 [1] RSPM
- cli                     3.6.3    2024-06-21 [1] RSPM
- coda                    0.19-4.1 2024-01-31 [1] CRAN (R 4.4.1)
- codetools               0.2-20   2024-03-31 [2] CRAN (R 4.4.1)
- colorspace              2.1-1    2024-07-26 [1] RSPM
- curl                    6.0.0    2024-11-05 [1] RSPM
- digest                  0.6.37   2024-08-19 [1] RSPM
- dplyr                 * 1.1.4    2023-11-17 [1] RSPM
- emmeans                 1.10.5   2024-10-14 [1] RSPM
- estimability            1.5.1    2024-05-12 [1] RSPM
- evaluate                1.0.1    2024-10-10 [1] RSPM
- fansi                   1.0.6    2023-12-08 [1] RSPM
- fastmap                 1.2.0    2024-05-15 [1] RSPM
- fontawesome             0.5.2    2023-08-19 [1] RSPM
- forcats                 1.0.0    2023-01-29 [1] RSPM
- formatR                 1.14     2023-01-17 [1] CRAN (R 4.4.1)
- formatters            * 0.5.9    2024-09-12 [1] RSPM
- geepack                 1.3.12   2024-09-23 [1] RSPM
- generics                0.1.3    2022-07-05 [1] RSPM
- ggplot2                 3.5.1    2024-04-23 [1] RSPM
- glue                    1.8.0    2024-09-30 [1] RSPM
- gtable                  0.3.6    2024-10-25 [1] RSPM
- htmltools               0.5.8.1  2024-04-04 [1] RSPM
- htmlwidgets             1.6.4    2023-12-06 [1] RSPM
- httpuv                  1.6.15   2024-03-26 [1] RSPM
- jquerylib               0.1.4    2021-04-26 [1] RSPM
- jsonlite                1.8.9    2024-09-20 [1] RSPM
- knitr                   1.49     2024-11-08 [1] RSPM
- later                   1.3.2    2023-12-06 [1] RSPM
- lattice                 0.22-6   2024-03-20 [2] CRAN (R 4.4.1)
- lifecycle               1.0.4    2023-11-07 [1] RSPM
- logger                  0.4.0    2024-10-22 [1] RSPM
- magrittr              * 2.0.3    2022-03-30 [1] RSPM
- MASS                    7.3-61   2024-06-13 [2] CRAN (R 4.4.1)
- Matrix                  1.7-0    2024-04-26 [1] CRAN (R 4.4.1)
- memoise                 2.0.1    2021-11-26 [1] RSPM
- mime                    0.12     2021-09-28 [1] RSPM
- multcomp                1.4-26   2024-07-18 [1] CRAN (R 4.4.1)
- munsell                 0.5.1    2024-04-01 [1] RSPM
- mvtnorm                 1.3-2    2024-11-04 [1] RSPM
- nlme                    3.1-166  2024-08-14 [2] CRAN (R 4.4.1)
- pillar                  1.9.0    2023-03-22 [1] RSPM
- pkgcache                2.2.3    2024-09-12 [1] RSPM
- pkgconfig               2.0.3    2019-09-22 [1] RSPM
- processx                3.8.4    2024-03-16 [1] RSPM
- promises                1.3.0    2024-04-05 [1] RSPM
- ps                      1.8.1    2024-10-28 [1] RSPM
- purrr                   1.0.2    2023-08-10 [1] RSPM
- R6                      2.5.1    2021-08-19 [1] RSPM
- random.cdisc.data       0.3.16   2024-10-10 [1] RSPM
- rbibutils               2.3      2024-10-04 [1] RSPM
- Rcpp                    1.0.13-1 2024-11-02 [1] RSPM
- Rdpack                  2.6.1    2024-08-06 [1] RSPM
- rlang                   1.1.4    2024-06-04 [1] RSPM
- rmarkdown               2.29     2024-11-04 [1] RSPM
- rtables               * 0.6.10   2024-09-20 [1] RSPM
- sandwich                3.1-1    2024-09-15 [1] CRAN (R 4.4.1)
- sass                    0.4.9    2024-03-15 [1] RSPM
- scales                  1.3.0    2023-11-28 [1] RSPM
- sessioninfo             1.2.2    2021-12-06 [1] any (@1.2.2)
- shiny                 * 1.9.1    2024-08-01 [1] RSPM
- shinycssloaders         1.1.0    2024-07-30 [1] RSPM
- shinyjs                 2.1.0    2021-12-23 [1] RSPM
- shinyvalidate           0.1.3    2023-10-04 [1] RSPM
- shinyWidgets            0.8.7    2024-09-23 [1] RSPM
- stringi                 1.8.4    2024-05-06 [1] RSPM
- stringr                 1.5.1    2023-11-14 [1] RSPM
- survival                3.7-0    2024-06-05 [2] CRAN (R 4.4.1)
- teal                  * 0.15.2   2024-03-07 [1] RSPM
- teal.code             * 0.5.0    2024-01-11 [1] RSPM
- teal.data             * 0.6.0    2024-04-30 [1] RSPM
- teal.logger             0.3.0    2024-10-24 [1] RSPM
- teal.modules.clinical * 0.9.1    2024-04-27 [1] RSPM
- teal.reporter           0.3.1    2024-03-15 [1] RSPM
- teal.slice            * 0.5.1    2024-04-30 [1] RSPM
- teal.transform        * 0.5.0    2024-02-17 [1] RSPM
- teal.widgets            0.4.2    2023-12-14 [1] RSPM
- tern                  * 0.9.6    2024-09-24 [1] RSPM
- tern.gee                0.1.5    2024-08-23 [1] RSPM
- testthat                3.2.1.1  2024-04-14 [1] RSPM
- TH.data                 1.1-2    2023-04-17 [1] CRAN (R 4.4.1)
- tibble                  3.2.1    2023-03-20 [1] RSPM
- tidyr                   1.3.1    2024-01-24 [1] RSPM
- tidyselect              1.2.1    2024-03-11 [1] RSPM
- utf8                    1.2.4    2023-10-22 [1] RSPM
- vctrs                   0.6.5    2023-12-01 [1] RSPM
- webshot                 0.5.5    2023-06-26 [1] CRAN (R 4.4.1)
- webshot2                0.1.1    2023-08-11 [1] RSPM
- websocket               1.4.2    2024-07-22 [1] RSPM
- withr                   3.0.2    2024-10-28 [1] RSPM
- xfun                    0.49     2024-10-31 [1] RSPM
- xtable                  1.8-4    2019-04-21 [1] RSPM
- yaml                    2.3.10   2024-07-26 [1] RSPM
- zoo                     1.8-12   2023-04-13 [1] CRAN (R 4.4.1)
+ package               * version     date (UTC) lib source
+ backports               1.5.0       2024-05-23 [1] RSPM
+ brio                    1.1.5       2024-04-24 [1] RSPM
+ broom                   1.0.7       2024-09-26 [1] RSPM
+ bslib                   0.8.0       2024-07-29 [1] RSPM
+ cachem                  1.1.0       2024-05-16 [1] RSPM
+ callr                   3.7.6       2024-03-25 [1] RSPM
+ checkmate               2.3.2       2024-07-29 [1] RSPM
+ chromote                0.3.1       2024-08-30 [1] RSPM
+ cli                     3.6.3       2024-06-21 [1] RSPM
+ coda                    0.19-4.1    2024-01-31 [1] CRAN (R 4.4.1)
+ codetools               0.2-20      2024-03-31 [2] CRAN (R 4.4.1)
+ colorspace              2.1-1       2024-07-26 [1] RSPM
+ curl                    6.0.0       2024-11-05 [1] RSPM
+ digest                  0.6.37      2024-08-19 [1] RSPM
+ dplyr                 * 1.1.4       2023-11-17 [1] RSPM
+ emmeans                 1.10.5      2024-10-14 [1] RSPM
+ estimability            1.5.1       2024-05-12 [1] RSPM
+ evaluate                1.0.1       2024-10-10 [1] RSPM
+ fansi                   1.0.6       2023-12-08 [1] RSPM
+ fastmap                 1.2.0       2024-05-15 [1] RSPM
+ fontawesome             0.5.2       2023-08-19 [1] RSPM
+ forcats                 1.0.0       2023-01-29 [1] RSPM
+ formatR                 1.14        2023-01-17 [1] CRAN (R 4.4.1)
+ formatters            * 0.5.9.9003  2024-11-13 [1] https://p~
+ geepack                 1.3.12      2024-09-23 [1] RSPM
+ generics                0.1.3       2022-07-05 [1] RSPM
+ ggplot2                 3.5.1       2024-04-23 [1] RSPM
+ glue                    1.8.0       2024-09-30 [1] RSPM
+ gtable                  0.3.6       2024-10-25 [1] RSPM
+ htmltools               0.5.8.1     2024-04-04 [1] RSPM
+ htmlwidgets             1.6.4       2023-12-06 [1] RSPM
+ httpuv                  1.6.15      2024-03-26 [1] RSPM
+ jquerylib               0.1.4       2021-04-26 [1] RSPM
+ jsonlite                1.8.9       2024-09-20 [1] RSPM
+ knitr                   1.49        2024-11-08 [1] RSPM
+ later                   1.3.2       2023-12-06 [1] RSPM
+ lattice                 0.22-6      2024-03-20 [2] CRAN (R 4.4.1)
+ lifecycle               1.0.4       2023-11-07 [1] RSPM
+ logger                  0.4.0       2024-10-22 [1] RSPM
+ magrittr              * 2.0.3       2022-03-30 [1] RSPM
+ MASS                    7.3-61      2024-06-13 [2] CRAN (R 4.4.1)
+ Matrix                  1.7-1       2024-10-18 [1] RSPM
+ memoise                 2.0.1       2021-11-26 [1] RSPM
+ mime                    0.12        2021-09-28 [1] RSPM
+ multcomp                1.4-26      2024-07-18 [1] CRAN (R 4.4.1)
+ munsell                 0.5.1       2024-04-01 [1] RSPM
+ mvtnorm                 1.3-2       2024-11-04 [1] RSPM
+ nestcolor               0.1.2.9017  2024-11-13 [1] https://p~
+ nlme                    3.1-166     2024-08-14 [2] CRAN (R 4.4.1)
+ pillar                  1.9.0       2023-03-22 [1] RSPM
+ pkgcache                2.2.3       2024-09-12 [1] RSPM
+ pkgconfig               2.0.3       2019-09-22 [1] RSPM
+ processx                3.8.4       2024-03-16 [1] RSPM
+ promises                1.3.0       2024-04-05 [1] RSPM
+ ps                      1.8.1       2024-10-28 [1] RSPM
+ purrr                   1.0.2       2023-08-10 [1] RSPM
+ R6                      2.5.1       2021-08-19 [1] RSPM
+ random.cdisc.data       0.3.16.9001 2024-11-13 [1] https://p~
+ rbibutils               2.3         2024-10-04 [1] RSPM
+ Rcpp                    1.0.13-1    2024-11-02 [1] RSPM
+ Rdpack                  2.6.1       2024-08-06 [1] RSPM
+ rlang                   1.1.4       2024-06-04 [1] RSPM
+ rmarkdown               2.29        2024-11-04 [1] RSPM
+ rtables               * 0.6.10.9002 2024-11-13 [1] https://p~
+ sandwich                3.1-1       2024-09-15 [1] CRAN (R 4.4.1)
+ sass                    0.4.9       2024-03-15 [1] RSPM
+ scales                  1.3.0       2023-11-28 [1] RSPM
+ sessioninfo             1.2.2       2021-12-06 [1] any (@1.2.2)
+ shiny                 * 1.9.1       2024-08-01 [1] RSPM
+ shinycssloaders         1.1.0       2024-07-30 [1] RSPM
+ shinyjs                 2.1.0       2021-12-23 [1] RSPM
+ shinyvalidate           0.1.3       2023-10-04 [1] RSPM
+ shinyWidgets            0.8.7       2024-09-23 [1] RSPM
+ stringi                 1.8.4       2024-05-06 [1] RSPM
+ stringr                 1.5.1       2023-11-14 [1] RSPM
+ survival                3.7-0       2024-06-05 [2] CRAN (R 4.4.1)
+ teal                  * 0.15.2.9085 2024-11-13 [1] https://p~
+ teal.code             * 0.5.0.9016  2024-11-13 [1] https://p~
+ teal.data             * 0.6.0.9020  2024-11-13 [1] https://p~
+ teal.logger             0.3.0.9002  2024-11-13 [1] https://p~
+ teal.modules.clinical * 0.9.1.9031  2024-11-13 [1] https://p~
+ teal.reporter           0.3.1.9016  2024-11-13 [1] https://p~
+ teal.slice            * 0.5.1.9015  2024-11-13 [1] https://p~
+ teal.transform        * 0.5.0.9016  2024-11-13 [1] https://p~
+ teal.widgets            0.4.2.9022  2024-11-13 [1] https://p~
+ tern                  * 0.9.6.9015  2024-11-13 [1] https://p~
+ tern.gee                0.1.5.9004  2024-11-13 [1] https://p~
+ testthat                3.2.1.1     2024-04-14 [1] RSPM
+ TH.data                 1.1-2       2023-04-17 [1] CRAN (R 4.4.1)
+ tibble                  3.2.1       2023-03-20 [1] RSPM
+ tidyr                   1.3.1       2024-01-24 [1] RSPM
+ tidyselect              1.2.1       2024-03-11 [1] RSPM
+ utf8                    1.2.4       2023-10-22 [1] RSPM
+ vctrs                   0.6.5       2023-12-01 [1] RSPM
+ webshot                 0.5.5       2023-06-26 [1] CRAN (R 4.4.1)
+ webshot2                0.1.1       2023-08-11 [1] RSPM
+ websocket               1.4.2       2024-07-22 [1] RSPM
+ withr                   3.0.2       2024-10-28 [1] RSPM
+ xfun                    0.49        2024-10-31 [1] RSPM
+ xtable                  1.8-4       2019-04-21 [1] RSPM
+ yaml                    2.3.10      2024-07-26 [1] RSPM
+ zoo                     1.8-12      2023-04-13 [1] CRAN (R 4.4.1)
 
  [1] /usr/local/lib/R/site-library
  [2] /usr/local/lib/R/library
@@ -4968,497 +4974,497 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb22" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb22-1"><a href="#cb22-1"></a><span class="co">---</span></span>
-<span id="cb22-2"><a href="#cb22-2"></a><span class="an">title:</span><span class="co"> AET04_PI</span></span>
-<span id="cb22-3"><a href="#cb22-3"></a><span class="an">subtitle:</span><span class="co"> Adverse Events Reported in $\geq$ 10% of Patients by Highest NCI CTCAE Grade</span></span>
-<span id="cb22-4"><a href="#cb22-4"></a><span class="co">---</span></span>
-<span id="cb22-5"><a href="#cb22-5"></a></span>
-<span id="cb22-6"><a href="#cb22-6"></a>------------------------------------------------------------------------</span>
-<span id="cb22-7"><a href="#cb22-7"></a></span>
-<span id="cb22-8"><a href="#cb22-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb22-9"><a href="#cb22-9"></a></span>
-<span id="cb22-10"><a href="#cb22-10"></a>:::: {.panel-tabset}</span>
-<span id="cb22-11"><a href="#cb22-11"></a></span>
-<span id="cb22-12"><a href="#cb22-12"></a><span class="in">```{r setup, echo = FALSE}</span></span>
-<span id="cb22-13"><a href="#cb22-13"></a><span class="in">library(dplyr)</span></span>
-<span id="cb22-14"><a href="#cb22-14"></a><span class="in">library(tern)</span></span>
-<span id="cb22-15"><a href="#cb22-15"></a></span>
-<span id="cb22-16"><a href="#cb22-16"></a><span class="in">preprocess_adae &lt;- function(adae) {</span></span>
-<span id="cb22-17"><a href="#cb22-17"></a><span class="in">  adae %&gt;%</span></span>
-<span id="cb22-18"><a href="#cb22-18"></a><span class="in">    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %&gt;%</span></span>
-<span id="cb22-19"><a href="#cb22-19"></a><span class="in">    dplyr::summarize(</span></span>
-<span id="cb22-20"><a href="#cb22-20"></a><span class="in">      MAXAETOXGR = max(as.numeric(AETOXGR)),</span></span>
-<span id="cb22-21"><a href="#cb22-21"></a><span class="in">      .groups = "drop"</span></span>
-<span id="cb22-22"><a href="#cb22-22"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb22-23"><a href="#cb22-23"></a><span class="in">    dplyr::ungroup() %&gt;%</span></span>
-<span id="cb22-24"><a href="#cb22-24"></a><span class="in">    dplyr::mutate(</span></span>
-<span id="cb22-25"><a href="#cb22-25"></a><span class="in">      MAXAETOXGR = factor(MAXAETOXGR),</span></span>
-<span id="cb22-26"><a href="#cb22-26"></a><span class="in">      AEDECOD = droplevels(as.factor(AEDECOD))</span></span>
-<span id="cb22-27"><a href="#cb22-27"></a><span class="in">    )</span></span>
-<span id="cb22-28"><a href="#cb22-28"></a><span class="in">}</span></span>
-<span id="cb22-29"><a href="#cb22-29"></a></span>
-<span id="cb22-30"><a href="#cb22-30"></a><span class="in">full_table_aet04_pi &lt;- function(adsl, adae_max) {</span></span>
-<span id="cb22-31"><a href="#cb22-31"></a><span class="in">  grade_groups &lt;- list(</span></span>
-<span id="cb22-32"><a href="#cb22-32"></a><span class="in">    "Any Grade (%)" = c("1", "2", "3", "4", "5"),</span></span>
-<span id="cb22-33"><a href="#cb22-33"></a><span class="in">    "Grade 3-4 (%)" = c("3", "4"),</span></span>
-<span id="cb22-34"><a href="#cb22-34"></a><span class="in">    "Grade 5 (%)" = "5"</span></span>
-<span id="cb22-35"><a href="#cb22-35"></a><span class="in">  )</span></span>
-<span id="cb22-36"><a href="#cb22-36"></a></span>
-<span id="cb22-37"><a href="#cb22-37"></a><span class="in">  col_counts &lt;- rep(table(adsl$ACTARM), each = length(grade_groups))</span></span>
-<span id="cb22-38"><a href="#cb22-38"></a><span class="in">  basic_table() %&gt;%</span></span>
-<span id="cb22-39"><a href="#cb22-39"></a><span class="in">    split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb22-40"><a href="#cb22-40"></a><span class="in">    split_cols_by_groups("MAXAETOXGR", groups_list = grade_groups) %&gt;%</span></span>
-<span id="cb22-41"><a href="#cb22-41"></a><span class="in">    split_rows_by("AEBODSYS",</span></span>
-<span id="cb22-42"><a href="#cb22-42"></a><span class="in">      child_labels = "visible", nested = FALSE, indent_mod = -1L,</span></span>
-<span id="cb22-43"><a href="#cb22-43"></a><span class="in">      split_fun = trim_levels_in_group("AEDECOD")</span></span>
-<span id="cb22-44"><a href="#cb22-44"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb22-45"><a href="#cb22-45"></a><span class="in">    append_topleft("MedDRA System Organ Class") %&gt;%</span></span>
-<span id="cb22-46"><a href="#cb22-46"></a><span class="in">    summarize_num_patients(</span></span>
-<span id="cb22-47"><a href="#cb22-47"></a><span class="in">      var = "USUBJID",</span></span>
-<span id="cb22-48"><a href="#cb22-48"></a><span class="in">      .stats = "unique",</span></span>
-<span id="cb22-49"><a href="#cb22-49"></a><span class="in">      .labels = "Total number of patients with at least one adverse event"</span></span>
-<span id="cb22-50"><a href="#cb22-50"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb22-51"><a href="#cb22-51"></a><span class="in">    analyze_vars(</span></span>
-<span id="cb22-52"><a href="#cb22-52"></a><span class="in">      "AEDECOD",</span></span>
-<span id="cb22-53"><a href="#cb22-53"></a><span class="in">      na.rm = FALSE,</span></span>
-<span id="cb22-54"><a href="#cb22-54"></a><span class="in">      denom = "N_col",</span></span>
-<span id="cb22-55"><a href="#cb22-55"></a><span class="in">      .stats = "count_fraction",</span></span>
-<span id="cb22-56"><a href="#cb22-56"></a><span class="in">      .formats = c(count_fraction = format_fraction_threshold(0.01))</span></span>
-<span id="cb22-57"><a href="#cb22-57"></a><span class="in">    ) %&gt;%</span></span>
-<span id="cb22-58"><a href="#cb22-58"></a><span class="in">    append_topleft("  MedDRA Preferred Term") %&gt;%</span></span>
-<span id="cb22-59"><a href="#cb22-59"></a><span class="in">    build_table(adae_max, col_counts = col_counts)</span></span>
-<span id="cb22-60"><a href="#cb22-60"></a><span class="in">}</span></span>
-<span id="cb22-61"><a href="#cb22-61"></a></span>
-<span id="cb22-62"><a href="#cb22-62"></a><span class="in">criteria_fun &lt;- function(tr) {</span></span>
-<span id="cb22-63"><a href="#cb22-63"></a><span class="in">  is(tr, "ContentRow")</span></span>
-<span id="cb22-64"><a href="#cb22-64"></a><span class="in">}</span></span>
-<span id="cb22-65"><a href="#cb22-65"></a></span>
-<span id="cb22-66"><a href="#cb22-66"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb22-67"><a href="#cb22-67"></a><span class="in">adae_max &lt;- random.cdisc.data::cadae %&gt;%</span></span>
-<span id="cb22-68"><a href="#cb22-68"></a><span class="in">  preprocess_adae() %&gt;%</span></span>
-<span id="cb22-69"><a href="#cb22-69"></a><span class="in">  df_explicit_na()</span></span>
-<span id="cb22-70"><a href="#cb22-70"></a><span class="in">```</span></span>
-<span id="cb22-71"><a href="#cb22-71"></a></span>
-<span id="cb22-72"><a href="#cb22-72"></a><span class="fu">## Standard Table</span></span>
-<span id="cb22-73"><a href="#cb22-73"></a></span>
-<span id="cb22-74"><a href="#cb22-74"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb22-75"><a href="#cb22-75"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb22-76"><a href="#cb22-76"></a></span>
-<span id="cb22-77"><a href="#cb22-77"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb22-78"><a href="#cb22-78"></a><span class="in">full_table &lt;- full_table_aet04_pi(adsl, adae_max) %&gt;%</span></span>
-<span id="cb22-79"><a href="#cb22-79"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-80"><a href="#cb22-80"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb22-81"><a href="#cb22-81"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),</span></span>
-<span id="cb22-82"><a href="#cb22-82"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-83"><a href="#cb22-83"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-84"><a href="#cb22-84"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-85"><a href="#cb22-85"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb22-86"><a href="#cb22-86"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),</span></span>
-<span id="cb22-87"><a href="#cb22-87"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-88"><a href="#cb22-88"></a><span class="in">  )</span></span>
-<span id="cb22-89"><a href="#cb22-89"></a></span>
-<span id="cb22-90"><a href="#cb22-90"></a><span class="in">at_least_10percent_any &lt;- has_fraction_in_any_col(atleast = 0.1, col_indices = c(1, 4, 7))</span></span>
-<span id="cb22-91"><a href="#cb22-91"></a></span>
-<span id="cb22-92"><a href="#cb22-92"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
-<span id="cb22-93"><a href="#cb22-93"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
-<span id="cb22-94"><a href="#cb22-94"></a><span class="in">  prune_table(keep_rows(at_least_10percent_any))</span></span>
-<span id="cb22-95"><a href="#cb22-95"></a></span>
-<span id="cb22-96"><a href="#cb22-96"></a><span class="in">result</span></span>
-<span id="cb22-97"><a href="#cb22-97"></a><span class="in">```</span></span>
-<span id="cb22-98"><a href="#cb22-98"></a></span>
-<span id="cb22-99"><a href="#cb22-99"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
-<span id="cb22-100"><a href="#cb22-100"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb22-101"><a href="#cb22-101"></a>:::</span>
-<span id="cb22-102"><a href="#cb22-102"></a></span>
-<span id="cb22-103"><a href="#cb22-103"></a><span class="fu">## Table with Patients Treated with a Particular Treatment by Highest NCI &lt;br/&gt; CTCAE Grade (specifying a treatment for selecting preferred terms)</span></span>
-<span id="cb22-104"><a href="#cb22-104"></a></span>
-<span id="cb22-105"><a href="#cb22-105"></a>Note: User needs to specify the column index for filtering the table.</span>
-<span id="cb22-106"><a href="#cb22-106"></a>The current example uses the "Any Grade" column for treatment A: Drug X with a filtering threshold at 0.37; AEs reported in greater than 37% of patients in treatment A: Drug X are shown.</span>
-<span id="cb22-107"><a href="#cb22-107"></a>This can be changed by varying the parameter values in the <span class="in">`has_fraction_in_cols`</span> function.</span>
-<span id="cb22-108"><a href="#cb22-108"></a></span>
-<span id="cb22-109"><a href="#cb22-109"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb22-110"><a href="#cb22-110"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb22-111"><a href="#cb22-111"></a></span>
-<span id="cb22-112"><a href="#cb22-112"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb22-113"><a href="#cb22-113"></a><span class="in">full_table &lt;- full_table_aet04_pi(adsl, adae_max) %&gt;%</span></span>
-<span id="cb22-114"><a href="#cb22-114"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-115"><a href="#cb22-115"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb22-116"><a href="#cb22-116"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),</span></span>
-<span id="cb22-117"><a href="#cb22-117"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-118"><a href="#cb22-118"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-119"><a href="#cb22-119"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-120"><a href="#cb22-120"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb22-121"><a href="#cb22-121"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),</span></span>
-<span id="cb22-122"><a href="#cb22-122"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-123"><a href="#cb22-123"></a><span class="in">  )</span></span>
-<span id="cb22-124"><a href="#cb22-124"></a></span>
-<span id="cb22-125"><a href="#cb22-125"></a><span class="in">at_least_37percent_any_drugx &lt;- has_fraction_in_cols(atleast = 0.37, col_indices = 1)</span></span>
-<span id="cb22-126"><a href="#cb22-126"></a></span>
-<span id="cb22-127"><a href="#cb22-127"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
-<span id="cb22-128"><a href="#cb22-128"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
-<span id="cb22-129"><a href="#cb22-129"></a><span class="in">  prune_table(keep_rows(at_least_37percent_any_drugx))</span></span>
-<span id="cb22-130"><a href="#cb22-130"></a></span>
-<span id="cb22-131"><a href="#cb22-131"></a><span class="in">result</span></span>
-<span id="cb22-132"><a href="#cb22-132"></a><span class="in">```</span></span>
-<span id="cb22-133"><a href="#cb22-133"></a></span>
-<span id="cb22-134"><a href="#cb22-134"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
-<span id="cb22-135"><a href="#cb22-135"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb22-136"><a href="#cb22-136"></a>:::</span>
-<span id="cb22-137"><a href="#cb22-137"></a></span>
-<span id="cb22-138"><a href="#cb22-138"></a><span class="fu">## Adverse Events Reported in $\geq$ 5% of Patients by &lt;br/&gt; Highest NCI CTCAE Grade (changing the threshold)</span></span>
-<span id="cb22-139"><a href="#cb22-139"></a></span>
-<span id="cb22-140"><a href="#cb22-140"></a>Note: User needs to specify the column index for filtering the table.</span>
-<span id="cb22-141"><a href="#cb22-141"></a>The current example uses column indices 1, 4, and 7 with a filtering threshold at 0.40 to demonstrate the filtering ability; AEs reported in greater than 40% of patients are shown.</span>
-<span id="cb22-142"><a href="#cb22-142"></a>This can be changed by varying the parameter values in the <span class="in">`has_fraction_in_any_col`</span> function.</span>
-<span id="cb22-143"><a href="#cb22-143"></a></span>
-<span id="cb22-144"><a href="#cb22-144"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb22-145"><a href="#cb22-145"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb22-146"><a href="#cb22-146"></a></span>
-<span id="cb22-147"><a href="#cb22-147"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
-<span id="cb22-148"><a href="#cb22-148"></a><span class="in">full_table &lt;- full_table_aet04_pi(adsl, adae_max) %&gt;%</span></span>
-<span id="cb22-149"><a href="#cb22-149"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-150"><a href="#cb22-150"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb22-151"><a href="#cb22-151"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),</span></span>
-<span id="cb22-152"><a href="#cb22-152"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-153"><a href="#cb22-153"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-154"><a href="#cb22-154"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-155"><a href="#cb22-155"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb22-156"><a href="#cb22-156"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),</span></span>
-<span id="cb22-157"><a href="#cb22-157"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-158"><a href="#cb22-158"></a><span class="in">  )</span></span>
-<span id="cb22-159"><a href="#cb22-159"></a></span>
-<span id="cb22-160"><a href="#cb22-160"></a><span class="in">at_least_40percent_any &lt;- has_fraction_in_any_col(atleast = 0.40, col_indices = c(1, 4, 7))</span></span>
-<span id="cb22-161"><a href="#cb22-161"></a></span>
-<span id="cb22-162"><a href="#cb22-162"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
-<span id="cb22-163"><a href="#cb22-163"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
-<span id="cb22-164"><a href="#cb22-164"></a><span class="in">  prune_table(keep_rows(at_least_40percent_any))</span></span>
-<span id="cb22-165"><a href="#cb22-165"></a></span>
-<span id="cb22-166"><a href="#cb22-166"></a><span class="in">result</span></span>
-<span id="cb22-167"><a href="#cb22-167"></a><span class="in">```</span></span>
-<span id="cb22-168"><a href="#cb22-168"></a></span>
-<span id="cb22-169"><a href="#cb22-169"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant3")`</span></span>
-<span id="cb22-170"><a href="#cb22-170"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb22-171"><a href="#cb22-171"></a>:::</span>
-<span id="cb22-172"><a href="#cb22-172"></a></span>
-<span id="cb22-173"><a href="#cb22-173"></a><span class="fu">## Adverse Events Reported in $\geq$ 5% of Patients and &lt;br/&gt; $\geq$ 2% Difference Between Treatments by Highest &lt;br/&gt; NCI CTCAE Grade (using more than one condition)</span></span>
-<span id="cb22-174"><a href="#cb22-174"></a></span>
-<span id="cb22-175"><a href="#cb22-175"></a>Note: User needs to specify the column index for filtering the table.</span>
-<span id="cb22-176"><a href="#cb22-176"></a>The current example uses column indices 1, 4, and 7 to filter for AEs reported in $\geq$ 30% of patients and AEs reported with a $\geq$ 15% difference between treatments to demonstrate the filtering ability; this can be changed by varying the parameter values in the <span class="in">`has_fraction_in_any_col`</span> and <span class="in">`has_fractions_difference`</span> functions.</span>
-<span id="cb22-177"><a href="#cb22-177"></a></span>
-<span id="cb22-178"><a href="#cb22-178"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb22-179"><a href="#cb22-179"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb22-180"><a href="#cb22-180"></a></span>
-<span id="cb22-181"><a href="#cb22-181"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
-<span id="cb22-182"><a href="#cb22-182"></a><span class="in">full_table &lt;- full_table_aet04_pi(adsl, adae_max) %&gt;%</span></span>
-<span id="cb22-183"><a href="#cb22-183"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-184"><a href="#cb22-184"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb22-185"><a href="#cb22-185"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),</span></span>
-<span id="cb22-186"><a href="#cb22-186"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-187"><a href="#cb22-187"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-188"><a href="#cb22-188"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-189"><a href="#cb22-189"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb22-190"><a href="#cb22-190"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),</span></span>
-<span id="cb22-191"><a href="#cb22-191"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-192"><a href="#cb22-192"></a><span class="in">  )</span></span>
-<span id="cb22-193"><a href="#cb22-193"></a></span>
-<span id="cb22-194"><a href="#cb22-194"></a><span class="in">at_least_30percent_any &lt;- has_fraction_in_any_col(atleast = 0.3, col_indices = c(1, 4, 7))</span></span>
-<span id="cb22-195"><a href="#cb22-195"></a></span>
-<span id="cb22-196"><a href="#cb22-196"></a><span class="in">at_least_15percent_diff &lt;- has_fractions_difference(atleast = 0.15, col_indices = c(1, 4, 7))</span></span>
-<span id="cb22-197"><a href="#cb22-197"></a></span>
-<span id="cb22-198"><a href="#cb22-198"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
-<span id="cb22-199"><a href="#cb22-199"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
-<span id="cb22-200"><a href="#cb22-200"></a><span class="in">  prune_table(keep_rows(at_least_30percent_any &amp; at_least_15percent_diff))</span></span>
-<span id="cb22-201"><a href="#cb22-201"></a></span>
-<span id="cb22-202"><a href="#cb22-202"></a><span class="in">result</span></span>
-<span id="cb22-203"><a href="#cb22-203"></a><span class="in">```</span></span>
-<span id="cb22-204"><a href="#cb22-204"></a></span>
-<span id="cb22-205"><a href="#cb22-205"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant4")`</span></span>
-<span id="cb22-206"><a href="#cb22-206"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb22-207"><a href="#cb22-207"></a>:::</span>
-<span id="cb22-208"><a href="#cb22-208"></a></span>
-<span id="cb22-209"><a href="#cb22-209"></a><span class="fu">## Adverse Events Reported in $\geq$ 10% of Patients for Any Grade &lt;br/&gt; or $\geq$ 5% of Patients for Grade 3-4 by Highest NCI CTCAE &lt;br/&gt; Grade (using different condition depending on the grade)</span></span>
-<span id="cb22-210"><a href="#cb22-210"></a></span>
-<span id="cb22-211"><a href="#cb22-211"></a>Note: User needs to specify the column index for filtering the table.</span>
-<span id="cb22-212"><a href="#cb22-212"></a>The current example filters using column indices 1, 4, and 7 to include AEs reported in $\geq$ 40% of patients and using column indices 2, 5, and 8 to include grade 3-4 AEs reported in $\geq$ 20% of patients.</span>
-<span id="cb22-213"><a href="#cb22-213"></a>These thresholds are chosen to demonstrate the filtering ability; they can be changed by varying parameter values in the <span class="in">`has_fraction_in_any_col`</span> function.</span>
-<span id="cb22-214"><a href="#cb22-214"></a></span>
-<span id="cb22-215"><a href="#cb22-215"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb22-216"><a href="#cb22-216"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb22-217"><a href="#cb22-217"></a></span>
-<span id="cb22-218"><a href="#cb22-218"></a><span class="in">```{r variant5, test = list(result_v5 = "result")}</span></span>
-<span id="cb22-219"><a href="#cb22-219"></a><span class="in">full_table &lt;- full_table_aet04_pi(adsl, adae_max) %&gt;%</span></span>
-<span id="cb22-220"><a href="#cb22-220"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-221"><a href="#cb22-221"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb22-222"><a href="#cb22-222"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),</span></span>
-<span id="cb22-223"><a href="#cb22-223"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-224"><a href="#cb22-224"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-225"><a href="#cb22-225"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-226"><a href="#cb22-226"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb22-227"><a href="#cb22-227"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),</span></span>
-<span id="cb22-228"><a href="#cb22-228"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-229"><a href="#cb22-229"></a><span class="in">  )</span></span>
-<span id="cb22-230"><a href="#cb22-230"></a></span>
-<span id="cb22-231"><a href="#cb22-231"></a><span class="in">at_least_40percent_any &lt;- has_fraction_in_any_col(atleast = 0.4, col_indices = c(1, 4, 7))</span></span>
-<span id="cb22-232"><a href="#cb22-232"></a></span>
-<span id="cb22-233"><a href="#cb22-233"></a><span class="in">at_least_20percent_g34 &lt;- has_fraction_in_any_col(atleast = 0.20, col_indices = c(2, 5, 8))</span></span>
-<span id="cb22-234"><a href="#cb22-234"></a></span>
-<span id="cb22-235"><a href="#cb22-235"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
-<span id="cb22-236"><a href="#cb22-236"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
-<span id="cb22-237"><a href="#cb22-237"></a><span class="in">  prune_table(keep_rows(at_least_40percent_any | at_least_20percent_g34))</span></span>
-<span id="cb22-238"><a href="#cb22-238"></a></span>
-<span id="cb22-239"><a href="#cb22-239"></a><span class="in">result</span></span>
-<span id="cb22-240"><a href="#cb22-240"></a><span class="in">```</span></span>
-<span id="cb22-241"><a href="#cb22-241"></a></span>
-<span id="cb22-242"><a href="#cb22-242"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant5")`</span></span>
-<span id="cb22-243"><a href="#cb22-243"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb22-244"><a href="#cb22-244"></a>:::</span>
-<span id="cb22-245"><a href="#cb22-245"></a></span>
-<span id="cb22-246"><a href="#cb22-246"></a><span class="fu">## Standard Table with &lt;br/&gt; Modified Grade Grouping</span></span>
-<span id="cb22-247"><a href="#cb22-247"></a></span>
-<span id="cb22-248"><a href="#cb22-248"></a>Note: User can specify/modify the grouping of grades, as shown in this example.</span>
-<span id="cb22-249"><a href="#cb22-249"></a>In addition, the user needs to specify the column index for filtering the table.</span>
-<span id="cb22-250"><a href="#cb22-250"></a>The current example uses the "Any Grade" columns with a filtering threshold at 0.40; this can be changed by varying the parameter values in the <span class="in">`has_fraction_in_any_col`</span> function.</span>
-<span id="cb22-251"><a href="#cb22-251"></a></span>
-<span id="cb22-252"><a href="#cb22-252"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb22-253"><a href="#cb22-253"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb22-254"><a href="#cb22-254"></a></span>
-<span id="cb22-255"><a href="#cb22-255"></a><span class="in">```{r variant6, test = list(result_v6 = "result")}</span></span>
-<span id="cb22-256"><a href="#cb22-256"></a><span class="in">grade_groups &lt;- list(</span></span>
-<span id="cb22-257"><a href="#cb22-257"></a><span class="in">  "Any Grade (%)" = c("1", "2", "3", "4", "5"),</span></span>
-<span id="cb22-258"><a href="#cb22-258"></a><span class="in">  "Grade 1-2 (%)" = c("1", "2"),</span></span>
-<span id="cb22-259"><a href="#cb22-259"></a><span class="in">  "Grade 3-4 (%)" = c("3", "4"),</span></span>
-<span id="cb22-260"><a href="#cb22-260"></a><span class="in">  "Grade 5 (%)" = "5"</span></span>
-<span id="cb22-261"><a href="#cb22-261"></a><span class="in">)</span></span>
-<span id="cb22-262"><a href="#cb22-262"></a></span>
-<span id="cb22-263"><a href="#cb22-263"></a><span class="in">col_counts &lt;- rep(table(adsl$ACTARM), each = length(grade_groups))</span></span>
-<span id="cb22-264"><a href="#cb22-264"></a></span>
-<span id="cb22-265"><a href="#cb22-265"></a><span class="in">full_table &lt;- basic_table() %&gt;%</span></span>
-<span id="cb22-266"><a href="#cb22-266"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb22-267"><a href="#cb22-267"></a><span class="in">  split_cols_by_groups("MAXAETOXGR", groups_list = grade_groups) %&gt;%</span></span>
-<span id="cb22-268"><a href="#cb22-268"></a><span class="in">  split_rows_by("AEBODSYS",</span></span>
-<span id="cb22-269"><a href="#cb22-269"></a><span class="in">    child_labels = "visible", nested = FALSE, indent_mod = -1L,</span></span>
-<span id="cb22-270"><a href="#cb22-270"></a><span class="in">    split_fun = trim_levels_in_group("AEDECOD")</span></span>
-<span id="cb22-271"><a href="#cb22-271"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-272"><a href="#cb22-272"></a><span class="in">  append_topleft("MedDRA System Organ Class") %&gt;%</span></span>
-<span id="cb22-273"><a href="#cb22-273"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb22-274"><a href="#cb22-274"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb22-275"><a href="#cb22-275"></a><span class="in">    .stats = "unique",</span></span>
-<span id="cb22-276"><a href="#cb22-276"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
-<span id="cb22-277"><a href="#cb22-277"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-278"><a href="#cb22-278"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb22-279"><a href="#cb22-279"></a><span class="in">    "AEDECOD",</span></span>
-<span id="cb22-280"><a href="#cb22-280"></a><span class="in">    na.rm = FALSE,</span></span>
-<span id="cb22-281"><a href="#cb22-281"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb22-282"><a href="#cb22-282"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb22-283"><a href="#cb22-283"></a><span class="in">    .formats = c(count_fraction = format_fraction_threshold(0.01))</span></span>
-<span id="cb22-284"><a href="#cb22-284"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-285"><a href="#cb22-285"></a><span class="in">  append_topleft("  MedDRA Preferred Term") %&gt;%</span></span>
-<span id="cb22-286"><a href="#cb22-286"></a><span class="in">  build_table(adae_max, col_counts = col_counts) %&gt;%</span></span>
-<span id="cb22-287"><a href="#cb22-287"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-288"><a href="#cb22-288"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb22-289"><a href="#cb22-289"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 5, 9)),</span></span>
-<span id="cb22-290"><a href="#cb22-290"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-291"><a href="#cb22-291"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-292"><a href="#cb22-292"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-293"><a href="#cb22-293"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb22-294"><a href="#cb22-294"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 5, 9)),</span></span>
-<span id="cb22-295"><a href="#cb22-295"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-296"><a href="#cb22-296"></a><span class="in">  )</span></span>
-<span id="cb22-297"><a href="#cb22-297"></a></span>
-<span id="cb22-298"><a href="#cb22-298"></a><span class="in">at_least_40percent_any &lt;- has_fraction_in_any_col(atleast = 0.4, col_indices = c(1, 5, 9))</span></span>
-<span id="cb22-299"><a href="#cb22-299"></a></span>
-<span id="cb22-300"><a href="#cb22-300"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
-<span id="cb22-301"><a href="#cb22-301"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
-<span id="cb22-302"><a href="#cb22-302"></a><span class="in">  prune_table(keep_rows(at_least_40percent_any))</span></span>
-<span id="cb22-303"><a href="#cb22-303"></a></span>
-<span id="cb22-304"><a href="#cb22-304"></a><span class="in">result</span></span>
-<span id="cb22-305"><a href="#cb22-305"></a><span class="in">```</span></span>
-<span id="cb22-306"><a href="#cb22-306"></a></span>
-<span id="cb22-307"><a href="#cb22-307"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant6")`</span></span>
-<span id="cb22-308"><a href="#cb22-308"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb22-309"><a href="#cb22-309"></a>:::</span>
-<span id="cb22-310"><a href="#cb22-310"></a></span>
-<span id="cb22-311"><a href="#cb22-311"></a><span class="fu">## Standard Table with &lt;br/&gt; Overlapping Grade Groupings</span></span>
-<span id="cb22-312"><a href="#cb22-312"></a></span>
-<span id="cb22-313"><a href="#cb22-313"></a>Note: User needs to specify the column index for filtering the table.</span>
-<span id="cb22-314"><a href="#cb22-314"></a>The current example uses column indices 1, 5, and 9 with a filtering threshold at 0.40 to demonstrate the filtering ability; any grade AEs reported in greater than 40% of patients are shown.</span>
-<span id="cb22-315"><a href="#cb22-315"></a>This can be changed by varying the parameter values in the <span class="in">`has_fraction_in_any_col`</span> function.</span>
-<span id="cb22-316"><a href="#cb22-316"></a></span>
-<span id="cb22-317"><a href="#cb22-317"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb22-318"><a href="#cb22-318"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb22-319"><a href="#cb22-319"></a></span>
-<span id="cb22-320"><a href="#cb22-320"></a><span class="in">```{r variant7, test = list(result_v7 = "result")}</span></span>
-<span id="cb22-321"><a href="#cb22-321"></a><span class="in">grade_groups &lt;- list(</span></span>
-<span id="cb22-322"><a href="#cb22-322"></a><span class="in">  "Any Grade (%)" = c("1", "2", "3", "4", "5"),</span></span>
-<span id="cb22-323"><a href="#cb22-323"></a><span class="in">  "Grade 3-4 (%)" = c("3", "4"),</span></span>
-<span id="cb22-324"><a href="#cb22-324"></a><span class="in">  "Grade 3-5 (%)" = c("3", "4", "5"),</span></span>
-<span id="cb22-325"><a href="#cb22-325"></a><span class="in">  "Grade 5 (%)" = "5"</span></span>
-<span id="cb22-326"><a href="#cb22-326"></a><span class="in">)</span></span>
-<span id="cb22-327"><a href="#cb22-327"></a></span>
-<span id="cb22-328"><a href="#cb22-328"></a><span class="in">col_counts &lt;- rep(table(adsl$ACTARM), each = length(grade_groups))</span></span>
-<span id="cb22-329"><a href="#cb22-329"></a><span class="in">full_table &lt;- basic_table() %&gt;%</span></span>
-<span id="cb22-330"><a href="#cb22-330"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb22-331"><a href="#cb22-331"></a><span class="in">  split_cols_by_groups("MAXAETOXGR", groups_list = grade_groups) %&gt;%</span></span>
-<span id="cb22-332"><a href="#cb22-332"></a><span class="in">  split_rows_by("AEBODSYS",</span></span>
-<span id="cb22-333"><a href="#cb22-333"></a><span class="in">    child_labels = "visible", nested = FALSE, indent_mod = -1L,</span></span>
-<span id="cb22-334"><a href="#cb22-334"></a><span class="in">    split_fun = trim_levels_in_group("AEDECOD")</span></span>
-<span id="cb22-335"><a href="#cb22-335"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-336"><a href="#cb22-336"></a><span class="in">  append_topleft("MedDRA System Organ Class") %&gt;%</span></span>
-<span id="cb22-337"><a href="#cb22-337"></a><span class="in">  summarize_num_patients(</span></span>
-<span id="cb22-338"><a href="#cb22-338"></a><span class="in">    var = "USUBJID",</span></span>
-<span id="cb22-339"><a href="#cb22-339"></a><span class="in">    .stats = "unique",</span></span>
-<span id="cb22-340"><a href="#cb22-340"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
-<span id="cb22-341"><a href="#cb22-341"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-342"><a href="#cb22-342"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb22-343"><a href="#cb22-343"></a><span class="in">    "AEDECOD",</span></span>
-<span id="cb22-344"><a href="#cb22-344"></a><span class="in">    na.rm = FALSE,</span></span>
-<span id="cb22-345"><a href="#cb22-345"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb22-346"><a href="#cb22-346"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb22-347"><a href="#cb22-347"></a><span class="in">    .formats = c(count_fraction = format_fraction_threshold(0.01))</span></span>
-<span id="cb22-348"><a href="#cb22-348"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-349"><a href="#cb22-349"></a><span class="in">  append_topleft("  MedDRA Preferred Term") %&gt;%</span></span>
-<span id="cb22-350"><a href="#cb22-350"></a><span class="in">  build_table(adae_max, col_counts = col_counts) %&gt;%</span></span>
-<span id="cb22-351"><a href="#cb22-351"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-352"><a href="#cb22-352"></a><span class="in">    path = c("AEBODSYS"),</span></span>
-<span id="cb22-353"><a href="#cb22-353"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 5, 9)),</span></span>
-<span id="cb22-354"><a href="#cb22-354"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-355"><a href="#cb22-355"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-356"><a href="#cb22-356"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-357"><a href="#cb22-357"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
-<span id="cb22-358"><a href="#cb22-358"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 5, 9)),</span></span>
-<span id="cb22-359"><a href="#cb22-359"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-360"><a href="#cb22-360"></a><span class="in">  )</span></span>
-<span id="cb22-361"><a href="#cb22-361"></a></span>
-<span id="cb22-362"><a href="#cb22-362"></a><span class="in">at_least_40percent_any &lt;- has_fraction_in_any_col(atleast = 0.4, col_indices = c(1, 5, 9))</span></span>
-<span id="cb22-363"><a href="#cb22-363"></a></span>
-<span id="cb22-364"><a href="#cb22-364"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
-<span id="cb22-365"><a href="#cb22-365"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
-<span id="cb22-366"><a href="#cb22-366"></a><span class="in">  prune_table(keep_rows(at_least_40percent_any))</span></span>
-<span id="cb22-367"><a href="#cb22-367"></a></span>
-<span id="cb22-368"><a href="#cb22-368"></a><span class="in">result</span></span>
-<span id="cb22-369"><a href="#cb22-369"></a><span class="in">```</span></span>
-<span id="cb22-370"><a href="#cb22-370"></a></span>
-<span id="cb22-371"><a href="#cb22-371"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant7")`</span></span>
-<span id="cb22-372"><a href="#cb22-372"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb22-373"><a href="#cb22-373"></a>:::</span>
-<span id="cb22-374"><a href="#cb22-374"></a></span>
-<span id="cb22-375"><a href="#cb22-375"></a><span class="fu">## Standard Table without SOCs</span></span>
-<span id="cb22-376"><a href="#cb22-376"></a></span>
-<span id="cb22-377"><a href="#cb22-377"></a>Note: User needs to specify the column index for filtering the table.</span>
-<span id="cb22-378"><a href="#cb22-378"></a>The current example uses column indices 1, 4, and 7 with a filtering threshold at 0.20 to demonstrate the filtering ability; any grade AEs (Preferred Terms Only) reported in greater than 20% of patients are shown.</span>
-<span id="cb22-379"><a href="#cb22-379"></a>This can be changed by varying the parameter values in the <span class="in">`has_fraction_in_any_col`</span> function.</span>
-<span id="cb22-380"><a href="#cb22-380"></a></span>
-<span id="cb22-381"><a href="#cb22-381"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb22-382"><a href="#cb22-382"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb22-383"><a href="#cb22-383"></a></span>
-<span id="cb22-384"><a href="#cb22-384"></a><span class="in">```{r variant8, test = list(result_v8 = "result")}</span></span>
-<span id="cb22-385"><a href="#cb22-385"></a><span class="in">grade_groups &lt;- list(</span></span>
-<span id="cb22-386"><a href="#cb22-386"></a><span class="in">  "Any Grade (%)" = c("1", "2", "3", "4", "5"),</span></span>
-<span id="cb22-387"><a href="#cb22-387"></a><span class="in">  "Grade 3-4 (%)" = c("3", "4"),</span></span>
-<span id="cb22-388"><a href="#cb22-388"></a><span class="in">  "Grade 5 (%)" = "5"</span></span>
-<span id="cb22-389"><a href="#cb22-389"></a><span class="in">)</span></span>
-<span id="cb22-390"><a href="#cb22-390"></a></span>
-<span id="cb22-391"><a href="#cb22-391"></a><span class="in">col_counts &lt;- rep(table(adsl$ACTARM), each = length(grade_groups))</span></span>
-<span id="cb22-392"><a href="#cb22-392"></a></span>
-<span id="cb22-393"><a href="#cb22-393"></a><span class="in">full_table &lt;- basic_table() %&gt;%</span></span>
-<span id="cb22-394"><a href="#cb22-394"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
-<span id="cb22-395"><a href="#cb22-395"></a><span class="in">  split_cols_by_groups("MAXAETOXGR", groups_list = grade_groups) %&gt;%</span></span>
-<span id="cb22-396"><a href="#cb22-396"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb22-397"><a href="#cb22-397"></a><span class="in">    "AEDECOD",</span></span>
-<span id="cb22-398"><a href="#cb22-398"></a><span class="in">    na.rm = FALSE,</span></span>
-<span id="cb22-399"><a href="#cb22-399"></a><span class="in">    denom = "N_col",</span></span>
-<span id="cb22-400"><a href="#cb22-400"></a><span class="in">    .stats = "count_fraction",</span></span>
-<span id="cb22-401"><a href="#cb22-401"></a><span class="in">    .formats = c(count_fraction = format_fraction_threshold(0.01))</span></span>
-<span id="cb22-402"><a href="#cb22-402"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb22-403"><a href="#cb22-403"></a><span class="in">  append_topleft("MedDRA Preferred Term") %&gt;%</span></span>
-<span id="cb22-404"><a href="#cb22-404"></a><span class="in">  build_table(adae_max, col_counts = col_counts)</span></span>
-<span id="cb22-405"><a href="#cb22-405"></a></span>
-<span id="cb22-406"><a href="#cb22-406"></a><span class="in">at_least_20percent_any &lt;- has_fraction_in_any_col(atleast = 0.2, col_indices = c(1, 4, 7))</span></span>
-<span id="cb22-407"><a href="#cb22-407"></a></span>
-<span id="cb22-408"><a href="#cb22-408"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
-<span id="cb22-409"><a href="#cb22-409"></a><span class="in">  prune_table(keep_rows(at_least_20percent_any)) %&gt;%</span></span>
-<span id="cb22-410"><a href="#cb22-410"></a><span class="in">  sort_at_path(</span></span>
-<span id="cb22-411"><a href="#cb22-411"></a><span class="in">    path = c("AEDECOD"),</span></span>
-<span id="cb22-412"><a href="#cb22-412"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),</span></span>
-<span id="cb22-413"><a href="#cb22-413"></a><span class="in">    decreasing = TRUE</span></span>
-<span id="cb22-414"><a href="#cb22-414"></a><span class="in">  )</span></span>
-<span id="cb22-415"><a href="#cb22-415"></a></span>
-<span id="cb22-416"><a href="#cb22-416"></a><span class="in">result</span></span>
-<span id="cb22-417"><a href="#cb22-417"></a><span class="in">```</span></span>
-<span id="cb22-418"><a href="#cb22-418"></a></span>
-<span id="cb22-419"><a href="#cb22-419"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant8")`</span></span>
-<span id="cb22-420"><a href="#cb22-420"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb22-421"><a href="#cb22-421"></a>:::</span>
-<span id="cb22-422"><a href="#cb22-422"></a></span>
-<span id="cb22-423"><a href="#cb22-423"></a><span class="fu">## Data Setup</span></span>
-<span id="cb22-424"><a href="#cb22-424"></a></span>
-<span id="cb22-425"><a href="#cb22-425"></a><span class="in">```{r setup}</span></span>
-<span id="cb22-426"><a href="#cb22-426"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb22-427"><a href="#cb22-427"></a><span class="in">```</span></span>
-<span id="cb22-428"><a href="#cb22-428"></a></span>
-<span id="cb22-429"><a href="#cb22-429"></a>::::</span>
-<span id="cb22-430"><a href="#cb22-430"></a></span>
-<span id="cb22-431"><a href="#cb22-431"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb22-432"><a href="#cb22-432"></a></span>
-<span id="cb22-433"><a href="#cb22-433"></a><span class="fu">## `teal` App</span></span>
-<span id="cb22-434"><a href="#cb22-434"></a></span>
-<span id="cb22-435"><a href="#cb22-435"></a>::: {.panel-tabset .nav-justified}</span>
-<span id="cb22-436"><a href="#cb22-436"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
-<span id="cb22-437"><a href="#cb22-437"></a></span>
-<span id="cb22-438"><a href="#cb22-438"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb22-439"><a href="#cb22-439"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb22-440"><a href="#cb22-440"></a></span>
-<span id="cb22-441"><a href="#cb22-441"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb22-442"><a href="#cb22-442"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb22-443"><a href="#cb22-443"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb22-444"><a href="#cb22-444"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb22-445"><a href="#cb22-445"></a><span class="in">  ADAE &lt;- random.cdisc.data::cadae</span></span>
-<span id="cb22-446"><a href="#cb22-446"></a><span class="in">})</span></span>
-<span id="cb22-447"><a href="#cb22-447"></a><span class="in">datanames &lt;- c("ADSL", "ADAE")</span></span>
-<span id="cb22-448"><a href="#cb22-448"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb22-449"><a href="#cb22-449"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb22-450"><a href="#cb22-450"></a></span>
-<span id="cb22-451"><a href="#cb22-451"></a><span class="in">## Reusable Configuration For Modules</span></span>
-<span id="cb22-452"><a href="#cb22-452"></a><span class="in">ADAE &lt;- data[["ADAE"]]</span></span>
-<span id="cb22-453"><a href="#cb22-453"></a></span>
-<span id="cb22-454"><a href="#cb22-454"></a><span class="in">## Setup App</span></span>
-<span id="cb22-455"><a href="#cb22-455"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb22-456"><a href="#cb22-456"></a><span class="in">  data = data,</span></span>
-<span id="cb22-457"><a href="#cb22-457"></a><span class="in">  modules = modules(</span></span>
-<span id="cb22-458"><a href="#cb22-458"></a><span class="in">    tm_t_events_by_grade(</span></span>
-<span id="cb22-459"><a href="#cb22-459"></a><span class="in">      label = "Adverse Events by Grade Table",</span></span>
-<span id="cb22-460"><a href="#cb22-460"></a><span class="in">      dataname = "ADAE",</span></span>
-<span id="cb22-461"><a href="#cb22-461"></a><span class="in">      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span></span>
-<span id="cb22-462"><a href="#cb22-462"></a><span class="in">      col_by_grade = TRUE,</span></span>
-<span id="cb22-463"><a href="#cb22-463"></a><span class="in">      llt = choices_selected(</span></span>
-<span id="cb22-464"><a href="#cb22-464"></a><span class="in">        choices = variable_choices(ADAE, c("AETERM", "AEDECOD")),</span></span>
-<span id="cb22-465"><a href="#cb22-465"></a><span class="in">        selected = c("AEDECOD")</span></span>
-<span id="cb22-466"><a href="#cb22-466"></a><span class="in">      ),</span></span>
-<span id="cb22-467"><a href="#cb22-467"></a><span class="in">      hlt = choices_selected(</span></span>
-<span id="cb22-468"><a href="#cb22-468"></a><span class="in">        choices = variable_choices(ADAE, c("AEBODSYS", "AESOC")),</span></span>
-<span id="cb22-469"><a href="#cb22-469"></a><span class="in">        selected = "AEBODSYS"</span></span>
-<span id="cb22-470"><a href="#cb22-470"></a><span class="in">      ),</span></span>
-<span id="cb22-471"><a href="#cb22-471"></a><span class="in">      grade = choices_selected(</span></span>
-<span id="cb22-472"><a href="#cb22-472"></a><span class="in">        choices = variable_choices(ADAE, c("AETOXGR", "AESEV")),</span></span>
-<span id="cb22-473"><a href="#cb22-473"></a><span class="in">        selected = "AETOXGR"</span></span>
-<span id="cb22-474"><a href="#cb22-474"></a><span class="in">      ),</span></span>
-<span id="cb22-475"><a href="#cb22-475"></a><span class="in">      # List of column groups for grades used when `col_by_grade` = TRUE.</span></span>
-<span id="cb22-476"><a href="#cb22-476"></a><span class="in">      grading_groups = list(</span></span>
-<span id="cb22-477"><a href="#cb22-477"></a><span class="in">        `Any Grade (%)` = c("1", "2", "3", "4", "5"),</span></span>
-<span id="cb22-478"><a href="#cb22-478"></a><span class="in">        `Grade 3-4 (%)` = c("3", "4"),</span></span>
-<span id="cb22-479"><a href="#cb22-479"></a><span class="in">        `Grade 5 (%)` = "5"</span></span>
-<span id="cb22-480"><a href="#cb22-480"></a><span class="in">      )</span></span>
-<span id="cb22-481"><a href="#cb22-481"></a><span class="in">    )</span></span>
-<span id="cb22-482"><a href="#cb22-482"></a><span class="in">  )</span></span>
-<span id="cb22-483"><a href="#cb22-483"></a><span class="in">)</span></span>
-<span id="cb22-484"><a href="#cb22-484"></a></span>
-<span id="cb22-485"><a href="#cb22-485"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb22-486"><a href="#cb22-486"></a><span class="in">```</span></span>
-<span id="cb22-487"><a href="#cb22-487"></a></span>
-<span id="cb22-488"><a href="#cb22-488"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
-<span id="cb22-489"><a href="#cb22-489"></a>:::</span>
-<span id="cb22-490"><a href="#cb22-490"></a></span>
-<span id="cb22-491"><a href="#cb22-491"></a>{{&lt; include ../../repro.qmd &gt;}}</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb24" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb24-1"><a href="#cb24-1"></a><span class="co">---</span></span>
+<span id="cb24-2"><a href="#cb24-2"></a><span class="an">title:</span><span class="co"> AET04_PI</span></span>
+<span id="cb24-3"><a href="#cb24-3"></a><span class="an">subtitle:</span><span class="co"> Adverse Events Reported in $\geq$ 10% of Patients by Highest NCI CTCAE Grade</span></span>
+<span id="cb24-4"><a href="#cb24-4"></a><span class="co">---</span></span>
+<span id="cb24-5"><a href="#cb24-5"></a></span>
+<span id="cb24-6"><a href="#cb24-6"></a>------------------------------------------------------------------------</span>
+<span id="cb24-7"><a href="#cb24-7"></a></span>
+<span id="cb24-8"><a href="#cb24-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb24-9"><a href="#cb24-9"></a></span>
+<span id="cb24-10"><a href="#cb24-10"></a>:::: {.panel-tabset}</span>
+<span id="cb24-11"><a href="#cb24-11"></a></span>
+<span id="cb24-12"><a href="#cb24-12"></a><span class="in">```{r setup, echo = FALSE}</span></span>
+<span id="cb24-13"><a href="#cb24-13"></a><span class="in">library(dplyr)</span></span>
+<span id="cb24-14"><a href="#cb24-14"></a><span class="in">library(tern)</span></span>
+<span id="cb24-15"><a href="#cb24-15"></a></span>
+<span id="cb24-16"><a href="#cb24-16"></a><span class="in">preprocess_adae &lt;- function(adae) {</span></span>
+<span id="cb24-17"><a href="#cb24-17"></a><span class="in">  adae %&gt;%</span></span>
+<span id="cb24-18"><a href="#cb24-18"></a><span class="in">    dplyr::group_by(ACTARM, USUBJID, AEBODSYS, AEDECOD) %&gt;%</span></span>
+<span id="cb24-19"><a href="#cb24-19"></a><span class="in">    dplyr::summarize(</span></span>
+<span id="cb24-20"><a href="#cb24-20"></a><span class="in">      MAXAETOXGR = max(as.numeric(AETOXGR)),</span></span>
+<span id="cb24-21"><a href="#cb24-21"></a><span class="in">      .groups = "drop"</span></span>
+<span id="cb24-22"><a href="#cb24-22"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb24-23"><a href="#cb24-23"></a><span class="in">    dplyr::ungroup() %&gt;%</span></span>
+<span id="cb24-24"><a href="#cb24-24"></a><span class="in">    dplyr::mutate(</span></span>
+<span id="cb24-25"><a href="#cb24-25"></a><span class="in">      MAXAETOXGR = factor(MAXAETOXGR),</span></span>
+<span id="cb24-26"><a href="#cb24-26"></a><span class="in">      AEDECOD = droplevels(as.factor(AEDECOD))</span></span>
+<span id="cb24-27"><a href="#cb24-27"></a><span class="in">    )</span></span>
+<span id="cb24-28"><a href="#cb24-28"></a><span class="in">}</span></span>
+<span id="cb24-29"><a href="#cb24-29"></a></span>
+<span id="cb24-30"><a href="#cb24-30"></a><span class="in">full_table_aet04_pi &lt;- function(adsl, adae_max) {</span></span>
+<span id="cb24-31"><a href="#cb24-31"></a><span class="in">  grade_groups &lt;- list(</span></span>
+<span id="cb24-32"><a href="#cb24-32"></a><span class="in">    "Any Grade (%)" = c("1", "2", "3", "4", "5"),</span></span>
+<span id="cb24-33"><a href="#cb24-33"></a><span class="in">    "Grade 3-4 (%)" = c("3", "4"),</span></span>
+<span id="cb24-34"><a href="#cb24-34"></a><span class="in">    "Grade 5 (%)" = "5"</span></span>
+<span id="cb24-35"><a href="#cb24-35"></a><span class="in">  )</span></span>
+<span id="cb24-36"><a href="#cb24-36"></a></span>
+<span id="cb24-37"><a href="#cb24-37"></a><span class="in">  col_counts &lt;- rep(table(adsl$ACTARM), each = length(grade_groups))</span></span>
+<span id="cb24-38"><a href="#cb24-38"></a><span class="in">  basic_table() %&gt;%</span></span>
+<span id="cb24-39"><a href="#cb24-39"></a><span class="in">    split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb24-40"><a href="#cb24-40"></a><span class="in">    split_cols_by_groups("MAXAETOXGR", groups_list = grade_groups) %&gt;%</span></span>
+<span id="cb24-41"><a href="#cb24-41"></a><span class="in">    split_rows_by("AEBODSYS",</span></span>
+<span id="cb24-42"><a href="#cb24-42"></a><span class="in">      child_labels = "visible", nested = FALSE, indent_mod = -1L,</span></span>
+<span id="cb24-43"><a href="#cb24-43"></a><span class="in">      split_fun = trim_levels_in_group("AEDECOD")</span></span>
+<span id="cb24-44"><a href="#cb24-44"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb24-45"><a href="#cb24-45"></a><span class="in">    append_topleft("MedDRA System Organ Class") %&gt;%</span></span>
+<span id="cb24-46"><a href="#cb24-46"></a><span class="in">    summarize_num_patients(</span></span>
+<span id="cb24-47"><a href="#cb24-47"></a><span class="in">      var = "USUBJID",</span></span>
+<span id="cb24-48"><a href="#cb24-48"></a><span class="in">      .stats = "unique",</span></span>
+<span id="cb24-49"><a href="#cb24-49"></a><span class="in">      .labels = "Total number of patients with at least one adverse event"</span></span>
+<span id="cb24-50"><a href="#cb24-50"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb24-51"><a href="#cb24-51"></a><span class="in">    analyze_vars(</span></span>
+<span id="cb24-52"><a href="#cb24-52"></a><span class="in">      "AEDECOD",</span></span>
+<span id="cb24-53"><a href="#cb24-53"></a><span class="in">      na.rm = FALSE,</span></span>
+<span id="cb24-54"><a href="#cb24-54"></a><span class="in">      denom = "N_col",</span></span>
+<span id="cb24-55"><a href="#cb24-55"></a><span class="in">      .stats = "count_fraction",</span></span>
+<span id="cb24-56"><a href="#cb24-56"></a><span class="in">      .formats = c(count_fraction = format_fraction_threshold(0.01))</span></span>
+<span id="cb24-57"><a href="#cb24-57"></a><span class="in">    ) %&gt;%</span></span>
+<span id="cb24-58"><a href="#cb24-58"></a><span class="in">    append_topleft("  MedDRA Preferred Term") %&gt;%</span></span>
+<span id="cb24-59"><a href="#cb24-59"></a><span class="in">    build_table(adae_max, col_counts = col_counts)</span></span>
+<span id="cb24-60"><a href="#cb24-60"></a><span class="in">}</span></span>
+<span id="cb24-61"><a href="#cb24-61"></a></span>
+<span id="cb24-62"><a href="#cb24-62"></a><span class="in">criteria_fun &lt;- function(tr) {</span></span>
+<span id="cb24-63"><a href="#cb24-63"></a><span class="in">  is(tr, "ContentRow")</span></span>
+<span id="cb24-64"><a href="#cb24-64"></a><span class="in">}</span></span>
+<span id="cb24-65"><a href="#cb24-65"></a></span>
+<span id="cb24-66"><a href="#cb24-66"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb24-67"><a href="#cb24-67"></a><span class="in">adae_max &lt;- random.cdisc.data::cadae %&gt;%</span></span>
+<span id="cb24-68"><a href="#cb24-68"></a><span class="in">  preprocess_adae() %&gt;%</span></span>
+<span id="cb24-69"><a href="#cb24-69"></a><span class="in">  df_explicit_na()</span></span>
+<span id="cb24-70"><a href="#cb24-70"></a><span class="in">```</span></span>
+<span id="cb24-71"><a href="#cb24-71"></a></span>
+<span id="cb24-72"><a href="#cb24-72"></a><span class="fu">## Standard Table</span></span>
+<span id="cb24-73"><a href="#cb24-73"></a></span>
+<span id="cb24-74"><a href="#cb24-74"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb24-75"><a href="#cb24-75"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb24-76"><a href="#cb24-76"></a></span>
+<span id="cb24-77"><a href="#cb24-77"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb24-78"><a href="#cb24-78"></a><span class="in">full_table &lt;- full_table_aet04_pi(adsl, adae_max) %&gt;%</span></span>
+<span id="cb24-79"><a href="#cb24-79"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-80"><a href="#cb24-80"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb24-81"><a href="#cb24-81"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),</span></span>
+<span id="cb24-82"><a href="#cb24-82"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-83"><a href="#cb24-83"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-84"><a href="#cb24-84"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-85"><a href="#cb24-85"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb24-86"><a href="#cb24-86"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),</span></span>
+<span id="cb24-87"><a href="#cb24-87"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-88"><a href="#cb24-88"></a><span class="in">  )</span></span>
+<span id="cb24-89"><a href="#cb24-89"></a></span>
+<span id="cb24-90"><a href="#cb24-90"></a><span class="in">at_least_10percent_any &lt;- has_fraction_in_any_col(atleast = 0.1, col_indices = c(1, 4, 7))</span></span>
+<span id="cb24-91"><a href="#cb24-91"></a></span>
+<span id="cb24-92"><a href="#cb24-92"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
+<span id="cb24-93"><a href="#cb24-93"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
+<span id="cb24-94"><a href="#cb24-94"></a><span class="in">  prune_table(keep_rows(at_least_10percent_any))</span></span>
+<span id="cb24-95"><a href="#cb24-95"></a></span>
+<span id="cb24-96"><a href="#cb24-96"></a><span class="in">result</span></span>
+<span id="cb24-97"><a href="#cb24-97"></a><span class="in">```</span></span>
+<span id="cb24-98"><a href="#cb24-98"></a></span>
+<span id="cb24-99"><a href="#cb24-99"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
+<span id="cb24-100"><a href="#cb24-100"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb24-101"><a href="#cb24-101"></a>:::</span>
+<span id="cb24-102"><a href="#cb24-102"></a></span>
+<span id="cb24-103"><a href="#cb24-103"></a><span class="fu">## Table with Patients Treated with a Particular Treatment by Highest NCI &lt;br/&gt; CTCAE Grade (specifying a treatment for selecting preferred terms)</span></span>
+<span id="cb24-104"><a href="#cb24-104"></a></span>
+<span id="cb24-105"><a href="#cb24-105"></a>Note: User needs to specify the column index for filtering the table.</span>
+<span id="cb24-106"><a href="#cb24-106"></a>The current example uses the "Any Grade" column for treatment A: Drug X with a filtering threshold at 0.37; AEs reported in greater than 37% of patients in treatment A: Drug X are shown.</span>
+<span id="cb24-107"><a href="#cb24-107"></a>This can be changed by varying the parameter values in the <span class="in">`has_fraction_in_cols`</span> function.</span>
+<span id="cb24-108"><a href="#cb24-108"></a></span>
+<span id="cb24-109"><a href="#cb24-109"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb24-110"><a href="#cb24-110"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb24-111"><a href="#cb24-111"></a></span>
+<span id="cb24-112"><a href="#cb24-112"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb24-113"><a href="#cb24-113"></a><span class="in">full_table &lt;- full_table_aet04_pi(adsl, adae_max) %&gt;%</span></span>
+<span id="cb24-114"><a href="#cb24-114"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-115"><a href="#cb24-115"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb24-116"><a href="#cb24-116"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),</span></span>
+<span id="cb24-117"><a href="#cb24-117"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-118"><a href="#cb24-118"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-119"><a href="#cb24-119"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-120"><a href="#cb24-120"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb24-121"><a href="#cb24-121"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),</span></span>
+<span id="cb24-122"><a href="#cb24-122"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-123"><a href="#cb24-123"></a><span class="in">  )</span></span>
+<span id="cb24-124"><a href="#cb24-124"></a></span>
+<span id="cb24-125"><a href="#cb24-125"></a><span class="in">at_least_37percent_any_drugx &lt;- has_fraction_in_cols(atleast = 0.37, col_indices = 1)</span></span>
+<span id="cb24-126"><a href="#cb24-126"></a></span>
+<span id="cb24-127"><a href="#cb24-127"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
+<span id="cb24-128"><a href="#cb24-128"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
+<span id="cb24-129"><a href="#cb24-129"></a><span class="in">  prune_table(keep_rows(at_least_37percent_any_drugx))</span></span>
+<span id="cb24-130"><a href="#cb24-130"></a></span>
+<span id="cb24-131"><a href="#cb24-131"></a><span class="in">result</span></span>
+<span id="cb24-132"><a href="#cb24-132"></a><span class="in">```</span></span>
+<span id="cb24-133"><a href="#cb24-133"></a></span>
+<span id="cb24-134"><a href="#cb24-134"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
+<span id="cb24-135"><a href="#cb24-135"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb24-136"><a href="#cb24-136"></a>:::</span>
+<span id="cb24-137"><a href="#cb24-137"></a></span>
+<span id="cb24-138"><a href="#cb24-138"></a><span class="fu">## Adverse Events Reported in $\geq$ 5% of Patients by &lt;br/&gt; Highest NCI CTCAE Grade (changing the threshold)</span></span>
+<span id="cb24-139"><a href="#cb24-139"></a></span>
+<span id="cb24-140"><a href="#cb24-140"></a>Note: User needs to specify the column index for filtering the table.</span>
+<span id="cb24-141"><a href="#cb24-141"></a>The current example uses column indices 1, 4, and 7 with a filtering threshold at 0.40 to demonstrate the filtering ability; AEs reported in greater than 40% of patients are shown.</span>
+<span id="cb24-142"><a href="#cb24-142"></a>This can be changed by varying the parameter values in the <span class="in">`has_fraction_in_any_col`</span> function.</span>
+<span id="cb24-143"><a href="#cb24-143"></a></span>
+<span id="cb24-144"><a href="#cb24-144"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb24-145"><a href="#cb24-145"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb24-146"><a href="#cb24-146"></a></span>
+<span id="cb24-147"><a href="#cb24-147"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
+<span id="cb24-148"><a href="#cb24-148"></a><span class="in">full_table &lt;- full_table_aet04_pi(adsl, adae_max) %&gt;%</span></span>
+<span id="cb24-149"><a href="#cb24-149"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-150"><a href="#cb24-150"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb24-151"><a href="#cb24-151"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),</span></span>
+<span id="cb24-152"><a href="#cb24-152"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-153"><a href="#cb24-153"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-154"><a href="#cb24-154"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-155"><a href="#cb24-155"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb24-156"><a href="#cb24-156"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),</span></span>
+<span id="cb24-157"><a href="#cb24-157"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-158"><a href="#cb24-158"></a><span class="in">  )</span></span>
+<span id="cb24-159"><a href="#cb24-159"></a></span>
+<span id="cb24-160"><a href="#cb24-160"></a><span class="in">at_least_40percent_any &lt;- has_fraction_in_any_col(atleast = 0.40, col_indices = c(1, 4, 7))</span></span>
+<span id="cb24-161"><a href="#cb24-161"></a></span>
+<span id="cb24-162"><a href="#cb24-162"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
+<span id="cb24-163"><a href="#cb24-163"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
+<span id="cb24-164"><a href="#cb24-164"></a><span class="in">  prune_table(keep_rows(at_least_40percent_any))</span></span>
+<span id="cb24-165"><a href="#cb24-165"></a></span>
+<span id="cb24-166"><a href="#cb24-166"></a><span class="in">result</span></span>
+<span id="cb24-167"><a href="#cb24-167"></a><span class="in">```</span></span>
+<span id="cb24-168"><a href="#cb24-168"></a></span>
+<span id="cb24-169"><a href="#cb24-169"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant3")`</span></span>
+<span id="cb24-170"><a href="#cb24-170"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb24-171"><a href="#cb24-171"></a>:::</span>
+<span id="cb24-172"><a href="#cb24-172"></a></span>
+<span id="cb24-173"><a href="#cb24-173"></a><span class="fu">## Adverse Events Reported in $\geq$ 5% of Patients and &lt;br/&gt; $\geq$ 2% Difference Between Treatments by Highest &lt;br/&gt; NCI CTCAE Grade (using more than one condition)</span></span>
+<span id="cb24-174"><a href="#cb24-174"></a></span>
+<span id="cb24-175"><a href="#cb24-175"></a>Note: User needs to specify the column index for filtering the table.</span>
+<span id="cb24-176"><a href="#cb24-176"></a>The current example uses column indices 1, 4, and 7 to filter for AEs reported in $\geq$ 30% of patients and AEs reported with a $\geq$ 15% difference between treatments to demonstrate the filtering ability; this can be changed by varying the parameter values in the <span class="in">`has_fraction_in_any_col`</span> and <span class="in">`has_fractions_difference`</span> functions.</span>
+<span id="cb24-177"><a href="#cb24-177"></a></span>
+<span id="cb24-178"><a href="#cb24-178"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb24-179"><a href="#cb24-179"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb24-180"><a href="#cb24-180"></a></span>
+<span id="cb24-181"><a href="#cb24-181"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
+<span id="cb24-182"><a href="#cb24-182"></a><span class="in">full_table &lt;- full_table_aet04_pi(adsl, adae_max) %&gt;%</span></span>
+<span id="cb24-183"><a href="#cb24-183"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-184"><a href="#cb24-184"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb24-185"><a href="#cb24-185"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),</span></span>
+<span id="cb24-186"><a href="#cb24-186"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-187"><a href="#cb24-187"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-188"><a href="#cb24-188"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-189"><a href="#cb24-189"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb24-190"><a href="#cb24-190"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),</span></span>
+<span id="cb24-191"><a href="#cb24-191"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-192"><a href="#cb24-192"></a><span class="in">  )</span></span>
+<span id="cb24-193"><a href="#cb24-193"></a></span>
+<span id="cb24-194"><a href="#cb24-194"></a><span class="in">at_least_30percent_any &lt;- has_fraction_in_any_col(atleast = 0.3, col_indices = c(1, 4, 7))</span></span>
+<span id="cb24-195"><a href="#cb24-195"></a></span>
+<span id="cb24-196"><a href="#cb24-196"></a><span class="in">at_least_15percent_diff &lt;- has_fractions_difference(atleast = 0.15, col_indices = c(1, 4, 7))</span></span>
+<span id="cb24-197"><a href="#cb24-197"></a></span>
+<span id="cb24-198"><a href="#cb24-198"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
+<span id="cb24-199"><a href="#cb24-199"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
+<span id="cb24-200"><a href="#cb24-200"></a><span class="in">  prune_table(keep_rows(at_least_30percent_any &amp; at_least_15percent_diff))</span></span>
+<span id="cb24-201"><a href="#cb24-201"></a></span>
+<span id="cb24-202"><a href="#cb24-202"></a><span class="in">result</span></span>
+<span id="cb24-203"><a href="#cb24-203"></a><span class="in">```</span></span>
+<span id="cb24-204"><a href="#cb24-204"></a></span>
+<span id="cb24-205"><a href="#cb24-205"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant4")`</span></span>
+<span id="cb24-206"><a href="#cb24-206"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb24-207"><a href="#cb24-207"></a>:::</span>
+<span id="cb24-208"><a href="#cb24-208"></a></span>
+<span id="cb24-209"><a href="#cb24-209"></a><span class="fu">## Adverse Events Reported in $\geq$ 10% of Patients for Any Grade &lt;br/&gt; or $\geq$ 5% of Patients for Grade 3-4 by Highest NCI CTCAE &lt;br/&gt; Grade (using different condition depending on the grade)</span></span>
+<span id="cb24-210"><a href="#cb24-210"></a></span>
+<span id="cb24-211"><a href="#cb24-211"></a>Note: User needs to specify the column index for filtering the table.</span>
+<span id="cb24-212"><a href="#cb24-212"></a>The current example filters using column indices 1, 4, and 7 to include AEs reported in $\geq$ 40% of patients and using column indices 2, 5, and 8 to include grade 3-4 AEs reported in $\geq$ 20% of patients.</span>
+<span id="cb24-213"><a href="#cb24-213"></a>These thresholds are chosen to demonstrate the filtering ability; they can be changed by varying parameter values in the <span class="in">`has_fraction_in_any_col`</span> function.</span>
+<span id="cb24-214"><a href="#cb24-214"></a></span>
+<span id="cb24-215"><a href="#cb24-215"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb24-216"><a href="#cb24-216"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb24-217"><a href="#cb24-217"></a></span>
+<span id="cb24-218"><a href="#cb24-218"></a><span class="in">```{r variant5, test = list(result_v5 = "result")}</span></span>
+<span id="cb24-219"><a href="#cb24-219"></a><span class="in">full_table &lt;- full_table_aet04_pi(adsl, adae_max) %&gt;%</span></span>
+<span id="cb24-220"><a href="#cb24-220"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-221"><a href="#cb24-221"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb24-222"><a href="#cb24-222"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 4, 7)),</span></span>
+<span id="cb24-223"><a href="#cb24-223"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-224"><a href="#cb24-224"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-225"><a href="#cb24-225"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-226"><a href="#cb24-226"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb24-227"><a href="#cb24-227"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),</span></span>
+<span id="cb24-228"><a href="#cb24-228"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-229"><a href="#cb24-229"></a><span class="in">  )</span></span>
+<span id="cb24-230"><a href="#cb24-230"></a></span>
+<span id="cb24-231"><a href="#cb24-231"></a><span class="in">at_least_40percent_any &lt;- has_fraction_in_any_col(atleast = 0.4, col_indices = c(1, 4, 7))</span></span>
+<span id="cb24-232"><a href="#cb24-232"></a></span>
+<span id="cb24-233"><a href="#cb24-233"></a><span class="in">at_least_20percent_g34 &lt;- has_fraction_in_any_col(atleast = 0.20, col_indices = c(2, 5, 8))</span></span>
+<span id="cb24-234"><a href="#cb24-234"></a></span>
+<span id="cb24-235"><a href="#cb24-235"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
+<span id="cb24-236"><a href="#cb24-236"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
+<span id="cb24-237"><a href="#cb24-237"></a><span class="in">  prune_table(keep_rows(at_least_40percent_any | at_least_20percent_g34))</span></span>
+<span id="cb24-238"><a href="#cb24-238"></a></span>
+<span id="cb24-239"><a href="#cb24-239"></a><span class="in">result</span></span>
+<span id="cb24-240"><a href="#cb24-240"></a><span class="in">```</span></span>
+<span id="cb24-241"><a href="#cb24-241"></a></span>
+<span id="cb24-242"><a href="#cb24-242"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant5")`</span></span>
+<span id="cb24-243"><a href="#cb24-243"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb24-244"><a href="#cb24-244"></a>:::</span>
+<span id="cb24-245"><a href="#cb24-245"></a></span>
+<span id="cb24-246"><a href="#cb24-246"></a><span class="fu">## Standard Table with &lt;br/&gt; Modified Grade Grouping</span></span>
+<span id="cb24-247"><a href="#cb24-247"></a></span>
+<span id="cb24-248"><a href="#cb24-248"></a>Note: User can specify/modify the grouping of grades, as shown in this example.</span>
+<span id="cb24-249"><a href="#cb24-249"></a>In addition, the user needs to specify the column index for filtering the table.</span>
+<span id="cb24-250"><a href="#cb24-250"></a>The current example uses the "Any Grade" columns with a filtering threshold at 0.40; this can be changed by varying the parameter values in the <span class="in">`has_fraction_in_any_col`</span> function.</span>
+<span id="cb24-251"><a href="#cb24-251"></a></span>
+<span id="cb24-252"><a href="#cb24-252"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb24-253"><a href="#cb24-253"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb24-254"><a href="#cb24-254"></a></span>
+<span id="cb24-255"><a href="#cb24-255"></a><span class="in">```{r variant6, test = list(result_v6 = "result")}</span></span>
+<span id="cb24-256"><a href="#cb24-256"></a><span class="in">grade_groups &lt;- list(</span></span>
+<span id="cb24-257"><a href="#cb24-257"></a><span class="in">  "Any Grade (%)" = c("1", "2", "3", "4", "5"),</span></span>
+<span id="cb24-258"><a href="#cb24-258"></a><span class="in">  "Grade 1-2 (%)" = c("1", "2"),</span></span>
+<span id="cb24-259"><a href="#cb24-259"></a><span class="in">  "Grade 3-4 (%)" = c("3", "4"),</span></span>
+<span id="cb24-260"><a href="#cb24-260"></a><span class="in">  "Grade 5 (%)" = "5"</span></span>
+<span id="cb24-261"><a href="#cb24-261"></a><span class="in">)</span></span>
+<span id="cb24-262"><a href="#cb24-262"></a></span>
+<span id="cb24-263"><a href="#cb24-263"></a><span class="in">col_counts &lt;- rep(table(adsl$ACTARM), each = length(grade_groups))</span></span>
+<span id="cb24-264"><a href="#cb24-264"></a></span>
+<span id="cb24-265"><a href="#cb24-265"></a><span class="in">full_table &lt;- basic_table() %&gt;%</span></span>
+<span id="cb24-266"><a href="#cb24-266"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb24-267"><a href="#cb24-267"></a><span class="in">  split_cols_by_groups("MAXAETOXGR", groups_list = grade_groups) %&gt;%</span></span>
+<span id="cb24-268"><a href="#cb24-268"></a><span class="in">  split_rows_by("AEBODSYS",</span></span>
+<span id="cb24-269"><a href="#cb24-269"></a><span class="in">    child_labels = "visible", nested = FALSE, indent_mod = -1L,</span></span>
+<span id="cb24-270"><a href="#cb24-270"></a><span class="in">    split_fun = trim_levels_in_group("AEDECOD")</span></span>
+<span id="cb24-271"><a href="#cb24-271"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-272"><a href="#cb24-272"></a><span class="in">  append_topleft("MedDRA System Organ Class") %&gt;%</span></span>
+<span id="cb24-273"><a href="#cb24-273"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb24-274"><a href="#cb24-274"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb24-275"><a href="#cb24-275"></a><span class="in">    .stats = "unique",</span></span>
+<span id="cb24-276"><a href="#cb24-276"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
+<span id="cb24-277"><a href="#cb24-277"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-278"><a href="#cb24-278"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb24-279"><a href="#cb24-279"></a><span class="in">    "AEDECOD",</span></span>
+<span id="cb24-280"><a href="#cb24-280"></a><span class="in">    na.rm = FALSE,</span></span>
+<span id="cb24-281"><a href="#cb24-281"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb24-282"><a href="#cb24-282"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb24-283"><a href="#cb24-283"></a><span class="in">    .formats = c(count_fraction = format_fraction_threshold(0.01))</span></span>
+<span id="cb24-284"><a href="#cb24-284"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-285"><a href="#cb24-285"></a><span class="in">  append_topleft("  MedDRA Preferred Term") %&gt;%</span></span>
+<span id="cb24-286"><a href="#cb24-286"></a><span class="in">  build_table(adae_max, col_counts = col_counts) %&gt;%</span></span>
+<span id="cb24-287"><a href="#cb24-287"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-288"><a href="#cb24-288"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb24-289"><a href="#cb24-289"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 5, 9)),</span></span>
+<span id="cb24-290"><a href="#cb24-290"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-291"><a href="#cb24-291"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-292"><a href="#cb24-292"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-293"><a href="#cb24-293"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb24-294"><a href="#cb24-294"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 5, 9)),</span></span>
+<span id="cb24-295"><a href="#cb24-295"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-296"><a href="#cb24-296"></a><span class="in">  )</span></span>
+<span id="cb24-297"><a href="#cb24-297"></a></span>
+<span id="cb24-298"><a href="#cb24-298"></a><span class="in">at_least_40percent_any &lt;- has_fraction_in_any_col(atleast = 0.4, col_indices = c(1, 5, 9))</span></span>
+<span id="cb24-299"><a href="#cb24-299"></a></span>
+<span id="cb24-300"><a href="#cb24-300"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
+<span id="cb24-301"><a href="#cb24-301"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
+<span id="cb24-302"><a href="#cb24-302"></a><span class="in">  prune_table(keep_rows(at_least_40percent_any))</span></span>
+<span id="cb24-303"><a href="#cb24-303"></a></span>
+<span id="cb24-304"><a href="#cb24-304"></a><span class="in">result</span></span>
+<span id="cb24-305"><a href="#cb24-305"></a><span class="in">```</span></span>
+<span id="cb24-306"><a href="#cb24-306"></a></span>
+<span id="cb24-307"><a href="#cb24-307"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant6")`</span></span>
+<span id="cb24-308"><a href="#cb24-308"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb24-309"><a href="#cb24-309"></a>:::</span>
+<span id="cb24-310"><a href="#cb24-310"></a></span>
+<span id="cb24-311"><a href="#cb24-311"></a><span class="fu">## Standard Table with &lt;br/&gt; Overlapping Grade Groupings</span></span>
+<span id="cb24-312"><a href="#cb24-312"></a></span>
+<span id="cb24-313"><a href="#cb24-313"></a>Note: User needs to specify the column index for filtering the table.</span>
+<span id="cb24-314"><a href="#cb24-314"></a>The current example uses column indices 1, 5, and 9 with a filtering threshold at 0.40 to demonstrate the filtering ability; any grade AEs reported in greater than 40% of patients are shown.</span>
+<span id="cb24-315"><a href="#cb24-315"></a>This can be changed by varying the parameter values in the <span class="in">`has_fraction_in_any_col`</span> function.</span>
+<span id="cb24-316"><a href="#cb24-316"></a></span>
+<span id="cb24-317"><a href="#cb24-317"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb24-318"><a href="#cb24-318"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb24-319"><a href="#cb24-319"></a></span>
+<span id="cb24-320"><a href="#cb24-320"></a><span class="in">```{r variant7, test = list(result_v7 = "result")}</span></span>
+<span id="cb24-321"><a href="#cb24-321"></a><span class="in">grade_groups &lt;- list(</span></span>
+<span id="cb24-322"><a href="#cb24-322"></a><span class="in">  "Any Grade (%)" = c("1", "2", "3", "4", "5"),</span></span>
+<span id="cb24-323"><a href="#cb24-323"></a><span class="in">  "Grade 3-4 (%)" = c("3", "4"),</span></span>
+<span id="cb24-324"><a href="#cb24-324"></a><span class="in">  "Grade 3-5 (%)" = c("3", "4", "5"),</span></span>
+<span id="cb24-325"><a href="#cb24-325"></a><span class="in">  "Grade 5 (%)" = "5"</span></span>
+<span id="cb24-326"><a href="#cb24-326"></a><span class="in">)</span></span>
+<span id="cb24-327"><a href="#cb24-327"></a></span>
+<span id="cb24-328"><a href="#cb24-328"></a><span class="in">col_counts &lt;- rep(table(adsl$ACTARM), each = length(grade_groups))</span></span>
+<span id="cb24-329"><a href="#cb24-329"></a><span class="in">full_table &lt;- basic_table() %&gt;%</span></span>
+<span id="cb24-330"><a href="#cb24-330"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb24-331"><a href="#cb24-331"></a><span class="in">  split_cols_by_groups("MAXAETOXGR", groups_list = grade_groups) %&gt;%</span></span>
+<span id="cb24-332"><a href="#cb24-332"></a><span class="in">  split_rows_by("AEBODSYS",</span></span>
+<span id="cb24-333"><a href="#cb24-333"></a><span class="in">    child_labels = "visible", nested = FALSE, indent_mod = -1L,</span></span>
+<span id="cb24-334"><a href="#cb24-334"></a><span class="in">    split_fun = trim_levels_in_group("AEDECOD")</span></span>
+<span id="cb24-335"><a href="#cb24-335"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-336"><a href="#cb24-336"></a><span class="in">  append_topleft("MedDRA System Organ Class") %&gt;%</span></span>
+<span id="cb24-337"><a href="#cb24-337"></a><span class="in">  summarize_num_patients(</span></span>
+<span id="cb24-338"><a href="#cb24-338"></a><span class="in">    var = "USUBJID",</span></span>
+<span id="cb24-339"><a href="#cb24-339"></a><span class="in">    .stats = "unique",</span></span>
+<span id="cb24-340"><a href="#cb24-340"></a><span class="in">    .labels = "Total number of patients with at least one adverse event"</span></span>
+<span id="cb24-341"><a href="#cb24-341"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-342"><a href="#cb24-342"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb24-343"><a href="#cb24-343"></a><span class="in">    "AEDECOD",</span></span>
+<span id="cb24-344"><a href="#cb24-344"></a><span class="in">    na.rm = FALSE,</span></span>
+<span id="cb24-345"><a href="#cb24-345"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb24-346"><a href="#cb24-346"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb24-347"><a href="#cb24-347"></a><span class="in">    .formats = c(count_fraction = format_fraction_threshold(0.01))</span></span>
+<span id="cb24-348"><a href="#cb24-348"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-349"><a href="#cb24-349"></a><span class="in">  append_topleft("  MedDRA Preferred Term") %&gt;%</span></span>
+<span id="cb24-350"><a href="#cb24-350"></a><span class="in">  build_table(adae_max, col_counts = col_counts) %&gt;%</span></span>
+<span id="cb24-351"><a href="#cb24-351"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-352"><a href="#cb24-352"></a><span class="in">    path = c("AEBODSYS"),</span></span>
+<span id="cb24-353"><a href="#cb24-353"></a><span class="in">    scorefun = score_occurrences_cont_cols(col_indices = c(1, 5, 9)),</span></span>
+<span id="cb24-354"><a href="#cb24-354"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-355"><a href="#cb24-355"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-356"><a href="#cb24-356"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-357"><a href="#cb24-357"></a><span class="in">    path = c("AEBODSYS", "*", "AEDECOD"),</span></span>
+<span id="cb24-358"><a href="#cb24-358"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 5, 9)),</span></span>
+<span id="cb24-359"><a href="#cb24-359"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-360"><a href="#cb24-360"></a><span class="in">  )</span></span>
+<span id="cb24-361"><a href="#cb24-361"></a></span>
+<span id="cb24-362"><a href="#cb24-362"></a><span class="in">at_least_40percent_any &lt;- has_fraction_in_any_col(atleast = 0.4, col_indices = c(1, 5, 9))</span></span>
+<span id="cb24-363"><a href="#cb24-363"></a></span>
+<span id="cb24-364"><a href="#cb24-364"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
+<span id="cb24-365"><a href="#cb24-365"></a><span class="in">  trim_rows(criteria = criteria_fun) %&gt;%</span></span>
+<span id="cb24-366"><a href="#cb24-366"></a><span class="in">  prune_table(keep_rows(at_least_40percent_any))</span></span>
+<span id="cb24-367"><a href="#cb24-367"></a></span>
+<span id="cb24-368"><a href="#cb24-368"></a><span class="in">result</span></span>
+<span id="cb24-369"><a href="#cb24-369"></a><span class="in">```</span></span>
+<span id="cb24-370"><a href="#cb24-370"></a></span>
+<span id="cb24-371"><a href="#cb24-371"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant7")`</span></span>
+<span id="cb24-372"><a href="#cb24-372"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb24-373"><a href="#cb24-373"></a>:::</span>
+<span id="cb24-374"><a href="#cb24-374"></a></span>
+<span id="cb24-375"><a href="#cb24-375"></a><span class="fu">## Standard Table without SOCs</span></span>
+<span id="cb24-376"><a href="#cb24-376"></a></span>
+<span id="cb24-377"><a href="#cb24-377"></a>Note: User needs to specify the column index for filtering the table.</span>
+<span id="cb24-378"><a href="#cb24-378"></a>The current example uses column indices 1, 4, and 7 with a filtering threshold at 0.20 to demonstrate the filtering ability; any grade AEs (Preferred Terms Only) reported in greater than 20% of patients are shown.</span>
+<span id="cb24-379"><a href="#cb24-379"></a>This can be changed by varying the parameter values in the <span class="in">`has_fraction_in_any_col`</span> function.</span>
+<span id="cb24-380"><a href="#cb24-380"></a></span>
+<span id="cb24-381"><a href="#cb24-381"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb24-382"><a href="#cb24-382"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb24-383"><a href="#cb24-383"></a></span>
+<span id="cb24-384"><a href="#cb24-384"></a><span class="in">```{r variant8, test = list(result_v8 = "result")}</span></span>
+<span id="cb24-385"><a href="#cb24-385"></a><span class="in">grade_groups &lt;- list(</span></span>
+<span id="cb24-386"><a href="#cb24-386"></a><span class="in">  "Any Grade (%)" = c("1", "2", "3", "4", "5"),</span></span>
+<span id="cb24-387"><a href="#cb24-387"></a><span class="in">  "Grade 3-4 (%)" = c("3", "4"),</span></span>
+<span id="cb24-388"><a href="#cb24-388"></a><span class="in">  "Grade 5 (%)" = "5"</span></span>
+<span id="cb24-389"><a href="#cb24-389"></a><span class="in">)</span></span>
+<span id="cb24-390"><a href="#cb24-390"></a></span>
+<span id="cb24-391"><a href="#cb24-391"></a><span class="in">col_counts &lt;- rep(table(adsl$ACTARM), each = length(grade_groups))</span></span>
+<span id="cb24-392"><a href="#cb24-392"></a></span>
+<span id="cb24-393"><a href="#cb24-393"></a><span class="in">full_table &lt;- basic_table() %&gt;%</span></span>
+<span id="cb24-394"><a href="#cb24-394"></a><span class="in">  split_cols_by("ACTARM") %&gt;%</span></span>
+<span id="cb24-395"><a href="#cb24-395"></a><span class="in">  split_cols_by_groups("MAXAETOXGR", groups_list = grade_groups) %&gt;%</span></span>
+<span id="cb24-396"><a href="#cb24-396"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb24-397"><a href="#cb24-397"></a><span class="in">    "AEDECOD",</span></span>
+<span id="cb24-398"><a href="#cb24-398"></a><span class="in">    na.rm = FALSE,</span></span>
+<span id="cb24-399"><a href="#cb24-399"></a><span class="in">    denom = "N_col",</span></span>
+<span id="cb24-400"><a href="#cb24-400"></a><span class="in">    .stats = "count_fraction",</span></span>
+<span id="cb24-401"><a href="#cb24-401"></a><span class="in">    .formats = c(count_fraction = format_fraction_threshold(0.01))</span></span>
+<span id="cb24-402"><a href="#cb24-402"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb24-403"><a href="#cb24-403"></a><span class="in">  append_topleft("MedDRA Preferred Term") %&gt;%</span></span>
+<span id="cb24-404"><a href="#cb24-404"></a><span class="in">  build_table(adae_max, col_counts = col_counts)</span></span>
+<span id="cb24-405"><a href="#cb24-405"></a></span>
+<span id="cb24-406"><a href="#cb24-406"></a><span class="in">at_least_20percent_any &lt;- has_fraction_in_any_col(atleast = 0.2, col_indices = c(1, 4, 7))</span></span>
+<span id="cb24-407"><a href="#cb24-407"></a></span>
+<span id="cb24-408"><a href="#cb24-408"></a><span class="in">result &lt;- full_table %&gt;%</span></span>
+<span id="cb24-409"><a href="#cb24-409"></a><span class="in">  prune_table(keep_rows(at_least_20percent_any)) %&gt;%</span></span>
+<span id="cb24-410"><a href="#cb24-410"></a><span class="in">  sort_at_path(</span></span>
+<span id="cb24-411"><a href="#cb24-411"></a><span class="in">    path = c("AEDECOD"),</span></span>
+<span id="cb24-412"><a href="#cb24-412"></a><span class="in">    scorefun = score_occurrences_cols(col_indices = c(1, 4, 7)),</span></span>
+<span id="cb24-413"><a href="#cb24-413"></a><span class="in">    decreasing = TRUE</span></span>
+<span id="cb24-414"><a href="#cb24-414"></a><span class="in">  )</span></span>
+<span id="cb24-415"><a href="#cb24-415"></a></span>
+<span id="cb24-416"><a href="#cb24-416"></a><span class="in">result</span></span>
+<span id="cb24-417"><a href="#cb24-417"></a><span class="in">```</span></span>
+<span id="cb24-418"><a href="#cb24-418"></a></span>
+<span id="cb24-419"><a href="#cb24-419"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant8")`</span></span>
+<span id="cb24-420"><a href="#cb24-420"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb24-421"><a href="#cb24-421"></a>:::</span>
+<span id="cb24-422"><a href="#cb24-422"></a></span>
+<span id="cb24-423"><a href="#cb24-423"></a><span class="fu">## Data Setup</span></span>
+<span id="cb24-424"><a href="#cb24-424"></a></span>
+<span id="cb24-425"><a href="#cb24-425"></a><span class="in">```{r setup}</span></span>
+<span id="cb24-426"><a href="#cb24-426"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb24-427"><a href="#cb24-427"></a><span class="in">```</span></span>
+<span id="cb24-428"><a href="#cb24-428"></a></span>
+<span id="cb24-429"><a href="#cb24-429"></a>::::</span>
+<span id="cb24-430"><a href="#cb24-430"></a></span>
+<span id="cb24-431"><a href="#cb24-431"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb24-432"><a href="#cb24-432"></a></span>
+<span id="cb24-433"><a href="#cb24-433"></a><span class="fu">## `teal` App</span></span>
+<span id="cb24-434"><a href="#cb24-434"></a></span>
+<span id="cb24-435"><a href="#cb24-435"></a>::: {.panel-tabset .nav-justified}</span>
+<span id="cb24-436"><a href="#cb24-436"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
+<span id="cb24-437"><a href="#cb24-437"></a></span>
+<span id="cb24-438"><a href="#cb24-438"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb24-439"><a href="#cb24-439"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb24-440"><a href="#cb24-440"></a></span>
+<span id="cb24-441"><a href="#cb24-441"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb24-442"><a href="#cb24-442"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb24-443"><a href="#cb24-443"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb24-444"><a href="#cb24-444"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb24-445"><a href="#cb24-445"></a><span class="in">  ADAE &lt;- random.cdisc.data::cadae</span></span>
+<span id="cb24-446"><a href="#cb24-446"></a><span class="in">})</span></span>
+<span id="cb24-447"><a href="#cb24-447"></a><span class="in">datanames &lt;- c("ADSL", "ADAE")</span></span>
+<span id="cb24-448"><a href="#cb24-448"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb24-449"><a href="#cb24-449"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb24-450"><a href="#cb24-450"></a></span>
+<span id="cb24-451"><a href="#cb24-451"></a><span class="in">## Reusable Configuration For Modules</span></span>
+<span id="cb24-452"><a href="#cb24-452"></a><span class="in">ADAE &lt;- data[["ADAE"]]</span></span>
+<span id="cb24-453"><a href="#cb24-453"></a></span>
+<span id="cb24-454"><a href="#cb24-454"></a><span class="in">## Setup App</span></span>
+<span id="cb24-455"><a href="#cb24-455"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb24-456"><a href="#cb24-456"></a><span class="in">  data = data,</span></span>
+<span id="cb24-457"><a href="#cb24-457"></a><span class="in">  modules = modules(</span></span>
+<span id="cb24-458"><a href="#cb24-458"></a><span class="in">    tm_t_events_by_grade(</span></span>
+<span id="cb24-459"><a href="#cb24-459"></a><span class="in">      label = "Adverse Events by Grade Table",</span></span>
+<span id="cb24-460"><a href="#cb24-460"></a><span class="in">      dataname = "ADAE",</span></span>
+<span id="cb24-461"><a href="#cb24-461"></a><span class="in">      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span></span>
+<span id="cb24-462"><a href="#cb24-462"></a><span class="in">      col_by_grade = TRUE,</span></span>
+<span id="cb24-463"><a href="#cb24-463"></a><span class="in">      llt = choices_selected(</span></span>
+<span id="cb24-464"><a href="#cb24-464"></a><span class="in">        choices = variable_choices(ADAE, c("AETERM", "AEDECOD")),</span></span>
+<span id="cb24-465"><a href="#cb24-465"></a><span class="in">        selected = c("AEDECOD")</span></span>
+<span id="cb24-466"><a href="#cb24-466"></a><span class="in">      ),</span></span>
+<span id="cb24-467"><a href="#cb24-467"></a><span class="in">      hlt = choices_selected(</span></span>
+<span id="cb24-468"><a href="#cb24-468"></a><span class="in">        choices = variable_choices(ADAE, c("AEBODSYS", "AESOC")),</span></span>
+<span id="cb24-469"><a href="#cb24-469"></a><span class="in">        selected = "AEBODSYS"</span></span>
+<span id="cb24-470"><a href="#cb24-470"></a><span class="in">      ),</span></span>
+<span id="cb24-471"><a href="#cb24-471"></a><span class="in">      grade = choices_selected(</span></span>
+<span id="cb24-472"><a href="#cb24-472"></a><span class="in">        choices = variable_choices(ADAE, c("AETOXGR", "AESEV")),</span></span>
+<span id="cb24-473"><a href="#cb24-473"></a><span class="in">        selected = "AETOXGR"</span></span>
+<span id="cb24-474"><a href="#cb24-474"></a><span class="in">      ),</span></span>
+<span id="cb24-475"><a href="#cb24-475"></a><span class="in">      # List of column groups for grades used when `col_by_grade` = TRUE.</span></span>
+<span id="cb24-476"><a href="#cb24-476"></a><span class="in">      grading_groups = list(</span></span>
+<span id="cb24-477"><a href="#cb24-477"></a><span class="in">        `Any Grade (%)` = c("1", "2", "3", "4", "5"),</span></span>
+<span id="cb24-478"><a href="#cb24-478"></a><span class="in">        `Grade 3-4 (%)` = c("3", "4"),</span></span>
+<span id="cb24-479"><a href="#cb24-479"></a><span class="in">        `Grade 5 (%)` = "5"</span></span>
+<span id="cb24-480"><a href="#cb24-480"></a><span class="in">      )</span></span>
+<span id="cb24-481"><a href="#cb24-481"></a><span class="in">    )</span></span>
+<span id="cb24-482"><a href="#cb24-482"></a><span class="in">  )</span></span>
+<span id="cb24-483"><a href="#cb24-483"></a><span class="in">)</span></span>
+<span id="cb24-484"><a href="#cb24-484"></a></span>
+<span id="cb24-485"><a href="#cb24-485"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb24-486"><a href="#cb24-486"></a><span class="in">```</span></span>
+<span id="cb24-487"><a href="#cb24-487"></a></span>
+<span id="cb24-488"><a href="#cb24-488"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
+<span id="cb24-489"><a href="#cb24-489"></a>:::</span>
+<span id="cb24-490"><a href="#cb24-490"></a></span>
+<span id="cb24-491"><a href="#cb24-491"></a>{{&lt; include ../../repro.qmd &gt;}}</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

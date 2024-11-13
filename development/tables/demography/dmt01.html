@@ -76,9 +76,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="../../site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <meta name="shinylive:serviceworker_dir" content="../..">
-<script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/load-shinylive-sw.js" type="module"></script>
-<script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/run-python-blocks.js" type="module"></script>
-<link href="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/shinylive.css" rel="stylesheet">
+<script src="../../site_libs/quarto-contrib/shinylive-0.9.1/shinylive/load-shinylive-sw.js" type="module"></script>
+<script src="../../site_libs/quarto-contrib/shinylive-0.9.1/shinylive/run-python-blocks.js" type="module"></script>
+<link href="../../site_libs/quarto-contrib/shinylive-0.9.1/shinylive/shinylive.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/shinylive-quarto-css/shinylive-quarto.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-1.2.0/all.min.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-1.2.0/latex-fontsize.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
@@ -432,7 +432,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"options":{"results":"markup","autorun":"true","warning":"true","editor-max-height":"500","editor-font-scale":"1","message":"true","context":"interactive","label":"unnamed-chunk-1","out-height":"","fig-cap":"","editor-word-wrap":"true","dpi":72,"fig-width":7,"output":"true","editor-quick-suggestions":"false","comment":"","fig-height":5,"out-width":"700px","classes":"","read-only":"false"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\nadsub <- random.cdisc.data::cadsub\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\nadsub <- df_explicit_na(adsub)\n\n# Change description in variable SEX.\nadsl <- adsl %>%\n  mutate(\n    SEX = factor(case_when(\n      SEX == \"M\" ~ \"Male\",\n      SEX == \"F\" ~ \"Female\",\n      SEX == \"U\" ~ \"Unknown\",\n      SEX == \"UNDIFFERENTIATED\" ~ \"Undifferentiated\"\n    )),\n    AGEGR1 = factor(\n      case_when(\n        between(AGE, 18, 40) ~ \"18-40\",\n        between(AGE, 41, 64) ~ \"41-64\",\n        AGE > 64 ~ \">=65\"\n      ),\n      levels = c(\"18-40\", \"41-64\", \">=65\")\n    ),\n    BMRKR1_CAT = factor(\n      case_when(\n        BMRKR1 < 3.5 ~ \"LOW\",\n        BMRKR1 >= 3.5 & BMRKR1 < 10 ~ \"MEDIUM\",\n        BMRKR1 >= 10 ~ \"HIGH\"\n      ),\n      levels = c(\"LOW\", \"MEDIUM\", \"HIGH\")\n    )\n  ) %>%\n  var_relabel(\n    BMRKR1_CAT = \"Biomarker 1 Categories\"\n  )\n# The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.\n# Obtain SBP, DBP and weight.\nget_param_advs <- function(pname, plabel) {\n  ds <- advs %>%\n    filter(PARAM == plabel & AVISIT == \"BASELINE\") %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\n# The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.\n# Obtain baseline BMI (BBMISI).\nget_param_adsub <- function(pname, plabel) {\n  ds <- adsub %>%\n    filter(PARAM == plabel) %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\nadsl <- adsl %>%\n  left_join(get_param_advs(\"SBP\", \"Systolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"DBP\", \"Diastolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"WGT\", \"Weight\"), by = \"USUBJID\") %>%\n  left_join(get_param_adsub(\"BBMISI\", \"Baseline BMI\"), by = \"USUBJID\")\nvars <- c(\"AGE\", \"AGEGR1\", \"SEX\", \"ETHNIC\", \"RACE\", \"BMRKR1\")\nvar_labels <- c(\n  \"Age (yr)\",\n  \"Age Group\",\n  \"Sex\",\n  \"Ethnicity\",\n  \"Race\",\n  \"Continous Level Biomarker 1\"\n)\n\nresult <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(var = \"ACTARM\") %>%\n  add_overall_col(\"All Patients\") %>%\n  analyze_vars(\n    vars = vars,\n    var_labels = var_labels\n  ) %>%\n  build_table(adsl)\n\nresult"},{"id":2,"options":{"results":"markup","autorun":"true","warning":"true","editor-max-height":"500","editor-font-scale":"1","message":"true","context":"interactive","label":"unnamed-chunk-2","out-height":"","fig-cap":"","editor-word-wrap":"true","dpi":72,"fig-width":7,"output":"true","editor-quick-suggestions":"false","comment":"","fig-height":5,"out-width":"700px","classes":"","read-only":"false"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\nadsub <- random.cdisc.data::cadsub\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\nadsub <- df_explicit_na(adsub)\n\n# Change description in variable SEX.\nadsl <- adsl %>%\n  mutate(\n    SEX = factor(case_when(\n      SEX == \"M\" ~ \"Male\",\n      SEX == \"F\" ~ \"Female\",\n      SEX == \"U\" ~ \"Unknown\",\n      SEX == \"UNDIFFERENTIATED\" ~ \"Undifferentiated\"\n    )),\n    AGEGR1 = factor(\n      case_when(\n        between(AGE, 18, 40) ~ \"18-40\",\n        between(AGE, 41, 64) ~ \"41-64\",\n        AGE > 64 ~ \">=65\"\n      ),\n      levels = c(\"18-40\", \"41-64\", \">=65\")\n    ),\n    BMRKR1_CAT = factor(\n      case_when(\n        BMRKR1 < 3.5 ~ \"LOW\",\n        BMRKR1 >= 3.5 & BMRKR1 < 10 ~ \"MEDIUM\",\n        BMRKR1 >= 10 ~ \"HIGH\"\n      ),\n      levels = c(\"LOW\", \"MEDIUM\", \"HIGH\")\n    )\n  ) %>%\n  var_relabel(\n    BMRKR1_CAT = \"Biomarker 1 Categories\"\n  )\n# The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.\n# Obtain SBP, DBP and weight.\nget_param_advs <- function(pname, plabel) {\n  ds <- advs %>%\n    filter(PARAM == plabel & AVISIT == \"BASELINE\") %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\n# The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.\n# Obtain baseline BMI (BBMISI).\nget_param_adsub <- function(pname, plabel) {\n  ds <- adsub %>%\n    filter(PARAM == plabel) %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\nadsl <- adsl %>%\n  left_join(get_param_advs(\"SBP\", \"Systolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"DBP\", \"Diastolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"WGT\", \"Weight\"), by = \"USUBJID\") %>%\n  left_join(get_param_adsub(\"BBMISI\", \"Baseline BMI\"), by = \"USUBJID\")\nvars <- c(\"AGE\", \"AGEGR1\", \"SEX\", \"ETHNIC\", \"RACE\", \"BMRKR1_CAT\")\nvar_labels <- c(\n  \"Age (yr)\",\n  \"Age Group\",\n  \"Sex\",\n  \"Ethnicity\",\n  \"Race\",\n  \"Biomarker 1 Categories\"\n)\n\nresult <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(var = \"ACTARM\") %>%\n  analyze_vars(\n    vars = vars,\n    var_labels = var_labels\n  ) %>%\n  build_table(adsl)\n\nresult"},{"id":3,"options":{"results":"markup","autorun":"true","warning":"true","editor-max-height":"500","editor-font-scale":"1","message":"true","context":"interactive","label":"unnamed-chunk-3","out-height":"","fig-cap":"","editor-word-wrap":"true","dpi":72,"fig-width":7,"output":"true","editor-quick-suggestions":"false","comment":"","fig-height":5,"out-width":"700px","classes":"","read-only":"false"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\nadsub <- random.cdisc.data::cadsub\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\nadsub <- df_explicit_na(adsub)\n\n# Change description in variable SEX.\nadsl <- adsl %>%\n  mutate(\n    SEX = factor(case_when(\n      SEX == \"M\" ~ \"Male\",\n      SEX == \"F\" ~ \"Female\",\n      SEX == \"U\" ~ \"Unknown\",\n      SEX == \"UNDIFFERENTIATED\" ~ \"Undifferentiated\"\n    )),\n    AGEGR1 = factor(\n      case_when(\n        between(AGE, 18, 40) ~ \"18-40\",\n        between(AGE, 41, 64) ~ \"41-64\",\n        AGE > 64 ~ \">=65\"\n      ),\n      levels = c(\"18-40\", \"41-64\", \">=65\")\n    ),\n    BMRKR1_CAT = factor(\n      case_when(\n        BMRKR1 < 3.5 ~ \"LOW\",\n        BMRKR1 >= 3.5 & BMRKR1 < 10 ~ \"MEDIUM\",\n        BMRKR1 >= 10 ~ \"HIGH\"\n      ),\n      levels = c(\"LOW\", \"MEDIUM\", \"HIGH\")\n    )\n  ) %>%\n  var_relabel(\n    BMRKR1_CAT = \"Biomarker 1 Categories\"\n  )\n# The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.\n# Obtain SBP, DBP and weight.\nget_param_advs <- function(pname, plabel) {\n  ds <- advs %>%\n    filter(PARAM == plabel & AVISIT == \"BASELINE\") %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\n# The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.\n# Obtain baseline BMI (BBMISI).\nget_param_adsub <- function(pname, plabel) {\n  ds <- adsub %>%\n    filter(PARAM == plabel) %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\nadsl <- adsl %>%\n  left_join(get_param_advs(\"SBP\", \"Systolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"DBP\", \"Diastolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"WGT\", \"Weight\"), by = \"USUBJID\") %>%\n  left_join(get_param_adsub(\"BBMISI\", \"Baseline BMI\"), by = \"USUBJID\")\nsplit_fun <- drop_split_levels\n\nresult <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(var = \"ACTARM\") %>%\n  analyze_vars(\n    vars = c(\"AGE\", \"SEX\", \"RACE\"),\n    var_labels = c(\"Age\", \"Sex\", \"Race\")\n  ) %>%\n  split_rows_by(\"STRATA1\",\n    split_fun = split_fun\n  ) %>%\n  analyze_vars(\"BMRKR1\") %>%\n  build_table(adsl)\n\nresult"},{"id":4,"options":{"results":"markup","autorun":"true","warning":"true","editor-max-height":"500","editor-font-scale":"1","message":"true","context":"interactive","label":"unnamed-chunk-4","out-height":"","fig-cap":"","editor-word-wrap":"true","dpi":72,"fig-width":7,"output":"true","editor-quick-suggestions":"false","comment":"","fig-height":5,"out-width":"700px","classes":"","read-only":"false"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\nadsub <- random.cdisc.data::cadsub\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\nadsub <- df_explicit_na(adsub)\n\n# Change description in variable SEX.\nadsl <- adsl %>%\n  mutate(\n    SEX = factor(case_when(\n      SEX == \"M\" ~ \"Male\",\n      SEX == \"F\" ~ \"Female\",\n      SEX == \"U\" ~ \"Unknown\",\n      SEX == \"UNDIFFERENTIATED\" ~ \"Undifferentiated\"\n    )),\n    AGEGR1 = factor(\n      case_when(\n        between(AGE, 18, 40) ~ \"18-40\",\n        between(AGE, 41, 64) ~ \"41-64\",\n        AGE > 64 ~ \">=65\"\n      ),\n      levels = c(\"18-40\", \"41-64\", \">=65\")\n    ),\n    BMRKR1_CAT = factor(\n      case_when(\n        BMRKR1 < 3.5 ~ \"LOW\",\n        BMRKR1 >= 3.5 & BMRKR1 < 10 ~ \"MEDIUM\",\n        BMRKR1 >= 10 ~ \"HIGH\"\n      ),\n      levels = c(\"LOW\", \"MEDIUM\", \"HIGH\")\n    )\n  ) %>%\n  var_relabel(\n    BMRKR1_CAT = \"Biomarker 1 Categories\"\n  )\n# The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.\n# Obtain SBP, DBP and weight.\nget_param_advs <- function(pname, plabel) {\n  ds <- advs %>%\n    filter(PARAM == plabel & AVISIT == \"BASELINE\") %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\n# The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.\n# Obtain baseline BMI (BBMISI).\nget_param_adsub <- function(pname, plabel) {\n  ds <- adsub %>%\n    filter(PARAM == plabel) %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\nadsl <- adsl %>%\n  left_join(get_param_advs(\"SBP\", \"Systolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"DBP\", \"Diastolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"WGT\", \"Weight\"), by = \"USUBJID\") %>%\n  left_join(get_param_adsub(\"BBMISI\", \"Baseline BMI\"), by = \"USUBJID\")\nresult <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(var = \"ACTARM\") %>%\n  analyze_vars(\n    vars = c(\"AGE\", \"SEX\", \"RACE\", \"DBP\", \"SBP\"),\n    var_labels = c(\n      \"Age (yr)\",\n      \"Sex\",\n      \"Race\",\n      \"Diastolic Blood Pressure\",\n      \"Systolic Blood Pressure\"\n    )\n  ) %>%\n  build_table(adsl)\n\nresult"},{"id":5,"options":{"results":"markup","autorun":"true","warning":"true","editor-max-height":"500","editor-font-scale":"1","message":"true","context":"interactive","label":"unnamed-chunk-5","out-height":"","fig-cap":"","editor-word-wrap":"true","dpi":72,"fig-width":7,"output":"true","editor-quick-suggestions":"false","comment":"","fig-height":5,"out-width":"700px","classes":"","read-only":"false"},"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\nadsub <- random.cdisc.data::cadsub\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\nadsub <- df_explicit_na(adsub)\n\n# Change description in variable SEX.\nadsl <- adsl %>%\n  mutate(\n    SEX = factor(case_when(\n      SEX == \"M\" ~ \"Male\",\n      SEX == \"F\" ~ \"Female\",\n      SEX == \"U\" ~ \"Unknown\",\n      SEX == \"UNDIFFERENTIATED\" ~ \"Undifferentiated\"\n    )),\n    AGEGR1 = factor(\n      case_when(\n        between(AGE, 18, 40) ~ \"18-40\",\n        between(AGE, 41, 64) ~ \"41-64\",\n        AGE > 64 ~ \">=65\"\n      ),\n      levels = c(\"18-40\", \"41-64\", \">=65\")\n    ),\n    BMRKR1_CAT = factor(\n      case_when(\n        BMRKR1 < 3.5 ~ \"LOW\",\n        BMRKR1 >= 3.5 & BMRKR1 < 10 ~ \"MEDIUM\",\n        BMRKR1 >= 10 ~ \"HIGH\"\n      ),\n      levels = c(\"LOW\", \"MEDIUM\", \"HIGH\")\n    )\n  ) %>%\n  var_relabel(\n    BMRKR1_CAT = \"Biomarker 1 Categories\"\n  )\n# The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.\n# Obtain SBP, DBP and weight.\nget_param_advs <- function(pname, plabel) {\n  ds <- advs %>%\n    filter(PARAM == plabel & AVISIT == \"BASELINE\") %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\n# The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.\n# Obtain baseline BMI (BBMISI).\nget_param_adsub <- function(pname, plabel) {\n  ds <- adsub %>%\n    filter(PARAM == plabel) %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\nadsl <- adsl %>%\n  left_join(get_param_advs(\"SBP\", \"Systolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"DBP\", \"Diastolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"WGT\", \"Weight\"), by = \"USUBJID\") %>%\n  left_join(get_param_adsub(\"BBMISI\", \"Baseline BMI\"), by = \"USUBJID\")\nresult <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(var = \"ACTARM\") %>%\n  analyze_vars(\n    vars = c(\"AGE\", \"SEX\", \"RACE\", \"BBMISI\"),\n    var_labels = c(\n      \"Age (yr)\",\n      \"Sex\",\n      \"Race\",\n      \"Baseline BMI\"\n    )\n  ) %>%\n  build_table(adsl)\n\nresult"}];
+globalThis.qwebrCellDetails = [{"options":{"classes":"","out-height":"","output":"true","dpi":72,"editor-word-wrap":"true","editor-max-height":"500","read-only":"false","results":"markup","warning":"true","comment":"","autorun":"true","editor-font-scale":"1","fig-cap":"","label":"unnamed-chunk-1","out-width":"700px","context":"interactive","fig-height":5,"message":"true","editor-quick-suggestions":"false","fig-width":7},"id":1,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\nadsub <- random.cdisc.data::cadsub\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\nadsub <- df_explicit_na(adsub)\n\n# Change description in variable SEX.\nadsl <- adsl %>%\n  mutate(\n    SEX = factor(case_when(\n      SEX == \"M\" ~ \"Male\",\n      SEX == \"F\" ~ \"Female\",\n      SEX == \"U\" ~ \"Unknown\",\n      SEX == \"UNDIFFERENTIATED\" ~ \"Undifferentiated\"\n    )),\n    AGEGR1 = factor(\n      case_when(\n        between(AGE, 18, 40) ~ \"18-40\",\n        between(AGE, 41, 64) ~ \"41-64\",\n        AGE > 64 ~ \">=65\"\n      ),\n      levels = c(\"18-40\", \"41-64\", \">=65\")\n    ),\n    BMRKR1_CAT = factor(\n      case_when(\n        BMRKR1 < 3.5 ~ \"LOW\",\n        BMRKR1 >= 3.5 & BMRKR1 < 10 ~ \"MEDIUM\",\n        BMRKR1 >= 10 ~ \"HIGH\"\n      ),\n      levels = c(\"LOW\", \"MEDIUM\", \"HIGH\")\n    )\n  ) %>%\n  var_relabel(\n    BMRKR1_CAT = \"Biomarker 1 Categories\"\n  )\n# The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.\n# Obtain SBP, DBP and weight.\nget_param_advs <- function(pname, plabel) {\n  ds <- advs %>%\n    filter(PARAM == plabel & AVISIT == \"BASELINE\") %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\n# The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.\n# Obtain baseline BMI (BBMISI).\nget_param_adsub <- function(pname, plabel) {\n  ds <- adsub %>%\n    filter(PARAM == plabel) %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\nadsl <- adsl %>%\n  left_join(get_param_advs(\"SBP\", \"Systolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"DBP\", \"Diastolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"WGT\", \"Weight\"), by = \"USUBJID\") %>%\n  left_join(get_param_adsub(\"BBMISI\", \"Baseline BMI\"), by = \"USUBJID\")\nvars <- c(\"AGE\", \"AGEGR1\", \"SEX\", \"ETHNIC\", \"RACE\", \"BMRKR1\")\nvar_labels <- c(\n  \"Age (yr)\",\n  \"Age Group\",\n  \"Sex\",\n  \"Ethnicity\",\n  \"Race\",\n  \"Continous Level Biomarker 1\"\n)\n\nresult <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(var = \"ACTARM\") %>%\n  add_overall_col(\"All Patients\") %>%\n  analyze_vars(\n    vars = vars,\n    var_labels = var_labels\n  ) %>%\n  build_table(adsl)\n\nresult"},{"options":{"classes":"","out-height":"","output":"true","dpi":72,"editor-word-wrap":"true","editor-max-height":"500","read-only":"false","results":"markup","warning":"true","comment":"","autorun":"true","editor-font-scale":"1","fig-cap":"","label":"unnamed-chunk-2","out-width":"700px","context":"interactive","fig-height":5,"message":"true","editor-quick-suggestions":"false","fig-width":7},"id":2,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\nadsub <- random.cdisc.data::cadsub\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\nadsub <- df_explicit_na(adsub)\n\n# Change description in variable SEX.\nadsl <- adsl %>%\n  mutate(\n    SEX = factor(case_when(\n      SEX == \"M\" ~ \"Male\",\n      SEX == \"F\" ~ \"Female\",\n      SEX == \"U\" ~ \"Unknown\",\n      SEX == \"UNDIFFERENTIATED\" ~ \"Undifferentiated\"\n    )),\n    AGEGR1 = factor(\n      case_when(\n        between(AGE, 18, 40) ~ \"18-40\",\n        between(AGE, 41, 64) ~ \"41-64\",\n        AGE > 64 ~ \">=65\"\n      ),\n      levels = c(\"18-40\", \"41-64\", \">=65\")\n    ),\n    BMRKR1_CAT = factor(\n      case_when(\n        BMRKR1 < 3.5 ~ \"LOW\",\n        BMRKR1 >= 3.5 & BMRKR1 < 10 ~ \"MEDIUM\",\n        BMRKR1 >= 10 ~ \"HIGH\"\n      ),\n      levels = c(\"LOW\", \"MEDIUM\", \"HIGH\")\n    )\n  ) %>%\n  var_relabel(\n    BMRKR1_CAT = \"Biomarker 1 Categories\"\n  )\n# The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.\n# Obtain SBP, DBP and weight.\nget_param_advs <- function(pname, plabel) {\n  ds <- advs %>%\n    filter(PARAM == plabel & AVISIT == \"BASELINE\") %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\n# The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.\n# Obtain baseline BMI (BBMISI).\nget_param_adsub <- function(pname, plabel) {\n  ds <- adsub %>%\n    filter(PARAM == plabel) %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\nadsl <- adsl %>%\n  left_join(get_param_advs(\"SBP\", \"Systolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"DBP\", \"Diastolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"WGT\", \"Weight\"), by = \"USUBJID\") %>%\n  left_join(get_param_adsub(\"BBMISI\", \"Baseline BMI\"), by = \"USUBJID\")\nvars <- c(\"AGE\", \"AGEGR1\", \"SEX\", \"ETHNIC\", \"RACE\", \"BMRKR1_CAT\")\nvar_labels <- c(\n  \"Age (yr)\",\n  \"Age Group\",\n  \"Sex\",\n  \"Ethnicity\",\n  \"Race\",\n  \"Biomarker 1 Categories\"\n)\n\nresult <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(var = \"ACTARM\") %>%\n  analyze_vars(\n    vars = vars,\n    var_labels = var_labels\n  ) %>%\n  build_table(adsl)\n\nresult"},{"options":{"classes":"","out-height":"","output":"true","dpi":72,"editor-word-wrap":"true","editor-max-height":"500","read-only":"false","results":"markup","warning":"true","comment":"","autorun":"true","editor-font-scale":"1","fig-cap":"","label":"unnamed-chunk-3","out-width":"700px","context":"interactive","fig-height":5,"message":"true","editor-quick-suggestions":"false","fig-width":7},"id":3,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\nadsub <- random.cdisc.data::cadsub\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\nadsub <- df_explicit_na(adsub)\n\n# Change description in variable SEX.\nadsl <- adsl %>%\n  mutate(\n    SEX = factor(case_when(\n      SEX == \"M\" ~ \"Male\",\n      SEX == \"F\" ~ \"Female\",\n      SEX == \"U\" ~ \"Unknown\",\n      SEX == \"UNDIFFERENTIATED\" ~ \"Undifferentiated\"\n    )),\n    AGEGR1 = factor(\n      case_when(\n        between(AGE, 18, 40) ~ \"18-40\",\n        between(AGE, 41, 64) ~ \"41-64\",\n        AGE > 64 ~ \">=65\"\n      ),\n      levels = c(\"18-40\", \"41-64\", \">=65\")\n    ),\n    BMRKR1_CAT = factor(\n      case_when(\n        BMRKR1 < 3.5 ~ \"LOW\",\n        BMRKR1 >= 3.5 & BMRKR1 < 10 ~ \"MEDIUM\",\n        BMRKR1 >= 10 ~ \"HIGH\"\n      ),\n      levels = c(\"LOW\", \"MEDIUM\", \"HIGH\")\n    )\n  ) %>%\n  var_relabel(\n    BMRKR1_CAT = \"Biomarker 1 Categories\"\n  )\n# The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.\n# Obtain SBP, DBP and weight.\nget_param_advs <- function(pname, plabel) {\n  ds <- advs %>%\n    filter(PARAM == plabel & AVISIT == \"BASELINE\") %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\n# The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.\n# Obtain baseline BMI (BBMISI).\nget_param_adsub <- function(pname, plabel) {\n  ds <- adsub %>%\n    filter(PARAM == plabel) %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\nadsl <- adsl %>%\n  left_join(get_param_advs(\"SBP\", \"Systolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"DBP\", \"Diastolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"WGT\", \"Weight\"), by = \"USUBJID\") %>%\n  left_join(get_param_adsub(\"BBMISI\", \"Baseline BMI\"), by = \"USUBJID\")\nsplit_fun <- drop_split_levels\n\nresult <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(var = \"ACTARM\") %>%\n  analyze_vars(\n    vars = c(\"AGE\", \"SEX\", \"RACE\"),\n    var_labels = c(\"Age\", \"Sex\", \"Race\")\n  ) %>%\n  split_rows_by(\"STRATA1\",\n    split_fun = split_fun\n  ) %>%\n  analyze_vars(\"BMRKR1\") %>%\n  build_table(adsl)\n\nresult"},{"options":{"classes":"","out-height":"","output":"true","dpi":72,"editor-word-wrap":"true","editor-max-height":"500","read-only":"false","results":"markup","warning":"true","comment":"","autorun":"true","editor-font-scale":"1","fig-cap":"","label":"unnamed-chunk-4","out-width":"700px","context":"interactive","fig-height":5,"message":"true","editor-quick-suggestions":"false","fig-width":7},"id":4,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\nadsub <- random.cdisc.data::cadsub\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\nadsub <- df_explicit_na(adsub)\n\n# Change description in variable SEX.\nadsl <- adsl %>%\n  mutate(\n    SEX = factor(case_when(\n      SEX == \"M\" ~ \"Male\",\n      SEX == \"F\" ~ \"Female\",\n      SEX == \"U\" ~ \"Unknown\",\n      SEX == \"UNDIFFERENTIATED\" ~ \"Undifferentiated\"\n    )),\n    AGEGR1 = factor(\n      case_when(\n        between(AGE, 18, 40) ~ \"18-40\",\n        between(AGE, 41, 64) ~ \"41-64\",\n        AGE > 64 ~ \">=65\"\n      ),\n      levels = c(\"18-40\", \"41-64\", \">=65\")\n    ),\n    BMRKR1_CAT = factor(\n      case_when(\n        BMRKR1 < 3.5 ~ \"LOW\",\n        BMRKR1 >= 3.5 & BMRKR1 < 10 ~ \"MEDIUM\",\n        BMRKR1 >= 10 ~ \"HIGH\"\n      ),\n      levels = c(\"LOW\", \"MEDIUM\", \"HIGH\")\n    )\n  ) %>%\n  var_relabel(\n    BMRKR1_CAT = \"Biomarker 1 Categories\"\n  )\n# The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.\n# Obtain SBP, DBP and weight.\nget_param_advs <- function(pname, plabel) {\n  ds <- advs %>%\n    filter(PARAM == plabel & AVISIT == \"BASELINE\") %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\n# The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.\n# Obtain baseline BMI (BBMISI).\nget_param_adsub <- function(pname, plabel) {\n  ds <- adsub %>%\n    filter(PARAM == plabel) %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\nadsl <- adsl %>%\n  left_join(get_param_advs(\"SBP\", \"Systolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"DBP\", \"Diastolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"WGT\", \"Weight\"), by = \"USUBJID\") %>%\n  left_join(get_param_adsub(\"BBMISI\", \"Baseline BMI\"), by = \"USUBJID\")\nresult <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(var = \"ACTARM\") %>%\n  analyze_vars(\n    vars = c(\"AGE\", \"SEX\", \"RACE\", \"DBP\", \"SBP\"),\n    var_labels = c(\n      \"Age (yr)\",\n      \"Sex\",\n      \"Race\",\n      \"Diastolic Blood Pressure\",\n      \"Systolic Blood Pressure\"\n    )\n  ) %>%\n  build_table(adsl)\n\nresult"},{"options":{"classes":"","out-height":"","output":"true","dpi":72,"editor-word-wrap":"true","editor-max-height":"500","read-only":"false","results":"markup","warning":"true","comment":"","autorun":"true","editor-font-scale":"1","fig-cap":"","label":"unnamed-chunk-5","out-width":"700px","context":"interactive","fig-height":5,"message":"true","editor-quick-suggestions":"false","fig-width":7},"id":5,"code":"library(tern)\nlibrary(dplyr)\nlibrary(tidyr)\n\nadsl <- random.cdisc.data::cadsl\nadvs <- random.cdisc.data::cadvs\nadsub <- random.cdisc.data::cadsub\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadvs <- df_explicit_na(advs)\nadsub <- df_explicit_na(adsub)\n\n# Change description in variable SEX.\nadsl <- adsl %>%\n  mutate(\n    SEX = factor(case_when(\n      SEX == \"M\" ~ \"Male\",\n      SEX == \"F\" ~ \"Female\",\n      SEX == \"U\" ~ \"Unknown\",\n      SEX == \"UNDIFFERENTIATED\" ~ \"Undifferentiated\"\n    )),\n    AGEGR1 = factor(\n      case_when(\n        between(AGE, 18, 40) ~ \"18-40\",\n        between(AGE, 41, 64) ~ \"41-64\",\n        AGE > 64 ~ \">=65\"\n      ),\n      levels = c(\"18-40\", \"41-64\", \">=65\")\n    ),\n    BMRKR1_CAT = factor(\n      case_when(\n        BMRKR1 < 3.5 ~ \"LOW\",\n        BMRKR1 >= 3.5 & BMRKR1 < 10 ~ \"MEDIUM\",\n        BMRKR1 >= 10 ~ \"HIGH\"\n      ),\n      levels = c(\"LOW\", \"MEDIUM\", \"HIGH\")\n    )\n  ) %>%\n  var_relabel(\n    BMRKR1_CAT = \"Biomarker 1 Categories\"\n  )\n# The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.\n# Obtain SBP, DBP and weight.\nget_param_advs <- function(pname, plabel) {\n  ds <- advs %>%\n    filter(PARAM == plabel & AVISIT == \"BASELINE\") %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\n# The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.\n# Obtain baseline BMI (BBMISI).\nget_param_adsub <- function(pname, plabel) {\n  ds <- adsub %>%\n    filter(PARAM == plabel) %>%\n    select(USUBJID, AVAL)\n\n  colnames(ds) <- c(\"USUBJID\", pname)\n\n  ds\n}\nadsl <- adsl %>%\n  left_join(get_param_advs(\"SBP\", \"Systolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"DBP\", \"Diastolic Blood Pressure\"), by = \"USUBJID\") %>%\n  left_join(get_param_advs(\"WGT\", \"Weight\"), by = \"USUBJID\") %>%\n  left_join(get_param_adsub(\"BBMISI\", \"Baseline BMI\"), by = \"USUBJID\")\nresult <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(var = \"ACTARM\") %>%\n  analyze_vars(\n    vars = c(\"AGE\", \"SEX\", \"RACE\", \"BBMISI\"),\n    var_labels = c(\n      \"Age (yr)\",\n      \"Sex\",\n      \"Race\",\n      \"Baseline BMI\"\n    )\n  ) %>%\n  build_table(adsl)\n\nresult"}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -3849,27 +3849,32 @@ Experimental use!
 <span id="cb12-12"><a href="#cb12-12"></a>  )</span>
 <span id="cb12-13"><a href="#cb12-13"></a>})</span>
 <span id="cb12-14"><a href="#cb12-14"></a>datanames <span class="ot">&lt;-</span> <span class="st">"ADSL"</span></span>
-<span id="cb12-15"><a href="#cb12-15"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span>
-<span id="cb12-16"><a href="#cb12-16"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
-<span id="cb12-17"><a href="#cb12-17"></a></span>
-<span id="cb12-18"><a href="#cb12-18"></a><span class="do">## Setup App</span></span>
-<span id="cb12-19"><a href="#cb12-19"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb12-20"><a href="#cb12-20"></a>  <span class="at">data =</span> data,</span>
-<span id="cb12-21"><a href="#cb12-21"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb12-22"><a href="#cb12-22"></a>    <span class="fu">tm_t_summary</span>(</span>
-<span id="cb12-23"><a href="#cb12-23"></a>      <span class="at">label =</span> <span class="st">"Demographic Table"</span>,</span>
-<span id="cb12-24"><a href="#cb12-24"></a>      <span class="at">dataname =</span> <span class="st">"ADSL"</span>,</span>
-<span id="cb12-25"><a href="#cb12-25"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>), <span class="st">"ARM"</span>),</span>
-<span id="cb12-26"><a href="#cb12-26"></a>      <span class="at">summarize_vars =</span> <span class="fu">choices_selected</span>(</span>
-<span id="cb12-27"><a href="#cb12-27"></a>        <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"RACE"</span>, <span class="st">"BMRKR2"</span>, <span class="st">"EOSDY"</span>, <span class="st">"DCSREAS"</span>),</span>
-<span id="cb12-28"><a href="#cb12-28"></a>        <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"RACE"</span>)</span>
-<span id="cb12-29"><a href="#cb12-29"></a>      ),</span>
-<span id="cb12-30"><a href="#cb12-30"></a>      <span class="at">useNA =</span> <span class="st">"ifany"</span></span>
-<span id="cb12-31"><a href="#cb12-31"></a>    )</span>
-<span id="cb12-32"><a href="#cb12-32"></a>  )</span>
-<span id="cb12-33"><a href="#cb12-33"></a>)</span>
-<span id="cb12-34"><a href="#cb12-34"></a></span>
-<span id="cb12-35"><a href="#cb12-35"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-15"><a href="#cb12-15"></a><span class="fu">datanames</span>(data) <span class="ot">&lt;-</span> datanames</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stderr">
+<pre><code>Warning: `datanames&lt;-()` was deprecated in teal.data 0.6.1.
+ℹ invalid to use `datanames()&lt;-` or `names()&lt;-` on an object of class
+  `teal_data`. See ?names.teal_data</code></pre>
+</div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="fu">join_keys</span>(data) <span class="ot">&lt;-</span> default_cdisc_join_keys[datanames]</span>
+<span id="cb14-2"><a href="#cb14-2"></a></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="do">## Setup App</span></span>
+<span id="cb14-4"><a href="#cb14-4"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb14-5"><a href="#cb14-5"></a>  <span class="at">data =</span> data,</span>
+<span id="cb14-6"><a href="#cb14-6"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb14-7"><a href="#cb14-7"></a>    <span class="fu">tm_t_summary</span>(</span>
+<span id="cb14-8"><a href="#cb14-8"></a>      <span class="at">label =</span> <span class="st">"Demographic Table"</span>,</span>
+<span id="cb14-9"><a href="#cb14-9"></a>      <span class="at">dataname =</span> <span class="st">"ADSL"</span>,</span>
+<span id="cb14-10"><a href="#cb14-10"></a>      <span class="at">arm_var =</span> <span class="fu">choices_selected</span>(<span class="fu">c</span>(<span class="st">"ARM"</span>, <span class="st">"ARMCD"</span>), <span class="st">"ARM"</span>),</span>
+<span id="cb14-11"><a href="#cb14-11"></a>      <span class="at">summarize_vars =</span> <span class="fu">choices_selected</span>(</span>
+<span id="cb14-12"><a href="#cb14-12"></a>        <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"RACE"</span>, <span class="st">"BMRKR2"</span>, <span class="st">"EOSDY"</span>, <span class="st">"DCSREAS"</span>),</span>
+<span id="cb14-13"><a href="#cb14-13"></a>        <span class="fu">c</span>(<span class="st">"SEX"</span>, <span class="st">"RACE"</span>)</span>
+<span id="cb14-14"><a href="#cb14-14"></a>      ),</span>
+<span id="cb14-15"><a href="#cb14-15"></a>      <span class="at">useNA =</span> <span class="st">"ifany"</span></span>
+<span id="cb14-16"><a href="#cb14-16"></a>    )</span>
+<span id="cb14-17"><a href="#cb14-17"></a>  )</span>
+<span id="cb14-18"><a href="#cb14-18"></a>)</span>
+<span id="cb14-19"><a href="#cb14-19"></a></span>
+<span id="cb14-20"><a href="#cb14-20"></a><span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="dmt01_files/figure-html/teal-1.png" class="img-fluid figure-img" width="1440"></p>
@@ -3901,54 +3906,54 @@ Experimental use!
 </div>
 </div>
 <div class="column-screen-inset-right">
-<div class="sourceCode" id="cb13" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb13-1"><a href="#cb13-1"></a>#| '!! shinylive warning !!': |</span>
-<span id="cb13-2"><a href="#cb13-2"></a>#|   shinylive does not work in self-contained HTML documents.</span>
-<span id="cb13-3"><a href="#cb13-3"></a>#|   Please set `embed-resources: false` in your metadata.</span>
-<span id="cb13-4"><a href="#cb13-4"></a>#| standalone: true</span>
-<span id="cb13-5"><a href="#cb13-5"></a>#| viewerHeight: 800</span>
-<span id="cb13-6"><a href="#cb13-6"></a>#| editorHeight: 200</span>
-<span id="cb13-7"><a href="#cb13-7"></a>#| components: [viewer, editor]</span>
-<span id="cb13-8"><a href="#cb13-8"></a>#| layout: vertical</span>
-<span id="cb13-9"><a href="#cb13-9"></a></span>
-<span id="cb13-10"><a href="#cb13-10"></a># -- WEBR HELPERS --</span>
-<span id="cb13-11"><a href="#cb13-11"></a>options(webr_pkg_repos = c("r-universe" = "https://pharmaverse.r-universe.dev", getOption("webr_pkg_repos")))</span>
-<span id="cb13-12"><a href="#cb13-12"></a></span>
-<span id="cb13-13"><a href="#cb13-13"></a># -- APP CODE --</span>
-<span id="cb13-14"><a href="#cb13-14"></a>library(teal.modules.clinical)</span>
-<span id="cb13-15"><a href="#cb13-15"></a></span>
-<span id="cb13-16"><a href="#cb13-16"></a>## Data reproducible code</span>
-<span id="cb13-17"><a href="#cb13-17"></a>data &lt;- teal_data()</span>
-<span id="cb13-18"><a href="#cb13-18"></a>data &lt;- within(data, {</span>
-<span id="cb13-19"><a href="#cb13-19"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
-<span id="cb13-20"><a href="#cb13-20"></a></span>
-<span id="cb13-21"><a href="#cb13-21"></a>  # Include `EOSDY` and `DCSREAS` variables below because they contain missing data.</span>
-<span id="cb13-22"><a href="#cb13-22"></a>  stopifnot(</span>
-<span id="cb13-23"><a href="#cb13-23"></a>    any(is.na(ADSL$EOSDY)),</span>
-<span id="cb13-24"><a href="#cb13-24"></a>    any(is.na(ADSL$DCSREAS))</span>
-<span id="cb13-25"><a href="#cb13-25"></a>  )</span>
-<span id="cb13-26"><a href="#cb13-26"></a>})</span>
-<span id="cb13-27"><a href="#cb13-27"></a>datanames &lt;- "ADSL"</span>
-<span id="cb13-28"><a href="#cb13-28"></a>datanames(data) &lt;- datanames</span>
-<span id="cb13-29"><a href="#cb13-29"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
-<span id="cb13-30"><a href="#cb13-30"></a></span>
-<span id="cb13-31"><a href="#cb13-31"></a>## Setup App</span>
-<span id="cb13-32"><a href="#cb13-32"></a>app &lt;- init(</span>
-<span id="cb13-33"><a href="#cb13-33"></a>  data = data,</span>
-<span id="cb13-34"><a href="#cb13-34"></a>  modules = modules(</span>
-<span id="cb13-35"><a href="#cb13-35"></a>    tm_t_summary(</span>
-<span id="cb13-36"><a href="#cb13-36"></a>      label = "Demographic Table",</span>
-<span id="cb13-37"><a href="#cb13-37"></a>      dataname = "ADSL",</span>
-<span id="cb13-38"><a href="#cb13-38"></a>      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span>
-<span id="cb13-39"><a href="#cb13-39"></a>      summarize_vars = choices_selected(</span>
-<span id="cb13-40"><a href="#cb13-40"></a>        c("SEX", "RACE", "BMRKR2", "EOSDY", "DCSREAS"),</span>
-<span id="cb13-41"><a href="#cb13-41"></a>        c("SEX", "RACE")</span>
-<span id="cb13-42"><a href="#cb13-42"></a>      ),</span>
-<span id="cb13-43"><a href="#cb13-43"></a>      useNA = "ifany"</span>
-<span id="cb13-44"><a href="#cb13-44"></a>    )</span>
-<span id="cb13-45"><a href="#cb13-45"></a>  )</span>
-<span id="cb13-46"><a href="#cb13-46"></a>)</span>
-<span id="cb13-47"><a href="#cb13-47"></a></span>
-<span id="cb13-48"><a href="#cb13-48"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb15" data-engine="r"><pre class="sourceCode numberSource shinylive-r number-lines code-with-copy"><code class="sourceCode"><span id="cb15-1"><a href="#cb15-1"></a>#| '!! shinylive warning !!': |</span>
+<span id="cb15-2"><a href="#cb15-2"></a>#|   shinylive does not work in self-contained HTML documents.</span>
+<span id="cb15-3"><a href="#cb15-3"></a>#|   Please set `embed-resources: false` in your metadata.</span>
+<span id="cb15-4"><a href="#cb15-4"></a>#| standalone: true</span>
+<span id="cb15-5"><a href="#cb15-5"></a>#| viewerHeight: 800</span>
+<span id="cb15-6"><a href="#cb15-6"></a>#| editorHeight: 200</span>
+<span id="cb15-7"><a href="#cb15-7"></a>#| components: [viewer, editor]</span>
+<span id="cb15-8"><a href="#cb15-8"></a>#| layout: vertical</span>
+<span id="cb15-9"><a href="#cb15-9"></a></span>
+<span id="cb15-10"><a href="#cb15-10"></a># -- WEBR HELPERS --</span>
+<span id="cb15-11"><a href="#cb15-11"></a>options(webr_pkg_repos = c("r-universe" = "https://pharmaverse.r-universe.dev", getOption("webr_pkg_repos")))</span>
+<span id="cb15-12"><a href="#cb15-12"></a></span>
+<span id="cb15-13"><a href="#cb15-13"></a># -- APP CODE --</span>
+<span id="cb15-14"><a href="#cb15-14"></a>library(teal.modules.clinical)</span>
+<span id="cb15-15"><a href="#cb15-15"></a></span>
+<span id="cb15-16"><a href="#cb15-16"></a>## Data reproducible code</span>
+<span id="cb15-17"><a href="#cb15-17"></a>data &lt;- teal_data()</span>
+<span id="cb15-18"><a href="#cb15-18"></a>data &lt;- within(data, {</span>
+<span id="cb15-19"><a href="#cb15-19"></a>  ADSL &lt;- random.cdisc.data::cadsl</span>
+<span id="cb15-20"><a href="#cb15-20"></a></span>
+<span id="cb15-21"><a href="#cb15-21"></a>  # Include `EOSDY` and `DCSREAS` variables below because they contain missing data.</span>
+<span id="cb15-22"><a href="#cb15-22"></a>  stopifnot(</span>
+<span id="cb15-23"><a href="#cb15-23"></a>    any(is.na(ADSL$EOSDY)),</span>
+<span id="cb15-24"><a href="#cb15-24"></a>    any(is.na(ADSL$DCSREAS))</span>
+<span id="cb15-25"><a href="#cb15-25"></a>  )</span>
+<span id="cb15-26"><a href="#cb15-26"></a>})</span>
+<span id="cb15-27"><a href="#cb15-27"></a>datanames &lt;- "ADSL"</span>
+<span id="cb15-28"><a href="#cb15-28"></a>datanames(data) &lt;- datanames</span>
+<span id="cb15-29"><a href="#cb15-29"></a>join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span>
+<span id="cb15-30"><a href="#cb15-30"></a></span>
+<span id="cb15-31"><a href="#cb15-31"></a>## Setup App</span>
+<span id="cb15-32"><a href="#cb15-32"></a>app &lt;- init(</span>
+<span id="cb15-33"><a href="#cb15-33"></a>  data = data,</span>
+<span id="cb15-34"><a href="#cb15-34"></a>  modules = modules(</span>
+<span id="cb15-35"><a href="#cb15-35"></a>    tm_t_summary(</span>
+<span id="cb15-36"><a href="#cb15-36"></a>      label = "Demographic Table",</span>
+<span id="cb15-37"><a href="#cb15-37"></a>      dataname = "ADSL",</span>
+<span id="cb15-38"><a href="#cb15-38"></a>      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span>
+<span id="cb15-39"><a href="#cb15-39"></a>      summarize_vars = choices_selected(</span>
+<span id="cb15-40"><a href="#cb15-40"></a>        c("SEX", "RACE", "BMRKR2", "EOSDY", "DCSREAS"),</span>
+<span id="cb15-41"><a href="#cb15-41"></a>        c("SEX", "RACE")</span>
+<span id="cb15-42"><a href="#cb15-42"></a>      ),</span>
+<span id="cb15-43"><a href="#cb15-43"></a>      useNA = "ifany"</span>
+<span id="cb15-44"><a href="#cb15-44"></a>    )</span>
+<span id="cb15-45"><a href="#cb15-45"></a>  )</span>
+<span id="cb15-46"><a href="#cb15-46"></a>)</span>
+<span id="cb15-47"><a href="#cb15-47"></a></span>
+<span id="cb15-48"><a href="#cb15-48"></a>shinyApp(app$ui, app$server)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -3957,7 +3962,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-11-09 17:50:03 UTC"</code></pre>
+<pre><code>[1] "2024-11-13 17:53:07 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -3973,112 +3978,113 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-11-09
+ date     2024-11-13
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
- package               * version  date (UTC) lib source
- backports               1.5.0    2024-05-23 [1] RSPM
- brio                    1.1.5    2024-04-24 [1] RSPM
- broom                   1.0.7    2024-09-26 [1] RSPM
- bslib                   0.8.0    2024-07-29 [1] RSPM
- cachem                  1.1.0    2024-05-16 [1] RSPM
- callr                   3.7.6    2024-03-25 [1] RSPM
- checkmate               2.3.2    2024-07-29 [1] RSPM
- chromote                0.3.1    2024-08-30 [1] RSPM
- cli                     3.6.3    2024-06-21 [1] RSPM
- coda                    0.19-4.1 2024-01-31 [1] CRAN (R 4.4.1)
- codetools               0.2-20   2024-03-31 [2] CRAN (R 4.4.1)
- colorspace              2.1-1    2024-07-26 [1] RSPM
- curl                    6.0.0    2024-11-05 [1] RSPM
- digest                  0.6.37   2024-08-19 [1] RSPM
- dplyr                 * 1.1.4    2023-11-17 [1] RSPM
- emmeans                 1.10.5   2024-10-14 [1] RSPM
- estimability            1.5.1    2024-05-12 [1] RSPM
- evaluate                1.0.1    2024-10-10 [1] RSPM
- fansi                   1.0.6    2023-12-08 [1] RSPM
- fastmap                 1.2.0    2024-05-15 [1] RSPM
- fontawesome             0.5.2    2023-08-19 [1] RSPM
- forcats                 1.0.0    2023-01-29 [1] RSPM
- formatR                 1.14     2023-01-17 [1] CRAN (R 4.4.1)
- formatters            * 0.5.9    2024-09-12 [1] RSPM
- geepack                 1.3.12   2024-09-23 [1] RSPM
- generics                0.1.3    2022-07-05 [1] RSPM
- ggplot2                 3.5.1    2024-04-23 [1] RSPM
- glue                    1.8.0    2024-09-30 [1] RSPM
- gtable                  0.3.6    2024-10-25 [1] RSPM
- htmltools               0.5.8.1  2024-04-04 [1] RSPM
- htmlwidgets             1.6.4    2023-12-06 [1] RSPM
- httpuv                  1.6.15   2024-03-26 [1] RSPM
- jquerylib               0.1.4    2021-04-26 [1] RSPM
- jsonlite                1.8.9    2024-09-20 [1] RSPM
- knitr                   1.49     2024-11-08 [1] RSPM
- later                   1.3.2    2023-12-06 [1] RSPM
- lattice                 0.22-6   2024-03-20 [2] CRAN (R 4.4.1)
- lifecycle               1.0.4    2023-11-07 [1] RSPM
- logger                  0.4.0    2024-10-22 [1] RSPM
- magrittr              * 2.0.3    2022-03-30 [1] RSPM
- MASS                    7.3-61   2024-06-13 [2] CRAN (R 4.4.1)
- Matrix                  1.7-0    2024-04-26 [1] CRAN (R 4.4.1)
- memoise                 2.0.1    2021-11-26 [1] RSPM
- mime                    0.12     2021-09-28 [1] RSPM
- multcomp                1.4-26   2024-07-18 [1] CRAN (R 4.4.1)
- munsell                 0.5.1    2024-04-01 [1] RSPM
- mvtnorm                 1.3-2    2024-11-04 [1] RSPM
- nlme                    3.1-166  2024-08-14 [2] CRAN (R 4.4.1)
- pillar                  1.9.0    2023-03-22 [1] RSPM
- pkgcache                2.2.3    2024-09-12 [1] RSPM
- pkgconfig               2.0.3    2019-09-22 [1] RSPM
- processx                3.8.4    2024-03-16 [1] RSPM
- promises                1.3.0    2024-04-05 [1] RSPM
- ps                      1.8.1    2024-10-28 [1] RSPM
- purrr                   1.0.2    2023-08-10 [1] RSPM
- R6                      2.5.1    2021-08-19 [1] RSPM
- random.cdisc.data       0.3.16   2024-10-10 [1] RSPM
- rbibutils               2.3      2024-10-04 [1] RSPM
- Rcpp                    1.0.13-1 2024-11-02 [1] RSPM
- Rdpack                  2.6.1    2024-08-06 [1] RSPM
- rlang                   1.1.4    2024-06-04 [1] RSPM
- rmarkdown               2.29     2024-11-04 [1] RSPM
- rtables               * 0.6.10   2024-09-20 [1] RSPM
- sandwich                3.1-1    2024-09-15 [1] CRAN (R 4.4.1)
- sass                    0.4.9    2024-03-15 [1] RSPM
- scales                  1.3.0    2023-11-28 [1] RSPM
- sessioninfo             1.2.2    2021-12-06 [1] any (@1.2.2)
- shiny                 * 1.9.1    2024-08-01 [1] RSPM
- shinycssloaders         1.1.0    2024-07-30 [1] RSPM
- shinyjs                 2.1.0    2021-12-23 [1] RSPM
- shinyvalidate           0.1.3    2023-10-04 [1] RSPM
- shinyWidgets            0.8.7    2024-09-23 [1] RSPM
- stringi                 1.8.4    2024-05-06 [1] RSPM
- stringr                 1.5.1    2023-11-14 [1] RSPM
- survival                3.7-0    2024-06-05 [2] CRAN (R 4.4.1)
- teal                  * 0.15.2   2024-03-07 [1] RSPM
- teal.code             * 0.5.0    2024-01-11 [1] RSPM
- teal.data             * 0.6.0    2024-04-30 [1] RSPM
- teal.logger             0.3.0    2024-10-24 [1] RSPM
- teal.modules.clinical * 0.9.1    2024-04-27 [1] RSPM
- teal.reporter           0.3.1    2024-03-15 [1] RSPM
- teal.slice            * 0.5.1    2024-04-30 [1] RSPM
- teal.transform        * 0.5.0    2024-02-17 [1] RSPM
- teal.widgets            0.4.2    2023-12-14 [1] RSPM
- tern                  * 0.9.6    2024-09-24 [1] RSPM
- tern.gee                0.1.5    2024-08-23 [1] RSPM
- testthat                3.2.1.1  2024-04-14 [1] RSPM
- TH.data                 1.1-2    2023-04-17 [1] CRAN (R 4.4.1)
- tibble                  3.2.1    2023-03-20 [1] RSPM
- tidyr                 * 1.3.1    2024-01-24 [1] RSPM
- tidyselect              1.2.1    2024-03-11 [1] RSPM
- utf8                    1.2.4    2023-10-22 [1] RSPM
- vctrs                   0.6.5    2023-12-01 [1] RSPM
- webshot                 0.5.5    2023-06-26 [1] CRAN (R 4.4.1)
- webshot2                0.1.1    2023-08-11 [1] RSPM
- websocket               1.4.2    2024-07-22 [1] RSPM
- withr                   3.0.2    2024-10-28 [1] RSPM
- xfun                    0.49     2024-10-31 [1] RSPM
- xtable                  1.8-4    2019-04-21 [1] RSPM
- yaml                    2.3.10   2024-07-26 [1] RSPM
- zoo                     1.8-12   2023-04-13 [1] CRAN (R 4.4.1)
+ package               * version     date (UTC) lib source
+ backports               1.5.0       2024-05-23 [1] RSPM
+ brio                    1.1.5       2024-04-24 [1] RSPM
+ broom                   1.0.7       2024-09-26 [1] RSPM
+ bslib                   0.8.0       2024-07-29 [1] RSPM
+ cachem                  1.1.0       2024-05-16 [1] RSPM
+ callr                   3.7.6       2024-03-25 [1] RSPM
+ checkmate               2.3.2       2024-07-29 [1] RSPM
+ chromote                0.3.1       2024-08-30 [1] RSPM
+ cli                     3.6.3       2024-06-21 [1] RSPM
+ coda                    0.19-4.1    2024-01-31 [1] CRAN (R 4.4.1)
+ codetools               0.2-20      2024-03-31 [2] CRAN (R 4.4.1)
+ colorspace              2.1-1       2024-07-26 [1] RSPM
+ curl                    6.0.0       2024-11-05 [1] RSPM
+ digest                  0.6.37      2024-08-19 [1] RSPM
+ dplyr                 * 1.1.4       2023-11-17 [1] RSPM
+ emmeans                 1.10.5      2024-10-14 [1] RSPM
+ estimability            1.5.1       2024-05-12 [1] RSPM
+ evaluate                1.0.1       2024-10-10 [1] RSPM
+ fansi                   1.0.6       2023-12-08 [1] RSPM
+ fastmap                 1.2.0       2024-05-15 [1] RSPM
+ fontawesome             0.5.2       2023-08-19 [1] RSPM
+ forcats                 1.0.0       2023-01-29 [1] RSPM
+ formatR                 1.14        2023-01-17 [1] CRAN (R 4.4.1)
+ formatters            * 0.5.9.9003  2024-11-13 [1] https://p~
+ geepack                 1.3.12      2024-09-23 [1] RSPM
+ generics                0.1.3       2022-07-05 [1] RSPM
+ ggplot2                 3.5.1       2024-04-23 [1] RSPM
+ glue                    1.8.0       2024-09-30 [1] RSPM
+ gtable                  0.3.6       2024-10-25 [1] RSPM
+ htmltools               0.5.8.1     2024-04-04 [1] RSPM
+ htmlwidgets             1.6.4       2023-12-06 [1] RSPM
+ httpuv                  1.6.15      2024-03-26 [1] RSPM
+ jquerylib               0.1.4       2021-04-26 [1] RSPM
+ jsonlite                1.8.9       2024-09-20 [1] RSPM
+ knitr                   1.49        2024-11-08 [1] RSPM
+ later                   1.3.2       2023-12-06 [1] RSPM
+ lattice                 0.22-6      2024-03-20 [2] CRAN (R 4.4.1)
+ lifecycle               1.0.4       2023-11-07 [1] RSPM
+ logger                  0.4.0       2024-10-22 [1] RSPM
+ magrittr              * 2.0.3       2022-03-30 [1] RSPM
+ MASS                    7.3-61      2024-06-13 [2] CRAN (R 4.4.1)
+ Matrix                  1.7-1       2024-10-18 [1] RSPM
+ memoise                 2.0.1       2021-11-26 [1] RSPM
+ mime                    0.12        2021-09-28 [1] RSPM
+ multcomp                1.4-26      2024-07-18 [1] CRAN (R 4.4.1)
+ munsell                 0.5.1       2024-04-01 [1] RSPM
+ mvtnorm                 1.3-2       2024-11-04 [1] RSPM
+ nestcolor               0.1.2.9017  2024-11-13 [1] https://p~
+ nlme                    3.1-166     2024-08-14 [2] CRAN (R 4.4.1)
+ pillar                  1.9.0       2023-03-22 [1] RSPM
+ pkgcache                2.2.3       2024-09-12 [1] RSPM
+ pkgconfig               2.0.3       2019-09-22 [1] RSPM
+ processx                3.8.4       2024-03-16 [1] RSPM
+ promises                1.3.0       2024-04-05 [1] RSPM
+ ps                      1.8.1       2024-10-28 [1] RSPM
+ purrr                   1.0.2       2023-08-10 [1] RSPM
+ R6                      2.5.1       2021-08-19 [1] RSPM
+ random.cdisc.data       0.3.16.9001 2024-11-13 [1] https://p~
+ rbibutils               2.3         2024-10-04 [1] RSPM
+ Rcpp                    1.0.13-1    2024-11-02 [1] RSPM
+ Rdpack                  2.6.1       2024-08-06 [1] RSPM
+ rlang                   1.1.4       2024-06-04 [1] RSPM
+ rmarkdown               2.29        2024-11-04 [1] RSPM
+ rtables               * 0.6.10.9002 2024-11-13 [1] https://p~
+ sandwich                3.1-1       2024-09-15 [1] CRAN (R 4.4.1)
+ sass                    0.4.9       2024-03-15 [1] RSPM
+ scales                  1.3.0       2023-11-28 [1] RSPM
+ sessioninfo             1.2.2       2021-12-06 [1] any (@1.2.2)
+ shiny                 * 1.9.1       2024-08-01 [1] RSPM
+ shinycssloaders         1.1.0       2024-07-30 [1] RSPM
+ shinyjs                 2.1.0       2021-12-23 [1] RSPM
+ shinyvalidate           0.1.3       2023-10-04 [1] RSPM
+ shinyWidgets            0.8.7       2024-09-23 [1] RSPM
+ stringi                 1.8.4       2024-05-06 [1] RSPM
+ stringr                 1.5.1       2023-11-14 [1] RSPM
+ survival                3.7-0       2024-06-05 [2] CRAN (R 4.4.1)
+ teal                  * 0.15.2.9085 2024-11-13 [1] https://p~
+ teal.code             * 0.5.0.9016  2024-11-13 [1] https://p~
+ teal.data             * 0.6.0.9020  2024-11-13 [1] https://p~
+ teal.logger             0.3.0.9002  2024-11-13 [1] https://p~
+ teal.modules.clinical * 0.9.1.9031  2024-11-13 [1] https://p~
+ teal.reporter           0.3.1.9016  2024-11-13 [1] https://p~
+ teal.slice            * 0.5.1.9015  2024-11-13 [1] https://p~
+ teal.transform        * 0.5.0.9016  2024-11-13 [1] https://p~
+ teal.widgets            0.4.2.9022  2024-11-13 [1] https://p~
+ tern                  * 0.9.6.9015  2024-11-13 [1] https://p~
+ tern.gee                0.1.5.9004  2024-11-13 [1] https://p~
+ testthat                3.2.1.1     2024-04-14 [1] RSPM
+ TH.data                 1.1-2       2023-04-17 [1] CRAN (R 4.4.1)
+ tibble                  3.2.1       2023-03-20 [1] RSPM
+ tidyr                 * 1.3.1       2024-01-24 [1] RSPM
+ tidyselect              1.2.1       2024-03-11 [1] RSPM
+ utf8                    1.2.4       2023-10-22 [1] RSPM
+ vctrs                   0.6.5       2023-12-01 [1] RSPM
+ webshot                 0.5.5       2023-06-26 [1] CRAN (R 4.4.1)
+ webshot2                0.1.1       2023-08-11 [1] RSPM
+ websocket               1.4.2       2024-07-22 [1] RSPM
+ withr                   3.0.2       2024-10-28 [1] RSPM
+ xfun                    0.49        2024-10-31 [1] RSPM
+ xtable                  1.8-4       2019-04-21 [1] RSPM
+ yaml                    2.3.10      2024-07-26 [1] RSPM
+ zoo                     1.8-12      2023-04-13 [1] CRAN (R 4.4.1)
 
  [1] /usr/local/lib/R/site-library
  [2] /usr/local/lib/R/library
@@ -4720,289 +4726,289 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb16" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">---</span></span>
-<span id="cb16-2"><a href="#cb16-2"></a><span class="an">title:</span><span class="co"> DMT01</span></span>
-<span id="cb16-3"><a href="#cb16-3"></a><span class="an">subtitle:</span><span class="co"> Demographics and Baseline Characteristics</span></span>
-<span id="cb16-4"><a href="#cb16-4"></a><span class="co">---</span></span>
-<span id="cb16-5"><a href="#cb16-5"></a></span>
-<span id="cb16-6"><a href="#cb16-6"></a>------------------------------------------------------------------------</span>
-<span id="cb16-7"><a href="#cb16-7"></a></span>
-<span id="cb16-8"><a href="#cb16-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb16-9"><a href="#cb16-9"></a></span>
-<span id="cb16-10"><a href="#cb16-10"></a>:::: {.panel-tabset}</span>
-<span id="cb16-11"><a href="#cb16-11"></a></span>
-<span id="cb16-12"><a href="#cb16-12"></a><span class="in">```{r setup, echo = FALSE}</span></span>
-<span id="cb16-13"><a href="#cb16-13"></a><span class="in">library(tern)</span></span>
-<span id="cb16-14"><a href="#cb16-14"></a><span class="in">library(dplyr)</span></span>
-<span id="cb16-15"><a href="#cb16-15"></a><span class="in">library(tidyr)</span></span>
-<span id="cb16-16"><a href="#cb16-16"></a></span>
-<span id="cb16-17"><a href="#cb16-17"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb16-18"><a href="#cb16-18"></a><span class="in">advs &lt;- random.cdisc.data::cadvs</span></span>
-<span id="cb16-19"><a href="#cb16-19"></a><span class="in">adsub &lt;- random.cdisc.data::cadsub</span></span>
-<span id="cb16-20"><a href="#cb16-20"></a></span>
-<span id="cb16-21"><a href="#cb16-21"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
-<span id="cb16-22"><a href="#cb16-22"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
-<span id="cb16-23"><a href="#cb16-23"></a><span class="in">advs &lt;- df_explicit_na(advs)</span></span>
-<span id="cb16-24"><a href="#cb16-24"></a><span class="in">adsub &lt;- df_explicit_na(adsub)</span></span>
-<span id="cb16-25"><a href="#cb16-25"></a></span>
-<span id="cb16-26"><a href="#cb16-26"></a><span class="in"># Change description in variable SEX.</span></span>
-<span id="cb16-27"><a href="#cb16-27"></a><span class="in">adsl &lt;- adsl %&gt;%</span></span>
-<span id="cb16-28"><a href="#cb16-28"></a><span class="in">  mutate(</span></span>
-<span id="cb16-29"><a href="#cb16-29"></a><span class="in">    SEX = factor(case_when(</span></span>
-<span id="cb16-30"><a href="#cb16-30"></a><span class="in">      SEX == "M" ~ "Male",</span></span>
-<span id="cb16-31"><a href="#cb16-31"></a><span class="in">      SEX == "F" ~ "Female",</span></span>
-<span id="cb16-32"><a href="#cb16-32"></a><span class="in">      SEX == "U" ~ "Unknown",</span></span>
-<span id="cb16-33"><a href="#cb16-33"></a><span class="in">      SEX == "UNDIFFERENTIATED" ~ "Undifferentiated"</span></span>
-<span id="cb16-34"><a href="#cb16-34"></a><span class="in">    )),</span></span>
-<span id="cb16-35"><a href="#cb16-35"></a><span class="in">    AGEGR1 = factor(</span></span>
-<span id="cb16-36"><a href="#cb16-36"></a><span class="in">      case_when(</span></span>
-<span id="cb16-37"><a href="#cb16-37"></a><span class="in">        between(AGE, 18, 40) ~ "18-40",</span></span>
-<span id="cb16-38"><a href="#cb16-38"></a><span class="in">        between(AGE, 41, 64) ~ "41-64",</span></span>
-<span id="cb16-39"><a href="#cb16-39"></a><span class="in">        AGE &gt; 64 ~ "&gt;=65"</span></span>
-<span id="cb16-40"><a href="#cb16-40"></a><span class="in">      ),</span></span>
-<span id="cb16-41"><a href="#cb16-41"></a><span class="in">      levels = c("18-40", "41-64", "&gt;=65")</span></span>
-<span id="cb16-42"><a href="#cb16-42"></a><span class="in">    ),</span></span>
-<span id="cb16-43"><a href="#cb16-43"></a><span class="in">    BMRKR1_CAT = factor(</span></span>
-<span id="cb16-44"><a href="#cb16-44"></a><span class="in">      case_when(</span></span>
-<span id="cb16-45"><a href="#cb16-45"></a><span class="in">        BMRKR1 &lt; 3.5 ~ "LOW",</span></span>
-<span id="cb16-46"><a href="#cb16-46"></a><span class="in">        BMRKR1 &gt;= 3.5 &amp; BMRKR1 &lt; 10 ~ "MEDIUM",</span></span>
-<span id="cb16-47"><a href="#cb16-47"></a><span class="in">        BMRKR1 &gt;= 10 ~ "HIGH"</span></span>
-<span id="cb16-48"><a href="#cb16-48"></a><span class="in">      ),</span></span>
-<span id="cb16-49"><a href="#cb16-49"></a><span class="in">      levels = c("LOW", "MEDIUM", "HIGH")</span></span>
-<span id="cb16-50"><a href="#cb16-50"></a><span class="in">    )</span></span>
-<span id="cb16-51"><a href="#cb16-51"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb16-52"><a href="#cb16-52"></a><span class="in">  var_relabel(</span></span>
-<span id="cb16-53"><a href="#cb16-53"></a><span class="in">    BMRKR1_CAT = "Biomarker 1 Categories"</span></span>
-<span id="cb16-54"><a href="#cb16-54"></a><span class="in">  )</span></span>
-<span id="cb16-55"><a href="#cb16-55"></a><span class="in"># The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.</span></span>
-<span id="cb16-56"><a href="#cb16-56"></a><span class="in"># Obtain SBP, DBP and weight.</span></span>
-<span id="cb16-57"><a href="#cb16-57"></a><span class="in">get_param_advs &lt;- function(pname, plabel) {</span></span>
-<span id="cb16-58"><a href="#cb16-58"></a><span class="in">  ds &lt;- advs %&gt;%</span></span>
-<span id="cb16-59"><a href="#cb16-59"></a><span class="in">    filter(PARAM == plabel &amp; AVISIT == "BASELINE") %&gt;%</span></span>
-<span id="cb16-60"><a href="#cb16-60"></a><span class="in">    select(USUBJID, AVAL)</span></span>
-<span id="cb16-61"><a href="#cb16-61"></a></span>
-<span id="cb16-62"><a href="#cb16-62"></a><span class="in">  colnames(ds) &lt;- c("USUBJID", pname)</span></span>
-<span id="cb16-63"><a href="#cb16-63"></a></span>
-<span id="cb16-64"><a href="#cb16-64"></a><span class="in">  ds</span></span>
-<span id="cb16-65"><a href="#cb16-65"></a><span class="in">}</span></span>
-<span id="cb16-66"><a href="#cb16-66"></a><span class="in"># The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.</span></span>
-<span id="cb16-67"><a href="#cb16-67"></a><span class="in"># Obtain baseline BMI (BBMISI).</span></span>
-<span id="cb16-68"><a href="#cb16-68"></a><span class="in">get_param_adsub &lt;- function(pname, plabel) {</span></span>
-<span id="cb16-69"><a href="#cb16-69"></a><span class="in">  ds &lt;- adsub %&gt;%</span></span>
-<span id="cb16-70"><a href="#cb16-70"></a><span class="in">    filter(PARAM == plabel) %&gt;%</span></span>
-<span id="cb16-71"><a href="#cb16-71"></a><span class="in">    select(USUBJID, AVAL)</span></span>
-<span id="cb16-72"><a href="#cb16-72"></a></span>
-<span id="cb16-73"><a href="#cb16-73"></a><span class="in">  colnames(ds) &lt;- c("USUBJID", pname)</span></span>
-<span id="cb16-74"><a href="#cb16-74"></a></span>
-<span id="cb16-75"><a href="#cb16-75"></a><span class="in">  ds</span></span>
-<span id="cb16-76"><a href="#cb16-76"></a><span class="in">}</span></span>
-<span id="cb16-77"><a href="#cb16-77"></a><span class="in">adsl &lt;- adsl %&gt;%</span></span>
-<span id="cb16-78"><a href="#cb16-78"></a><span class="in">  left_join(get_param_advs("SBP", "Systolic Blood Pressure"), by = "USUBJID") %&gt;%</span></span>
-<span id="cb16-79"><a href="#cb16-79"></a><span class="in">  left_join(get_param_advs("DBP", "Diastolic Blood Pressure"), by = "USUBJID") %&gt;%</span></span>
-<span id="cb16-80"><a href="#cb16-80"></a><span class="in">  left_join(get_param_advs("WGT", "Weight"), by = "USUBJID") %&gt;%</span></span>
-<span id="cb16-81"><a href="#cb16-81"></a><span class="in">  left_join(get_param_adsub("BBMISI", "Baseline BMI"), by = "USUBJID")</span></span>
-<span id="cb16-82"><a href="#cb16-82"></a><span class="in">```</span></span>
-<span id="cb16-83"><a href="#cb16-83"></a></span>
-<span id="cb16-84"><a href="#cb16-84"></a><span class="fu">## Table with an Additional &lt;br/&gt; Study-Specific Continuous Variable</span></span>
-<span id="cb16-85"><a href="#cb16-85"></a></span>
-<span id="cb16-86"><a href="#cb16-86"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb16-87"><a href="#cb16-87"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb16-88"><a href="#cb16-88"></a></span>
-<span id="cb16-89"><a href="#cb16-89"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb16-90"><a href="#cb16-90"></a><span class="in">vars &lt;- c("AGE", "AGEGR1", "SEX", "ETHNIC", "RACE", "BMRKR1")</span></span>
-<span id="cb16-91"><a href="#cb16-91"></a><span class="in">var_labels &lt;- c(</span></span>
-<span id="cb16-92"><a href="#cb16-92"></a><span class="in">  "Age (yr)",</span></span>
-<span id="cb16-93"><a href="#cb16-93"></a><span class="in">  "Age Group",</span></span>
-<span id="cb16-94"><a href="#cb16-94"></a><span class="in">  "Sex",</span></span>
-<span id="cb16-95"><a href="#cb16-95"></a><span class="in">  "Ethnicity",</span></span>
-<span id="cb16-96"><a href="#cb16-96"></a><span class="in">  "Race",</span></span>
-<span id="cb16-97"><a href="#cb16-97"></a><span class="in">  "Continous Level Biomarker 1"</span></span>
-<span id="cb16-98"><a href="#cb16-98"></a><span class="in">)</span></span>
-<span id="cb16-99"><a href="#cb16-99"></a></span>
-<span id="cb16-100"><a href="#cb16-100"></a><span class="in">result &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb16-101"><a href="#cb16-101"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb16-102"><a href="#cb16-102"></a><span class="in">  add_overall_col("All Patients") %&gt;%</span></span>
-<span id="cb16-103"><a href="#cb16-103"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb16-104"><a href="#cb16-104"></a><span class="in">    vars = vars,</span></span>
-<span id="cb16-105"><a href="#cb16-105"></a><span class="in">    var_labels = var_labels</span></span>
-<span id="cb16-106"><a href="#cb16-106"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb16-107"><a href="#cb16-107"></a><span class="in">  build_table(adsl)</span></span>
-<span id="cb16-108"><a href="#cb16-108"></a></span>
-<span id="cb16-109"><a href="#cb16-109"></a><span class="in">result</span></span>
-<span id="cb16-110"><a href="#cb16-110"></a><span class="in">```</span></span>
-<span id="cb16-111"><a href="#cb16-111"></a></span>
-<span id="cb16-112"><a href="#cb16-112"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
-<span id="cb16-113"><a href="#cb16-113"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb16-114"><a href="#cb16-114"></a>:::</span>
-<span id="cb16-115"><a href="#cb16-115"></a></span>
-<span id="cb16-116"><a href="#cb16-116"></a><span class="fu">## Table with an Additional &lt;br/&gt; Study-Specific Categorical Variable</span></span>
-<span id="cb16-117"><a href="#cb16-117"></a></span>
-<span id="cb16-118"><a href="#cb16-118"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb16-119"><a href="#cb16-119"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb16-120"><a href="#cb16-120"></a></span>
-<span id="cb16-121"><a href="#cb16-121"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
-<span id="cb16-122"><a href="#cb16-122"></a><span class="in">vars &lt;- c("AGE", "AGEGR1", "SEX", "ETHNIC", "RACE", "BMRKR1_CAT")</span></span>
-<span id="cb16-123"><a href="#cb16-123"></a><span class="in">var_labels &lt;- c(</span></span>
-<span id="cb16-124"><a href="#cb16-124"></a><span class="in">  "Age (yr)",</span></span>
-<span id="cb16-125"><a href="#cb16-125"></a><span class="in">  "Age Group",</span></span>
-<span id="cb16-126"><a href="#cb16-126"></a><span class="in">  "Sex",</span></span>
-<span id="cb16-127"><a href="#cb16-127"></a><span class="in">  "Ethnicity",</span></span>
-<span id="cb16-128"><a href="#cb16-128"></a><span class="in">  "Race",</span></span>
-<span id="cb16-129"><a href="#cb16-129"></a><span class="in">  "Biomarker 1 Categories"</span></span>
-<span id="cb16-130"><a href="#cb16-130"></a><span class="in">)</span></span>
-<span id="cb16-131"><a href="#cb16-131"></a></span>
-<span id="cb16-132"><a href="#cb16-132"></a><span class="in">result &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb16-133"><a href="#cb16-133"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb16-134"><a href="#cb16-134"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb16-135"><a href="#cb16-135"></a><span class="in">    vars = vars,</span></span>
-<span id="cb16-136"><a href="#cb16-136"></a><span class="in">    var_labels = var_labels</span></span>
-<span id="cb16-137"><a href="#cb16-137"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb16-138"><a href="#cb16-138"></a><span class="in">  build_table(adsl)</span></span>
-<span id="cb16-139"><a href="#cb16-139"></a></span>
-<span id="cb16-140"><a href="#cb16-140"></a><span class="in">result</span></span>
-<span id="cb16-141"><a href="#cb16-141"></a><span class="in">```</span></span>
-<span id="cb16-142"><a href="#cb16-142"></a></span>
-<span id="cb16-143"><a href="#cb16-143"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
-<span id="cb16-144"><a href="#cb16-144"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb16-145"><a href="#cb16-145"></a>:::</span>
-<span id="cb16-146"><a href="#cb16-146"></a></span>
-<span id="cb16-147"><a href="#cb16-147"></a><span class="fu">## Table with Subgrouping &lt;br/&gt; for Some Analyses</span></span>
-<span id="cb16-148"><a href="#cb16-148"></a></span>
-<span id="cb16-149"><a href="#cb16-149"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb16-150"><a href="#cb16-150"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb16-151"><a href="#cb16-151"></a></span>
-<span id="cb16-152"><a href="#cb16-152"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
-<span id="cb16-153"><a href="#cb16-153"></a><span class="in">split_fun &lt;- drop_split_levels</span></span>
-<span id="cb16-154"><a href="#cb16-154"></a></span>
-<span id="cb16-155"><a href="#cb16-155"></a><span class="in">result &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb16-156"><a href="#cb16-156"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb16-157"><a href="#cb16-157"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb16-158"><a href="#cb16-158"></a><span class="in">    vars = c("AGE", "SEX", "RACE"),</span></span>
-<span id="cb16-159"><a href="#cb16-159"></a><span class="in">    var_labels = c("Age", "Sex", "Race")</span></span>
-<span id="cb16-160"><a href="#cb16-160"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb16-161"><a href="#cb16-161"></a><span class="in">  split_rows_by("STRATA1",</span></span>
-<span id="cb16-162"><a href="#cb16-162"></a><span class="in">    split_fun = split_fun</span></span>
-<span id="cb16-163"><a href="#cb16-163"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb16-164"><a href="#cb16-164"></a><span class="in">  analyze_vars("BMRKR1") %&gt;%</span></span>
-<span id="cb16-165"><a href="#cb16-165"></a><span class="in">  build_table(adsl)</span></span>
-<span id="cb16-166"><a href="#cb16-166"></a></span>
-<span id="cb16-167"><a href="#cb16-167"></a><span class="in">result</span></span>
-<span id="cb16-168"><a href="#cb16-168"></a><span class="in">```</span></span>
-<span id="cb16-169"><a href="#cb16-169"></a></span>
-<span id="cb16-170"><a href="#cb16-170"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant3")`</span></span>
-<span id="cb16-171"><a href="#cb16-171"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb16-172"><a href="#cb16-172"></a>:::</span>
-<span id="cb16-173"><a href="#cb16-173"></a></span>
-<span id="cb16-174"><a href="#cb16-174"></a><span class="fu">## Table with Additional Vital &lt;br/&gt; Signs Baseline Values</span></span>
-<span id="cb16-175"><a href="#cb16-175"></a></span>
-<span id="cb16-176"><a href="#cb16-176"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb16-177"><a href="#cb16-177"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb16-178"><a href="#cb16-178"></a></span>
-<span id="cb16-179"><a href="#cb16-179"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
-<span id="cb16-180"><a href="#cb16-180"></a><span class="in">result &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb16-181"><a href="#cb16-181"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb16-182"><a href="#cb16-182"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb16-183"><a href="#cb16-183"></a><span class="in">    vars = c("AGE", "SEX", "RACE", "DBP", "SBP"),</span></span>
-<span id="cb16-184"><a href="#cb16-184"></a><span class="in">    var_labels = c(</span></span>
-<span id="cb16-185"><a href="#cb16-185"></a><span class="in">      "Age (yr)",</span></span>
-<span id="cb16-186"><a href="#cb16-186"></a><span class="in">      "Sex",</span></span>
-<span id="cb16-187"><a href="#cb16-187"></a><span class="in">      "Race",</span></span>
-<span id="cb16-188"><a href="#cb16-188"></a><span class="in">      "Diastolic Blood Pressure",</span></span>
-<span id="cb16-189"><a href="#cb16-189"></a><span class="in">      "Systolic Blood Pressure"</span></span>
-<span id="cb16-190"><a href="#cb16-190"></a><span class="in">    )</span></span>
-<span id="cb16-191"><a href="#cb16-191"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb16-192"><a href="#cb16-192"></a><span class="in">  build_table(adsl)</span></span>
-<span id="cb16-193"><a href="#cb16-193"></a></span>
-<span id="cb16-194"><a href="#cb16-194"></a><span class="in">result</span></span>
-<span id="cb16-195"><a href="#cb16-195"></a><span class="in">```</span></span>
-<span id="cb16-196"><a href="#cb16-196"></a></span>
-<span id="cb16-197"><a href="#cb16-197"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant4")`</span></span>
-<span id="cb16-198"><a href="#cb16-198"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb16-199"><a href="#cb16-199"></a>:::</span>
-<span id="cb16-200"><a href="#cb16-200"></a></span>
-<span id="cb16-201"><a href="#cb16-201"></a><span class="fu">## Table with Additional &lt;br/&gt; Values from ADSUB</span></span>
-<span id="cb16-202"><a href="#cb16-202"></a></span>
-<span id="cb16-203"><a href="#cb16-203"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
-<span id="cb16-204"><a href="#cb16-204"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
-<span id="cb16-205"><a href="#cb16-205"></a></span>
-<span id="cb16-206"><a href="#cb16-206"></a><span class="in">```{r variant5, test = list(result_v5 = "result")}</span></span>
-<span id="cb16-207"><a href="#cb16-207"></a><span class="in">result &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
-<span id="cb16-208"><a href="#cb16-208"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
-<span id="cb16-209"><a href="#cb16-209"></a><span class="in">  analyze_vars(</span></span>
-<span id="cb16-210"><a href="#cb16-210"></a><span class="in">    vars = c("AGE", "SEX", "RACE", "BBMISI"),</span></span>
-<span id="cb16-211"><a href="#cb16-211"></a><span class="in">    var_labels = c(</span></span>
-<span id="cb16-212"><a href="#cb16-212"></a><span class="in">      "Age (yr)",</span></span>
-<span id="cb16-213"><a href="#cb16-213"></a><span class="in">      "Sex",</span></span>
-<span id="cb16-214"><a href="#cb16-214"></a><span class="in">      "Race",</span></span>
-<span id="cb16-215"><a href="#cb16-215"></a><span class="in">      "Baseline BMI"</span></span>
-<span id="cb16-216"><a href="#cb16-216"></a><span class="in">    )</span></span>
-<span id="cb16-217"><a href="#cb16-217"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb16-218"><a href="#cb16-218"></a><span class="in">  build_table(adsl)</span></span>
-<span id="cb16-219"><a href="#cb16-219"></a></span>
-<span id="cb16-220"><a href="#cb16-220"></a><span class="in">result</span></span>
-<span id="cb16-221"><a href="#cb16-221"></a><span class="in">```</span></span>
-<span id="cb16-222"><a href="#cb16-222"></a></span>
-<span id="cb16-223"><a href="#cb16-223"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant5")`</span></span>
-<span id="cb16-224"><a href="#cb16-224"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
-<span id="cb16-225"><a href="#cb16-225"></a>:::</span>
-<span id="cb16-226"><a href="#cb16-226"></a></span>
-<span id="cb16-227"><a href="#cb16-227"></a><span class="fu">## Data Setup</span></span>
-<span id="cb16-228"><a href="#cb16-228"></a></span>
-<span id="cb16-229"><a href="#cb16-229"></a><span class="in">```{r setup}</span></span>
-<span id="cb16-230"><a href="#cb16-230"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb16-231"><a href="#cb16-231"></a><span class="in">```</span></span>
-<span id="cb16-232"><a href="#cb16-232"></a></span>
-<span id="cb16-233"><a href="#cb16-233"></a>::::</span>
-<span id="cb16-234"><a href="#cb16-234"></a></span>
-<span id="cb16-235"><a href="#cb16-235"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb16-236"><a href="#cb16-236"></a></span>
-<span id="cb16-237"><a href="#cb16-237"></a><span class="fu">## `teal` App</span></span>
-<span id="cb16-238"><a href="#cb16-238"></a></span>
-<span id="cb16-239"><a href="#cb16-239"></a>::: {.panel-tabset .nav-justified}</span>
-<span id="cb16-240"><a href="#cb16-240"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
-<span id="cb16-241"><a href="#cb16-241"></a></span>
-<span id="cb16-242"><a href="#cb16-242"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
-<span id="cb16-243"><a href="#cb16-243"></a><span class="in">library(teal.modules.clinical)</span></span>
-<span id="cb16-244"><a href="#cb16-244"></a></span>
-<span id="cb16-245"><a href="#cb16-245"></a><span class="in">## Data reproducible code</span></span>
-<span id="cb16-246"><a href="#cb16-246"></a><span class="in">data &lt;- teal_data()</span></span>
-<span id="cb16-247"><a href="#cb16-247"></a><span class="in">data &lt;- within(data, {</span></span>
-<span id="cb16-248"><a href="#cb16-248"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
-<span id="cb16-249"><a href="#cb16-249"></a></span>
-<span id="cb16-250"><a href="#cb16-250"></a><span class="in">  # Include `EOSDY` and `DCSREAS` variables below because they contain missing data.</span></span>
-<span id="cb16-251"><a href="#cb16-251"></a><span class="in">  stopifnot(</span></span>
-<span id="cb16-252"><a href="#cb16-252"></a><span class="in">    any(is.na(ADSL$EOSDY)),</span></span>
-<span id="cb16-253"><a href="#cb16-253"></a><span class="in">    any(is.na(ADSL$DCSREAS))</span></span>
-<span id="cb16-254"><a href="#cb16-254"></a><span class="in">  )</span></span>
-<span id="cb16-255"><a href="#cb16-255"></a><span class="in">})</span></span>
-<span id="cb16-256"><a href="#cb16-256"></a><span class="in">datanames &lt;- "ADSL"</span></span>
-<span id="cb16-257"><a href="#cb16-257"></a><span class="in">datanames(data) &lt;- datanames</span></span>
-<span id="cb16-258"><a href="#cb16-258"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
-<span id="cb16-259"><a href="#cb16-259"></a></span>
-<span id="cb16-260"><a href="#cb16-260"></a><span class="in">## Setup App</span></span>
-<span id="cb16-261"><a href="#cb16-261"></a><span class="in">app &lt;- init(</span></span>
-<span id="cb16-262"><a href="#cb16-262"></a><span class="in">  data = data,</span></span>
-<span id="cb16-263"><a href="#cb16-263"></a><span class="in">  modules = modules(</span></span>
-<span id="cb16-264"><a href="#cb16-264"></a><span class="in">    tm_t_summary(</span></span>
-<span id="cb16-265"><a href="#cb16-265"></a><span class="in">      label = "Demographic Table",</span></span>
-<span id="cb16-266"><a href="#cb16-266"></a><span class="in">      dataname = "ADSL",</span></span>
-<span id="cb16-267"><a href="#cb16-267"></a><span class="in">      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span></span>
-<span id="cb16-268"><a href="#cb16-268"></a><span class="in">      summarize_vars = choices_selected(</span></span>
-<span id="cb16-269"><a href="#cb16-269"></a><span class="in">        c("SEX", "RACE", "BMRKR2", "EOSDY", "DCSREAS"),</span></span>
-<span id="cb16-270"><a href="#cb16-270"></a><span class="in">        c("SEX", "RACE")</span></span>
-<span id="cb16-271"><a href="#cb16-271"></a><span class="in">      ),</span></span>
-<span id="cb16-272"><a href="#cb16-272"></a><span class="in">      useNA = "ifany"</span></span>
-<span id="cb16-273"><a href="#cb16-273"></a><span class="in">    )</span></span>
-<span id="cb16-274"><a href="#cb16-274"></a><span class="in">  )</span></span>
-<span id="cb16-275"><a href="#cb16-275"></a><span class="in">)</span></span>
-<span id="cb16-276"><a href="#cb16-276"></a></span>
-<span id="cb16-277"><a href="#cb16-277"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
-<span id="cb16-278"><a href="#cb16-278"></a><span class="in">```</span></span>
-<span id="cb16-279"><a href="#cb16-279"></a></span>
-<span id="cb16-280"><a href="#cb16-280"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
-<span id="cb16-281"><a href="#cb16-281"></a>:::</span>
-<span id="cb16-282"><a href="#cb16-282"></a></span>
-<span id="cb16-283"><a href="#cb16-283"></a>{{&lt; include ../../repro.qmd &gt;}}</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb18" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb18-1"><a href="#cb18-1"></a><span class="co">---</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a><span class="an">title:</span><span class="co"> DMT01</span></span>
+<span id="cb18-3"><a href="#cb18-3"></a><span class="an">subtitle:</span><span class="co"> Demographics and Baseline Characteristics</span></span>
+<span id="cb18-4"><a href="#cb18-4"></a><span class="co">---</span></span>
+<span id="cb18-5"><a href="#cb18-5"></a></span>
+<span id="cb18-6"><a href="#cb18-6"></a>------------------------------------------------------------------------</span>
+<span id="cb18-7"><a href="#cb18-7"></a></span>
+<span id="cb18-8"><a href="#cb18-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb18-9"><a href="#cb18-9"></a></span>
+<span id="cb18-10"><a href="#cb18-10"></a>:::: {.panel-tabset}</span>
+<span id="cb18-11"><a href="#cb18-11"></a></span>
+<span id="cb18-12"><a href="#cb18-12"></a><span class="in">```{r setup, echo = FALSE}</span></span>
+<span id="cb18-13"><a href="#cb18-13"></a><span class="in">library(tern)</span></span>
+<span id="cb18-14"><a href="#cb18-14"></a><span class="in">library(dplyr)</span></span>
+<span id="cb18-15"><a href="#cb18-15"></a><span class="in">library(tidyr)</span></span>
+<span id="cb18-16"><a href="#cb18-16"></a></span>
+<span id="cb18-17"><a href="#cb18-17"></a><span class="in">adsl &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb18-18"><a href="#cb18-18"></a><span class="in">advs &lt;- random.cdisc.data::cadvs</span></span>
+<span id="cb18-19"><a href="#cb18-19"></a><span class="in">adsub &lt;- random.cdisc.data::cadsub</span></span>
+<span id="cb18-20"><a href="#cb18-20"></a></span>
+<span id="cb18-21"><a href="#cb18-21"></a><span class="in"># Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.</span></span>
+<span id="cb18-22"><a href="#cb18-22"></a><span class="in">adsl &lt;- df_explicit_na(adsl)</span></span>
+<span id="cb18-23"><a href="#cb18-23"></a><span class="in">advs &lt;- df_explicit_na(advs)</span></span>
+<span id="cb18-24"><a href="#cb18-24"></a><span class="in">adsub &lt;- df_explicit_na(adsub)</span></span>
+<span id="cb18-25"><a href="#cb18-25"></a></span>
+<span id="cb18-26"><a href="#cb18-26"></a><span class="in"># Change description in variable SEX.</span></span>
+<span id="cb18-27"><a href="#cb18-27"></a><span class="in">adsl &lt;- adsl %&gt;%</span></span>
+<span id="cb18-28"><a href="#cb18-28"></a><span class="in">  mutate(</span></span>
+<span id="cb18-29"><a href="#cb18-29"></a><span class="in">    SEX = factor(case_when(</span></span>
+<span id="cb18-30"><a href="#cb18-30"></a><span class="in">      SEX == "M" ~ "Male",</span></span>
+<span id="cb18-31"><a href="#cb18-31"></a><span class="in">      SEX == "F" ~ "Female",</span></span>
+<span id="cb18-32"><a href="#cb18-32"></a><span class="in">      SEX == "U" ~ "Unknown",</span></span>
+<span id="cb18-33"><a href="#cb18-33"></a><span class="in">      SEX == "UNDIFFERENTIATED" ~ "Undifferentiated"</span></span>
+<span id="cb18-34"><a href="#cb18-34"></a><span class="in">    )),</span></span>
+<span id="cb18-35"><a href="#cb18-35"></a><span class="in">    AGEGR1 = factor(</span></span>
+<span id="cb18-36"><a href="#cb18-36"></a><span class="in">      case_when(</span></span>
+<span id="cb18-37"><a href="#cb18-37"></a><span class="in">        between(AGE, 18, 40) ~ "18-40",</span></span>
+<span id="cb18-38"><a href="#cb18-38"></a><span class="in">        between(AGE, 41, 64) ~ "41-64",</span></span>
+<span id="cb18-39"><a href="#cb18-39"></a><span class="in">        AGE &gt; 64 ~ "&gt;=65"</span></span>
+<span id="cb18-40"><a href="#cb18-40"></a><span class="in">      ),</span></span>
+<span id="cb18-41"><a href="#cb18-41"></a><span class="in">      levels = c("18-40", "41-64", "&gt;=65")</span></span>
+<span id="cb18-42"><a href="#cb18-42"></a><span class="in">    ),</span></span>
+<span id="cb18-43"><a href="#cb18-43"></a><span class="in">    BMRKR1_CAT = factor(</span></span>
+<span id="cb18-44"><a href="#cb18-44"></a><span class="in">      case_when(</span></span>
+<span id="cb18-45"><a href="#cb18-45"></a><span class="in">        BMRKR1 &lt; 3.5 ~ "LOW",</span></span>
+<span id="cb18-46"><a href="#cb18-46"></a><span class="in">        BMRKR1 &gt;= 3.5 &amp; BMRKR1 &lt; 10 ~ "MEDIUM",</span></span>
+<span id="cb18-47"><a href="#cb18-47"></a><span class="in">        BMRKR1 &gt;= 10 ~ "HIGH"</span></span>
+<span id="cb18-48"><a href="#cb18-48"></a><span class="in">      ),</span></span>
+<span id="cb18-49"><a href="#cb18-49"></a><span class="in">      levels = c("LOW", "MEDIUM", "HIGH")</span></span>
+<span id="cb18-50"><a href="#cb18-50"></a><span class="in">    )</span></span>
+<span id="cb18-51"><a href="#cb18-51"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb18-52"><a href="#cb18-52"></a><span class="in">  var_relabel(</span></span>
+<span id="cb18-53"><a href="#cb18-53"></a><span class="in">    BMRKR1_CAT = "Biomarker 1 Categories"</span></span>
+<span id="cb18-54"><a href="#cb18-54"></a><span class="in">  )</span></span>
+<span id="cb18-55"><a href="#cb18-55"></a><span class="in"># The developer needs to do pre-processing to add necessary variables based on ADVS to analysis dataset.</span></span>
+<span id="cb18-56"><a href="#cb18-56"></a><span class="in"># Obtain SBP, DBP and weight.</span></span>
+<span id="cb18-57"><a href="#cb18-57"></a><span class="in">get_param_advs &lt;- function(pname, plabel) {</span></span>
+<span id="cb18-58"><a href="#cb18-58"></a><span class="in">  ds &lt;- advs %&gt;%</span></span>
+<span id="cb18-59"><a href="#cb18-59"></a><span class="in">    filter(PARAM == plabel &amp; AVISIT == "BASELINE") %&gt;%</span></span>
+<span id="cb18-60"><a href="#cb18-60"></a><span class="in">    select(USUBJID, AVAL)</span></span>
+<span id="cb18-61"><a href="#cb18-61"></a></span>
+<span id="cb18-62"><a href="#cb18-62"></a><span class="in">  colnames(ds) &lt;- c("USUBJID", pname)</span></span>
+<span id="cb18-63"><a href="#cb18-63"></a></span>
+<span id="cb18-64"><a href="#cb18-64"></a><span class="in">  ds</span></span>
+<span id="cb18-65"><a href="#cb18-65"></a><span class="in">}</span></span>
+<span id="cb18-66"><a href="#cb18-66"></a><span class="in"># The developer needs to do pre-processing to add necessary variables based on ADSUB to analysis dataset.</span></span>
+<span id="cb18-67"><a href="#cb18-67"></a><span class="in"># Obtain baseline BMI (BBMISI).</span></span>
+<span id="cb18-68"><a href="#cb18-68"></a><span class="in">get_param_adsub &lt;- function(pname, plabel) {</span></span>
+<span id="cb18-69"><a href="#cb18-69"></a><span class="in">  ds &lt;- adsub %&gt;%</span></span>
+<span id="cb18-70"><a href="#cb18-70"></a><span class="in">    filter(PARAM == plabel) %&gt;%</span></span>
+<span id="cb18-71"><a href="#cb18-71"></a><span class="in">    select(USUBJID, AVAL)</span></span>
+<span id="cb18-72"><a href="#cb18-72"></a></span>
+<span id="cb18-73"><a href="#cb18-73"></a><span class="in">  colnames(ds) &lt;- c("USUBJID", pname)</span></span>
+<span id="cb18-74"><a href="#cb18-74"></a></span>
+<span id="cb18-75"><a href="#cb18-75"></a><span class="in">  ds</span></span>
+<span id="cb18-76"><a href="#cb18-76"></a><span class="in">}</span></span>
+<span id="cb18-77"><a href="#cb18-77"></a><span class="in">adsl &lt;- adsl %&gt;%</span></span>
+<span id="cb18-78"><a href="#cb18-78"></a><span class="in">  left_join(get_param_advs("SBP", "Systolic Blood Pressure"), by = "USUBJID") %&gt;%</span></span>
+<span id="cb18-79"><a href="#cb18-79"></a><span class="in">  left_join(get_param_advs("DBP", "Diastolic Blood Pressure"), by = "USUBJID") %&gt;%</span></span>
+<span id="cb18-80"><a href="#cb18-80"></a><span class="in">  left_join(get_param_advs("WGT", "Weight"), by = "USUBJID") %&gt;%</span></span>
+<span id="cb18-81"><a href="#cb18-81"></a><span class="in">  left_join(get_param_adsub("BBMISI", "Baseline BMI"), by = "USUBJID")</span></span>
+<span id="cb18-82"><a href="#cb18-82"></a><span class="in">```</span></span>
+<span id="cb18-83"><a href="#cb18-83"></a></span>
+<span id="cb18-84"><a href="#cb18-84"></a><span class="fu">## Table with an Additional &lt;br/&gt; Study-Specific Continuous Variable</span></span>
+<span id="cb18-85"><a href="#cb18-85"></a></span>
+<span id="cb18-86"><a href="#cb18-86"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb18-87"><a href="#cb18-87"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb18-88"><a href="#cb18-88"></a></span>
+<span id="cb18-89"><a href="#cb18-89"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb18-90"><a href="#cb18-90"></a><span class="in">vars &lt;- c("AGE", "AGEGR1", "SEX", "ETHNIC", "RACE", "BMRKR1")</span></span>
+<span id="cb18-91"><a href="#cb18-91"></a><span class="in">var_labels &lt;- c(</span></span>
+<span id="cb18-92"><a href="#cb18-92"></a><span class="in">  "Age (yr)",</span></span>
+<span id="cb18-93"><a href="#cb18-93"></a><span class="in">  "Age Group",</span></span>
+<span id="cb18-94"><a href="#cb18-94"></a><span class="in">  "Sex",</span></span>
+<span id="cb18-95"><a href="#cb18-95"></a><span class="in">  "Ethnicity",</span></span>
+<span id="cb18-96"><a href="#cb18-96"></a><span class="in">  "Race",</span></span>
+<span id="cb18-97"><a href="#cb18-97"></a><span class="in">  "Continous Level Biomarker 1"</span></span>
+<span id="cb18-98"><a href="#cb18-98"></a><span class="in">)</span></span>
+<span id="cb18-99"><a href="#cb18-99"></a></span>
+<span id="cb18-100"><a href="#cb18-100"></a><span class="in">result &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb18-101"><a href="#cb18-101"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb18-102"><a href="#cb18-102"></a><span class="in">  add_overall_col("All Patients") %&gt;%</span></span>
+<span id="cb18-103"><a href="#cb18-103"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb18-104"><a href="#cb18-104"></a><span class="in">    vars = vars,</span></span>
+<span id="cb18-105"><a href="#cb18-105"></a><span class="in">    var_labels = var_labels</span></span>
+<span id="cb18-106"><a href="#cb18-106"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb18-107"><a href="#cb18-107"></a><span class="in">  build_table(adsl)</span></span>
+<span id="cb18-108"><a href="#cb18-108"></a></span>
+<span id="cb18-109"><a href="#cb18-109"></a><span class="in">result</span></span>
+<span id="cb18-110"><a href="#cb18-110"></a><span class="in">```</span></span>
+<span id="cb18-111"><a href="#cb18-111"></a></span>
+<span id="cb18-112"><a href="#cb18-112"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant1")`</span></span>
+<span id="cb18-113"><a href="#cb18-113"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb18-114"><a href="#cb18-114"></a>:::</span>
+<span id="cb18-115"><a href="#cb18-115"></a></span>
+<span id="cb18-116"><a href="#cb18-116"></a><span class="fu">## Table with an Additional &lt;br/&gt; Study-Specific Categorical Variable</span></span>
+<span id="cb18-117"><a href="#cb18-117"></a></span>
+<span id="cb18-118"><a href="#cb18-118"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb18-119"><a href="#cb18-119"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb18-120"><a href="#cb18-120"></a></span>
+<span id="cb18-121"><a href="#cb18-121"></a><span class="in">```{r variant2, test = list(result_v2 = "result")}</span></span>
+<span id="cb18-122"><a href="#cb18-122"></a><span class="in">vars &lt;- c("AGE", "AGEGR1", "SEX", "ETHNIC", "RACE", "BMRKR1_CAT")</span></span>
+<span id="cb18-123"><a href="#cb18-123"></a><span class="in">var_labels &lt;- c(</span></span>
+<span id="cb18-124"><a href="#cb18-124"></a><span class="in">  "Age (yr)",</span></span>
+<span id="cb18-125"><a href="#cb18-125"></a><span class="in">  "Age Group",</span></span>
+<span id="cb18-126"><a href="#cb18-126"></a><span class="in">  "Sex",</span></span>
+<span id="cb18-127"><a href="#cb18-127"></a><span class="in">  "Ethnicity",</span></span>
+<span id="cb18-128"><a href="#cb18-128"></a><span class="in">  "Race",</span></span>
+<span id="cb18-129"><a href="#cb18-129"></a><span class="in">  "Biomarker 1 Categories"</span></span>
+<span id="cb18-130"><a href="#cb18-130"></a><span class="in">)</span></span>
+<span id="cb18-131"><a href="#cb18-131"></a></span>
+<span id="cb18-132"><a href="#cb18-132"></a><span class="in">result &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb18-133"><a href="#cb18-133"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb18-134"><a href="#cb18-134"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb18-135"><a href="#cb18-135"></a><span class="in">    vars = vars,</span></span>
+<span id="cb18-136"><a href="#cb18-136"></a><span class="in">    var_labels = var_labels</span></span>
+<span id="cb18-137"><a href="#cb18-137"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb18-138"><a href="#cb18-138"></a><span class="in">  build_table(adsl)</span></span>
+<span id="cb18-139"><a href="#cb18-139"></a></span>
+<span id="cb18-140"><a href="#cb18-140"></a><span class="in">result</span></span>
+<span id="cb18-141"><a href="#cb18-141"></a><span class="in">```</span></span>
+<span id="cb18-142"><a href="#cb18-142"></a></span>
+<span id="cb18-143"><a href="#cb18-143"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant2")`</span></span>
+<span id="cb18-144"><a href="#cb18-144"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb18-145"><a href="#cb18-145"></a>:::</span>
+<span id="cb18-146"><a href="#cb18-146"></a></span>
+<span id="cb18-147"><a href="#cb18-147"></a><span class="fu">## Table with Subgrouping &lt;br/&gt; for Some Analyses</span></span>
+<span id="cb18-148"><a href="#cb18-148"></a></span>
+<span id="cb18-149"><a href="#cb18-149"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb18-150"><a href="#cb18-150"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb18-151"><a href="#cb18-151"></a></span>
+<span id="cb18-152"><a href="#cb18-152"></a><span class="in">```{r variant3, test = list(result_v3 = "result")}</span></span>
+<span id="cb18-153"><a href="#cb18-153"></a><span class="in">split_fun &lt;- drop_split_levels</span></span>
+<span id="cb18-154"><a href="#cb18-154"></a></span>
+<span id="cb18-155"><a href="#cb18-155"></a><span class="in">result &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb18-156"><a href="#cb18-156"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb18-157"><a href="#cb18-157"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb18-158"><a href="#cb18-158"></a><span class="in">    vars = c("AGE", "SEX", "RACE"),</span></span>
+<span id="cb18-159"><a href="#cb18-159"></a><span class="in">    var_labels = c("Age", "Sex", "Race")</span></span>
+<span id="cb18-160"><a href="#cb18-160"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb18-161"><a href="#cb18-161"></a><span class="in">  split_rows_by("STRATA1",</span></span>
+<span id="cb18-162"><a href="#cb18-162"></a><span class="in">    split_fun = split_fun</span></span>
+<span id="cb18-163"><a href="#cb18-163"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb18-164"><a href="#cb18-164"></a><span class="in">  analyze_vars("BMRKR1") %&gt;%</span></span>
+<span id="cb18-165"><a href="#cb18-165"></a><span class="in">  build_table(adsl)</span></span>
+<span id="cb18-166"><a href="#cb18-166"></a></span>
+<span id="cb18-167"><a href="#cb18-167"></a><span class="in">result</span></span>
+<span id="cb18-168"><a href="#cb18-168"></a><span class="in">```</span></span>
+<span id="cb18-169"><a href="#cb18-169"></a></span>
+<span id="cb18-170"><a href="#cb18-170"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant3")`</span></span>
+<span id="cb18-171"><a href="#cb18-171"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb18-172"><a href="#cb18-172"></a>:::</span>
+<span id="cb18-173"><a href="#cb18-173"></a></span>
+<span id="cb18-174"><a href="#cb18-174"></a><span class="fu">## Table with Additional Vital &lt;br/&gt; Signs Baseline Values</span></span>
+<span id="cb18-175"><a href="#cb18-175"></a></span>
+<span id="cb18-176"><a href="#cb18-176"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb18-177"><a href="#cb18-177"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb18-178"><a href="#cb18-178"></a></span>
+<span id="cb18-179"><a href="#cb18-179"></a><span class="in">```{r variant4, test = list(result_v4 = "result")}</span></span>
+<span id="cb18-180"><a href="#cb18-180"></a><span class="in">result &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb18-181"><a href="#cb18-181"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb18-182"><a href="#cb18-182"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb18-183"><a href="#cb18-183"></a><span class="in">    vars = c("AGE", "SEX", "RACE", "DBP", "SBP"),</span></span>
+<span id="cb18-184"><a href="#cb18-184"></a><span class="in">    var_labels = c(</span></span>
+<span id="cb18-185"><a href="#cb18-185"></a><span class="in">      "Age (yr)",</span></span>
+<span id="cb18-186"><a href="#cb18-186"></a><span class="in">      "Sex",</span></span>
+<span id="cb18-187"><a href="#cb18-187"></a><span class="in">      "Race",</span></span>
+<span id="cb18-188"><a href="#cb18-188"></a><span class="in">      "Diastolic Blood Pressure",</span></span>
+<span id="cb18-189"><a href="#cb18-189"></a><span class="in">      "Systolic Blood Pressure"</span></span>
+<span id="cb18-190"><a href="#cb18-190"></a><span class="in">    )</span></span>
+<span id="cb18-191"><a href="#cb18-191"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb18-192"><a href="#cb18-192"></a><span class="in">  build_table(adsl)</span></span>
+<span id="cb18-193"><a href="#cb18-193"></a></span>
+<span id="cb18-194"><a href="#cb18-194"></a><span class="in">result</span></span>
+<span id="cb18-195"><a href="#cb18-195"></a><span class="in">```</span></span>
+<span id="cb18-196"><a href="#cb18-196"></a></span>
+<span id="cb18-197"><a href="#cb18-197"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant4")`</span></span>
+<span id="cb18-198"><a href="#cb18-198"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb18-199"><a href="#cb18-199"></a>:::</span>
+<span id="cb18-200"><a href="#cb18-200"></a></span>
+<span id="cb18-201"><a href="#cb18-201"></a><span class="fu">## Table with Additional &lt;br/&gt; Values from ADSUB</span></span>
+<span id="cb18-202"><a href="#cb18-202"></a></span>
+<span id="cb18-203"><a href="#cb18-203"></a>::: {.panel-tabset .nav-justified group="webr"}</span>
+<span id="cb18-204"><a href="#cb18-204"></a><span class="fu">## {{&lt; fa regular file-lines sm fw &gt;}} Preview</span></span>
+<span id="cb18-205"><a href="#cb18-205"></a></span>
+<span id="cb18-206"><a href="#cb18-206"></a><span class="in">```{r variant5, test = list(result_v5 = "result")}</span></span>
+<span id="cb18-207"><a href="#cb18-207"></a><span class="in">result &lt;- basic_table(show_colcounts = TRUE) %&gt;%</span></span>
+<span id="cb18-208"><a href="#cb18-208"></a><span class="in">  split_cols_by(var = "ACTARM") %&gt;%</span></span>
+<span id="cb18-209"><a href="#cb18-209"></a><span class="in">  analyze_vars(</span></span>
+<span id="cb18-210"><a href="#cb18-210"></a><span class="in">    vars = c("AGE", "SEX", "RACE", "BBMISI"),</span></span>
+<span id="cb18-211"><a href="#cb18-211"></a><span class="in">    var_labels = c(</span></span>
+<span id="cb18-212"><a href="#cb18-212"></a><span class="in">      "Age (yr)",</span></span>
+<span id="cb18-213"><a href="#cb18-213"></a><span class="in">      "Sex",</span></span>
+<span id="cb18-214"><a href="#cb18-214"></a><span class="in">      "Race",</span></span>
+<span id="cb18-215"><a href="#cb18-215"></a><span class="in">      "Baseline BMI"</span></span>
+<span id="cb18-216"><a href="#cb18-216"></a><span class="in">    )</span></span>
+<span id="cb18-217"><a href="#cb18-217"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb18-218"><a href="#cb18-218"></a><span class="in">  build_table(adsl)</span></span>
+<span id="cb18-219"><a href="#cb18-219"></a></span>
+<span id="cb18-220"><a href="#cb18-220"></a><span class="in">result</span></span>
+<span id="cb18-221"><a href="#cb18-221"></a><span class="in">```</span></span>
+<span id="cb18-222"><a href="#cb18-222"></a></span>
+<span id="cb18-223"><a href="#cb18-223"></a><span class="in">`r webr_code_labels &lt;- c("setup", "variant5")`</span></span>
+<span id="cb18-224"><a href="#cb18-224"></a>{{&lt; include ../../_utils/webr.qmd &gt;}}</span>
+<span id="cb18-225"><a href="#cb18-225"></a>:::</span>
+<span id="cb18-226"><a href="#cb18-226"></a></span>
+<span id="cb18-227"><a href="#cb18-227"></a><span class="fu">## Data Setup</span></span>
+<span id="cb18-228"><a href="#cb18-228"></a></span>
+<span id="cb18-229"><a href="#cb18-229"></a><span class="in">```{r setup}</span></span>
+<span id="cb18-230"><a href="#cb18-230"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb18-231"><a href="#cb18-231"></a><span class="in">```</span></span>
+<span id="cb18-232"><a href="#cb18-232"></a></span>
+<span id="cb18-233"><a href="#cb18-233"></a>::::</span>
+<span id="cb18-234"><a href="#cb18-234"></a></span>
+<span id="cb18-235"><a href="#cb18-235"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb18-236"><a href="#cb18-236"></a></span>
+<span id="cb18-237"><a href="#cb18-237"></a><span class="fu">## `teal` App</span></span>
+<span id="cb18-238"><a href="#cb18-238"></a></span>
+<span id="cb18-239"><a href="#cb18-239"></a>::: {.panel-tabset .nav-justified}</span>
+<span id="cb18-240"><a href="#cb18-240"></a><span class="fu">## {{&lt; fa regular file-lines fa-sm fa-fw &gt;}} Preview</span></span>
+<span id="cb18-241"><a href="#cb18-241"></a></span>
+<span id="cb18-242"><a href="#cb18-242"></a><span class="in">```{r teal, opts.label = c("skip_if_testing", "app")}</span></span>
+<span id="cb18-243"><a href="#cb18-243"></a><span class="in">library(teal.modules.clinical)</span></span>
+<span id="cb18-244"><a href="#cb18-244"></a></span>
+<span id="cb18-245"><a href="#cb18-245"></a><span class="in">## Data reproducible code</span></span>
+<span id="cb18-246"><a href="#cb18-246"></a><span class="in">data &lt;- teal_data()</span></span>
+<span id="cb18-247"><a href="#cb18-247"></a><span class="in">data &lt;- within(data, {</span></span>
+<span id="cb18-248"><a href="#cb18-248"></a><span class="in">  ADSL &lt;- random.cdisc.data::cadsl</span></span>
+<span id="cb18-249"><a href="#cb18-249"></a></span>
+<span id="cb18-250"><a href="#cb18-250"></a><span class="in">  # Include `EOSDY` and `DCSREAS` variables below because they contain missing data.</span></span>
+<span id="cb18-251"><a href="#cb18-251"></a><span class="in">  stopifnot(</span></span>
+<span id="cb18-252"><a href="#cb18-252"></a><span class="in">    any(is.na(ADSL$EOSDY)),</span></span>
+<span id="cb18-253"><a href="#cb18-253"></a><span class="in">    any(is.na(ADSL$DCSREAS))</span></span>
+<span id="cb18-254"><a href="#cb18-254"></a><span class="in">  )</span></span>
+<span id="cb18-255"><a href="#cb18-255"></a><span class="in">})</span></span>
+<span id="cb18-256"><a href="#cb18-256"></a><span class="in">datanames &lt;- "ADSL"</span></span>
+<span id="cb18-257"><a href="#cb18-257"></a><span class="in">datanames(data) &lt;- datanames</span></span>
+<span id="cb18-258"><a href="#cb18-258"></a><span class="in">join_keys(data) &lt;- default_cdisc_join_keys[datanames]</span></span>
+<span id="cb18-259"><a href="#cb18-259"></a></span>
+<span id="cb18-260"><a href="#cb18-260"></a><span class="in">## Setup App</span></span>
+<span id="cb18-261"><a href="#cb18-261"></a><span class="in">app &lt;- init(</span></span>
+<span id="cb18-262"><a href="#cb18-262"></a><span class="in">  data = data,</span></span>
+<span id="cb18-263"><a href="#cb18-263"></a><span class="in">  modules = modules(</span></span>
+<span id="cb18-264"><a href="#cb18-264"></a><span class="in">    tm_t_summary(</span></span>
+<span id="cb18-265"><a href="#cb18-265"></a><span class="in">      label = "Demographic Table",</span></span>
+<span id="cb18-266"><a href="#cb18-266"></a><span class="in">      dataname = "ADSL",</span></span>
+<span id="cb18-267"><a href="#cb18-267"></a><span class="in">      arm_var = choices_selected(c("ARM", "ARMCD"), "ARM"),</span></span>
+<span id="cb18-268"><a href="#cb18-268"></a><span class="in">      summarize_vars = choices_selected(</span></span>
+<span id="cb18-269"><a href="#cb18-269"></a><span class="in">        c("SEX", "RACE", "BMRKR2", "EOSDY", "DCSREAS"),</span></span>
+<span id="cb18-270"><a href="#cb18-270"></a><span class="in">        c("SEX", "RACE")</span></span>
+<span id="cb18-271"><a href="#cb18-271"></a><span class="in">      ),</span></span>
+<span id="cb18-272"><a href="#cb18-272"></a><span class="in">      useNA = "ifany"</span></span>
+<span id="cb18-273"><a href="#cb18-273"></a><span class="in">    )</span></span>
+<span id="cb18-274"><a href="#cb18-274"></a><span class="in">  )</span></span>
+<span id="cb18-275"><a href="#cb18-275"></a><span class="in">)</span></span>
+<span id="cb18-276"><a href="#cb18-276"></a></span>
+<span id="cb18-277"><a href="#cb18-277"></a><span class="in">shinyApp(app$ui, app$server)</span></span>
+<span id="cb18-278"><a href="#cb18-278"></a><span class="in">```</span></span>
+<span id="cb18-279"><a href="#cb18-279"></a></span>
+<span id="cb18-280"><a href="#cb18-280"></a>{{&lt; include ../../_utils/shinylive.qmd &gt;}}</span>
+<span id="cb18-281"><a href="#cb18-281"></a>:::</span>
+<span id="cb18-282"><a href="#cb18-282"></a></span>
+<span id="cb18-283"><a href="#cb18-283"></a>{{&lt; include ../../repro.qmd &gt;}}</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
