@@ -76,9 +76,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="../../site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <meta name="shinylive:serviceworker_dir" content="../..">
-<script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/load-shinylive-sw.js" type="module"></script>
-<script src="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/run-python-blocks.js" type="module"></script>
-<link href="../../site_libs/quarto-contrib/shinylive-0.5.0/shinylive/shinylive.css" rel="stylesheet">
+<script src="../../site_libs/quarto-contrib/shinylive-0.9.1/shinylive/load-shinylive-sw.js" type="module"></script>
+<script src="../../site_libs/quarto-contrib/shinylive-0.9.1/shinylive/run-python-blocks.js" type="module"></script>
+<link href="../../site_libs/quarto-contrib/shinylive-0.9.1/shinylive/shinylive.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/shinylive-quarto-css/shinylive-quarto.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-1.2.0/all.min.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-1.2.0/latex-fontsize.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
@@ -432,7 +432,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"options":{"out-height":"","editor-font-scale":"1","label":"unnamed-chunk-1","message":"true","comment":"","read-only":"false","out-width":"700px","fig-width":7,"editor-quick-suggestions":"false","warning":"true","context":"interactive","editor-max-height":"500","autorun":"true","fig-height":5,"classes":"","dpi":72,"results":"markup","fig-cap":"","editor-word-wrap":"true","output":"true"},"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\n# Simulate ADEX records with PARAMCD == \"TDURD\" as they are not in sample random.cdisc.data dataset.\nset.seed(1, kind = \"Mersenne-Twister\")\nadex2 <- adex %>%\n  distinct(USUBJID, .keep_all = TRUE) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE)\n  ) %>%\n  bind_rows(adex)\n\n# Now pre-processing steps are carried out.\nanl <- adex2 %>%\n  filter(\n    PARAMCD == \"TDURD\",\n    PARCAT2 == \"Drug A\",\n    SAFFL == \"Y\"\n  ) %>%\n  mutate(\n    aval_months = day2month(AVAL),\n    aval_months_cat = factor(case_when(\n      aval_months < 1 ~ \"< 1 month\",\n      aval_months >= 1 & aval_months < 3 ~ \"1 to <3 months\",\n      aval_months >= 3 & aval_months < 6 ~ \"3 to <6 months\",\n      TRUE ~ \">=6 months\"\n    ), levels = c(\"< 1 month\", \"1 to <3 months\", \"3 to <6 months\", \">=6 months\"))\n  )\n\nadsl_f <- adsl %>% filter(adsl$SAFFL == \"Y\")\nlyt <- basic_table(\n  title = \"Duration of Exposure: Safety-Evaluable Patients\",\n  main_footer = \"* Patient Time is the sum of exposure across all patients in days.\",\n  show_colcounts = TRUE\n) %>%\n  summarize_patients_exposure_in_cols(\n    var = \"AVAL\", col_split = TRUE,\n    .labels = c(n_patients = \"Number of Patients\", sum_exposure = \"Patient Time*\"),\n    custom_label = \"Total Number of Patients and Patient Time\"\n  ) %>%\n  analyze_patients_exposure_in_cols(\n    var = \"aval_months_cat\",\n    col_split = FALSE\n  ) %>%\n  append_topleft(c(\"\", \"Duration of exposure\"))\n\nresult <- build_table(lyt, df = anl, alt_counts_df = adsl_f)\nresult"}];
+globalThis.qwebrCellDetails = [{"options":{"read-only":"false","fig-width":7,"editor-max-height":"500","editor-word-wrap":"true","fig-height":5,"label":"unnamed-chunk-1","out-width":"700px","warning":"true","fig-cap":"","classes":"","comment":"","message":"true","results":"markup","dpi":72,"out-height":"","context":"interactive","editor-font-scale":"1","autorun":"true","output":"true","editor-quick-suggestions":"false"},"code":"library(tern)\nlibrary(dplyr)\n\nadsl <- random.cdisc.data::cadsl\nadex <- random.cdisc.data::cadex\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadex <- df_explicit_na(adex)\n\n# Simulate ADEX records with PARAMCD == \"TDURD\" as they are not in sample random.cdisc.data dataset.\nset.seed(1, kind = \"Mersenne-Twister\")\nadex2 <- adex %>%\n  distinct(USUBJID, .keep_all = TRUE) %>%\n  mutate(\n    PARAMCD = \"TDURD\",\n    PARAM = \"Overall duration (days)\",\n    AVAL = sample(x = seq(1, 200), size = n(), replace = TRUE)\n  ) %>%\n  bind_rows(adex)\n\n# Now pre-processing steps are carried out.\nanl <- adex2 %>%\n  filter(\n    PARAMCD == \"TDURD\",\n    PARCAT2 == \"Drug A\",\n    SAFFL == \"Y\"\n  ) %>%\n  mutate(\n    aval_months = day2month(AVAL),\n    aval_months_cat = factor(case_when(\n      aval_months < 1 ~ \"< 1 month\",\n      aval_months >= 1 & aval_months < 3 ~ \"1 to <3 months\",\n      aval_months >= 3 & aval_months < 6 ~ \"3 to <6 months\",\n      TRUE ~ \">=6 months\"\n    ), levels = c(\"< 1 month\", \"1 to <3 months\", \"3 to <6 months\", \">=6 months\"))\n  )\n\nadsl_f <- adsl %>% filter(adsl$SAFFL == \"Y\")\nlyt <- basic_table(\n  title = \"Duration of Exposure: Safety-Evaluable Patients\",\n  main_footer = \"* Patient Time is the sum of exposure across all patients in days.\",\n  show_colcounts = TRUE\n) %>%\n  summarize_patients_exposure_in_cols(\n    var = \"AVAL\", col_split = TRUE,\n    .labels = c(n_patients = \"Number of Patients\", sum_exposure = \"Patient Time*\"),\n    custom_label = \"Total Number of Patients and Patient Time\"\n  ) %>%\n  analyze_patients_exposure_in_cols(\n    var = \"aval_months_cat\",\n    col_split = FALSE\n  ) %>%\n  append_topleft(c(\"\", \"Duration of exposure\"))\n\nresult <- build_table(lyt, df = anl, alt_counts_df = adsl_f)\nresult","id":1}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -3604,7 +3604,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-11-09 17:50:35 UTC"</code></pre>
+<pre><code>[1] "2024-11-14 09:29:05 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -3620,7 +3620,7 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-11-09
+ date     2024-11-14
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -3666,7 +3666,7 @@ Experimental use!
  logger                  0.4.0    2024-10-22 [1] RSPM
  magrittr              * 2.0.3    2022-03-30 [1] RSPM
  MASS                    7.3-61   2024-06-13 [2] CRAN (R 4.4.1)
- Matrix                  1.7-0    2024-04-26 [1] CRAN (R 4.4.1)
+ Matrix                  1.7-1    2024-10-18 [1] RSPM
  memoise                 2.0.1    2021-11-26 [1] RSPM
  mime                    0.12     2021-09-28 [1] RSPM
  multcomp                1.4-26   2024-07-18 [1] CRAN (R 4.4.1)
