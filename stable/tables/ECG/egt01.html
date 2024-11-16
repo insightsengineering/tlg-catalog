@@ -432,7 +432,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"options":{"editor-quick-suggestions":"false","dpi":72,"out-height":"","fig-height":5,"out-width":"700px","results":"markup","label":"unnamed-chunk-1","output":"true","autorun":"true","editor-font-scale":"1","comment":"","message":"true","context":"interactive","classes":"","fig-cap":"","fig-width":7,"editor-word-wrap":"true","read-only":"false","editor-max-height":"500","warning":"true"},"code":"library(dplyr)\nlibrary(tern)\n\n# Data should be filtered for the studied Parameter (`PARAM`) and the\n# Analysis Visit (`AVISIT`). According to the GDSR template, the values for\n# the `AVISIT` reported in the EGT01 standard may be:\n# 'POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST'.\n\nadsl <- random.cdisc.data::cadsl\nadeg <- random.cdisc.data::cadeg\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadeg <- df_explicit_na(adeg)\n\nadeg_f <- adeg %>%\n  filter(ANL01FL == \"Y\") %>%\n  filter(PARAM %in% c(\"Heart Rate\", \"QT Duration\", \"RR Duration\"))\n# Define the split function\nsplit_fun <- drop_split_levels\n\nafun <- function(x, .var, .spl_context, ...) {\n  n_fun <- sum(!is.na(x), na.rm = TRUE)\n  if (n_fun == 0) {\n    mean_sd_fun <- c(NA, NA)\n    median_fun <- NA\n    min_max_fun <- c(NA, NA)\n  } else {\n    mean_sd_fun <- c(mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))\n    median_fun <- median(x, na.rm = TRUE)\n    min_max_fun <- c(min(x), max(x))\n  }\n  is_chg <- .var == \"CHG\"\n  is_baseline <- .spl_context$value[which(.spl_context$split == \"AVISIT\")] == \"BASELINE\"\n  if (is_baseline && is_chg) n_fun <- mean_sd_fun <- median_fun <- min_max_fun <- NULL\n\n  in_rows(\n    \"n\" = n_fun,\n    \"Mean (SD)\" = mean_sd_fun,\n    \"Median\" = median_fun,\n    \"Min - Max\" = min_max_fun,\n    .formats = list(\"n\" = \"xx\", \"Mean (SD)\" = \"xx.xx (xx.xx)\", \"Median\" = \"xx.xx\", \"Min - Max\" = \"xx.xx - xx.xx\"),\n    .format_na_strs = list(\"n\" = \"NE\", \"Mean (SD)\" = \"NE (NE)\", \"Median\" = \"NE\", \"Min - Max\" = \"NE - NE\")\n  )\n}\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARAM\", split_fun = split_fun, label_pos = \"topleft\", split_label = obj_label(adeg_f$PARAM)) %>%\n  split_rows_by(\"AVISIT\", split_fun = split_fun, label_pos = \"topleft\", split_label = obj_label(adeg_f$AVISIT)) %>%\n  split_cols_by_multivar(\n    vars = c(\"AVAL\", \"CHG\"),\n    varlabels = c(\"Value at Visit\", \"Change from\\nBaseline\")\n  ) %>%\n  analyze_colvars(afun = afun)\n\nresult <- build_table(lyt, adeg_f, alt_counts_df = adsl)\nresult"}];
+globalThis.qwebrCellDetails = [{"id":1,"code":"library(dplyr)\nlibrary(tern)\n\n# Data should be filtered for the studied Parameter (`PARAM`) and the\n# Analysis Visit (`AVISIT`). According to the GDSR template, the values for\n# the `AVISIT` reported in the EGT01 standard may be:\n# 'POST-BASELINE MAXIMUM', 'POST-BASELINE MINIMUM', 'POST-BASELINE LAST'.\n\nadsl <- random.cdisc.data::cadsl\nadeg <- random.cdisc.data::cadeg\n\n# Ensure character variables are converted to factors and empty strings and NAs are explicit missing levels.\nadsl <- df_explicit_na(adsl)\nadeg <- df_explicit_na(adeg)\n\nadeg_f <- adeg %>%\n  filter(ANL01FL == \"Y\") %>%\n  filter(PARAM %in% c(\"Heart Rate\", \"QT Duration\", \"RR Duration\"))\n# Define the split function\nsplit_fun <- drop_split_levels\n\nafun <- function(x, .var, .spl_context, ...) {\n  n_fun <- sum(!is.na(x), na.rm = TRUE)\n  if (n_fun == 0) {\n    mean_sd_fun <- c(NA, NA)\n    median_fun <- NA\n    min_max_fun <- c(NA, NA)\n  } else {\n    mean_sd_fun <- c(mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))\n    median_fun <- median(x, na.rm = TRUE)\n    min_max_fun <- c(min(x), max(x))\n  }\n  is_chg <- .var == \"CHG\"\n  is_baseline <- .spl_context$value[which(.spl_context$split == \"AVISIT\")] == \"BASELINE\"\n  if (is_baseline && is_chg) n_fun <- mean_sd_fun <- median_fun <- min_max_fun <- NULL\n\n  in_rows(\n    \"n\" = n_fun,\n    \"Mean (SD)\" = mean_sd_fun,\n    \"Median\" = median_fun,\n    \"Min - Max\" = min_max_fun,\n    .formats = list(\"n\" = \"xx\", \"Mean (SD)\" = \"xx.xx (xx.xx)\", \"Median\" = \"xx.xx\", \"Min - Max\" = \"xx.xx - xx.xx\"),\n    .format_na_strs = list(\"n\" = \"NE\", \"Mean (SD)\" = \"NE (NE)\", \"Median\" = \"NE\", \"Min - Max\" = \"NE - NE\")\n  )\n}\n\nlyt <- basic_table(show_colcounts = TRUE) %>%\n  split_cols_by(\"ACTARM\") %>%\n  split_rows_by(\"PARAM\", split_fun = split_fun, label_pos = \"topleft\", split_label = obj_label(adeg_f$PARAM)) %>%\n  split_rows_by(\"AVISIT\", split_fun = split_fun, label_pos = \"topleft\", split_label = obj_label(adeg_f$AVISIT)) %>%\n  split_cols_by_multivar(\n    vars = c(\"AVAL\", \"CHG\"),\n    varlabels = c(\"Value at Visit\", \"Change from\\nBaseline\")\n  ) %>%\n  analyze_colvars(afun = afun)\n\nresult <- build_table(lyt, adeg_f, alt_counts_df = adsl)\nresult","options":{"classes":"","fig-height":5,"editor-quick-suggestions":"false","out-height":"","fig-width":7,"context":"interactive","dpi":72,"out-width":"700px","output":"true","editor-word-wrap":"true","warning":"true","label":"unnamed-chunk-1","comment":"","message":"true","editor-font-scale":"1","autorun":"true","results":"markup","fig-cap":"","read-only":"false","editor-max-height":"500"}}];
 
 </script><script type="module">
 // Declare startupMessageQWebR globally
@@ -3657,7 +3657,7 @@ Experimental use!
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-11-14 09:49:21 UTC"</code></pre>
+<pre><code>[1] "2024-11-16 18:08:30 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -3673,7 +3673,7 @@ Experimental use!
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-11-14
+ date     2024-11-16
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -3690,7 +3690,7 @@ Experimental use!
  coda                    0.19-4.1 2024-01-31 [1] CRAN (R 4.4.1)
  codetools               0.2-20   2024-03-31 [2] CRAN (R 4.4.1)
  colorspace              2.1-1    2024-07-26 [1] RSPM
- curl                    6.0.0    2024-11-05 [1] RSPM
+ curl                    6.0.1    2024-11-14 [1] RSPM
  data.table              1.16.2   2024-10-10 [1] RSPM
  digest                  0.6.37   2024-08-19 [1] RSPM
  dplyr                 * 1.1.4    2023-11-17 [1] RSPM
@@ -3741,7 +3741,7 @@ Experimental use!
  random.cdisc.data       0.3.16   2024-10-10 [1] RSPM
  rbibutils               2.3      2024-10-04 [1] RSPM
  Rcpp                    1.0.13-1 2024-11-02 [1] RSPM
- Rdpack                  2.6.1    2024-08-06 [1] RSPM
+ Rdpack                  2.6.2    2024-11-15 [1] RSPM
  rlang                   1.1.4    2024-06-04 [1] RSPM
  rmarkdown               2.29     2024-11-04 [1] RSPM
  rtables               * 0.6.10   2024-09-20 [1] RSPM
