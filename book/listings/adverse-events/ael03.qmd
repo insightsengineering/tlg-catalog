@@ -12,6 +12,7 @@ library(dplyr)
 library(rlistings)
 
 adae <- random.cdisc.data::cadae
+adae$AESCONG[which(adae$AESER == "Y")[seq(3)]] <- "Y" # To mimic possibility of overlap
 
 out <- adae %>%
   filter(AESER == "Y") %>%
@@ -38,17 +39,20 @@ out <- adae %>%
       AEACN == "DRUG WITHDRAWN" ~ 5,
       AEACN == "NOT APPLICABLE" | AEACN == "NOT EVALUABLE" ~ 6,
       AEACN == "UNKNOWN" ~ 7
-    ),
-    SERREAS = case_when(
-      AESDTH == "Y" ~ "1",
-      AESLIFE == "Y" ~ "2",
-      AESHOSP == "Y" ~ "3",
-      AESDISAB == "Y" ~ "4",
-      AESCONG == "Y" ~ "5",
-      AESMIE == "Y" ~ "6",
-      TRUE ~ " "
     )
   ) %>%
+  rowwise() %>%
+  mutate(
+    SERREAS = paste(
+      which(
+        c(AESDTH, AESLIFE, AESHOSP, AESDISAB, AESCONG, AESMIE) == "Y"
+      ),
+      collapse = ", "
+    )
+  ) %>%
+  ungroup()
+
+out <- out %>%
   select(CPID, ASR, TRT01A, AEDECOD, Date_First, ASTDY, Duration, AESEV, Related, Outcome, Treated, Action, SERREAS)
 
 var_labels(out) <- c(

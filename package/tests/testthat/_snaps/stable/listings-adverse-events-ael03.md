@@ -18,7 +18,7 @@
       10 A: Drug X  BRA-1/id-93  34/F/ASIAN                     dcd D.1.1.1.1
          Date_First ASTDY Duration AESEV    Related Outcome Treated Action SERREAS
          <chr>      <int>    <dbl> <fct>    <chr>     <dbl> <chr>    <dbl> <chr>  
-       1 04NOV2020    321      149 MODERATE No            5 Yes          2 4      
+       1 04NOV2020    321      149 MODERATE No            5 Yes          2 4, 5   
        2 04NOV2020    393       43 MODERATE No            5 No           5 5      
        3 01JAN2020     64      630 SEVERE   Yes           1 No           6 1      
        4 01JAN2020    160      259 MODERATE No            2 Yes          2 4      
