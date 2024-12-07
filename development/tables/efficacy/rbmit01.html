@@ -1512,15 +1512,12 @@ cookieconsent.run({
 <span id="cb3-7"><a href="#cb3-7"></a>  <span class="at">vars =</span> draws_vars,</span>
 <span id="cb3-8"><a href="#cb3-8"></a>  <span class="at">method =</span> draws_method</span>
 <span id="cb3-9"><a href="#cb3-9"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output cell-output-stderr">
-<pre><code>Compiling Stan model please wait...</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
+</details><div class="cell-output cell-output-stdout">
 <pre><code>
 SAMPLING FOR MODEL 'rbmi_mmrm' NOW (CHAIN 1).
 Chain 1: 
-Chain 1: Gradient evaluation took 0.000218 seconds
-Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.18 seconds.
+Chain 1: Gradient evaluation took 0.000235 seconds
+Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.35 seconds.
 Chain 1: Adjust your expectations accordingly!
 Chain 1: 
 Chain 1: 
@@ -1537,59 +1534,59 @@ Chain 1: Iteration: 1040 / 1200 [ 86%]  (Sampling)
 Chain 1: Iteration: 1160 / 1200 [ 96%]  (Sampling)
 Chain 1: Iteration: 1200 / 1200 [100%]  (Sampling)
 Chain 1: 
-Chain 1:  Elapsed Time: 0.52 seconds (Warm-up)
-Chain 1:                1.631 seconds (Sampling)
-Chain 1:                2.151 seconds (Total)
+Chain 1:  Elapsed Time: 0.513 seconds (Warm-up)
+Chain 1:                1.643 seconds (Sampling)
+Chain 1:                2.156 seconds (Total)
 Chain 1: </code></pre>
 </div>
 </div>
 <section id="impute" class="level2"><h2 class="anchored" data-anchor-id="impute">Impute</h2>
 <p>The next step is to use the parameters from the imputation model to generate the imputed datasets. This is done via the <code><a href="https://insightsengineering.github.io/rbmi/reference/impute.html">rbmi::impute()</a></code> function. The function only has two key inputs: the imputation model output from <code><a href="https://insightsengineering.github.io/rbmi/reference/draws.html">rbmi::draws()</a></code> and the reference groups relevant to reference-based imputation methods. It’s usage is thus:</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>impute_references <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"DRUG"</span> <span class="ot">=</span> <span class="st">"PLACEBO"</span>, <span class="st">"PLACEBO"</span> <span class="ot">=</span> <span class="st">"PLACEBO"</span>)</span>
-<span id="cb6-2"><a href="#cb6-2"></a></span>
-<span id="cb6-3"><a href="#cb6-3"></a>impute_obj <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">impute</span>(</span>
-<span id="cb6-4"><a href="#cb6-4"></a>  draws_obj,</span>
-<span id="cb6-5"><a href="#cb6-5"></a>  <span class="at">references =</span> impute_references</span>
-<span id="cb6-6"><a href="#cb6-6"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>impute_references <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"DRUG"</span> <span class="ot">=</span> <span class="st">"PLACEBO"</span>, <span class="st">"PLACEBO"</span> <span class="ot">=</span> <span class="st">"PLACEBO"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a>impute_obj <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">impute</span>(</span>
+<span id="cb5-4"><a href="#cb5-4"></a>  draws_obj,</span>
+<span id="cb5-5"><a href="#cb5-5"></a>  <span class="at">references =</span> impute_references</span>
+<span id="cb5-6"><a href="#cb5-6"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section><section id="analyze" class="level2"><h2 class="anchored" data-anchor-id="analyze">Analyze</h2>
 <p>The next step is to run the analysis model on each imputed dataset. This is done by defining an analysis function and then calling <code><a href="https://insightsengineering.github.io/rbmi/reference/analyse.html">rbmi::analyse()</a></code> to apply this function to each imputed dataset.</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="co"># Define analysis model</span></span>
-<span id="cb7-2"><a href="#cb7-2"></a>analyse_fun <span class="ot">&lt;-</span> ancova</span>
-<span id="cb7-3"><a href="#cb7-3"></a></span>
-<span id="cb7-4"><a href="#cb7-4"></a>ref_levels <span class="ot">&lt;-</span> <span class="fu">levels</span>(impute_obj<span class="sc">$</span>data<span class="sc">$</span>group[[<span class="dv">1</span>]])</span>
-<span id="cb7-5"><a href="#cb7-5"></a><span class="fu">names</span>(ref_levels) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ref"</span>, <span class="st">"alt"</span>)</span>
-<span id="cb7-6"><a href="#cb7-6"></a></span>
-<span id="cb7-7"><a href="#cb7-7"></a>analyse_obj <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">analyse</span>(</span>
-<span id="cb7-8"><a href="#cb7-8"></a>  <span class="at">imputations =</span> impute_obj,</span>
-<span id="cb7-9"><a href="#cb7-9"></a>  <span class="at">fun =</span> analyse_fun,</span>
-<span id="cb7-10"><a href="#cb7-10"></a>  <span class="at">vars =</span> rbmi<span class="sc">::</span><span class="fu">set_vars</span>(</span>
-<span id="cb7-11"><a href="#cb7-11"></a>    <span class="at">subjid =</span> <span class="st">"TMP_ID"</span>,</span>
-<span id="cb7-12"><a href="#cb7-12"></a>    <span class="at">outcome =</span> missing_var,</span>
-<span id="cb7-13"><a href="#cb7-13"></a>    <span class="at">visit =</span> vars<span class="sc">$</span>visit,</span>
-<span id="cb7-14"><a href="#cb7-14"></a>    <span class="at">group =</span> vars<span class="sc">$</span>group,</span>
-<span id="cb7-15"><a href="#cb7-15"></a>    <span class="at">covariates =</span> covariates<span class="sc">$</span>analyse</span>
-<span id="cb7-16"><a href="#cb7-16"></a>  )</span>
-<span id="cb7-17"><a href="#cb7-17"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="co"># Define analysis model</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a>analyse_fun <span class="ot">&lt;-</span> ancova</span>
+<span id="cb6-3"><a href="#cb6-3"></a></span>
+<span id="cb6-4"><a href="#cb6-4"></a>ref_levels <span class="ot">&lt;-</span> <span class="fu">levels</span>(impute_obj<span class="sc">$</span>data<span class="sc">$</span>group[[<span class="dv">1</span>]])</span>
+<span id="cb6-5"><a href="#cb6-5"></a><span class="fu">names</span>(ref_levels) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ref"</span>, <span class="st">"alt"</span>)</span>
+<span id="cb6-6"><a href="#cb6-6"></a></span>
+<span id="cb6-7"><a href="#cb6-7"></a>analyse_obj <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">analyse</span>(</span>
+<span id="cb6-8"><a href="#cb6-8"></a>  <span class="at">imputations =</span> impute_obj,</span>
+<span id="cb6-9"><a href="#cb6-9"></a>  <span class="at">fun =</span> analyse_fun,</span>
+<span id="cb6-10"><a href="#cb6-10"></a>  <span class="at">vars =</span> rbmi<span class="sc">::</span><span class="fu">set_vars</span>(</span>
+<span id="cb6-11"><a href="#cb6-11"></a>    <span class="at">subjid =</span> <span class="st">"TMP_ID"</span>,</span>
+<span id="cb6-12"><a href="#cb6-12"></a>    <span class="at">outcome =</span> missing_var,</span>
+<span id="cb6-13"><a href="#cb6-13"></a>    <span class="at">visit =</span> vars<span class="sc">$</span>visit,</span>
+<span id="cb6-14"><a href="#cb6-14"></a>    <span class="at">group =</span> vars<span class="sc">$</span>group,</span>
+<span id="cb6-15"><a href="#cb6-15"></a>    <span class="at">covariates =</span> covariates<span class="sc">$</span>analyse</span>
+<span id="cb6-16"><a href="#cb6-16"></a>  )</span>
+<span id="cb6-17"><a href="#cb6-17"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section><section id="pool" class="level2"><h2 class="anchored" data-anchor-id="pool">Pool</h2>
 <p>The <code><a href="https://insightsengineering.github.io/rbmi/reference/pool.html">rbmi::pool()</a></code> function can be used to summarize the analysis results across multiple imputed datasets to provide an overall statistic with a standard error, confidence intervals and a p-value for the hypothesis test of the null hypothesis that the effect is equal to 0. Using the <code><a href="https://generics.r-lib.org/reference/tidy.html">broom::tidy()</a></code> function the <code>rbmi</code> final results are reshaped.</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="fu">library</span>(broom)</span>
-<span id="cb8-2"><a href="#cb8-2"></a></span>
-<span id="cb8-3"><a href="#cb8-3"></a>pool_obj <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">pool</span>(</span>
-<span id="cb8-4"><a href="#cb8-4"></a>  <span class="at">results =</span> analyse_obj,</span>
-<span id="cb8-5"><a href="#cb8-5"></a>  <span class="at">conf.level =</span> <span class="fl">0.95</span>,</span>
-<span id="cb8-6"><a href="#cb8-6"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"less"</span>, <span class="st">"greater"</span>),</span>
-<span id="cb8-7"><a href="#cb8-7"></a>  <span class="at">type =</span> <span class="fu">c</span>(<span class="st">"percentile"</span>, <span class="st">"normal"</span>)</span>
-<span id="cb8-8"><a href="#cb8-8"></a>)</span>
-<span id="cb8-9"><a href="#cb8-9"></a></span>
-<span id="cb8-10"><a href="#cb8-10"></a>df <span class="ot">&lt;-</span> <span class="fu">tidy</span>(pool_obj)</span>
-<span id="cb8-11"><a href="#cb8-11"></a>df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">library</span>(broom)</span>
+<span id="cb7-2"><a href="#cb7-2"></a></span>
+<span id="cb7-3"><a href="#cb7-3"></a>pool_obj <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">pool</span>(</span>
+<span id="cb7-4"><a href="#cb7-4"></a>  <span class="at">results =</span> analyse_obj,</span>
+<span id="cb7-5"><a href="#cb7-5"></a>  <span class="at">conf.level =</span> <span class="fl">0.95</span>,</span>
+<span id="cb7-6"><a href="#cb7-6"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"less"</span>, <span class="st">"greater"</span>),</span>
+<span id="cb7-7"><a href="#cb7-7"></a>  <span class="at">type =</span> <span class="fu">c</span>(<span class="st">"percentile"</span>, <span class="st">"normal"</span>)</span>
+<span id="cb7-8"><a href="#cb7-8"></a>)</span>
+<span id="cb7-9"><a href="#cb7-9"></a></span>
+<span id="cb7-10"><a href="#cb7-10"></a>df <span class="ot">&lt;-</span> <span class="fu">tidy</span>(pool_obj)</span>
+<span id="cb7-11"><a href="#cb7-11"></a>df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>  group       est    se_est lower_cl_est upper_cl_est   est_contr  se_contr
 1   ref -1.615820 0.4862316    -2.575771   -0.6558685          NA        NA
@@ -1614,12 +1611,12 @@ Chain 1: </code></pre>
 </section><section id="create-output" class="level2"><h2 class="anchored" data-anchor-id="create-output">Create Output</h2>
 <p>Finally, use functions from the <code>rtables</code> and <code>tern</code> packages to generate a nicely formatted <code>rtable</code> object.</p>
 <div class="cell" data-test="{&quot;result_v1&quot;:&quot;result&quot;}">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a>  <span class="fu">split_cols_by</span>(<span class="st">"group"</span>, <span class="at">ref_group =</span> <span class="fu">levels</span>(df<span class="sc">$</span>group)[<span class="dv">1</span>]) <span class="sc">%&gt;%</span></span>
-<span id="cb10-3"><a href="#cb10-3"></a>  <span class="fu">split_rows_by</span>(<span class="st">"visit"</span>, <span class="at">split_label =</span> <span class="st">"Visit"</span>, <span class="at">label_pos =</span> <span class="st">"topleft"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb10-4"><a href="#cb10-4"></a>  <span class="fu">summarize_rbmi</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb10-5"><a href="#cb10-5"></a>  <span class="fu">build_table</span>(df)</span>
-<span id="cb10-6"><a href="#cb10-6"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>result <span class="ot">&lt;-</span> <span class="fu">basic_table</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a>  <span class="fu">split_cols_by</span>(<span class="st">"group"</span>, <span class="at">ref_group =</span> <span class="fu">levels</span>(df<span class="sc">$</span>group)[<span class="dv">1</span>]) <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a>  <span class="fu">split_rows_by</span>(<span class="st">"visit"</span>, <span class="at">split_label =</span> <span class="st">"Visit"</span>, <span class="at">label_pos =</span> <span class="st">"topleft"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a>  <span class="fu">summarize_rbmi</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb9-5"><a href="#cb9-5"></a>  <span class="fu">build_table</span>(df)</span>
+<span id="cb9-6"><a href="#cb9-6"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>Visit                                       ref                alt       
 —————————————————————————————————————————————————————————————————————————
@@ -1656,55 +1653,55 @@ Chain 1: </code></pre>
 </section><section id="data-setup" class="level2"><h2 class="anchored" data-anchor-id="data-setup">Data Setup</h2>
 <p>We use a publicly available example dataset from an antidepressant clinical trial of an active drug versus placebo from the <code>rbmi</code> package. The relevant endpoint is the Hamilton 17-item depression rating scale (<code>HAMD17</code>) which was assessed at baseline and at weeks 1, 2, 4, and 6. Study drug discontinuation occurred in 24% of subjects from the active drug and 26% of subjects from placebo. All data after study drug discontinuation are missing and there is a single additional intermittent missing observation.</p>
 <div class="cell">
-<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">library</span>(tern.rbmi)</span>
-<span id="cb12-2"><a href="#cb12-2"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb12-3"><a href="#cb12-3"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb12-4"><a href="#cb12-4"></a></span>
-<span id="cb12-5"><a href="#cb12-5"></a>data <span class="ot">&lt;-</span> antidepressant_data</span>
-<span id="cb12-6"><a href="#cb12-6"></a><span class="fu">levels</span>(data<span class="sc">$</span>THERAPY) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"PLACEBO"</span>, <span class="st">"DRUG"</span>) <span class="co"># This is important! The order defines the computation order later</span></span>
-<span id="cb12-7"><a href="#cb12-7"></a></span>
-<span id="cb12-8"><a href="#cb12-8"></a>missing_var <span class="ot">&lt;-</span> <span class="st">"CHANGE"</span></span>
-<span id="cb12-9"><a href="#cb12-9"></a>vars <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb12-10"><a href="#cb12-10"></a>  <span class="at">id =</span> <span class="st">"PATIENT"</span>,</span>
-<span id="cb12-11"><a href="#cb12-11"></a>  <span class="at">visit =</span> <span class="st">"VISIT"</span>,</span>
-<span id="cb12-12"><a href="#cb12-12"></a>  <span class="at">expand_vars =</span> <span class="fu">c</span>(<span class="st">"BASVAL"</span>, <span class="st">"THERAPY"</span>),</span>
-<span id="cb12-13"><a href="#cb12-13"></a>  <span class="at">group =</span> <span class="st">"THERAPY"</span></span>
-<span id="cb12-14"><a href="#cb12-14"></a>)</span>
-<span id="cb12-15"><a href="#cb12-15"></a>covariates <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb12-16"><a href="#cb12-16"></a>  <span class="at">draws =</span> <span class="fu">c</span>(<span class="st">"BASVAL*VISIT"</span>, <span class="st">"THERAPY*VISIT"</span>),</span>
-<span id="cb12-17"><a href="#cb12-17"></a>  <span class="at">analyse =</span> <span class="fu">c</span>(<span class="st">"BASVAL"</span>)</span>
-<span id="cb12-18"><a href="#cb12-18"></a>)</span>
-<span id="cb12-19"><a href="#cb12-19"></a></span>
-<span id="cb12-20"><a href="#cb12-20"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
-<span id="cb12-21"><a href="#cb12-21"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(PATIENT, THERAPY, VISIT, BASVAL, THERAPY, CHANGE) <span class="sc">%&gt;%</span></span>
-<span id="cb12-22"><a href="#cb12-22"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(dplyr<span class="sc">::</span><span class="fu">across</span>(<span class="at">.cols =</span> vars<span class="sc">$</span>id, <span class="sc">~</span> <span class="fu">as.factor</span>(.x))) <span class="sc">%&gt;%</span></span>
-<span id="cb12-23"><a href="#cb12-23"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(dplyr<span class="sc">::</span><span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">c</span>(vars<span class="sc">$</span>id, vars<span class="sc">$</span>visit)))</span>
-<span id="cb12-24"><a href="#cb12-24"></a></span>
-<span id="cb12-25"><a href="#cb12-25"></a><span class="co"># Use expand_locf to add rows corresponding to visits with missing outcomes to the dataset</span></span>
-<span id="cb12-26"><a href="#cb12-26"></a>data_full <span class="ot">&lt;-</span> <span class="fu">do.call</span>(</span>
-<span id="cb12-27"><a href="#cb12-27"></a>  expand_locf,</span>
-<span id="cb12-28"><a href="#cb12-28"></a>  <span class="at">args =</span> <span class="fu">list</span>(</span>
-<span id="cb12-29"><a href="#cb12-29"></a>    <span class="at">data =</span> data,</span>
-<span id="cb12-30"><a href="#cb12-30"></a>    <span class="at">vars =</span> <span class="fu">c</span>(vars<span class="sc">$</span>expand_vars, vars<span class="sc">$</span>group),</span>
-<span id="cb12-31"><a href="#cb12-31"></a>    <span class="at">group =</span> vars<span class="sc">$</span>id,</span>
-<span id="cb12-32"><a href="#cb12-32"></a>    <span class="at">order =</span> <span class="fu">c</span>(vars<span class="sc">$</span>id, vars<span class="sc">$</span>visit)</span>
-<span id="cb12-33"><a href="#cb12-33"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb12-34"><a href="#cb12-34"></a>    <span class="fu">append</span>(<span class="fu">lapply</span>(data[<span class="fu">c</span>(vars<span class="sc">$</span>id, vars<span class="sc">$</span>visit)], levels))</span>
-<span id="cb12-35"><a href="#cb12-35"></a>)</span>
-<span id="cb12-36"><a href="#cb12-36"></a></span>
-<span id="cb12-37"><a href="#cb12-37"></a>data_full <span class="ot">&lt;-</span> data_full <span class="sc">%&gt;%</span></span>
-<span id="cb12-38"><a href="#cb12-38"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(dplyr<span class="sc">::</span><span class="fu">across</span>(vars<span class="sc">$</span>id)) <span class="sc">%&gt;%</span></span>
-<span id="cb12-39"><a href="#cb12-39"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="sc">!!</span>vars<span class="sc">$</span><span class="at">group :=</span> <span class="fu">Filter</span>(<span class="fu">Negate</span>(is.na), .data[[vars<span class="sc">$</span>group]])[<span class="dv">1</span>])</span>
-<span id="cb12-40"><a href="#cb12-40"></a></span>
-<span id="cb12-41"><a href="#cb12-41"></a><span class="co"># there are duplicates - use first value</span></span>
-<span id="cb12-42"><a href="#cb12-42"></a>data_full <span class="ot">&lt;-</span> data_full <span class="sc">%&gt;%</span></span>
-<span id="cb12-43"><a href="#cb12-43"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(dplyr<span class="sc">::</span><span class="fu">across</span>(<span class="fu">c</span>(vars<span class="sc">$</span>id, vars<span class="sc">$</span>group, vars<span class="sc">$</span>visit))) <span class="sc">%&gt;%</span></span>
-<span id="cb12-44"><a href="#cb12-44"></a>  dplyr<span class="sc">::</span><span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb12-45"><a href="#cb12-45"></a>  dplyr<span class="sc">::</span><span class="fu">ungroup</span>()</span>
-<span id="cb12-46"><a href="#cb12-46"></a><span class="co"># need to have a single ID column</span></span>
-<span id="cb12-47"><a href="#cb12-47"></a>data_full <span class="ot">&lt;-</span> data_full <span class="sc">%&gt;%</span></span>
-<span id="cb12-48"><a href="#cb12-48"></a>  tidyr<span class="sc">::</span><span class="fu">unite</span>(<span class="st">"TMP_ID"</span>, dplyr<span class="sc">::</span><span class="fu">all_of</span>(vars<span class="sc">$</span>id), <span class="at">sep =</span> <span class="st">"_#_"</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb12-49"><a href="#cb12-49"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">TMP_ID =</span> <span class="fu">as.factor</span>(TMP_ID))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details open="" class="code-fold"><summary>Code</summary><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="fu">library</span>(tern.rbmi)</span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb11-4"><a href="#cb11-4"></a></span>
+<span id="cb11-5"><a href="#cb11-5"></a>data <span class="ot">&lt;-</span> antidepressant_data</span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="fu">levels</span>(data<span class="sc">$</span>THERAPY) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"PLACEBO"</span>, <span class="st">"DRUG"</span>) <span class="co"># This is important! The order defines the computation order later</span></span>
+<span id="cb11-7"><a href="#cb11-7"></a></span>
+<span id="cb11-8"><a href="#cb11-8"></a>missing_var <span class="ot">&lt;-</span> <span class="st">"CHANGE"</span></span>
+<span id="cb11-9"><a href="#cb11-9"></a>vars <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb11-10"><a href="#cb11-10"></a>  <span class="at">id =</span> <span class="st">"PATIENT"</span>,</span>
+<span id="cb11-11"><a href="#cb11-11"></a>  <span class="at">visit =</span> <span class="st">"VISIT"</span>,</span>
+<span id="cb11-12"><a href="#cb11-12"></a>  <span class="at">expand_vars =</span> <span class="fu">c</span>(<span class="st">"BASVAL"</span>, <span class="st">"THERAPY"</span>),</span>
+<span id="cb11-13"><a href="#cb11-13"></a>  <span class="at">group =</span> <span class="st">"THERAPY"</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a>)</span>
+<span id="cb11-15"><a href="#cb11-15"></a>covariates <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb11-16"><a href="#cb11-16"></a>  <span class="at">draws =</span> <span class="fu">c</span>(<span class="st">"BASVAL*VISIT"</span>, <span class="st">"THERAPY*VISIT"</span>),</span>
+<span id="cb11-17"><a href="#cb11-17"></a>  <span class="at">analyse =</span> <span class="fu">c</span>(<span class="st">"BASVAL"</span>)</span>
+<span id="cb11-18"><a href="#cb11-18"></a>)</span>
+<span id="cb11-19"><a href="#cb11-19"></a></span>
+<span id="cb11-20"><a href="#cb11-20"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb11-21"><a href="#cb11-21"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(PATIENT, THERAPY, VISIT, BASVAL, THERAPY, CHANGE) <span class="sc">%&gt;%</span></span>
+<span id="cb11-22"><a href="#cb11-22"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(dplyr<span class="sc">::</span><span class="fu">across</span>(<span class="at">.cols =</span> vars<span class="sc">$</span>id, <span class="sc">~</span> <span class="fu">as.factor</span>(.x))) <span class="sc">%&gt;%</span></span>
+<span id="cb11-23"><a href="#cb11-23"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(dplyr<span class="sc">::</span><span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">c</span>(vars<span class="sc">$</span>id, vars<span class="sc">$</span>visit)))</span>
+<span id="cb11-24"><a href="#cb11-24"></a></span>
+<span id="cb11-25"><a href="#cb11-25"></a><span class="co"># Use expand_locf to add rows corresponding to visits with missing outcomes to the dataset</span></span>
+<span id="cb11-26"><a href="#cb11-26"></a>data_full <span class="ot">&lt;-</span> <span class="fu">do.call</span>(</span>
+<span id="cb11-27"><a href="#cb11-27"></a>  expand_locf,</span>
+<span id="cb11-28"><a href="#cb11-28"></a>  <span class="at">args =</span> <span class="fu">list</span>(</span>
+<span id="cb11-29"><a href="#cb11-29"></a>    <span class="at">data =</span> data,</span>
+<span id="cb11-30"><a href="#cb11-30"></a>    <span class="at">vars =</span> <span class="fu">c</span>(vars<span class="sc">$</span>expand_vars, vars<span class="sc">$</span>group),</span>
+<span id="cb11-31"><a href="#cb11-31"></a>    <span class="at">group =</span> vars<span class="sc">$</span>id,</span>
+<span id="cb11-32"><a href="#cb11-32"></a>    <span class="at">order =</span> <span class="fu">c</span>(vars<span class="sc">$</span>id, vars<span class="sc">$</span>visit)</span>
+<span id="cb11-33"><a href="#cb11-33"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb11-34"><a href="#cb11-34"></a>    <span class="fu">append</span>(<span class="fu">lapply</span>(data[<span class="fu">c</span>(vars<span class="sc">$</span>id, vars<span class="sc">$</span>visit)], levels))</span>
+<span id="cb11-35"><a href="#cb11-35"></a>)</span>
+<span id="cb11-36"><a href="#cb11-36"></a></span>
+<span id="cb11-37"><a href="#cb11-37"></a>data_full <span class="ot">&lt;-</span> data_full <span class="sc">%&gt;%</span></span>
+<span id="cb11-38"><a href="#cb11-38"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(dplyr<span class="sc">::</span><span class="fu">across</span>(vars<span class="sc">$</span>id)) <span class="sc">%&gt;%</span></span>
+<span id="cb11-39"><a href="#cb11-39"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="sc">!!</span>vars<span class="sc">$</span><span class="at">group :=</span> <span class="fu">Filter</span>(<span class="fu">Negate</span>(is.na), .data[[vars<span class="sc">$</span>group]])[<span class="dv">1</span>])</span>
+<span id="cb11-40"><a href="#cb11-40"></a></span>
+<span id="cb11-41"><a href="#cb11-41"></a><span class="co"># there are duplicates - use first value</span></span>
+<span id="cb11-42"><a href="#cb11-42"></a>data_full <span class="ot">&lt;-</span> data_full <span class="sc">%&gt;%</span></span>
+<span id="cb11-43"><a href="#cb11-43"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(dplyr<span class="sc">::</span><span class="fu">across</span>(<span class="fu">c</span>(vars<span class="sc">$</span>id, vars<span class="sc">$</span>group, vars<span class="sc">$</span>visit))) <span class="sc">%&gt;%</span></span>
+<span id="cb11-44"><a href="#cb11-44"></a>  dplyr<span class="sc">::</span><span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-45"><a href="#cb11-45"></a>  dplyr<span class="sc">::</span><span class="fu">ungroup</span>()</span>
+<span id="cb11-46"><a href="#cb11-46"></a><span class="co"># need to have a single ID column</span></span>
+<span id="cb11-47"><a href="#cb11-47"></a>data_full <span class="ot">&lt;-</span> data_full <span class="sc">%&gt;%</span></span>
+<span id="cb11-48"><a href="#cb11-48"></a>  tidyr<span class="sc">::</span><span class="fu">unite</span>(<span class="st">"TMP_ID"</span>, dplyr<span class="sc">::</span><span class="fu">all_of</span>(vars<span class="sc">$</span>id), <span class="at">sep =</span> <span class="st">"_#_"</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-49"><a href="#cb11-49"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">TMP_ID =</span> <span class="fu">as.factor</span>(TMP_ID))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -1715,7 +1712,7 @@ Chain 1: </code></pre>
 <section id="timestamp" class="level3"><h3 class="anchored" data-anchor-id="timestamp">Timestamp</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "2024-12-04 17:46:47 UTC"</code></pre>
+<pre><code>[1] "2024-12-07 17:44:37 UTC"</code></pre>
 </div>
 </div>
 </section><section id="session-info" class="level3"><h3 class="anchored" data-anchor-id="session-info">Session Info</h3>
@@ -1731,7 +1728,7 @@ Chain 1: </code></pre>
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Etc/UTC
- date     2024-12-04
+ date     2024-12-07
  pandoc   3.4 @ /usr/bin/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -1751,7 +1748,7 @@ Chain 1: </code></pre>
  evaluate       1.0.1       2024-10-10 [1] RSPM
  fansi          1.0.6       2023-12-08 [1] RSPM
  fastmap        1.2.0       2024-05-15 [1] RSPM
- formatters   * 0.5.9.9006  2024-12-04 [1] https://p~
+ formatters   * 0.5.9.9006  2024-12-07 [1] https://p~
  generics       0.1.3       2022-07-05 [1] RSPM
  ggplot2        3.5.1       2024-04-23 [1] RSPM
  glue           1.8.0       2024-09-30 [1] RSPM
@@ -1768,9 +1765,9 @@ Chain 1: </code></pre>
  magrittr     * 2.0.3       2022-03-30 [1] RSPM
  Matrix         1.7-1       2024-10-18 [1] RSPM
  matrixStats    1.4.1       2024-09-08 [1] CRAN (R 4.4.1)
- mmrm           0.3.14.9001 2024-12-04 [1] https://p~
+ mmrm           0.3.14.9001 2024-12-07 [1] https://p~
  munsell        0.5.1       2024-04-01 [1] RSPM
- nestcolor      0.1.2.9017  2024-12-04 [1] https://p~
+ nestcolor      0.1.2.9017  2024-12-07 [1] https://p~
  nlme           3.1-166     2024-08-14 [2] CRAN (R 4.4.1)
  pillar         1.9.0       2023-03-22 [1] RSPM
  pkgbuild       1.4.5       2024-10-28 [1] RSPM
@@ -1782,24 +1779,22 @@ Chain 1: </code></pre>
  QuickJSR       1.4.0       2024-10-01 [1] CRAN (R 4.4.1)
  R6             2.5.1       2021-08-19 [1] RSPM
  rbibutils      2.3         2024-10-04 [1] RSPM
- rbmi         * 1.3.0.9000  2024-12-04 [1] https://p~
+ rbmi         * 1.3.0.9000  2024-12-07 [1] https://p~
  Rcpp           1.0.13-1    2024-11-02 [1] RSPM
  RcppParallel   5.1.9       2024-08-19 [1] CRAN (R 4.4.1)
  Rdpack         2.6.2       2024-11-15 [1] RSPM
  rlang          1.1.4       2024-06-04 [1] RSPM
  rmarkdown      2.29        2024-11-04 [1] RSPM
  rstan          2.32.6      2024-03-05 [1] CRAN (R 4.4.1)
- rtables      * 0.6.10.9008 2024-12-04 [1] https://p~
+ rtables      * 0.6.10.9010 2024-12-07 [1] https://p~
  scales         1.3.0       2023-11-28 [1] RSPM
  sessioninfo    1.2.2       2021-12-06 [1] any (@1.2.2)
  StanHeaders    2.32.10     2024-07-15 [1] CRAN (R 4.4.1)
  stringi        1.8.4       2024-05-06 [1] RSPM
  stringr        1.5.1       2023-11-14 [1] RSPM
  survival       3.7-0       2024-06-05 [2] CRAN (R 4.4.1)
- svglite        2.1.3       2023-12-08 [1] RSPM
- systemfonts    1.1.0       2024-05-15 [1] RSPM
- tern         * 0.9.6.9017  2024-12-04 [1] https://p~
- tern.rbmi    * 0.1.4.9002  2024-12-04 [1] https://p~
+ tern         * 0.9.6.9017  2024-12-07 [1] https://p~
+ tern.rbmi    * 0.1.4.9002  2024-12-07 [1] https://p~
  testthat       3.2.1.1     2024-04-14 [1] RSPM
  tibble         3.2.1       2023-03-20 [1] RSPM
  tidyr          1.3.1       2024-01-24 [1] RSPM
@@ -2473,214 +2468,214 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb15" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb15-1"><a href="#cb15-1"></a><span class="co">---</span></span>
-<span id="cb15-2"><a href="#cb15-2"></a><span class="an">title:</span><span class="co"> RBMIT01</span></span>
-<span id="cb15-3"><a href="#cb15-3"></a><span class="an">subtitle:</span><span class="co"> Tables for RBMI</span></span>
-<span id="cb15-4"><a href="#cb15-4"></a><span class="co">---</span></span>
-<span id="cb15-5"><a href="#cb15-5"></a></span>
-<span id="cb15-6"><a href="#cb15-6"></a>------------------------------------------------------------------------</span>
-<span id="cb15-7"><a href="#cb15-7"></a></span>
-<span id="cb15-8"><a href="#cb15-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
-<span id="cb15-9"><a href="#cb15-9"></a></span>
-<span id="cb15-10"><a href="#cb15-10"></a><span class="in">```{r setup, echo = FALSE, warning = FALSE, message = FALSE}</span></span>
-<span id="cb15-11"><a href="#cb15-11"></a><span class="in">library(tern.rbmi)</span></span>
-<span id="cb15-12"><a href="#cb15-12"></a><span class="in">library(dplyr)</span></span>
-<span id="cb15-13"><a href="#cb15-13"></a><span class="in">set.seed(123)</span></span>
-<span id="cb15-14"><a href="#cb15-14"></a></span>
-<span id="cb15-15"><a href="#cb15-15"></a><span class="in">data &lt;- antidepressant_data</span></span>
-<span id="cb15-16"><a href="#cb15-16"></a><span class="in">levels(data$THERAPY) &lt;- c("PLACEBO", "DRUG") # This is important! The order defines the computation order later</span></span>
-<span id="cb15-17"><a href="#cb15-17"></a></span>
-<span id="cb15-18"><a href="#cb15-18"></a><span class="in">missing_var &lt;- "CHANGE"</span></span>
-<span id="cb15-19"><a href="#cb15-19"></a><span class="in">vars &lt;- list(</span></span>
-<span id="cb15-20"><a href="#cb15-20"></a><span class="in">  id = "PATIENT",</span></span>
-<span id="cb15-21"><a href="#cb15-21"></a><span class="in">  visit = "VISIT",</span></span>
-<span id="cb15-22"><a href="#cb15-22"></a><span class="in">  expand_vars = c("BASVAL", "THERAPY"),</span></span>
-<span id="cb15-23"><a href="#cb15-23"></a><span class="in">  group = "THERAPY"</span></span>
-<span id="cb15-24"><a href="#cb15-24"></a><span class="in">)</span></span>
-<span id="cb15-25"><a href="#cb15-25"></a><span class="in">covariates &lt;- list(</span></span>
-<span id="cb15-26"><a href="#cb15-26"></a><span class="in">  draws = c("BASVAL*VISIT", "THERAPY*VISIT"),</span></span>
-<span id="cb15-27"><a href="#cb15-27"></a><span class="in">  analyse = c("BASVAL")</span></span>
-<span id="cb15-28"><a href="#cb15-28"></a><span class="in">)</span></span>
-<span id="cb15-29"><a href="#cb15-29"></a></span>
-<span id="cb15-30"><a href="#cb15-30"></a><span class="in">data &lt;- data %&gt;%</span></span>
-<span id="cb15-31"><a href="#cb15-31"></a><span class="in">  dplyr::select(PATIENT, THERAPY, VISIT, BASVAL, THERAPY, CHANGE) %&gt;%</span></span>
-<span id="cb15-32"><a href="#cb15-32"></a><span class="in">  dplyr::mutate(dplyr::across(.cols = vars$id, ~ as.factor(.x))) %&gt;%</span></span>
-<span id="cb15-33"><a href="#cb15-33"></a><span class="in">  dplyr::arrange(dplyr::across(.cols = c(vars$id, vars$visit)))</span></span>
-<span id="cb15-34"><a href="#cb15-34"></a></span>
-<span id="cb15-35"><a href="#cb15-35"></a><span class="in"># Use expand_locf to add rows corresponding to visits with missing outcomes to the dataset</span></span>
-<span id="cb15-36"><a href="#cb15-36"></a><span class="in">data_full &lt;- do.call(</span></span>
-<span id="cb15-37"><a href="#cb15-37"></a><span class="in">  expand_locf,</span></span>
-<span id="cb15-38"><a href="#cb15-38"></a><span class="in">  args = list(</span></span>
-<span id="cb15-39"><a href="#cb15-39"></a><span class="in">    data = data,</span></span>
-<span id="cb15-40"><a href="#cb15-40"></a><span class="in">    vars = c(vars$expand_vars, vars$group),</span></span>
-<span id="cb15-41"><a href="#cb15-41"></a><span class="in">    group = vars$id,</span></span>
-<span id="cb15-42"><a href="#cb15-42"></a><span class="in">    order = c(vars$id, vars$visit)</span></span>
-<span id="cb15-43"><a href="#cb15-43"></a><span class="in">  ) %&gt;%</span></span>
-<span id="cb15-44"><a href="#cb15-44"></a><span class="in">    append(lapply(data[c(vars$id, vars$visit)], levels))</span></span>
-<span id="cb15-45"><a href="#cb15-45"></a><span class="in">)</span></span>
-<span id="cb15-46"><a href="#cb15-46"></a></span>
-<span id="cb15-47"><a href="#cb15-47"></a><span class="in">data_full &lt;- data_full %&gt;%</span></span>
-<span id="cb15-48"><a href="#cb15-48"></a><span class="in">  dplyr::group_by(dplyr::across(vars$id)) %&gt;%</span></span>
-<span id="cb15-49"><a href="#cb15-49"></a><span class="in">  dplyr::mutate(!!vars$group := Filter(Negate(is.na), .data[[vars$group]])[1])</span></span>
-<span id="cb15-50"><a href="#cb15-50"></a></span>
-<span id="cb15-51"><a href="#cb15-51"></a><span class="in"># there are duplicates - use first value</span></span>
-<span id="cb15-52"><a href="#cb15-52"></a><span class="in">data_full &lt;- data_full %&gt;%</span></span>
-<span id="cb15-53"><a href="#cb15-53"></a><span class="in">  dplyr::group_by(dplyr::across(c(vars$id, vars$group, vars$visit))) %&gt;%</span></span>
-<span id="cb15-54"><a href="#cb15-54"></a><span class="in">  dplyr::slice(1) %&gt;%</span></span>
-<span id="cb15-55"><a href="#cb15-55"></a><span class="in">  dplyr::ungroup()</span></span>
-<span id="cb15-56"><a href="#cb15-56"></a><span class="in"># need to have a single ID column</span></span>
-<span id="cb15-57"><a href="#cb15-57"></a><span class="in">data_full &lt;- data_full %&gt;%</span></span>
-<span id="cb15-58"><a href="#cb15-58"></a><span class="in">  tidyr::unite("TMP_ID", dplyr::all_of(vars$id), sep = "_#_", remove = FALSE) %&gt;%</span></span>
-<span id="cb15-59"><a href="#cb15-59"></a><span class="in">  dplyr::mutate(TMP_ID = as.factor(TMP_ID))</span></span>
-<span id="cb15-60"><a href="#cb15-60"></a><span class="in">```</span></span>
-<span id="cb15-61"><a href="#cb15-61"></a></span>
-<span id="cb15-62"><a href="#cb15-62"></a>::: panel-tabset</span>
-<span id="cb15-63"><a href="#cb15-63"></a><span class="fu">#### Creating Intercurrent Event Data</span></span>
-<span id="cb15-64"><a href="#cb15-64"></a></span>
-<span id="cb15-65"><a href="#cb15-65"></a>Set the imputation strategy to <span class="in">`"MAR"`</span> for each patient with at least one missing observation.</span>
-<span id="cb15-66"><a href="#cb15-66"></a></span>
-<span id="cb15-69"><a href="#cb15-69"></a><span class="in">```{r}</span></span>
-<span id="cb15-70"><a href="#cb15-70"></a><span class="co">#| code-fold: show</span></span>
-<span id="cb15-71"><a href="#cb15-71"></a></span>
-<span id="cb15-72"><a href="#cb15-72"></a>data_ice <span class="ot">&lt;-</span> data_full <span class="sc">%&gt;%</span></span>
-<span id="cb15-73"><a href="#cb15-73"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(dplyr<span class="sc">::</span><span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">c</span>(<span class="st">"TMP_ID"</span>, vars<span class="sc">$</span>visit))) <span class="sc">%&gt;%</span></span>
-<span id="cb15-74"><a href="#cb15-74"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="fu">is.na</span>(.data[[missing_var]])) <span class="sc">%&gt;%</span></span>
-<span id="cb15-75"><a href="#cb15-75"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(TMP_ID) <span class="sc">%&gt;%</span></span>
-<span id="cb15-76"><a href="#cb15-76"></a>  dplyr<span class="sc">::</span><span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb15-77"><a href="#cb15-77"></a>  dplyr<span class="sc">::</span><span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb15-78"><a href="#cb15-78"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="fu">all_of</span>(<span class="fu">c</span>(<span class="st">"TMP_ID"</span>, vars<span class="sc">$</span>visit))) <span class="sc">%&gt;%</span></span>
-<span id="cb15-79"><a href="#cb15-79"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">strategy =</span> <span class="st">"MAR"</span>)</span>
-<span id="cb15-80"><a href="#cb15-80"></a><span class="in">```</span></span>
-<span id="cb15-81"><a href="#cb15-81"></a></span>
-<span id="cb15-82"><a href="#cb15-82"></a><span class="fu">## Draws</span></span>
-<span id="cb15-83"><a href="#cb15-83"></a></span>
-<span id="cb15-84"><a href="#cb15-84"></a>The <span class="in">`rbmi::draws()`</span> function fits the imputation models and stores the corresponding parameter estimates or Bayesian posterior parameter draws. The three main inputs to the <span class="in">`rbmi::draws()`</span> function are:</span>
-<span id="cb15-85"><a href="#cb15-85"></a></span>
-<span id="cb15-86"><a href="#cb15-86"></a><span class="ss">-   </span><span class="in">`data`</span> - The primary longitudinal data.frame containing the outcome variable and all covariates.</span>
-<span id="cb15-87"><a href="#cb15-87"></a><span class="ss">-   </span><span class="in">`data_ice`</span> - A data.frame which specifies the first visit affected by an intercurrent event (ICE) and the imputation strategy for handling missing outcome data after the ICE. At most one ICE which is to be imputed by a non-MAR strategy is allowed per subject.</span>
-<span id="cb15-88"><a href="#cb15-88"></a><span class="ss">-   </span><span class="in">`method`</span> - The statistical method used to fit the imputation models and to create imputed datasets.</span>
-<span id="cb15-89"><a href="#cb15-89"></a></span>
-<span id="cb15-90"><a href="#cb15-90"></a><span class="fu">#### Define Key Variables</span></span>
-<span id="cb15-91"><a href="#cb15-91"></a></span>
-<span id="cb15-92"><a href="#cb15-92"></a>Define the names of key variables in our dataset and the covariates included in the imputation model using <span class="in">`rbmi::set_vars()`</span>. Note that the <span class="in">`covariates`</span> argument can also include interaction terms.</span>
-<span id="cb15-93"><a href="#cb15-93"></a></span>
-<span id="cb15-96"><a href="#cb15-96"></a><span class="in">```{r}</span></span>
-<span id="cb15-97"><a href="#cb15-97"></a><span class="co">#| code-fold: show</span></span>
-<span id="cb15-98"><a href="#cb15-98"></a></span>
-<span id="cb15-99"><a href="#cb15-99"></a>debug_mode <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb15-100"><a href="#cb15-100"></a></span>
-<span id="cb15-101"><a href="#cb15-101"></a>draws_vars <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">set_vars</span>(</span>
-<span id="cb15-102"><a href="#cb15-102"></a>  <span class="at">outcome =</span> missing_var,</span>
-<span id="cb15-103"><a href="#cb15-103"></a>  <span class="at">visit =</span> vars<span class="sc">$</span>visit,</span>
-<span id="cb15-104"><a href="#cb15-104"></a>  <span class="at">group =</span> vars<span class="sc">$</span>group,</span>
-<span id="cb15-105"><a href="#cb15-105"></a>  <span class="at">covariates =</span> covariates<span class="sc">$</span>draws</span>
-<span id="cb15-106"><a href="#cb15-106"></a>)</span>
-<span id="cb15-107"><a href="#cb15-107"></a>draws_vars<span class="sc">$</span>subjid <span class="ot">&lt;-</span> <span class="st">"TMP_ID"</span></span>
-<span id="cb15-108"><a href="#cb15-108"></a><span class="in">```</span></span>
-<span id="cb15-109"><a href="#cb15-109"></a></span>
-<span id="cb15-110"><a href="#cb15-110"></a>Define which imputation method to use, then create samples for the imputation parameters by running the <span class="in">`draws()`</span> function.</span>
-<span id="cb15-111"><a href="#cb15-111"></a></span>
-<span id="cb15-112"><a href="#cb15-112"></a></span>
-<span id="cb15-113"><a href="#cb15-113"></a><span class="in">```{r, warning = FALSE}</span></span>
-<span id="cb15-114"><a href="#cb15-114"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb15-115"><a href="#cb15-115"></a></span>
-<span id="cb15-116"><a href="#cb15-116"></a><span class="in">set.seed(123)</span></span>
-<span id="cb15-117"><a href="#cb15-117"></a><span class="in">draws_method &lt;- method_bayes()</span></span>
-<span id="cb15-118"><a href="#cb15-118"></a></span>
-<span id="cb15-119"><a href="#cb15-119"></a><span class="in">draws_obj &lt;- rbmi::draws(</span></span>
-<span id="cb15-120"><a href="#cb15-120"></a><span class="in">  data = data_full,</span></span>
-<span id="cb15-121"><a href="#cb15-121"></a><span class="in">  data_ice = data_ice,</span></span>
-<span id="cb15-122"><a href="#cb15-122"></a><span class="in">  vars = draws_vars,</span></span>
-<span id="cb15-123"><a href="#cb15-123"></a><span class="in">  method = draws_method</span></span>
-<span id="cb15-124"><a href="#cb15-124"></a><span class="in">)</span></span>
-<span id="cb15-125"><a href="#cb15-125"></a><span class="in">```</span></span>
-<span id="cb15-126"><a href="#cb15-126"></a></span>
-<span id="cb15-127"><a href="#cb15-127"></a><span class="fu">## Impute</span></span>
-<span id="cb15-128"><a href="#cb15-128"></a></span>
-<span id="cb15-129"><a href="#cb15-129"></a>The next step is to use the parameters from the imputation model to generate the imputed datasets. This is done via the <span class="in">`rbmi::impute()`</span> function. The function only has two key inputs: the imputation model output from <span class="in">`rbmi::draws()`</span> and the reference groups relevant to reference-based imputation methods. It's usage is thus:</span>
-<span id="cb15-130"><a href="#cb15-130"></a></span>
-<span id="cb15-133"><a href="#cb15-133"></a><span class="in">```{r}</span></span>
-<span id="cb15-134"><a href="#cb15-134"></a><span class="co">#| code-fold: show</span></span>
-<span id="cb15-135"><a href="#cb15-135"></a></span>
-<span id="cb15-136"><a href="#cb15-136"></a>impute_references <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"DRUG"</span> <span class="ot">=</span> <span class="st">"PLACEBO"</span>, <span class="st">"PLACEBO"</span> <span class="ot">=</span> <span class="st">"PLACEBO"</span>)</span>
-<span id="cb15-137"><a href="#cb15-137"></a></span>
-<span id="cb15-138"><a href="#cb15-138"></a>impute_obj <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">impute</span>(</span>
-<span id="cb15-139"><a href="#cb15-139"></a>  draws_obj,</span>
-<span id="cb15-140"><a href="#cb15-140"></a>  <span class="at">references =</span> impute_references</span>
-<span id="cb15-141"><a href="#cb15-141"></a>)</span>
-<span id="cb15-142"><a href="#cb15-142"></a><span class="in">```</span></span>
-<span id="cb15-143"><a href="#cb15-143"></a></span>
-<span id="cb15-144"><a href="#cb15-144"></a><span class="fu">## Analyze</span></span>
-<span id="cb15-145"><a href="#cb15-145"></a></span>
-<span id="cb15-146"><a href="#cb15-146"></a>The next step is to run the analysis model on each imputed dataset. This is done by defining an analysis function and then calling <span class="in">`rbmi::analyse()`</span> to apply this function to each imputed dataset.</span>
-<span id="cb15-147"><a href="#cb15-147"></a></span>
-<span id="cb15-150"><a href="#cb15-150"></a><span class="in">```{r}</span></span>
-<span id="cb15-151"><a href="#cb15-151"></a><span class="co">#| code-fold: show</span></span>
-<span id="cb15-152"><a href="#cb15-152"></a></span>
-<span id="cb15-153"><a href="#cb15-153"></a><span class="co"># Define analysis model</span></span>
-<span id="cb15-154"><a href="#cb15-154"></a>analyse_fun <span class="ot">&lt;-</span> ancova</span>
-<span id="cb15-155"><a href="#cb15-155"></a></span>
-<span id="cb15-156"><a href="#cb15-156"></a>ref_levels <span class="ot">&lt;-</span> <span class="fu">levels</span>(impute_obj<span class="sc">$</span>data<span class="sc">$</span>group[[<span class="dv">1</span>]])</span>
-<span id="cb15-157"><a href="#cb15-157"></a><span class="fu">names</span>(ref_levels) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ref"</span>, <span class="st">"alt"</span>)</span>
-<span id="cb15-158"><a href="#cb15-158"></a></span>
-<span id="cb15-159"><a href="#cb15-159"></a>analyse_obj <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">analyse</span>(</span>
-<span id="cb15-160"><a href="#cb15-160"></a>  <span class="at">imputations =</span> impute_obj,</span>
-<span id="cb15-161"><a href="#cb15-161"></a>  <span class="at">fun =</span> analyse_fun,</span>
-<span id="cb15-162"><a href="#cb15-162"></a>  <span class="at">vars =</span> rbmi<span class="sc">::</span><span class="fu">set_vars</span>(</span>
-<span id="cb15-163"><a href="#cb15-163"></a>    <span class="at">subjid =</span> <span class="st">"TMP_ID"</span>,</span>
-<span id="cb15-164"><a href="#cb15-164"></a>    <span class="at">outcome =</span> missing_var,</span>
-<span id="cb15-165"><a href="#cb15-165"></a>    <span class="at">visit =</span> vars<span class="sc">$</span>visit,</span>
-<span id="cb15-166"><a href="#cb15-166"></a>    <span class="at">group =</span> vars<span class="sc">$</span>group,</span>
-<span id="cb15-167"><a href="#cb15-167"></a>    <span class="at">covariates =</span> covariates<span class="sc">$</span>analyse</span>
-<span id="cb15-168"><a href="#cb15-168"></a>  )</span>
-<span id="cb15-169"><a href="#cb15-169"></a>)</span>
-<span id="cb15-170"><a href="#cb15-170"></a><span class="in">```</span></span>
-<span id="cb15-171"><a href="#cb15-171"></a></span>
-<span id="cb15-172"><a href="#cb15-172"></a><span class="fu">## Pool</span></span>
-<span id="cb15-173"><a href="#cb15-173"></a></span>
-<span id="cb15-174"><a href="#cb15-174"></a>The <span class="in">`rbmi::pool()`</span> function can be used to summarize the analysis results across multiple imputed datasets to provide an overall statistic with a standard error, confidence intervals and a p-value for the hypothesis test of the null hypothesis that the effect is equal to 0. Using the <span class="in">`broom::tidy()`</span> function the <span class="in">`rbmi`</span> final results are reshaped.</span>
-<span id="cb15-175"><a href="#cb15-175"></a></span>
-<span id="cb15-178"><a href="#cb15-178"></a><span class="in">```{r}</span></span>
-<span id="cb15-179"><a href="#cb15-179"></a><span class="co">#| code-fold: show</span></span>
-<span id="cb15-180"><a href="#cb15-180"></a></span>
-<span id="cb15-181"><a href="#cb15-181"></a><span class="fu">library</span>(broom)</span>
-<span id="cb15-182"><a href="#cb15-182"></a></span>
-<span id="cb15-183"><a href="#cb15-183"></a>pool_obj <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">pool</span>(</span>
-<span id="cb15-184"><a href="#cb15-184"></a>  <span class="at">results =</span> analyse_obj,</span>
-<span id="cb15-185"><a href="#cb15-185"></a>  <span class="at">conf.level =</span> <span class="fl">0.95</span>,</span>
-<span id="cb15-186"><a href="#cb15-186"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"less"</span>, <span class="st">"greater"</span>),</span>
-<span id="cb15-187"><a href="#cb15-187"></a>  <span class="at">type =</span> <span class="fu">c</span>(<span class="st">"percentile"</span>, <span class="st">"normal"</span>)</span>
-<span id="cb15-188"><a href="#cb15-188"></a>)</span>
-<span id="cb15-189"><a href="#cb15-189"></a></span>
-<span id="cb15-190"><a href="#cb15-190"></a>df <span class="ot">&lt;-</span> <span class="fu">tidy</span>(pool_obj)</span>
-<span id="cb15-191"><a href="#cb15-191"></a>df</span>
-<span id="cb15-192"><a href="#cb15-192"></a><span class="in">```</span></span>
-<span id="cb15-193"><a href="#cb15-193"></a></span>
-<span id="cb15-194"><a href="#cb15-194"></a><span class="fu">## Create Output</span></span>
-<span id="cb15-195"><a href="#cb15-195"></a></span>
-<span id="cb15-196"><a href="#cb15-196"></a>Finally, use functions from the <span class="in">`rtables`</span> and <span class="in">`tern`</span> packages to generate a nicely formatted <span class="in">`rtable`</span> object.</span>
-<span id="cb15-197"><a href="#cb15-197"></a></span>
-<span id="cb15-198"><a href="#cb15-198"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
-<span id="cb15-199"><a href="#cb15-199"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
-<span id="cb15-200"><a href="#cb15-200"></a><span class="in">  split_cols_by("group", ref_group = levels(df$group)[1]) %&gt;%</span></span>
-<span id="cb15-201"><a href="#cb15-201"></a><span class="in">  split_rows_by("visit", split_label = "Visit", label_pos = "topleft") %&gt;%</span></span>
-<span id="cb15-202"><a href="#cb15-202"></a><span class="in">  summarize_rbmi() %&gt;%</span></span>
-<span id="cb15-203"><a href="#cb15-203"></a><span class="in">  build_table(df)</span></span>
-<span id="cb15-204"><a href="#cb15-204"></a><span class="in">result</span></span>
-<span id="cb15-205"><a href="#cb15-205"></a><span class="in">```</span></span>
-<span id="cb15-206"><a href="#cb15-206"></a></span>
-<span id="cb15-207"><a href="#cb15-207"></a><span class="fu">## Data Setup</span></span>
-<span id="cb15-208"><a href="#cb15-208"></a></span>
-<span id="cb15-209"><a href="#cb15-209"></a>We use a publicly available example dataset from an antidepressant clinical trial of an active drug versus placebo from the <span class="in">`rbmi`</span> package. The relevant endpoint is the Hamilton 17-item depression rating scale (<span class="in">`HAMD17`</span>) which was assessed at baseline and at weeks 1, 2, 4, and 6. Study drug discontinuation occurred in 24% of subjects from the active drug and 26% of subjects from placebo. All data after study drug discontinuation are missing and there is a single additional intermittent missing observation.</span>
-<span id="cb15-210"><a href="#cb15-210"></a></span>
-<span id="cb15-211"><a href="#cb15-211"></a><span class="in">```{r setup}</span></span>
-<span id="cb15-212"><a href="#cb15-212"></a><span class="in">#| code-fold: show</span></span>
-<span id="cb15-213"><a href="#cb15-213"></a><span class="in">```</span></span>
-<span id="cb15-214"><a href="#cb15-214"></a>:::</span>
-<span id="cb15-215"><a href="#cb15-215"></a></span>
-<span id="cb15-216"><a href="#cb15-216"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
-<span id="cb15-217"><a href="#cb15-217"></a></span>
-<span id="cb15-218"><a href="#cb15-218"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
+<div class="sourceCode" id="cb14" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb14-1"><a href="#cb14-1"></a><span class="co">---</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="an">title:</span><span class="co"> RBMIT01</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="an">subtitle:</span><span class="co"> Tables for RBMI</span></span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="co">---</span></span>
+<span id="cb14-5"><a href="#cb14-5"></a></span>
+<span id="cb14-6"><a href="#cb14-6"></a>------------------------------------------------------------------------</span>
+<span id="cb14-7"><a href="#cb14-7"></a></span>
+<span id="cb14-8"><a href="#cb14-8"></a>{{&lt; include ../../_utils/envir_hook.qmd &gt;}}</span>
+<span id="cb14-9"><a href="#cb14-9"></a></span>
+<span id="cb14-10"><a href="#cb14-10"></a><span class="in">```{r setup, echo = FALSE, warning = FALSE, message = FALSE}</span></span>
+<span id="cb14-11"><a href="#cb14-11"></a><span class="in">library(tern.rbmi)</span></span>
+<span id="cb14-12"><a href="#cb14-12"></a><span class="in">library(dplyr)</span></span>
+<span id="cb14-13"><a href="#cb14-13"></a><span class="in">set.seed(123)</span></span>
+<span id="cb14-14"><a href="#cb14-14"></a></span>
+<span id="cb14-15"><a href="#cb14-15"></a><span class="in">data &lt;- antidepressant_data</span></span>
+<span id="cb14-16"><a href="#cb14-16"></a><span class="in">levels(data$THERAPY) &lt;- c("PLACEBO", "DRUG") # This is important! The order defines the computation order later</span></span>
+<span id="cb14-17"><a href="#cb14-17"></a></span>
+<span id="cb14-18"><a href="#cb14-18"></a><span class="in">missing_var &lt;- "CHANGE"</span></span>
+<span id="cb14-19"><a href="#cb14-19"></a><span class="in">vars &lt;- list(</span></span>
+<span id="cb14-20"><a href="#cb14-20"></a><span class="in">  id = "PATIENT",</span></span>
+<span id="cb14-21"><a href="#cb14-21"></a><span class="in">  visit = "VISIT",</span></span>
+<span id="cb14-22"><a href="#cb14-22"></a><span class="in">  expand_vars = c("BASVAL", "THERAPY"),</span></span>
+<span id="cb14-23"><a href="#cb14-23"></a><span class="in">  group = "THERAPY"</span></span>
+<span id="cb14-24"><a href="#cb14-24"></a><span class="in">)</span></span>
+<span id="cb14-25"><a href="#cb14-25"></a><span class="in">covariates &lt;- list(</span></span>
+<span id="cb14-26"><a href="#cb14-26"></a><span class="in">  draws = c("BASVAL*VISIT", "THERAPY*VISIT"),</span></span>
+<span id="cb14-27"><a href="#cb14-27"></a><span class="in">  analyse = c("BASVAL")</span></span>
+<span id="cb14-28"><a href="#cb14-28"></a><span class="in">)</span></span>
+<span id="cb14-29"><a href="#cb14-29"></a></span>
+<span id="cb14-30"><a href="#cb14-30"></a><span class="in">data &lt;- data %&gt;%</span></span>
+<span id="cb14-31"><a href="#cb14-31"></a><span class="in">  dplyr::select(PATIENT, THERAPY, VISIT, BASVAL, THERAPY, CHANGE) %&gt;%</span></span>
+<span id="cb14-32"><a href="#cb14-32"></a><span class="in">  dplyr::mutate(dplyr::across(.cols = vars$id, ~ as.factor(.x))) %&gt;%</span></span>
+<span id="cb14-33"><a href="#cb14-33"></a><span class="in">  dplyr::arrange(dplyr::across(.cols = c(vars$id, vars$visit)))</span></span>
+<span id="cb14-34"><a href="#cb14-34"></a></span>
+<span id="cb14-35"><a href="#cb14-35"></a><span class="in"># Use expand_locf to add rows corresponding to visits with missing outcomes to the dataset</span></span>
+<span id="cb14-36"><a href="#cb14-36"></a><span class="in">data_full &lt;- do.call(</span></span>
+<span id="cb14-37"><a href="#cb14-37"></a><span class="in">  expand_locf,</span></span>
+<span id="cb14-38"><a href="#cb14-38"></a><span class="in">  args = list(</span></span>
+<span id="cb14-39"><a href="#cb14-39"></a><span class="in">    data = data,</span></span>
+<span id="cb14-40"><a href="#cb14-40"></a><span class="in">    vars = c(vars$expand_vars, vars$group),</span></span>
+<span id="cb14-41"><a href="#cb14-41"></a><span class="in">    group = vars$id,</span></span>
+<span id="cb14-42"><a href="#cb14-42"></a><span class="in">    order = c(vars$id, vars$visit)</span></span>
+<span id="cb14-43"><a href="#cb14-43"></a><span class="in">  ) %&gt;%</span></span>
+<span id="cb14-44"><a href="#cb14-44"></a><span class="in">    append(lapply(data[c(vars$id, vars$visit)], levels))</span></span>
+<span id="cb14-45"><a href="#cb14-45"></a><span class="in">)</span></span>
+<span id="cb14-46"><a href="#cb14-46"></a></span>
+<span id="cb14-47"><a href="#cb14-47"></a><span class="in">data_full &lt;- data_full %&gt;%</span></span>
+<span id="cb14-48"><a href="#cb14-48"></a><span class="in">  dplyr::group_by(dplyr::across(vars$id)) %&gt;%</span></span>
+<span id="cb14-49"><a href="#cb14-49"></a><span class="in">  dplyr::mutate(!!vars$group := Filter(Negate(is.na), .data[[vars$group]])[1])</span></span>
+<span id="cb14-50"><a href="#cb14-50"></a></span>
+<span id="cb14-51"><a href="#cb14-51"></a><span class="in"># there are duplicates - use first value</span></span>
+<span id="cb14-52"><a href="#cb14-52"></a><span class="in">data_full &lt;- data_full %&gt;%</span></span>
+<span id="cb14-53"><a href="#cb14-53"></a><span class="in">  dplyr::group_by(dplyr::across(c(vars$id, vars$group, vars$visit))) %&gt;%</span></span>
+<span id="cb14-54"><a href="#cb14-54"></a><span class="in">  dplyr::slice(1) %&gt;%</span></span>
+<span id="cb14-55"><a href="#cb14-55"></a><span class="in">  dplyr::ungroup()</span></span>
+<span id="cb14-56"><a href="#cb14-56"></a><span class="in"># need to have a single ID column</span></span>
+<span id="cb14-57"><a href="#cb14-57"></a><span class="in">data_full &lt;- data_full %&gt;%</span></span>
+<span id="cb14-58"><a href="#cb14-58"></a><span class="in">  tidyr::unite("TMP_ID", dplyr::all_of(vars$id), sep = "_#_", remove = FALSE) %&gt;%</span></span>
+<span id="cb14-59"><a href="#cb14-59"></a><span class="in">  dplyr::mutate(TMP_ID = as.factor(TMP_ID))</span></span>
+<span id="cb14-60"><a href="#cb14-60"></a><span class="in">```</span></span>
+<span id="cb14-61"><a href="#cb14-61"></a></span>
+<span id="cb14-62"><a href="#cb14-62"></a>::: panel-tabset</span>
+<span id="cb14-63"><a href="#cb14-63"></a><span class="fu">#### Creating Intercurrent Event Data</span></span>
+<span id="cb14-64"><a href="#cb14-64"></a></span>
+<span id="cb14-65"><a href="#cb14-65"></a>Set the imputation strategy to <span class="in">`"MAR"`</span> for each patient with at least one missing observation.</span>
+<span id="cb14-66"><a href="#cb14-66"></a></span>
+<span id="cb14-69"><a href="#cb14-69"></a><span class="in">```{r}</span></span>
+<span id="cb14-70"><a href="#cb14-70"></a><span class="co">#| code-fold: show</span></span>
+<span id="cb14-71"><a href="#cb14-71"></a></span>
+<span id="cb14-72"><a href="#cb14-72"></a>data_ice <span class="ot">&lt;-</span> data_full <span class="sc">%&gt;%</span></span>
+<span id="cb14-73"><a href="#cb14-73"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(dplyr<span class="sc">::</span><span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">c</span>(<span class="st">"TMP_ID"</span>, vars<span class="sc">$</span>visit))) <span class="sc">%&gt;%</span></span>
+<span id="cb14-74"><a href="#cb14-74"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="fu">is.na</span>(.data[[missing_var]])) <span class="sc">%&gt;%</span></span>
+<span id="cb14-75"><a href="#cb14-75"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(TMP_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb14-76"><a href="#cb14-76"></a>  dplyr<span class="sc">::</span><span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-77"><a href="#cb14-77"></a>  dplyr<span class="sc">::</span><span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb14-78"><a href="#cb14-78"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="fu">all_of</span>(<span class="fu">c</span>(<span class="st">"TMP_ID"</span>, vars<span class="sc">$</span>visit))) <span class="sc">%&gt;%</span></span>
+<span id="cb14-79"><a href="#cb14-79"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">strategy =</span> <span class="st">"MAR"</span>)</span>
+<span id="cb14-80"><a href="#cb14-80"></a><span class="in">```</span></span>
+<span id="cb14-81"><a href="#cb14-81"></a></span>
+<span id="cb14-82"><a href="#cb14-82"></a><span class="fu">## Draws</span></span>
+<span id="cb14-83"><a href="#cb14-83"></a></span>
+<span id="cb14-84"><a href="#cb14-84"></a>The <span class="in">`rbmi::draws()`</span> function fits the imputation models and stores the corresponding parameter estimates or Bayesian posterior parameter draws. The three main inputs to the <span class="in">`rbmi::draws()`</span> function are:</span>
+<span id="cb14-85"><a href="#cb14-85"></a></span>
+<span id="cb14-86"><a href="#cb14-86"></a><span class="ss">-   </span><span class="in">`data`</span> - The primary longitudinal data.frame containing the outcome variable and all covariates.</span>
+<span id="cb14-87"><a href="#cb14-87"></a><span class="ss">-   </span><span class="in">`data_ice`</span> - A data.frame which specifies the first visit affected by an intercurrent event (ICE) and the imputation strategy for handling missing outcome data after the ICE. At most one ICE which is to be imputed by a non-MAR strategy is allowed per subject.</span>
+<span id="cb14-88"><a href="#cb14-88"></a><span class="ss">-   </span><span class="in">`method`</span> - The statistical method used to fit the imputation models and to create imputed datasets.</span>
+<span id="cb14-89"><a href="#cb14-89"></a></span>
+<span id="cb14-90"><a href="#cb14-90"></a><span class="fu">#### Define Key Variables</span></span>
+<span id="cb14-91"><a href="#cb14-91"></a></span>
+<span id="cb14-92"><a href="#cb14-92"></a>Define the names of key variables in our dataset and the covariates included in the imputation model using <span class="in">`rbmi::set_vars()`</span>. Note that the <span class="in">`covariates`</span> argument can also include interaction terms.</span>
+<span id="cb14-93"><a href="#cb14-93"></a></span>
+<span id="cb14-96"><a href="#cb14-96"></a><span class="in">```{r}</span></span>
+<span id="cb14-97"><a href="#cb14-97"></a><span class="co">#| code-fold: show</span></span>
+<span id="cb14-98"><a href="#cb14-98"></a></span>
+<span id="cb14-99"><a href="#cb14-99"></a>debug_mode <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb14-100"><a href="#cb14-100"></a></span>
+<span id="cb14-101"><a href="#cb14-101"></a>draws_vars <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">set_vars</span>(</span>
+<span id="cb14-102"><a href="#cb14-102"></a>  <span class="at">outcome =</span> missing_var,</span>
+<span id="cb14-103"><a href="#cb14-103"></a>  <span class="at">visit =</span> vars<span class="sc">$</span>visit,</span>
+<span id="cb14-104"><a href="#cb14-104"></a>  <span class="at">group =</span> vars<span class="sc">$</span>group,</span>
+<span id="cb14-105"><a href="#cb14-105"></a>  <span class="at">covariates =</span> covariates<span class="sc">$</span>draws</span>
+<span id="cb14-106"><a href="#cb14-106"></a>)</span>
+<span id="cb14-107"><a href="#cb14-107"></a>draws_vars<span class="sc">$</span>subjid <span class="ot">&lt;-</span> <span class="st">"TMP_ID"</span></span>
+<span id="cb14-108"><a href="#cb14-108"></a><span class="in">```</span></span>
+<span id="cb14-109"><a href="#cb14-109"></a></span>
+<span id="cb14-110"><a href="#cb14-110"></a>Define which imputation method to use, then create samples for the imputation parameters by running the <span class="in">`draws()`</span> function.</span>
+<span id="cb14-111"><a href="#cb14-111"></a></span>
+<span id="cb14-112"><a href="#cb14-112"></a></span>
+<span id="cb14-113"><a href="#cb14-113"></a><span class="in">```{r, warning = FALSE}</span></span>
+<span id="cb14-114"><a href="#cb14-114"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb14-115"><a href="#cb14-115"></a></span>
+<span id="cb14-116"><a href="#cb14-116"></a><span class="in">set.seed(123)</span></span>
+<span id="cb14-117"><a href="#cb14-117"></a><span class="in">draws_method &lt;- method_bayes()</span></span>
+<span id="cb14-118"><a href="#cb14-118"></a></span>
+<span id="cb14-119"><a href="#cb14-119"></a><span class="in">draws_obj &lt;- rbmi::draws(</span></span>
+<span id="cb14-120"><a href="#cb14-120"></a><span class="in">  data = data_full,</span></span>
+<span id="cb14-121"><a href="#cb14-121"></a><span class="in">  data_ice = data_ice,</span></span>
+<span id="cb14-122"><a href="#cb14-122"></a><span class="in">  vars = draws_vars,</span></span>
+<span id="cb14-123"><a href="#cb14-123"></a><span class="in">  method = draws_method</span></span>
+<span id="cb14-124"><a href="#cb14-124"></a><span class="in">)</span></span>
+<span id="cb14-125"><a href="#cb14-125"></a><span class="in">```</span></span>
+<span id="cb14-126"><a href="#cb14-126"></a></span>
+<span id="cb14-127"><a href="#cb14-127"></a><span class="fu">## Impute</span></span>
+<span id="cb14-128"><a href="#cb14-128"></a></span>
+<span id="cb14-129"><a href="#cb14-129"></a>The next step is to use the parameters from the imputation model to generate the imputed datasets. This is done via the <span class="in">`rbmi::impute()`</span> function. The function only has two key inputs: the imputation model output from <span class="in">`rbmi::draws()`</span> and the reference groups relevant to reference-based imputation methods. It's usage is thus:</span>
+<span id="cb14-130"><a href="#cb14-130"></a></span>
+<span id="cb14-133"><a href="#cb14-133"></a><span class="in">```{r}</span></span>
+<span id="cb14-134"><a href="#cb14-134"></a><span class="co">#| code-fold: show</span></span>
+<span id="cb14-135"><a href="#cb14-135"></a></span>
+<span id="cb14-136"><a href="#cb14-136"></a>impute_references <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"DRUG"</span> <span class="ot">=</span> <span class="st">"PLACEBO"</span>, <span class="st">"PLACEBO"</span> <span class="ot">=</span> <span class="st">"PLACEBO"</span>)</span>
+<span id="cb14-137"><a href="#cb14-137"></a></span>
+<span id="cb14-138"><a href="#cb14-138"></a>impute_obj <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">impute</span>(</span>
+<span id="cb14-139"><a href="#cb14-139"></a>  draws_obj,</span>
+<span id="cb14-140"><a href="#cb14-140"></a>  <span class="at">references =</span> impute_references</span>
+<span id="cb14-141"><a href="#cb14-141"></a>)</span>
+<span id="cb14-142"><a href="#cb14-142"></a><span class="in">```</span></span>
+<span id="cb14-143"><a href="#cb14-143"></a></span>
+<span id="cb14-144"><a href="#cb14-144"></a><span class="fu">## Analyze</span></span>
+<span id="cb14-145"><a href="#cb14-145"></a></span>
+<span id="cb14-146"><a href="#cb14-146"></a>The next step is to run the analysis model on each imputed dataset. This is done by defining an analysis function and then calling <span class="in">`rbmi::analyse()`</span> to apply this function to each imputed dataset.</span>
+<span id="cb14-147"><a href="#cb14-147"></a></span>
+<span id="cb14-150"><a href="#cb14-150"></a><span class="in">```{r}</span></span>
+<span id="cb14-151"><a href="#cb14-151"></a><span class="co">#| code-fold: show</span></span>
+<span id="cb14-152"><a href="#cb14-152"></a></span>
+<span id="cb14-153"><a href="#cb14-153"></a><span class="co"># Define analysis model</span></span>
+<span id="cb14-154"><a href="#cb14-154"></a>analyse_fun <span class="ot">&lt;-</span> ancova</span>
+<span id="cb14-155"><a href="#cb14-155"></a></span>
+<span id="cb14-156"><a href="#cb14-156"></a>ref_levels <span class="ot">&lt;-</span> <span class="fu">levels</span>(impute_obj<span class="sc">$</span>data<span class="sc">$</span>group[[<span class="dv">1</span>]])</span>
+<span id="cb14-157"><a href="#cb14-157"></a><span class="fu">names</span>(ref_levels) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ref"</span>, <span class="st">"alt"</span>)</span>
+<span id="cb14-158"><a href="#cb14-158"></a></span>
+<span id="cb14-159"><a href="#cb14-159"></a>analyse_obj <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">analyse</span>(</span>
+<span id="cb14-160"><a href="#cb14-160"></a>  <span class="at">imputations =</span> impute_obj,</span>
+<span id="cb14-161"><a href="#cb14-161"></a>  <span class="at">fun =</span> analyse_fun,</span>
+<span id="cb14-162"><a href="#cb14-162"></a>  <span class="at">vars =</span> rbmi<span class="sc">::</span><span class="fu">set_vars</span>(</span>
+<span id="cb14-163"><a href="#cb14-163"></a>    <span class="at">subjid =</span> <span class="st">"TMP_ID"</span>,</span>
+<span id="cb14-164"><a href="#cb14-164"></a>    <span class="at">outcome =</span> missing_var,</span>
+<span id="cb14-165"><a href="#cb14-165"></a>    <span class="at">visit =</span> vars<span class="sc">$</span>visit,</span>
+<span id="cb14-166"><a href="#cb14-166"></a>    <span class="at">group =</span> vars<span class="sc">$</span>group,</span>
+<span id="cb14-167"><a href="#cb14-167"></a>    <span class="at">covariates =</span> covariates<span class="sc">$</span>analyse</span>
+<span id="cb14-168"><a href="#cb14-168"></a>  )</span>
+<span id="cb14-169"><a href="#cb14-169"></a>)</span>
+<span id="cb14-170"><a href="#cb14-170"></a><span class="in">```</span></span>
+<span id="cb14-171"><a href="#cb14-171"></a></span>
+<span id="cb14-172"><a href="#cb14-172"></a><span class="fu">## Pool</span></span>
+<span id="cb14-173"><a href="#cb14-173"></a></span>
+<span id="cb14-174"><a href="#cb14-174"></a>The <span class="in">`rbmi::pool()`</span> function can be used to summarize the analysis results across multiple imputed datasets to provide an overall statistic with a standard error, confidence intervals and a p-value for the hypothesis test of the null hypothesis that the effect is equal to 0. Using the <span class="in">`broom::tidy()`</span> function the <span class="in">`rbmi`</span> final results are reshaped.</span>
+<span id="cb14-175"><a href="#cb14-175"></a></span>
+<span id="cb14-178"><a href="#cb14-178"></a><span class="in">```{r}</span></span>
+<span id="cb14-179"><a href="#cb14-179"></a><span class="co">#| code-fold: show</span></span>
+<span id="cb14-180"><a href="#cb14-180"></a></span>
+<span id="cb14-181"><a href="#cb14-181"></a><span class="fu">library</span>(broom)</span>
+<span id="cb14-182"><a href="#cb14-182"></a></span>
+<span id="cb14-183"><a href="#cb14-183"></a>pool_obj <span class="ot">&lt;-</span> rbmi<span class="sc">::</span><span class="fu">pool</span>(</span>
+<span id="cb14-184"><a href="#cb14-184"></a>  <span class="at">results =</span> analyse_obj,</span>
+<span id="cb14-185"><a href="#cb14-185"></a>  <span class="at">conf.level =</span> <span class="fl">0.95</span>,</span>
+<span id="cb14-186"><a href="#cb14-186"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"less"</span>, <span class="st">"greater"</span>),</span>
+<span id="cb14-187"><a href="#cb14-187"></a>  <span class="at">type =</span> <span class="fu">c</span>(<span class="st">"percentile"</span>, <span class="st">"normal"</span>)</span>
+<span id="cb14-188"><a href="#cb14-188"></a>)</span>
+<span id="cb14-189"><a href="#cb14-189"></a></span>
+<span id="cb14-190"><a href="#cb14-190"></a>df <span class="ot">&lt;-</span> <span class="fu">tidy</span>(pool_obj)</span>
+<span id="cb14-191"><a href="#cb14-191"></a>df</span>
+<span id="cb14-192"><a href="#cb14-192"></a><span class="in">```</span></span>
+<span id="cb14-193"><a href="#cb14-193"></a></span>
+<span id="cb14-194"><a href="#cb14-194"></a><span class="fu">## Create Output</span></span>
+<span id="cb14-195"><a href="#cb14-195"></a></span>
+<span id="cb14-196"><a href="#cb14-196"></a>Finally, use functions from the <span class="in">`rtables`</span> and <span class="in">`tern`</span> packages to generate a nicely formatted <span class="in">`rtable`</span> object.</span>
+<span id="cb14-197"><a href="#cb14-197"></a></span>
+<span id="cb14-198"><a href="#cb14-198"></a><span class="in">```{r variant1, test = list(result_v1 = "result")}</span></span>
+<span id="cb14-199"><a href="#cb14-199"></a><span class="in">result &lt;- basic_table() %&gt;%</span></span>
+<span id="cb14-200"><a href="#cb14-200"></a><span class="in">  split_cols_by("group", ref_group = levels(df$group)[1]) %&gt;%</span></span>
+<span id="cb14-201"><a href="#cb14-201"></a><span class="in">  split_rows_by("visit", split_label = "Visit", label_pos = "topleft") %&gt;%</span></span>
+<span id="cb14-202"><a href="#cb14-202"></a><span class="in">  summarize_rbmi() %&gt;%</span></span>
+<span id="cb14-203"><a href="#cb14-203"></a><span class="in">  build_table(df)</span></span>
+<span id="cb14-204"><a href="#cb14-204"></a><span class="in">result</span></span>
+<span id="cb14-205"><a href="#cb14-205"></a><span class="in">```</span></span>
+<span id="cb14-206"><a href="#cb14-206"></a></span>
+<span id="cb14-207"><a href="#cb14-207"></a><span class="fu">## Data Setup</span></span>
+<span id="cb14-208"><a href="#cb14-208"></a></span>
+<span id="cb14-209"><a href="#cb14-209"></a>We use a publicly available example dataset from an antidepressant clinical trial of an active drug versus placebo from the <span class="in">`rbmi`</span> package. The relevant endpoint is the Hamilton 17-item depression rating scale (<span class="in">`HAMD17`</span>) which was assessed at baseline and at weeks 1, 2, 4, and 6. Study drug discontinuation occurred in 24% of subjects from the active drug and 26% of subjects from placebo. All data after study drug discontinuation are missing and there is a single additional intermittent missing observation.</span>
+<span id="cb14-210"><a href="#cb14-210"></a></span>
+<span id="cb14-211"><a href="#cb14-211"></a><span class="in">```{r setup}</span></span>
+<span id="cb14-212"><a href="#cb14-212"></a><span class="in">#| code-fold: show</span></span>
+<span id="cb14-213"><a href="#cb14-213"></a><span class="in">```</span></span>
+<span id="cb14-214"><a href="#cb14-214"></a>:::</span>
+<span id="cb14-215"><a href="#cb14-215"></a></span>
+<span id="cb14-216"><a href="#cb14-216"></a>{{&lt; include ../../_utils/save_results.qmd &gt;}}</span>
+<span id="cb14-217"><a href="#cb14-217"></a></span>
+<span id="cb14-218"><a href="#cb14-218"></a>{{&lt; include ../../repro.qmd &gt;}}</span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
