@@ -12,7 +12,7 @@ Sys.setenv("TLG_CATALOG_PKG_TEST_DATA_PATH" = normalizePath(test_data_path))
 # (iv) run `devtools::test(filter = "<article_name>")`
 if_book_exists <- file.exists(test_book_path)
 if_render_book <- FALSE # Remember to change this to FALSE if you want to render articles (otherwise loop)
-if_render_articles <- FALSE
+if_render_articles <- TRUE
 if_test_plots <- FALSE # Additional option for optional skip of local plot tests
 # Example for render articles (NOTE: KEEP THESE COMMENTED WHEN RUNNING!!):
 # setwd("package")
